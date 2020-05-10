@@ -1,0 +1,21 @@
+package com.github.skjolber.jsonfilter.base;
+
+public abstract class SingleCharArrayFullPathJsonFilter extends AbstractSinglePathJsonFilter {
+
+	protected final char[][] paths;
+	
+	public SingleCharArrayFullPathJsonFilter(int maxStringLength, String expression, FilterType type) {
+		super(maxStringLength, expression, type);
+		
+		if(expression.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+			throw new IllegalArgumentException("Any element expression not supported");
+		}
+
+		char[][] paths = toCharArray(parse(expression));
+		for(int i = 0; i < paths.length; i++) {
+			paths[i] = intern(paths[i]);
+		}
+		this.paths = paths;
+	}
+	
+}
