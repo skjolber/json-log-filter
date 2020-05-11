@@ -81,38 +81,36 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends SingleStringPath
 					matches = level - 1;
 				}
 			} else if(nextToken == JsonToken.FIELD_NAME) {
-				if(matches + 1 == level && matches < elementPaths.length) {
-					if(matchPath(parser.getCurrentName(), elementPaths[matches])) {
-						matches++;
-						
-						if(matches == elementPaths.length) {
-							generator.copyCurrentEvent(parser);
+				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {
+					matches++;
+					
+					if(matches == elementPaths.length) {
+						generator.copyCurrentEvent(parser);
 
-							nextToken = parser.nextToken();
-							if(nextToken.isScalarValue()) {
-								if(filterType == FilterType.ANON) {
-									generator.writeString(CharArrayFilter.FILTER_ANONYMIZE);
-								} else {
-									generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
-								}
+						nextToken = parser.nextToken();
+						if(nextToken.isScalarValue()) {
+							if(filterType == FilterType.ANON) {
+								generator.writeString(CharArrayFilter.FILTER_ANONYMIZE);
 							} else {
-								// array or object
-								if(filterType == FilterType.ANON) {
-									generator.copyCurrentEvent(parser);
-
-									// keep structure, but mark all values
-									anonymizeChildren(parser, generator);
-								} else {
-
-									generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
-									parser.skipChildren(); // skip children
-								}
+								generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
 							}
+						} else {
+							// array or object
+							if(filterType == FilterType.ANON) {
+								generator.copyCurrentEvent(parser);
 
-							matches--;
-							
-							continue;
+								// keep structure, but mark all values
+								anonymizeChildren(parser, generator);
+							} else {
+
+								generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
+								parser.skipChildren(); // skip children
+							}
 						}
+
+						matches--;
+						
+						continue;
 					}
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {

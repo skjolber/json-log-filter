@@ -70,25 +70,20 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 	}
 
 	protected boolean isAnyPrefix(String[] filters) {
-		if(filters != null) {
-			for(String string : filters) {
-				if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return true;
-				}
+		return filters != null && hasAny(filters);
+	}
+
+	private boolean hasAny(String[] filters) {
+		for(String string : filters) {
+			if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+				return true;
 			}
 		}
 		return false;
 	}
 
 	protected boolean isFullPrefix(String[] filters) {
-		if(filters != null) {
-			for(String string : filters) {
-				if(!string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return filters != null && !hasAny(filters);
 	}
 	
 

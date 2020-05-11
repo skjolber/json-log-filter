@@ -69,7 +69,7 @@ public class StringBuilderWriter extends Writer {
      * @param  off   Offset from which to start writing characters
      * @param  len   Number of characters to write
      */
-    public void write(char cbuf[], int off, int len) {
+    public void write(char[] cbuf, int off, int len) {
     	if(cbuf == null) {
     		throw new NullPointerException();
     	}
@@ -97,6 +97,7 @@ public class StringBuilderWriter extends Writer {
      * @param  off  Offset from which to start writing characters
      * @param  len  Number of characters to write
      */
+    @Override
     public void write(String str, int off, int len)  {
         buf.append(str.substring(off, off + len));
     }

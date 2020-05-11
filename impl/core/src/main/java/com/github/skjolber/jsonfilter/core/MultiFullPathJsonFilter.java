@@ -85,41 +85,39 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						nextOffset++;
 
 						// match again any higher filter
-						if(level < elementFilterStart.length) {
-							if(matchElements(chars, offset + 1, mark, level, elementMatches)) {
-								for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-									if(elementMatches[i] == level) {
-										// matched
-										if(elementFilters[i].filterType == FilterType.PRUNE) {
-											// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-											while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-												nextOffset++;
-											}
-											filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+						if(level < elementFilterStart.length && matchElements(chars, offset + 1, mark, level, elementMatches)) {
+							for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
+								if(elementMatches[i] == level) {
+									// matched
+									if(elementFilters[i].filterType == FilterType.PRUNE) {
+										// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
+										while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+											nextOffset++;
+										}
+										filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+										
+										constrainMatches(elementMatches, level - 1);
+									} else {
+										// special case: anon scalar values
+										if(chars[nextOffset] == '"') {
+											// quoted value
+											offset = CharArrayFilter.scanBeyondQuotedValue(chars, nextOffset);
 											
-											constrainMatches(elementMatches, level - 1);
-										} else {
-											// special case: anon scalar values
-											if(chars[nextOffset] == '"') {
-												// quoted value
-												offset = CharArrayFilter.scanBeyondQuotedValue(chars, nextOffset);
-												
-												filter.addAnon(nextOffset, offset);
-											} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-												// scalar value
-												offset = CharArrayFilter.scanBeyondUnquotedValue(chars, nextOffset);
+											filter.addAnon(nextOffset, offset);
+										} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
+											// scalar value
+											offset = CharArrayFilter.scanBeyondUnquotedValue(chars, nextOffset);
 
-												filter.addAnon(nextOffset, offset);
-											} else {
-												// filter as tree
-												offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
-											}
-											
-											constrainMatches(elementMatches, level - 1);
+											filter.addAnon(nextOffset, offset);
+										} else {
+											// filter as tree
+											offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 										}
 										
-										continue main;
+										constrainMatches(elementMatches, level - 1);
 									}
+									
+									continue main;
 								}
 							}
 						}

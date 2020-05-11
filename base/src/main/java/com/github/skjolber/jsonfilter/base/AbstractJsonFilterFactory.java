@@ -18,7 +18,6 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.util.List;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
 
 public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
@@ -165,10 +164,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 
 	@Override
 	public boolean isPropertySupported(String name) {
-		if(name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName())) {
-			return true;
-		}
-		return false;
+		return name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName());
 	}
 	
 }

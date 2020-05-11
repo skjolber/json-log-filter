@@ -85,18 +85,16 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(level < elementFilterStart.length) {
-					if(matchElements(parser.getCurrentName(), level, elementMatches)) {
-						for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-							if(elementMatches[i] == level) {
-								// matched
-								if(elementFilters[i].filterType == FilterType.ANON) {
-									anon = true;
-								} else {
-									prune = true;
-									
-									break;
-								}
+				if(level < elementFilterStart.length && matchElements(parser.getCurrentName(), level, elementMatches)) {
+					for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
+						if(elementMatches[i] == level) {
+							// matched
+							if(elementFilters[i].filterType == FilterType.ANON) {
+								anon = true;
+							} else {
+								prune = true;
+								
+								break;
 							}
 						}
 					}
