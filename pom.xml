@@ -234,6 +234,22 @@
 							<include>com/github/skjolber/jsonfilter/jackson/*</include>
 						</includes>
 					</configuration>
+					<executions>
+			            <execution>
+			                <id>prepare-agent</id>
+			                <phase>initialize</phase>
+			                <goals>
+			                    <goal>prepare-agent</goal>
+			                </goals>
+			            </execution>
+			            <execution>
+			                <id>report</id>
+			                <goals>
+			                    <goal>report-aggregate</goal>
+			                </goals>
+			                <phase>verify</phase>
+			            </execution>					
+					</executions>
 					<!-- 
 					<executions>
 						<execution>
