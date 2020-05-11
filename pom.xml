@@ -222,6 +222,7 @@
 							<exclude>com/github/skjolber/jsonfilter/jmh/fileutils/*</exclude>
 							<exclude>com/github/skjolber/jsonfilter/jmh/filter/*</exclude>
 							<exclude>com/github/skjolber/jsonfilter/jmh/utils/*</exclude>
+							<exclude>com/github/skjolber/jsonfilter/jmh/test/*</exclude>
 						</excludes>
 					</configuration>
 					<executions>
