@@ -26,7 +26,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
-					case '{' : {
+					case '{' :
 						level++;
 						
 						if(level > elementPaths.length) {
@@ -35,8 +35,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 							level--;
 						}
 						break;
-					}
-					case '}' : {
+					case '}' :
 						level--;
 						
 						if(matches >= level) {
@@ -44,8 +43,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						}
 						
 						break;
-					}
-					case '"' : { 
+					case '"' :
 						if(matches + 1 < level) {
 							// not necessary to check if field or value; missing sub-path
 							// so if this is a key, there will never be a full match
@@ -116,7 +114,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						}
 						
 						continue;
-					}
+						
 					default :
 				}
 				offset++;

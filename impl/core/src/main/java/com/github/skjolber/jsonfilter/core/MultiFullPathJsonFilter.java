@@ -29,7 +29,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 			main:
 			while(offset < length) {
 				switch(chars[offset]) {
-					case '{' : {
+					case '{' :
 						level++;
 						
 						if(level > elementFilterStart.length) {
@@ -40,8 +40,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 							continue;
 						}
 						break;
-					}
-					case '}' : {
+					case '}' :
 						level--;
 						
 						if(level < elementFilterStart.length) {
@@ -49,7 +48,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						}
 						
 						break;
-					}
 					case '"' : { 
 						if(level >= elementFilterStart.length) {
 							// not necessary to check if field or value; missing sub-path

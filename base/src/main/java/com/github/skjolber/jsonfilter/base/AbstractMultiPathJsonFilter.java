@@ -63,9 +63,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 	}
 
-	protected static final Comparator<AbsolutePathFilter> comparator = (AbsolutePathFilter o1, AbsolutePathFilter o2) -> {
-		return Integer.compare(o1.getLength(), o2.getLength());
-	};
+	protected static final Comparator<AbsolutePathFilter> comparator = (AbsolutePathFilter o1, AbsolutePathFilter o2) -> Integer.compare(o1.getLength(), o2.getLength());
 	
 	/** absolute path expressions */
 	protected final AbsolutePathFilter[] elementFilters;

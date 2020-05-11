@@ -24,12 +24,11 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
-					case '{' : {
+					case '{' : 
 						level++;
 						
 						break;
-					}
-					case '}' : {
+					case '}' :
 						level--;
 						
 						if(level < elementFilterStart.length) {
@@ -37,8 +36,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						}
 						
 						break;
-					}
-					case '"' : { 
+					case '"' :  
 						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
 
 						// is this a field name or a value? A field name must be followed by a colon
@@ -113,7 +111,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						}
 						
 						continue;
-					}
+						
 					default :
 				}
 				offset++;

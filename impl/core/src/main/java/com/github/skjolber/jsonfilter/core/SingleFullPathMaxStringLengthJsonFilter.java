@@ -28,12 +28,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
-					case '{' : {
+					case '{' :
 						level++;
 						
 						break;
-					}
-					case '}' : {
+					case '}' :
 						level--;
 						
 						if(matches >= level) {
@@ -41,8 +40,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						}
 						
 						break;
-					}
-					case '"' : { 
+					case '"' :
 						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
 
 						// is this a field name or a value? A field name must be followed by a colon
@@ -115,7 +113,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						}
 						
 						continue;
-					}
+					
 					default :
 				}
 				offset++;
