@@ -9,6 +9,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends SingleCharArrayFull
 		super(maxStringLength, expression, type);
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
@@ -119,6 +120,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends SingleCharArrayFull
 						
 						continue;
 					}
+					default :
 				}
 				offset++;
 			}

@@ -28,14 +28,6 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected String[] anonymizeFilters;
 	protected String[] pruneFilters;
 
-	/**
-	 * Spawn a filter. 
-	 * 
-	 * @return new, or previously created, thread-safe filter
-	 */
-	
-	public abstract JsonFilter newJsonFilter();
-
 	protected boolean isSinglePruneFilter() {
 		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters.length == 1;
 	}

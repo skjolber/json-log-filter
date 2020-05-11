@@ -210,6 +210,7 @@ public class StringBuilderWriter extends Writer {
      * Flush the stream.
      */
     public void flush() {
+    	// NOOP
     }
 
     /**
@@ -218,6 +219,7 @@ public class StringBuilderWriter extends Writer {
      * an <tt>IOException</tt>.
      */
     public void close() throws IOException {
+    	// NOOP
     }
 
 }

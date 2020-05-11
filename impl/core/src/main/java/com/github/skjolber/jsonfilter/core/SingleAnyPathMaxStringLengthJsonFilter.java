@@ -8,7 +8,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends SingleCharArrayAnyPa
 	public SingleAnyPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type) {
 		super(maxStringLength, expression, type);
 	}
-
+	
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 

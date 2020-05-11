@@ -63,12 +63,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 	}
 
-	protected static final Comparator<AbsolutePathFilter> comparator = new Comparator<AbsolutePathFilter>() {
-
-		@Override
-		public int compare(AbsolutePathFilter o1, AbsolutePathFilter o2) {
-			return Integer.compare(o1.getLength(), o2.getLength());
-		}
+	protected static final Comparator<AbsolutePathFilter> comparator = (AbsolutePathFilter o1, AbsolutePathFilter o2) -> {
+		return Integer.compare(o1.getLength(), o2.getLength());
 	};
 	
 	/** absolute path expressions */
@@ -152,10 +148,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	
 	protected boolean matchAnon(int[] matches, int level) {
 		for(int i = elementFilterStart[level]; i < matches.length; i++) {
-			if(matches[i] == elementFilters[i].getLength()) {
-				if(elementFilters[i].getFilterType() == FilterType.ANON) {
-					return true;
-				}
+			if(matches[i] == elementFilters[i].getLength() && elementFilters[i].getFilterType() == FilterType.ANON) {
+				return true;
 			}
 		}
 		return false;

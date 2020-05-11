@@ -125,13 +125,11 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 					
 					continue;
 				}
-			} else if(nextToken == JsonToken.VALUE_STRING) {
-				if(parser.getTextLength() > maxStringLength) {
-					String text = parser.getText();
-					generator.writeString(text.substring(0, maxStringLength) + CharArrayFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
-					
-					continue;
-				}
+			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				String text = parser.getText();
+				generator.writeString(text.substring(0, maxStringLength) + CharArrayFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+				
+				continue;
 			}
 
 			generator.copyCurrentEvent(parser);

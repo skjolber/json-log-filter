@@ -9,6 +9,7 @@ public class SingleFullPathJsonFilter extends SingleCharArrayFullPathJsonFilter 
 		super(-1, expression, type);
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		int matches = 0;
 
@@ -120,6 +121,7 @@ public class SingleFullPathJsonFilter extends SingleCharArrayFullPathJsonFilter 
 						
 						continue;
 					}
+					default :
 				}
 				offset++;
 			}

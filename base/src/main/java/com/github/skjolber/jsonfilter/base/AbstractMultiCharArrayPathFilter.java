@@ -73,22 +73,5 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		return null;
 			
 	}
-	
-	/**
-	 * Note that the order or the filters establishes precedence (prune over anon).
-	 * 
-	 * @param chars JSON characters
-	 * @return the matching filter type, or null if none
-	 */
-	
-	protected FilterType matchAnyElements(final String chars) {
-		for(int i = 0; i < anyElementFilters.length; i++) {
-			if(anyElementFilters[i].pathString.equals(chars)) {
-				return anyElementFilters[i].getFilterType();
-			}
-		}
-		return null;
-			
-	}	
-	
+
 }

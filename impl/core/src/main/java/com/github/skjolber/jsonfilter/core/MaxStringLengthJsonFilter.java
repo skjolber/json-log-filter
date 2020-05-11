@@ -9,6 +9,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter {
 		super(maxStringLength);
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes

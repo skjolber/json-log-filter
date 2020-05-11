@@ -9,6 +9,7 @@ public class SingleAnyPathJsonFilter extends SingleCharArrayAnyPathJsonFilter {
 		super(-1, expression, type);
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		final char[] path = this.path;
 

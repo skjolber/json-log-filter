@@ -209,10 +209,6 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<!-- <executions> <execution> <id>resource-dependencies</id> <phase>process-test-resources</phase> 
-						<goals> <goal>unpack-dependencies</goal> </goals> <configuration> <includeArtifactIds>json-log-filter-test-resources</includeArtifactIds> 
-						<includes>**/*.*</includes> <outputDirectory>${project.build.testOutputDirectory}</outputDirectory> 
-						</configuration> </execution> </executions> -->
 				</plugin>
 				<plugin>
 					<groupId>org.jacoco</groupId>

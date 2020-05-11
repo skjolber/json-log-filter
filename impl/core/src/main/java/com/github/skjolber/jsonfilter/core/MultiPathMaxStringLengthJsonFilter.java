@@ -8,7 +8,8 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes) {
 		super(maxStringLength, anonymizes, prunes);
 	}
-
+	
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		final int[] elementFilterStart = this.elementFilterStart;
 		
@@ -126,6 +127,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 						
 						continue;
 					}
+					default :
 				}
 				offset++;
 			}

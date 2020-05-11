@@ -24,9 +24,9 @@ public interface JsonFilterFactory {
 	public static final String MAX_PATH_MATCHES = "com.skjolberg.jsonfilter.maxPathMatches";
 	
 	/**
-	 * Create new {@linkplain JsonFilter} instance.
+	 * Spawn a {@linkplain JsonFilter} instance.
 	 * 
-	 * @return newly created {@linkplain JsonFilter}
+	 * @return new, or previously created, thread-safe {@linkplain JsonFilter}
 	 */
 
 	JsonFilter newJsonFilter();

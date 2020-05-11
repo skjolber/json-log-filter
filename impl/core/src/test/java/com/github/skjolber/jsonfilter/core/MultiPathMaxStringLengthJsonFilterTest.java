@@ -70,28 +70,4 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
 	}
-	
-	@Test
-	@Disabled
-	public void testParse() throws IOException {
-		FileInputStream fin = new FileInputStream(new File("/home/skjolber/Dokumenter/cve2006.json"));
-		String resourceToString = IOUtils.toString(fin, StandardCharsets.UTF_8);
-		
-		//AbstractJsonFilter filter = new SinglePathJsonFilter(-1, -1, "/address", FilterType.ANON);
-		//AbstractJsonFilter filter = new SinglePathJsonFilter(-1, -1, "/address/city", FilterType.ANON);
-		//AbstractJsonFilter filter = new SinglePathJsonFilter(-1, -1, "/phoneNumbers", FilterType.ANON);
-		//AbstractJsonFilter filter = new SinglePathJsonFilter(-1, -1, "/parents", FilterType.ANON);
-		//AbstractJsonFilter filter = new MultiCharArrayPathFilter(new String[] {"/firstName", "/address", "/parents", ""}, new String[]{"/phoneNumbers"}) ;
-		AbstractJsonFilter filter = new MultiPathMaxStringLengthJsonFilter(64, new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"}, new String[] {"/CVE_Items/cve/references", "//version"}) ;
-		
-		char[] charArray = resourceToString.toCharArray();
-		
-		StringBuilder output = new StringBuilder();
-		
-		if(!filter.process(charArray, 0, charArray.length, output)) {
-			throw new IllegalArgumentException();
-		}
-		
-		System.out.println(output);
-	}	
 }

@@ -9,6 +9,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 		super(-1, anonymizes, prunes);
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		final int[] elementFilterStart = this.elementFilterStart;
 
@@ -70,15 +71,13 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						FilterType type = null;
 						
 						// match again any higher filter
-						if(level < elementFilterStart.length) {
-							if(matchElements(chars, offset + 1, mark, level, elementMatches)) {
-								for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-									if(elementMatches[i] == level) {
-										// matched
-										type = elementFilters[i].filterType;
-										
-										break;
-									}
+						if(level < elementFilterStart.length && matchElements(chars, offset + 1, mark, level, elementMatches)) {
+							for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
+								if(elementMatches[i] == level) {
+									// matched
+									type = elementFilters[i].filterType;
+									
+									break;
 								}
 							}
 						}
@@ -119,6 +118,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						
 						continue;
 					}
+					default :
 				}
 				offset++;
 			}

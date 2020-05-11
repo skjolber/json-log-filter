@@ -11,11 +11,10 @@ public abstract class SingleCharArrayFullPathJsonFilter extends AbstractSinglePa
 			throw new IllegalArgumentException("Any element expression not supported");
 		}
 
-		char[][] paths = toCharArray(parse(expression));
+		this.paths = toCharArray(parse(expression));
 		for(int i = 0; i < paths.length; i++) {
 			paths[i] = intern(paths[i]);
 		}
-		this.paths = paths;
 	}
 	
 }

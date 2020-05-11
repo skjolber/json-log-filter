@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -37,21 +38,14 @@ public class JsonLogFilterBuilder {
 	}	
 	
 	public JsonLogFilterBuilder withPrune(String ... filters) {
-		for(String filter : filters) {
-			pruneFilters.add(filter);
-		}
+		Collections.addAll(pruneFilters, filters);
 		
 		return this;
 	}
 	
 	public JsonLogFilterBuilder withAnonymize(String ... filters) {
-		for(String filter : filters) {
-			anonymizeFilters.add(filter);
-		}
-		
+		Collections.addAll(anonymizeFilters, filters);
 		return this;
 	}
-		
-	
 	
 }

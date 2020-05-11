@@ -23,7 +23,6 @@ public class CharArrayFilter {
 
 	private int[] filter;
 	private int filterIndex = 0;
-	private boolean[] levels;
 	
 	public CharArrayFilter() {
 		 filter = new int[DELTA_ARRAY_SIZE * 3];
@@ -249,42 +248,6 @@ public class CharArrayFilter {
 			}
 			offset++;
 		}
-	}
-	
-	public static int findMaxTextNodeLength(final char[] chars, int sourceStart, int limit, int maxTextNodeLength) {
-		// 1. read only whole code points
-		// 2. if limit is within an entity, also cut the entity
-
-		int startEntity = -1;
-		
-		for(int i = sourceStart; i < sourceStart + maxTextNodeLength; i++) {
-	        if (chars[i] >= 0xD800) {
-	        	// skip extra character, but also allow one more character
-	        	i++;
-	        	
-	        	maxTextNodeLength++;
-	        } else if(chars[i] == '&') {
-	        	startEntity = i;
-	        } else if(chars[i] == ';') {
-	        	startEntity = -1;
-	        }
-		}
-		
-		if(startEntity != -1) {
-			return startEntity - sourceStart;
-		}
-		return maxTextNodeLength;
-	}
-
-	public boolean[] getLevels() {
-		if(levels == null) {
-			levels = new boolean[32];
-		}
-		return levels;
-	}
-	
-	public void setLevels(boolean[] levels) {
-		this.levels = levels;
 	}
 	
 }

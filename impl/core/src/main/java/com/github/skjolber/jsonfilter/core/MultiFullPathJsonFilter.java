@@ -13,6 +13,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 		}
 	}
 
+	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
 		final int[] elementFilterStart = this.elementFilterStart;
 
@@ -131,6 +132,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						
 						continue;
 					}
+					default : 
 				}
 				offset++;
 			}
