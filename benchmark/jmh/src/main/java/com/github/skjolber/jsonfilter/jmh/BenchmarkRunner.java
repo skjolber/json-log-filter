@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.utils.FileDirectoryCache;
-import com.github.skjolber.jsonfilter.utils.FileDirectoryValue;
+import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryCache;
+import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 public class BenchmarkRunner {
 	

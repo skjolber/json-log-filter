@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.utils;
+package com.github.skjolber.jsonfilter.jmh.fileutils;
 
 import java.io.FileFilter;
 

@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.skjolber.json-log-filter</groupId>
 	<artifactId>json-log-filter-parent</artifactId>
@@ -52,11 +54,11 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-	    <json-path.version>2.4.0</json-path.version>
+		<json-path.version>2.4.0</json-path.version>
 
 		<aalto.version>1.2.2</aalto.version>
 		<xerces.version>2.12.0</xerces.version>
-		
+
 		<indent.version>1.0.0</indent.version>
 		<jackson.version>2.10.3</jackson.version>
 		<google-truth.version>1.0.1</google-truth.version>
@@ -78,11 +80,11 @@
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-shade-plugin.version>3.2.2</maven-shade-plugin.version>
 		<maven-war-plugin.version>3.2.3</maven-war-plugin.version>
-		
-		<!--  module descriptors -->
+
+		<!-- module descriptors -->
 		<java.module.version>11</java.module.version>
 	</properties>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -105,20 +107,20 @@
 				<artifactId>json-log-filter-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-            <dependency>
-        	    <groupId>com.github.skjolber.json-log-filter</groupId>
-            	<artifactId>json-log-filter-jackson</artifactId>
+			<dependency>
+				<groupId>com.github.skjolber.json-log-filter</groupId>
+				<artifactId>json-log-filter-jackson</artifactId>
 				<version>${project.version}</version>
-			</dependency>        
+			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>com.fasterxml.jackson.core</groupId>
-			    <artifactId>jackson-core</artifactId>
-			    <version>${jackson.version}</version>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -136,7 +138,7 @@
 				<artifactId>logback-core</artifactId>
 				<version>${logback.version}</version>
 				<scope>test</scope>
-			</dependency>			
+			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
@@ -173,13 +175,13 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-			    <groupId>com.jayway.jsonpath</groupId>
-			    <artifactId>json-path</artifactId>
-			    <version>${json-path.version}</version>
-			</dependency>		
+				<groupId>com.jayway.jsonpath</groupId>
+				<artifactId>json-path</artifactId>
+				<version>${json-path.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -205,89 +207,40 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<!--
-					<executions>
-						<execution>
-							<id>resource-dependencies</id>
-							<phase>process-test-resources</phase>
-							<goals>
-								<goal>unpack-dependencies</goal>
-							</goals>
-							<configuration>
-								<includeArtifactIds>json-log-filter-test-resources</includeArtifactIds>
-								<includes>**/*.*</includes>
-								<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-							</configuration>
-						</execution>
-					</executions>
-					 -->
+					<!-- <executions> <execution> <id>resource-dependencies</id> <phase>process-test-resources</phase> 
+						<goals> <goal>unpack-dependencies</goal> </goals> <configuration> <includeArtifactIds>json-log-filter-test-resources</includeArtifactIds> 
+						<includes>**/*.*</includes> <outputDirectory>${project.build.testOutputDirectory}</outputDirectory> 
+						</configuration> </execution> </executions> -->
 				</plugin>
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-maven-plugin.version}</version>
 					<configuration>
-						<includes>
-							<include>com/github/skjolber/jsonfilter/core/*</include>
-							<include>com/github/skjolber/jsonfilter/base/*</include>
-							<include>com/github/skjolber/jsonfilter/*</include>
-							<include>com/github/skjolber/jsonfilter/jackson/*</include>
-						</includes>
+						<excludes>
+							<exclude>com/github/skjolber/jsonfilter/jmh/*</exclude>
+							<exclude>com/github/skjolber/jsonfilter/jmh/fileutils/*</exclude>
+							<exclude>com/github/skjolber/jsonfilter/jmh/filter/*</exclude>
+							<exclude>com/github/skjolber/jsonfilter/jmh/utils/*</exclude>
+						</excludes>
 					</configuration>
 					<executions>
-			            <execution>
-			                <id>prepare-agent</id>
-			                <phase>initialize</phase>
-			                <goals>
-			                    <goal>prepare-agent</goal>
-			                </goals>
-			            </execution>
-			            <execution>
-			                <id>report</id>
-			                <goals>
-			                    <goal>report-aggregate</goal>
-			                </goals>
-			                <phase>verify</phase>
-			            </execution>					
-					</executions>
-					<!-- 
-					<executions>
 						<execution>
-							<id>default-prepare-agent</id>
+							<id>prepare-agent</id>
+							<phase>initialize</phase>
 							<goals>
 								<goal>prepare-agent</goal>
 							</goals>
 						</execution>
 						<execution>
-							<id>default-report</id>
-							<phase>prepare-package</phase>
+							<id>report</id>
 							<goals>
-								<goal>report</goal>
+								<goal>report-aggregate</goal>
 							</goals>
-						</execution>
-						<execution>
-							<id>default-check</id>
-							<goals>
-								<goal>check</goal>
-							</goals>
-							<configuration>
-								<rules>
-									<rule>
-										<element>BUNDLE</element>
-										<limits>
-											<limit>
-												<counter>INSTRUCTION</counter>
-												<value>COVEREDRATIO</value>
-												<minimum>0.75</minimum>
-											</limit>
-										</limits>
-									</rule>
-								</rules>
-							</configuration>
+							<phase>verify</phase>
 						</execution>
 					</executions>
-					 -->
-				</plugin>				
+				</plugin>
 				<plugin>
 					<groupId>org.sonatype.plugins</groupId>
 					<artifactId>nexus-staging-maven-plugin</artifactId>
@@ -430,15 +383,15 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<modules>
 		<module>api</module>
 		<module>base</module>
 		<module>impl/core</module>
 		<module>support/test</module>
 		<module>frameworks/jackson</module>
-	</modules>			
-	
+	</modules>
+
 	<profiles>
 		<profile>
 			<id>base</id>
@@ -470,34 +423,12 @@
 			</build>
 		</profile>
 		<profile>
-			<id>develop</id>
+			<id>jmh</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
-			<!-- 
-				<module>examples/cxf</module>
-				<module>examples/servlet</module>
-				<module>examples/jax-rs</module>
-				<module>benchmark/bench/servlet</module>
-				<module>benchmark/bench/cxf</module>
-				 -->
 				<module>benchmark/jmh</module>
-			</modules>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.eluder.coveralls</groupId>
-						<artifactId>coveralls-maven-plugin</artifactId>
-						<version>4.3.0</version>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>java11</id>
-			<modules>
-				<module>examples/java-11</module>
 			</modules>
 		</profile>
 	</profiles>
@@ -512,5 +443,5 @@
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
-	
+
 </project>

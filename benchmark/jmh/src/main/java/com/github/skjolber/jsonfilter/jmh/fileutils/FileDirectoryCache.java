@@ -1,7 +1,7 @@
-package com.github.skjolber.jsonfilter.utils;
+package com.github.skjolber.jsonfilter.jmh.fileutils;
 
-import static com.github.skjolber.jsonfilter.utils.FileUtils.getResourcesAsFile;
-import static com.github.skjolber.jsonfilter.utils.FileUtils.read;
+import static com.github.skjolber.jsonfilter.jmh.fileutils.FileUtils.getResourcesAsFile;
+import static com.github.skjolber.jsonfilter.jmh.fileutils.FileUtils.read;
 
 import java.io.File;
 import java.io.FileFilter;
