@@ -1,9 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.CharArrayFilter;
-import com.github.skjolber.jsonfilter.base.SingleCharArrayFullPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
 
-public class SingleFullPathMaxStringLengthJsonFilter extends SingleCharArrayFullPathJsonFilter {
+public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter {
 
 	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type) {
 		super(maxStringLength, expression, type);

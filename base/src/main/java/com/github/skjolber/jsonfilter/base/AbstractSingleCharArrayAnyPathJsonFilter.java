@@ -1,10 +1,10 @@
 package com.github.skjolber.jsonfilter.base;
 
-public abstract class SingleCharArrayAnyPathJsonFilter extends AbstractSinglePathJsonFilter {
+public abstract class AbstractSingleCharArrayAnyPathJsonFilter extends AbstractSinglePathJsonFilter {
 
 	protected final char[] path;
 	
-	public SingleCharArrayAnyPathJsonFilter(int maxStringLength, String expression, FilterType type) {
+	public AbstractSingleCharArrayAnyPathJsonFilter(int maxStringLength, String expression, FilterType type) {
 		super(maxStringLength, expression, type);
 		
 		if(!expression.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {

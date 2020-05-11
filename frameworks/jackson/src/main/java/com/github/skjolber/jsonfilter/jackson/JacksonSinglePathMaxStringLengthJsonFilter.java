@@ -7,10 +7,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.CharArrayFilter;
-import com.github.skjolber.jsonfilter.base.SingleStringPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractSingleStringFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
 
-public class JacksonSinglePathMaxStringLengthJsonFilter extends SingleStringPathJsonFilter implements JacksonJsonFilter {
+public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleStringFullPathJsonFilter implements JacksonJsonFilter {
 
 	protected final JsonFactory jsonFactory;
 

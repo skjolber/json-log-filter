@@ -54,9 +54,4 @@ public class DefaultJsonFilter implements JsonFilter {
 		
 		return true;
 	}
-	
-	public boolean getXmlDeclaration() {
-		return true;
-	}
-
 }
