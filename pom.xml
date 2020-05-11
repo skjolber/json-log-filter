@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.skjolber.json-log-filter</groupId>
-	<artifactId>json-log-filter-parent</artifactId>
+	<artifactId>parent</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>json-log-filter</name>
@@ -12,7 +12,7 @@
 
 	<organization>
 		<name>Media Skjolberg</name>
-		<url>http://skjolber.github.io</url>
+		<url>https://skjolber.github.io</url>
 	</organization>
 
 	<licenses>
@@ -91,27 +91,27 @@
 		<dependencies>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>json-log-filter-test</artifactId>
+				<artifactId>test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>json-log-filter-api</artifactId>
+				<artifactId>api</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>json-log-filter-base</artifactId>
+				<artifactId>base</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>json-log-filter-core</artifactId>
+				<artifactId>core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>json-log-filter-jackson</artifactId>
+				<artifactId>jackson</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

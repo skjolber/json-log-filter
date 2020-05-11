@@ -3,11 +3,11 @@
 
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
-		<artifactId>json-log-filter-parent</artifactId>
+		<artifactId>parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>json-log-filter-api</artifactId>
+	<artifactId>api</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>

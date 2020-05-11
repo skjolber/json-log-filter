@@ -30,7 +30,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
-    <artifactId>json-log-filter-core</artifactId>
+    <artifactId>core</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -40,7 +40,7 @@ or
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
-    <artifactId>json-log-filter-jackson</artifactId>
+    <artifactId>jackson</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
