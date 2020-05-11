@@ -45,10 +45,6 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						int mark = nextOffset - 1;
 						if(chars[nextOffset] != ':') {
 							// skip over whitespace
-							// TODO skip until common character?
-							
-							// while(chars[nextOffset] == ' ' || chars[nextOffset] == '\n' || chars[nextOffset] == '\t' || chars[nextOffset] == '\r') {
-							// while(chars[nextOffset] != ',' && chars[nextOffset] != ']' && chars[nextOffset] != '}') {
 
 							// optimization: scan for highest value
 							// space: 0x20

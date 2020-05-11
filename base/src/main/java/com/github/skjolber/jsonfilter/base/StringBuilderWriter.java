@@ -57,6 +57,7 @@ public class StringBuilderWriter extends Writer {
     /**
      * Write a single character.
      */
+    @Override
     public void write(int c) {
         buf.append((char) c);
     }
@@ -84,6 +85,7 @@ public class StringBuilderWriter extends Writer {
     /**
      * Write a string.
      */
+    @Override
     public void write(String str) {
         buf.append(str);
     }
@@ -123,6 +125,7 @@ public class StringBuilderWriter extends Writer {
      *
      * @since  1.5
      */
+    @Override
     public StringBuilderWriter append(CharSequence csq) {
         if (csq == null)
             write("null");
@@ -163,6 +166,7 @@ public class StringBuilderWriter extends Writer {
      *
      * @since  1.5
      */
+    @Override
     public StringBuilderWriter append(CharSequence csq, int start, int end) {
         CharSequence cs = (csq == null ? "null" : csq);
         write(cs.subSequence(start, end).toString());
@@ -185,6 +189,7 @@ public class StringBuilderWriter extends Writer {
      *
      * @since 1.5
      */
+    @Override
     public StringBuilderWriter append(char c) {
         write(c);
         return this;

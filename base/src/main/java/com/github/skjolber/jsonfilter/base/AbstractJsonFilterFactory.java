@@ -131,7 +131,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setProperty(String name, Object value) {
-		if(name.equals(MAX_STRING_LENGTH)) {
+		if(name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName())) {
 			if(value instanceof Integer) {
 				setMaxStringLength((Integer) value);
 			} else if(value instanceof String) {
@@ -139,7 +139,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set indent reset level, unexpected value type");
 			}
-		} else if(name.equals(PRUNE)) {
+		} else if(name.equals(JsonFilterFactoryProperty.PRUNE.getName())) {
 			if(value instanceof String[]) {
 				setPruneFilters((String[]) value);
 			} else if(value instanceof String) {
@@ -149,7 +149,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set prunes, unexpected value type");
 			}
-		} else if(name.equals(ANONYMIZE)) {
+		} else if(name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName())) {
 			if(value instanceof String[]) {
 				setAnonymizeFilters((String[]) value);
 			} else if(value instanceof String) {
@@ -165,11 +165,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 
 	@Override
 	public boolean isPropertySupported(String name) {
-		if(name.equals(MAX_STRING_LENGTH)) {
-			return true;
-		} else if(name.equals(PRUNE)) {
-			return true;
-		} else if(name.equals(ANONYMIZE)) {
+		if(name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName())) {
 			return true;
 		}
 		return false;

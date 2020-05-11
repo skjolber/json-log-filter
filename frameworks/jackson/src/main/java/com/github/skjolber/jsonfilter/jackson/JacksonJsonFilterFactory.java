@@ -53,10 +53,8 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 				if(!pruneFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
 					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE);
 				}
-			} else if(isSingleAnonymizeFilter()) {
-				if(!anonymizeFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON);
-				}
+			} else if(isSingleAnonymizeFilter() && !anonymizeFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+				return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON);
 			}
 			if(!isFullPrefix(anonymizeFilters) && !isFullPrefix(pruneFilters)) {
 				return new JacksonMultiAnyPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters);

@@ -18,10 +18,22 @@ package com.github.skjolber.jsonfilter;
 
 public interface JsonFilterFactory {
 
-	public static final String MAX_STRING_LENGTH = "com.skjolberg.jsonfilter.maxStringLength";
-	public static final String PRUNE = "com.skjolberg.jsonfilter.prune";
-	public static final String ANONYMIZE = "com.skjolberg.jsonfilter.anonymize";
-	public static final String MAX_PATH_MATCHES = "com.skjolberg.jsonfilter.maxPathMatches";
+	public enum JsonFilterFactoryProperty {
+		MAX_STRING_LENGTH("com.skjolberg.jsonfilter.maxStringLength"),
+		PRUNE("com.skjolberg.jsonfilter.prune"),
+		ANONYMIZE("com.skjolberg.jsonfilter.anonymize"),
+		MAX_PATH_MATCHES("com.skjolberg.jsonfilter.maxPathMatches");
+		
+		private final String name;
+		
+		private JsonFilterFactoryProperty(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
 	
 	/**
 	 * Spawn a {@linkplain JsonFilter} instance.
