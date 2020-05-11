@@ -16,7 +16,8 @@
     <properties>
         <jmh.version>1.23</jmh.version>
 		<uberjar.name>benchmarks</uberjar.name>
-    </properties>
+		<sonar.skip>true</sonar.skip>	
+	</properties>
 
     <dependencies>
             <dependency>
