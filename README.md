@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=alert_status)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
+[![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
 
 # json-log-filter
 High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases
