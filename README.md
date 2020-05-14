@@ -53,7 +53,7 @@ JsonFilter filter = JsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
                        .withAnonymize("/customer/email") // inserts ***** for values
                        .withPrune("/customer/account") // removes whole subtree
-                       .withMaxPathMatches(16) // halt filtering after a number of hits
+                       .withMaxPathMatches(16) // halt anon/prune after a number of hits
                        .build();
                        
 String json = ...; // obtain JSON
