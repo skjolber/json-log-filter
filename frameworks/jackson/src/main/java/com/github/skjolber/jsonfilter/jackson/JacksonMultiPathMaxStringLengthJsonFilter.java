@@ -15,7 +15,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	protected final JsonFactory jsonFactory;
 
 	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, JsonFactory jsonFactory) {
-		super(maxStringLength, anonymizes, prunes);
+		super(maxStringLength, -1, anonymizes, prunes);
 		
 		this.jsonFactory = jsonFactory;
 	}

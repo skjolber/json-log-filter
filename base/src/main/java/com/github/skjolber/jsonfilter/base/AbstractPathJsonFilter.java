@@ -43,7 +43,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		}
 		
 		if(maxPathMatches == -1) {
-			this.maxPathMatches = Integer.MAX_VALUE - 2; // make room for quotes
+			this.maxPathMatches = Integer.MAX_VALUE;
 		} else {
 			this.maxPathMatches = maxPathMatches;
 		}

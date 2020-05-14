@@ -1,3 +1,19 @@
+/***************************************************************************
+ * Copyright 2020 Thomas Rorvik Skjolberg
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
 package com.github.skjolber.jsonfilter.core;
 
 import java.util.ArrayList;
@@ -13,6 +29,7 @@ public class JsonLogFilterBuilder {
 	}
 	
 	protected int maxStringLength = -1;
+	protected int maxPathMatches = -1;
 	
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
@@ -21,6 +38,8 @@ public class JsonLogFilterBuilder {
 		JsonFilterFactory factory = new JsonFilterFactory();
 		
 		factory.setMaxStringLength(maxStringLength);
+		factory.setMaxPathMatches(maxPathMatches);
+		
 		if(!anonymizeFilters.isEmpty()) {
 			factory.setAnonymizeFilters(anonymizeFilters);
 		}
@@ -33,6 +52,12 @@ public class JsonLogFilterBuilder {
 	
 	public JsonLogFilterBuilder withMaxStringLength(int length) {
 		this.maxStringLength = length;
+		
+		return this;
+	}	
+		
+	public JsonLogFilterBuilder withMaxPathMatches(int length) {
+		this.maxPathMatches = length;
 		
 		return this;
 	}	

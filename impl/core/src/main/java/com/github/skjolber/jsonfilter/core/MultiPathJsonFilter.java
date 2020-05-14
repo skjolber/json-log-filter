@@ -5,12 +5,14 @@ import com.github.skjolber.jsonfilter.base.CharArrayFilter;
 
 public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 
-	public MultiPathJsonFilter(String[] anonymizes, String[] prunes) {
-		super(-1, anonymizes, prunes);
+	public MultiPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
+		super(-1, maxPathMatches, anonymizes, prunes);
 	}
 
 	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+		int pathMatches = this.maxPathMatches;
+
 		final int[] elementFilterStart = this.elementFilterStart;
 
 		final int[] elementMatches = new int[elementFilters.length];
@@ -22,6 +24,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 		CharArrayFilter filter = new CharArrayFilter();
 
 		try {
+			main : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' : 
@@ -88,6 +91,11 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 							}
 							filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							
+							pathMatches--;
+							if(pathMatches <= 0) {
+								break main; // done filtering
+							}
+							
 							constrainMatchesCheckLevel(elementMatches, level - 1);
 						} else if(type == FilterType.ANON) {
 							// special case: anon scalar values
@@ -105,6 +113,12 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 								// filter as tree
 								offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 							}
+							
+							pathMatches--;
+							if(pathMatches <= 0) {
+								break main; // done filtering
+							}
+							
 							constrainMatchesCheckLevel(elementMatches, level - 1);
 						} else {
 							offset = nextOffset;

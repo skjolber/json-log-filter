@@ -19,8 +19,8 @@ package com.github.skjolber.jsonfilter.base;
 
 public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPathJsonFilter {
 
-	public AbstractMultiCharArrayPathFilter(int maxStringLength, String[] anonymizes, String[] prunes) {
-		super(maxStringLength, anonymizes, prunes);
+	public AbstractMultiCharArrayPathFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes) {
+		super(maxStringLength, maxPathMatches, anonymizes, prunes);
 	}
 
 	protected boolean matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {

@@ -5,12 +5,14 @@ import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayAnyPathJsonFil
 
 public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayAnyPathJsonFilter {
 
-	public SingleAnyPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type) {
-		super(maxStringLength, expression, type);
+	public SingleAnyPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type) {
+		super(maxStringLength, maxPathMatches, expression, type);
 	}
 	
 	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+		int pathMatches = this.maxPathMatches;
+
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
 		final char[] path = this.path;
@@ -22,6 +24,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 		length += offset;
 
 		try {
+			main : 
 			while(offset < length) {
 				if(chars[offset] == '"') {
 					int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
@@ -79,6 +82,11 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 							}
 						}
 						
+						pathMatches--;
+						if(pathMatches <= 0) {
+							// speed up filtering by looking only at max string length
+							return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+						}
 					} else {
 						offset = nextOffset;
 						

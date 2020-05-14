@@ -1,5 +1,5 @@
 /***************************************************************************
- * Copyright 2016 Thomas Rorvik Skjolberg
+ * Copyright 2020 Thomas Rorvik Skjolberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,42 +52,44 @@ public class JsonFilterFactory extends AbstractJsonFilterFactory {
 			if(isSinglePruneFilter()) {
 				if(!pruneFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
 					if(isActiveMaxStringLength()) {
-						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE);
+						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE);
 					} else {
-						return new SingleFullPathJsonFilter(pruneFilters[0], FilterType.PRUNE);
+						return new SingleFullPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE);
 					}
 				} else {
 					if(isActiveMaxStringLength()) {
-						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE);
+						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE);
 					} else {
-						return new SingleAnyPathJsonFilter(pruneFilters[0], FilterType.PRUNE);
+						return new SingleAnyPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE);
 					}
 				}
 			} else if(isSingleAnonymizeFilter()) {
 				if(!anonymizeFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
 					if(isActiveMaxStringLength()) {
-						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON);
+						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON);
 					} else {
-						return new SingleFullPathJsonFilter(anonymizeFilters[0], FilterType.ANON);
+						return new SingleFullPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON);
 					}
 				} else {
 					if(isActiveMaxStringLength()) {
-						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON);
+						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON);
 					} else {
-						return new SingleAnyPathJsonFilter(anonymizeFilters[0], FilterType.ANON);
+						return new SingleAnyPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON);
 					}
 				}
 			}
 		
 			if(isActiveMaxStringLength()) {
-				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters);
+				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters);
 			} else {
 				if(!isAnyPrefix(anonymizeFilters) && !isAnyPrefix(pruneFilters)) {
-					return new MultiFullPathJsonFilter(anonymizeFilters, pruneFilters);
+					return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters);
 				}
 				
-				return new MultiPathJsonFilter(anonymizeFilters, pruneFilters);
+				return new MultiPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters);
 			}
+		} else if(maxPathMatches != -1) {
+			throw new IllegalArgumentException("If no prune or anonymize paths exists, max path matches should not be set.");
 		}
 		if(isActiveMaxStringLength()) {
 			return new MaxStringLengthJsonFilter(maxStringLength);

@@ -17,7 +17,7 @@ Features:
 
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
- * Remove (prune) whole subtrees 
+ * Remove (prune) whole subtrees
   
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -53,6 +53,7 @@ JsonFilter filter = JsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
                        .withAnonymize("/customer/email") // inserts ***** for values
                        .withPrune("/customer/account") // removes whole subtree
+                       .withMaxPathMatches(16) // halt filtering after a number of hits
                        .build();
                        
 String json = ...; // obtain JSON
@@ -91,6 +92,11 @@ Configure prune for outputs like
 
 See below for supported path expression syntax.
 
+### Max path matches
+Configure max path matches; so that anonymize and/or prune filtering stops after a number of matches. This means the filter speed can be increased considerably if the number of matches is known to be a fixed number; and those matches are in the beginning of the document.
+
+For example if the to-be filtereded JSON document has a schema definition with a header + body structure, and the target value is in the header.   
+
 ### Path expressions
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
@@ -123,15 +129,15 @@ The `core` processors within this project are faster than the `Jackson`-based pr
 
 Performance summary:
 
- * `core` is between 2x to 9x as fast as `Jackson` processors, where
+ * `core` is between 2x to 6x as fast as `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
- * small documents increase the difference, as Jackson is more expensive to initialize.
+ * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
 Note that both processors can parse __at least one thousand 100KB documents per second__, and that the fastest filters will improve overall system performance by no more than a few percent. 
 
 Memory use will be approximately two times the JSON string size.
 
-See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.0.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.0.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.1.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.1.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 

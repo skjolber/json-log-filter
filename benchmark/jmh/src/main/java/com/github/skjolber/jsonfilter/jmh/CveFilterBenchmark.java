@@ -57,10 +57,10 @@ public class CveFilterBenchmark {
 		File file = new File("./src/test/resources/benchmark/cves/" + fileName);
 		
 		multiPathMaxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune));
-		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune));
+		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, -1, anon, prune));
 
 		singlePathMaxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anon[0], FilterType.ANON));
-		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, anon[0], FilterType.ANON));
+		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, anon[0], FilterType.ANON));
 
 		maxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength));
 		maxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MaxStringLengthJsonFilter(maxStringLength));

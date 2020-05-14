@@ -23,6 +23,7 @@ import com.github.skjolber.jsonfilter.JsonFilterFactory;
 public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
 	protected int maxStringLength = -1;
+	protected int maxPathMatches = -1;
 	
 	protected String[] anonymizeFilters;
 	protected String[] pruneFilters;
@@ -61,6 +62,13 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		return maxStringLength;
 	}
 	
+	public void setMaxPathMatches(int maxPathMatches) {
+		this.maxPathMatches = maxPathMatches;
+	}
+	
+	public int getMaxPathMatches() {
+		return maxPathMatches;
+	}
 
 	/**
 	 * Set prune expressions
@@ -136,7 +144,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else if(value instanceof String) {
 				setMaxStringLength(Integer.parseInt((String) value));
 			} else {
-				throw new IllegalArgumentException("Cannot set indent reset level, unexpected value type");
+				throw new IllegalArgumentException("Cannot set max string length, unexpected value type");
 			}
 		} else if(name.equals(JsonFilterFactoryProperty.PRUNE.getName())) {
 			if(value instanceof String[]) {
@@ -157,6 +165,14 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 				setAnonymizeFilters((List<String>) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set anonymize, unexpected value type");
+			}
+		} else if(name.equals(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getName())) {
+			if(value instanceof Integer) {
+				setMaxPathMatches((Integer) value);
+			} else if(value instanceof String) {
+				setMaxPathMatches(Integer.parseInt((String) value));
+			} else {
+				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
 			}
 		}
 		throw new IllegalArgumentException("Unknown property " + name);

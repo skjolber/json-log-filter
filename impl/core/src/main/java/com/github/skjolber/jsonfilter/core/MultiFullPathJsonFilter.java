@@ -5,8 +5,8 @@ import com.github.skjolber.jsonfilter.base.CharArrayFilter;
 
 public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 
-	public MultiFullPathJsonFilter(String[] anonymizes, String[] prunes) {
-		super(-1, anonymizes, prunes);
+	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
+		super(-1, maxPathMatches, anonymizes, prunes);
 		
 		if(anyElementFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
@@ -15,6 +15,8 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 
 	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+		int pathMatches = this.maxPathMatches;
+
 		final int[] elementFilterStart = this.elementFilterStart;
 
 		final int[] elementMatches = new int[elementFilters.length];
@@ -93,8 +95,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 											nextOffset++;
 										}
 										filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
-										
-										constrainMatches(elementMatches, level - 1);
 									} else {
 										// special case: anon scalar values
 										if(chars[nextOffset] == '"') {
@@ -112,8 +112,14 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 											offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 										}
 										
-										constrainMatches(elementMatches, level - 1);
 									}
+									
+									pathMatches--;
+									if(pathMatches <= 0) {
+										break main; // done filtering
+									}
+									
+									constrainMatches(elementMatches, level - 1);
 									
 									continue main;
 								}

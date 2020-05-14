@@ -5,12 +5,14 @@ import com.github.skjolber.jsonfilter.base.CharArrayFilter;
 
 public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPathFilter {
 
-	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes) {
-		super(maxStringLength, anonymizes, prunes);
+	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes) {
+		super(maxStringLength, maxPathMatches, anonymizes, prunes);
 	}
 	
 	@Override
 	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+		int pathMatches = this.maxPathMatches;
+
 		final int[] elementFilterStart = this.elementFilterStart;
 		
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
@@ -24,6 +26,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 		CharArrayFilter filter = new CharArrayFilter();
 
 		try {
+			search:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' : 
@@ -94,6 +97,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 							}
 							filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							
+							pathMatches--;
+							if(pathMatches <= 0) {
+								// speed up filtering by looking only at max string length
+								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+							}
+							
 							constrainMatchesCheckLevel(elementMatches, level - 1);
 						} else if(type == FilterType.ANON) {
 							// special case: anon scalar values
@@ -110,6 +119,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 							} else {
 								// filter as tree
 								offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
+							}
+							
+							pathMatches--;
+							if(pathMatches <= 0) {
+								// speed up filtering by looking only at max string length
+								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
 							}
 							
 							constrainMatchesCheckLevel(elementMatches, level - 1);

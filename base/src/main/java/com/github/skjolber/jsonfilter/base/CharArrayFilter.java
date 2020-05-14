@@ -150,7 +150,7 @@ public class CharArrayFilter {
 			offset++;
 		}
 	}
-		
+
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
@@ -209,26 +209,41 @@ public class CharArrayFilter {
 						// key
 						offset = nextOffset + 1;
 					} else {
-						// fast-forward over whitespace
-						int end = nextOffset;
-
-						// optimization: scan for highest value
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
 						// space: 0x20
-						// tab: 0x09
-						// carriage return: 0x0D
-						// newline: 0x0A
-
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-						if(chars[nextOffset] == ':') {
-							// key
-							offset = nextOffset + 1;
+						// tab: 0x09 \t
+						// carriage return: 0x0D \r
+						// newline: 0x0A \n
+						
+						if(chars[nextOffset] > 0x20) {						
+							// was a value
+							filter.add(offset, nextOffset, FilterType.ANON.getType());
+							offset = nextOffset;						
 						} else {
-							// value
-							filter.add(offset, end, FilterType.ANON.getType());
+							// fast-forward over whitespace
+							int end = nextOffset;
+	
+							// optimization: scan for highest value
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+	
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
 							
-							offset = nextOffset; // +1 since can't be a double quote
+							if(chars[nextOffset] == ':') {
+								// key
+								offset = nextOffset + 1;
+							} else {
+								// value
+								filter.add(offset, end, FilterType.ANON.getType());
+								
+								offset = nextOffset;
+							}
 						}
 					}
 					

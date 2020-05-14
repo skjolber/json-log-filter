@@ -10,7 +10,7 @@ public class AbstractSingleCharArrayFullPathJsonFilterTest {
 	private static class MySingleCharArrayAnyPathJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter {
 
 		public MySingleCharArrayAnyPathJsonFilter(int maxStringLength, String expression, FilterType type) {
-			super(maxStringLength, expression, type);
+			super(maxStringLength, -1, expression, type);
 		}
 	}
 

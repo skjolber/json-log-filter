@@ -98,7 +98,7 @@ public abstract class AbstractJsonFilterPropertiesFactory {
 			return null;
 		} else if(invoke instanceof Integer) {
 			Integer integer = (Integer)invoke;
-			if(integer.intValue() == -1 || integer.intValue() == (Integer.MAX_VALUE - 2)) {
+			if(integer.intValue() == -1 || integer.intValue() == (Integer.MAX_VALUE - 2) || integer.intValue() == Integer.MAX_VALUE) {
 				return null;
 			}
 			return integer;
