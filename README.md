@@ -31,7 +31,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ or
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>jackson</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
