@@ -42,11 +42,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			throw new IllegalArgumentException();
 		}
 		
-		if(maxPathMatches == -1) {
-			this.maxPathMatches = Integer.MAX_VALUE;
-		} else {
-			this.maxPathMatches = maxPathMatches;
-		}
+		this.maxPathMatches = maxPathMatches;
 		
 		if(anonymizes == null) {
 			anonymizes = EMPTY;

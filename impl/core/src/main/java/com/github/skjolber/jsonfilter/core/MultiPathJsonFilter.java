@@ -21,7 +21,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 
 		int level = 0;
 		
-		CharArrayFilter filter = new CharArrayFilter();
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
 
 		try {
 			main : 
@@ -40,8 +40,12 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						
 						break;
 					case '"' :  
-						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
-
+						int nextOffset = offset;
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						nextOffset++;
+						
 						// is this a field name or a value? A field name must be followed by a colon
 						int mark = nextOffset - 1;
 						if(chars[nextOffset] != ':') {
@@ -91,9 +95,11 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 							}
 							filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							
-							pathMatches--;
-							if(pathMatches <= 0) {
-								break main; // done filtering
+							if(pathMatches != -1) {
+								pathMatches--;
+								if(pathMatches == 0) {
+									break main; // done filtering
+								}
 							}
 							
 							constrainMatchesCheckLevel(elementMatches, level - 1);
@@ -114,9 +120,11 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 								offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 							}
 							
-							pathMatches--;
-							if(pathMatches <= 0) {
-								break main; // done filtering
+							if(pathMatches != -1) {
+								pathMatches--;
+								if(pathMatches == 0) {
+									break main; // done filtering
+								}
 							}
 							
 							constrainMatchesCheckLevel(elementMatches, level - 1);

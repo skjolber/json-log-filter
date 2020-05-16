@@ -25,9 +25,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		if(chars.length < offset + length) {
-			return false;
-		}
+		output.ensureCapacity(output.length() + length);
 
 		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
 			return process(chars, offset, length, generator);
@@ -43,18 +41,12 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	}
 
 	public boolean process(byte[] chars, int offset, int length, JsonGenerator generator) throws IOException {
-		if(chars.length < offset + length) {
-			return false;
-		}
 		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			return process(parser, generator);
 		}
 	}
 
 	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) throws IOException {
-		if(chars.length < offset + length) {
-			return false;
-		}
 		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			return process(parser, generator);
 		}

@@ -23,10 +23,9 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 
 		int level = 0;
 		
-		CharArrayFilter filter = new CharArrayFilter();
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
 
 		try {
-			search:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' : 
@@ -42,8 +41,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 						
 						break;
 					case '"' :
-						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
-
+						int nextOffset = offset;
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						nextOffset++;
+						
 						// is this a field name or a value? A field name must be followed by a colon
 						int mark = nextOffset - 1;
 						if(chars[nextOffset] != ':') {
@@ -97,10 +100,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 							}
 							filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							
-							pathMatches--;
-							if(pathMatches <= 0) {
-								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+							if(pathMatches != -1) {
+								pathMatches--;
+								if(pathMatches <= 0) {
+									// speed up filtering by looking only at max string length
+									return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+								}
 							}
 							
 							constrainMatchesCheckLevel(elementMatches, level - 1);
@@ -121,10 +126,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 								offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 							}
 							
-							pathMatches--;
-							if(pathMatches <= 0) {
-								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+							if(pathMatches != -1) {
+								pathMatches--;
+								if(pathMatches <= 0) {
+									// speed up filtering by looking only at max string length
+									return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+								}
 							}
 							
 							constrainMatchesCheckLevel(elementMatches, level - 1);

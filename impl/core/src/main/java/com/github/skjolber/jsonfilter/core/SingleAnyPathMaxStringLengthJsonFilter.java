@@ -19,15 +19,18 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 
 		length += offset;
 
-		CharArrayFilter filter = new CharArrayFilter();
-
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
+		
 		length += offset;
 
 		try {
-			main : 
 			while(offset < length) {
 				if(chars[offset] == '"') {
-					int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
 
 					// is this a field name or a value? A field name must be followed by a colon
 					int mark = nextOffset - 1;
@@ -82,10 +85,12 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 							}
 						}
 						
-						pathMatches--;
-						if(pathMatches <= 0) {
-							// speed up filtering by looking only at max string length
-							return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+						if(pathMatches != -1) {
+							pathMatches--;
+							if(pathMatches == 0) {
+								// speed up filtering by looking only at max string length
+								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+							}
 						}
 					} else {
 						offset = nextOffset;

@@ -37,3 +37,5 @@ profiles.xml
 rebel.xml
 # Symlink til target-katalogen:
 target
+
+.attach_pid*

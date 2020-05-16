@@ -4,8 +4,9 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class CharArrayFilter {
 	
-	protected static final int DELTA_ARRAY_SIZE = 8;
-	
+	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
+	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
+
 	public static final int FILTER_PRUNE = 0;
 	public static final int FILTER_ANON = 1;
 	public static final int FILTER_MAX_LENGTH = 2;
@@ -24,8 +25,11 @@ public class CharArrayFilter {
 	private int[] filter;
 	private int filterIndex = 0;
 	
-	public CharArrayFilter() {
-		 filter = new int[DELTA_ARRAY_SIZE * 3];
+	public CharArrayFilter(int pathMatches) {
+		if(pathMatches == -1) {
+			pathMatches = DEFAULT_INITIAL_ARRAY_SIZE;
+		}
+		this.filter = new int[Math.min(pathMatches, MAX_INITIAL_ARRAY_SIZE) * 3];
 	}
 
 	public void addMaxLength(int start, int end, int length) {
@@ -43,7 +47,7 @@ public class CharArrayFilter {
 	public void add(int start, int end, int type) {
 		if(filter.length <= filterIndex) {
 			
-			int[] next = new int[filter.length + 3 * 4];
+			int[] next = new int[filter.length * 2];
 			System.arraycopy(filter, 0, next, 0, filter.length);
 			
 			filter = next;
@@ -59,6 +63,8 @@ public class CharArrayFilter {
 	}
 	
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
+		buffer.ensureCapacity(buffer.length() + length);
+		
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -98,9 +104,9 @@ public class CharArrayFilter {
 					break;
 				}
 				case '"' : {
-					offset = scanBeyondQuotedValue(chars, offset);
-	
-					continue;
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 				}
 				default :
 			}
@@ -137,13 +143,13 @@ public class CharArrayFilter {
 					break;
 				}
 				case '"' : {
-					offset = scanBeyondQuotedValue(chars, offset);
-	
-					if(level == 0) {
-						return offset;
-					}
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					
-					continue;
+					if(level == 0) {
+						return offset + 1;
+					}
 				}
 				default :
 			}
@@ -200,7 +206,11 @@ public class CharArrayFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = scanBeyondQuotedValue(chars, offset);
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
 	
 					// is this a field name or a value? A field name must be followed by a colon
 					
@@ -251,7 +261,10 @@ public class CharArrayFilter {
 				}
 				default : {
 					// scalar value
-					int nextOffset = CharArrayFilter.scanBeyondUnquotedValue(chars, offset);
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
 					
 					filter.add(offset, nextOffset, FilterType.ANON.getType());
 					

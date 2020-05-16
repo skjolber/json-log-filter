@@ -23,12 +23,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 
 		int level = 0;
 		
-		CharArrayFilter filter = new CharArrayFilter();
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
 
 		length += offset;
 
 		try {
-			search : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -44,8 +43,12 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						
 						break;
 					case '"' :
-						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
-
+						int nextOffset = offset;
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						nextOffset++;
+						
 						// is this a field name or a value? A field name must be followed by a colon
 						int mark = nextOffset - 1;
 						if(chars[nextOffset] != ':') {
@@ -109,11 +112,13 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 										offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
 									}
 								}
-								pathMatches--;
-								if(pathMatches <= 0) {
-									// speed up filtering by looking only at max string length
-									return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
-								}	
+								if(pathMatches != -1) {
+									pathMatches--;
+									if(pathMatches == 0) {
+										// speed up filtering by looking only at max string length
+										return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+									}
+								}
 								
 								matches--;
 							}

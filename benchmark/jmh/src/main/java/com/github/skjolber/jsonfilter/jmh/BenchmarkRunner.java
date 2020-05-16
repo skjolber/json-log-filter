@@ -15,9 +15,16 @@ public class BenchmarkRunner {
 	private JsonFilter jsonFilter;
 
 	private StringBuilder builder = new StringBuilder(256 * 1000);
+	
+	private boolean newBuilder;
 
 	public BenchmarkRunner(File file, boolean recursive, JsonFilter filter) throws IOException {
+		this(file, recursive, filter, false);
+	}
+
+	public BenchmarkRunner(File file, boolean recursive, JsonFilter filter, boolean newBuilder) throws IOException {
 		this(file, recursive);
+		this.newBuilder = newBuilder;
 		
 		setJsonFilter(filter);
 	}
@@ -48,7 +55,13 @@ public class BenchmarkRunner {
 			
 			for(int i = 0; i < directory.size(); i++) {
 				char[] chars = directory.getValue(i);
-
+				
+				StringBuilder builder;
+				if(newBuilder) {
+					builder = new StringBuilder(chars.length);
+				} else {
+					builder = this.builder;
+				}
 				if(jsonFilter.process(chars, 0, chars.length, builder)) {
 					sizeSum += builder.length();
 				} else {

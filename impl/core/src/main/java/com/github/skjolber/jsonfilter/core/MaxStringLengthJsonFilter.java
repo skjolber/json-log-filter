@@ -30,7 +30,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter {
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayFilter filter = new CharArrayFilter();
+		CharArrayFilter filter = new CharArrayFilter(-1);
 
 		try {
 			return ranges(chars, offset, offset + length, maxStringLength, filter);
@@ -42,7 +42,12 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter {
 	public static CharArrayFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				nextOffset++;
+				
 				if(nextOffset - offset > maxStringLength) {
 					// is this a field name or a value? A field name must be followed by a colon
 					

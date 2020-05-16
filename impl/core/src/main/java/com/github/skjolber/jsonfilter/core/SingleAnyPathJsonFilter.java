@@ -17,16 +17,20 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 
 		length += offset;
 
-		CharArrayFilter filter = new CharArrayFilter();
-
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
+		
 		length += offset;
 
 		try {
 			main : 
 			while(offset < length) {
 				if(chars[offset] == '"') {
-					int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
-
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+					
 					// is this a field name or a value? A field name must be followed by a colon
 					int mark = nextOffset - 1;
 					if(chars[nextOffset] != ':') {
@@ -77,11 +81,12 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 							}
 						}
 						
-						pathMatches--;
-						if(pathMatches <= 0) {
-							break main; // done filtering
-						}
-					} else {
+						if(pathMatches != -1) {
+							pathMatches--;
+							if(pathMatches == 0) {
+								break main; // done filtering
+							}
+						}					} else {
 						offset = nextOffset;
 						
 						continue;

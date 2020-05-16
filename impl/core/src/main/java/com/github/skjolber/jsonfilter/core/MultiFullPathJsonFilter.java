@@ -25,7 +25,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 
 		int level = 0;
 		
-		CharArrayFilter filter = new CharArrayFilter();
+		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
 
 		try {
 			main:
@@ -54,11 +54,19 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 						if(level >= elementFilterStart.length) {
 							// not necessary to check if field or value; missing sub-path
 							// so if this is a key, there will never be a full match
-							offset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
+							do {
+								offset++;
+							} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+							offset++;							
 							
 							continue;
 						}
-						int nextOffset = CharArrayFilter.scanBeyondQuotedValue(chars, offset);
+						
+						int nextOffset = offset;
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						nextOffset++;							
 
 						// is this a field name or a value? A field name must be followed by a colon
 						int mark = nextOffset - 1;
@@ -114,9 +122,11 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter {
 										
 									}
 									
-									pathMatches--;
-									if(pathMatches <= 0) {
-										break main; // done filtering
+									if(pathMatches != -1) {
+										pathMatches--;
+										if(pathMatches == 0) {
+											break main; // done filtering
+										}
 									}
 									
 									constrainMatches(elementMatches, level - 1);
