@@ -50,7 +50,6 @@ public class CveFilterBenchmark {
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
-	//@Param(value={"2KB","14KB","30KB","50KB","100KB","200KB"})
 
 	private String fileName; 
 	
@@ -68,36 +67,30 @@ public class CveFilterBenchmark {
 		maxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MaxStringLengthJsonFilter(maxStringLength));
 	}
 
-	/*
 	@Benchmark
 	public long all_jackson() {
 		return multiPathMaxStringLengthJacksonJsonFilter.benchmark();
 	}
-	*/
 	
 	@Benchmark
 	public long all_core() {
 		return multiPathMaxStringLengthJsonFilter.benchmark();
 	}
 
-	/*
 	@Benchmark
 	public long maxStringLength_jackson() {
 		return maxStringLengthJacksonJsonFilter.benchmark();
 	}
-	*/
 	
 	@Benchmark
 	public long maxStringLength_core() {
 		return maxStringLengthJsonFilter.benchmark();
 	}	
 
-	/*
 	@Benchmark
 	public long anon_single_jackson() {
 		return singlePathMaxStringLengthJacksonJsonFilter.benchmark();
 	}
-	*/
 	
 	@Benchmark
 	public long anon_single_core() {
