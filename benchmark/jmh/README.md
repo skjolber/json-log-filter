@@ -19,6 +19,13 @@ for all benchmarks. Display the file `jmh-result` with a visualizer like [JMH Vi
 
 # Benchmark results
 
+## 1.0.2:
+
+### Results
+
+ * [openjdk-1.8.0.252.b09-0](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk8.json&topBar=off)
+ * [openjdk-11.0.6.10-0](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk11.json&topBar=off)
+
 ## 1.0.1:
 Note that the new feature for max path matches is not tested.
 

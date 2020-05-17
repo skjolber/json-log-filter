@@ -31,7 +31,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ or
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>jackson</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -137,7 +137,7 @@ Note that both processors can parse __at least one thousand 100KB documents per 
 
 Memory use will be approximately two times the JSON string size.
 
-See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.1.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.1.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
@@ -146,9 +146,11 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
-- [1.0.0]: Initial version.
+- [1.0.2]: Manually inlining a few methods, minor adjustments.
+- 1.0.1: Max path matches support
+- 1.0.0: Initial version.
 
-[1.0.0]:				releases
+[1.0.2]:				releases
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
 [Maven]:				https://maven.apache.org/
