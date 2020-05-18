@@ -25,8 +25,9 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 [Apache 2.0]
 
 ## Obtain
-The project is built with [Maven] and is available on the central Maven repository.
+The project is built with [Maven] and is available on the central Maven repository. 
 
+### Maven
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
@@ -44,6 +45,28 @@ or
     <version>1.0.2</version>
 </dependency>
 ```
+
+### Gradle
+For
+
+```groovy
+ext {
+  jsonLogFilterVersion = '1.0.2'
+}
+```
+
+add
+
+```groovy
+api("com.github.skjolber.json-log-filter:core:${jsonLogFilterVersion}")
+```
+
+or
+
+```groovy
+api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
+```
+
 
 # Usage
 Use a `JsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
@@ -93,7 +116,7 @@ Configure prune for outputs like
 See below for supported path expression syntax.
 
 ### Max path matches
-Configure max path matches; so that anonymize and/or prune filtering stops after a number of matches. This means the filter speed can be increased considerably if the number of matches is known to be a fixed number; and those matches are in the beginning of the document.
+Configure max path matches; so that anonymize and/or prune filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
 
 For example if the to-be filtereded JSON document has a schema definition with a header + body structure, and the target value is in the header.   
 
@@ -119,10 +142,13 @@ Depending on your service stack and architecture, performing two additional oper
    * for `one line per log-statement`, typically for console- and/or file logging
  * validate document syntax (as [JSON])
    * for raw inlining of JSON from untrusted sources in log statements
- 
-The `Jackson`-based processors in this project do both of these automatically. 
 
-Most frameworks do databinding and/or schema-validation, so ideally this happens before filtering; logging as text if the databinding fails, otherwise logging as JSON.
+For a typical REST service, the above operations might be necessary for the (untrusted) incoming request payload, but not the (trusted) outgoing response payload. 
+
+Note that 
+  
+ * the `Jackson`-based processors in this project do both of these automatically, and 
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON.
 
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance. 
@@ -133,7 +159,7 @@ Performance summary:
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
-Note that both processors can parse __at least one thousand 100KB documents per second__, and that the fastest filters will improve overall system performance by no more than a few percent. 
+Note that both processors can parse __at least one thousand 100KB documents per second__, so while system-wide optimization like this are hard to come by, for a typical web service the fastest filters will improve overall system performance by no more than a few percent at best.
 
 Memory use will be approximately two times the JSON string size.
 
