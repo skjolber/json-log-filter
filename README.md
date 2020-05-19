@@ -33,7 +33,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -43,7 +43,7 @@ or
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>jackson</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -52,7 +52,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.2'
+  jsonLogFilterVersion = '1.0.3'
 }
 ```
 
@@ -173,11 +173,11 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
-- [1.0.2]: Manually inlining a few methods, minor adjustments.
+- 1.0.3: Minor adjustments
+- 1.0.2: Manually inlining a few methods, minor adjustments.
 - 1.0.1: Max path matches support
 - 1.0.0: Initial version.
 
-[1.0.2]:				releases
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
 [Maven]:				https://maven.apache.org/
