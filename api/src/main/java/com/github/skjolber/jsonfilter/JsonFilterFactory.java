@@ -33,6 +33,15 @@ public interface JsonFilterFactory {
 		public String getName() {
 			return name;
 		}
+		
+		public static JsonFilterFactoryProperty parse(String key) {
+			for (JsonFilterFactoryProperty p : values()) {
+				if(key.equals(p.getName())) {
+					return p;
+				}
+			}
+			return null;
+		}
 	}
 	
 	/**

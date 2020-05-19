@@ -50,6 +50,9 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	
 	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
+		if(length == -1) {
+			return process(reader, output);
+		}
 		char[] chars = new char[length];
 
 		int offset = 0;
@@ -86,20 +89,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return process(writer.toString(), output);
 	}
 
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		CharArrayFilter copy = ranges(chars, offset, length);
-		if(copy == null) {
-			return false;
-		}
-		copy.filter(chars, offset, length, buffer);
-		
-		return true;
-	}
-	
-	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
-		return null; // not implemented
-	}
-	
 	public int getMaxStringLength() {
 		return maxStringLength;
 	}

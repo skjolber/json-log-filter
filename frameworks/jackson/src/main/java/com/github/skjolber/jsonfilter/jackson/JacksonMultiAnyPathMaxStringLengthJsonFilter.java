@@ -151,4 +151,9 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		}
 	}
 
+	@Override
+	public CharArrayFilter ranges(char[] chars, int offset, int length) {
+		throw new UnsupportedOperationException();
+	}
+
 }

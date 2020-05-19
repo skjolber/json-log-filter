@@ -138,7 +138,12 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setProperty(String name, Object value) {
-		if(name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName())) {
+		JsonFilterFactoryProperty p = JsonFilterFactoryProperty.parse(name);
+		if(p == null) {
+			throw new IllegalArgumentException("Unknown property " + name);
+		}
+		switch (p) {
+		case MAX_STRING_LENGTH: {
 			if(value instanceof Integer) {
 				setMaxStringLength((Integer) value);
 			} else if(value instanceof String) {
@@ -146,7 +151,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set max string length, unexpected value type");
 			}
-		} else if(name.equals(JsonFilterFactoryProperty.PRUNE.getName())) {
+			break;
+		}
+		case PRUNE : {
 			if(value instanceof String[]) {
 				setPruneFilters((String[]) value);
 			} else if(value instanceof String) {
@@ -156,7 +163,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set prunes, unexpected value type");
 			}
-		} else if(name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName())) {
+			break;
+		}
+		case ANONYMIZE : {
 			if(value instanceof String[]) {
 				setAnonymizeFilters((String[]) value);
 			} else if(value instanceof String) {
@@ -166,7 +175,8 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set anonymize, unexpected value type");
 			}
-		} else if(name.equals(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getName())) {
+		}
+		case MAX_PATH_MATCHES : {
 			if(value instanceof Integer) {
 				setMaxPathMatches((Integer) value);
 			} else if(value instanceof String) {
@@ -174,8 +184,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
 			}
+			break;
 		}
-		throw new IllegalArgumentException("Unknown property " + name);
+		}
 	}
 
 	@Override

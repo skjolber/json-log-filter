@@ -109,16 +109,4 @@ public class JsonFilterFactory extends AbstractJsonFilterFactory {
 		return false;
 	}
 
-	protected boolean isFullPrefix(String[] filters) {
-		if(filters != null) {
-			for(String string : filters) {
-				if(!string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
-
 }

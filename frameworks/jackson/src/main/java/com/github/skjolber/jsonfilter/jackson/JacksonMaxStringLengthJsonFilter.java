@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayFilter;
 import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
 

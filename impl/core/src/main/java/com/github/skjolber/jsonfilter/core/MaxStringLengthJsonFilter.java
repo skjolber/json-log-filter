@@ -16,10 +16,10 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayFilter;
 
-public class MaxStringLengthJsonFilter extends AbstractJsonFilter {
+public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
 		super(maxStringLength);

@@ -139,5 +139,11 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 		}  				
 
 	}
+	
+	@Override
+	public CharArrayFilter ranges(char[] chars, int offset, int length) {
+		throw new UnsupportedOperationException();
+	}
+	
 
 }

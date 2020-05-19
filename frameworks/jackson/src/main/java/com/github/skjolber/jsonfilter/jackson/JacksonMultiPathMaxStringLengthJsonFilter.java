@@ -165,4 +165,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}
 
+	@Override
+	public CharArrayFilter ranges(char[] chars, int offset, int length) {
+		return null;
+	}
+
 }
