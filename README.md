@@ -18,7 +18,8 @@ Features:
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
-  
+ * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
+   
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
 ## License
