@@ -14,9 +14,11 @@ public class AbstractSingleCharArrayAnyPathJsonFilterTest {
 		}
 
 		@Override
-		public CharArrayFilter ranges(char[] chars, int offset, int length) {
-			return null;
+		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+			// TODO Auto-generated method stub
+			return false;
 		}
+
 	}
 
 	@Test

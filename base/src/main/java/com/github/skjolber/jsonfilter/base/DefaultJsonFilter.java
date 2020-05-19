@@ -37,6 +37,10 @@ public class DefaultJsonFilter implements JsonFilter {
 
 	@Override
 	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
+		if(length == -1) {
+			return process(reader, output);
+		}
+		
 		char[] chars = new char[4 * 1024];
 
 		int offset = 0;
@@ -54,4 +58,21 @@ public class DefaultJsonFilter implements JsonFilter {
 		
 		return true;
 	}
+	
+	public boolean process(Reader reader, StringBuilder output) throws IOException {
+		char[] chars = new char[4 * 1024];
+
+		int read;
+		while(true) {
+			read = reader.read(chars, 0, chars.length);
+			if(read == -1) {
+				break;
+			}
+			
+			output.append(chars, 0, read);
+		}
+		
+		return true;
+	}	
+	
 }

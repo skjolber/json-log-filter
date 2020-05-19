@@ -16,21 +16,22 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayFilter;
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
+public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
 		super(maxStringLength);
 	}
 
 	@Override
-	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayFilter filter = new CharArrayFilter(-1);
+		CharArrayRangesFilter filter = new CharArrayRangesFilter(-1);
 
 		try {
 			return ranges(chars, offset, offset + length, maxStringLength, filter);
@@ -39,7 +40,7 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 		}
 	}
 
-	public static CharArrayFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayFilter filter) {
+	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;

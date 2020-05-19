@@ -7,8 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
 
 public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter implements JacksonJsonFilter {
@@ -61,7 +60,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 			
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				String text = parser.getText();
-				generator.writeString(text.substring(0, maxStringLength) + CharArrayFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+				generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
 				
 				continue;
 			}

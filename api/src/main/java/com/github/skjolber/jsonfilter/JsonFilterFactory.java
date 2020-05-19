@@ -30,13 +30,13 @@ public interface JsonFilterFactory {
 			this.name = name;
 		}
 
-		public String getName() {
+		public String getPropertyName() {
 			return name;
 		}
 		
 		public static JsonFilterFactoryProperty parse(String key) {
 			for (JsonFilterFactoryProperty p : values()) {
-				if(key.equals(p.getName())) {
+				if(key.equals(p.getPropertyName())) {
 					return p;
 				}
 			}

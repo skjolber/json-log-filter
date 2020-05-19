@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.jackson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 

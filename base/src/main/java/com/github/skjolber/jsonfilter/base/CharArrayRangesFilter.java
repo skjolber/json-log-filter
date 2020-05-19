@@ -2,7 +2,7 @@ package com.github.skjolber.jsonfilter.base;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class CharArrayFilter {
+public class CharArrayRangesFilter {
 	
 	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
 	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
@@ -22,10 +22,10 @@ public class CharArrayFilter {
 	public static final char[] FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
 	public static final char[] FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
 
-	private int[] filter;
-	private int filterIndex = 0;
+	protected int[] filter;
+	protected int filterIndex = 0;
 	
-	public CharArrayFilter(int pathMatches) {
+	public CharArrayRangesFilter(int pathMatches) {
 		if(pathMatches == -1) {
 			pathMatches = DEFAULT_INITIAL_ARRAY_SIZE;
 		}
@@ -171,7 +171,7 @@ public class CharArrayFilter {
 		return offset;
 	}
 	
-	public static int anonymizeSubtree(char[] chars, int offset, CharArrayFilter filter) {
+	public static int anonymizeSubtree(char[] chars, int offset, CharArrayRangesFilter filter) {
 		int level = 0;
 
 		while(true) {

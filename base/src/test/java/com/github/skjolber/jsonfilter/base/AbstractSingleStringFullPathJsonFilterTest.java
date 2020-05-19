@@ -12,10 +12,10 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 		public MySingleStringPathJsonFilter(int maxStringLength, String expression, FilterType type) {
 			super(maxStringLength, -1, expression, type);
 		}
-		
+
 		@Override
-		public CharArrayFilter ranges(char[] chars, int offset, int length) {
-			return null;
+		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+			return false;
 		}
 		
 	}

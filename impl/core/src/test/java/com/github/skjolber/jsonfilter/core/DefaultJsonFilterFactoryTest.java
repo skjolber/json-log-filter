@@ -3,19 +3,20 @@ package com.github.skjolber.jsonfilter.core;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.base.AbstractRangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterFactory;
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 
 import static com.google.common.truth.Truth.*;
 
-public class JsonFilterFactoryTest {
+public class DefaultJsonFilterFactoryTest {
 
-	private JsonFilterFactory factory;
+	private DefaultJsonFilterFactory factory;
 
 	@BeforeEach
 	public void init() {
-		factory = JsonFilterFactory.newInstance();
+		factory = DefaultJsonFilterFactory.newInstance();
 	}
 
 	@Test
@@ -27,7 +28,7 @@ public class JsonFilterFactoryTest {
 	@Test
 	public void testMaxStringLength() {
 		factory.setMaxStringLength(123);
-		AbstractRangesJsonFilter filter = (AbstractRangesJsonFilter)factory.newJsonFilter();
+		AbstractJsonFilter filter = (AbstractJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
 	}
 	
@@ -141,12 +142,29 @@ public class JsonFilterFactoryTest {
 		factory.setMaxStringLength(123);
 		factory.setAnonymizeFilters("/abc");
 		factory.setPruneFilters("//def");
+		factory.setMaxPathMatches(13);
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(filter.getMaxPathMatches()).isEqualTo(13);
+	}
+	
+	@Test
+	public void testUsingProperties() {
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), "/abc");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE.getPropertyName(), "//def");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), 123);
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), 13);
+		
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(filter.getMaxPathMatches()).isEqualTo(13);
 	}
 	
 }

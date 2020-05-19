@@ -27,11 +27,6 @@ public class AbstractSinglePathJsonFilterTest {
 			}
 			return false;
 		}
-
-		@Override
-		public CharArrayFilter ranges(char[] chars, int offset, int length) {
-			throw new IllegalStateException();
-		}
 		
 	};
 

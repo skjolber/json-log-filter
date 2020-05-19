@@ -175,6 +175,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			} else {
 				throw new IllegalArgumentException("Cannot set anonymize, unexpected value type");
 			}
+			break;
 		}
 		case MAX_PATH_MATCHES : {
 			if(value instanceof Integer) {
@@ -191,7 +192,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 
 	@Override
 	public boolean isPropertySupported(String name) {
-		return name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getName());
+		return name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getPropertyName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName());
 	}
 	
 }

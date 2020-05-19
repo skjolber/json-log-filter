@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.github.skjolber.jsonfilter.base.CharArrayFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.AbstractSingleStringFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
 
@@ -82,9 +82,9 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 						nextToken = parser.nextToken();
 						if(nextToken.isScalarValue()) {
 							if(filterType == FilterType.ANON) {
-								generator.writeString(CharArrayFilter.FILTER_ANONYMIZE);
+								generator.writeString(CharArrayRangesFilter.FILTER_ANONYMIZE);
 							} else {
-								generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
+								generator.writeString(CharArrayRangesFilter.FILTER_PRUNE_MESSAGE);
 							}
 						} else {
 							// array or object
@@ -95,7 +95,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 								anonymizeChildren(parser, generator);
 							} else {
 
-								generator.writeString(CharArrayFilter.FILTER_PRUNE_MESSAGE);
+								generator.writeString(CharArrayRangesFilter.FILTER_PRUNE_MESSAGE);
 								parser.skipChildren(); // skip children
 							}
 						}
@@ -107,7 +107,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				String text = parser.getText();
-				generator.writeString(text.substring(0, maxStringLength) + CharArrayFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+				generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
 				
 				continue;
 			}
@@ -130,7 +130,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
 				level--;
 			} else if(nextToken.isScalarValue()) {
-				generator.writeString(CharArrayFilter.FILTER_ANONYMIZE);
+				generator.writeString(CharArrayRangesFilter.FILTER_ANONYMIZE);
 
 				continue;
 			}
@@ -139,11 +139,5 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 		}  				
 
 	}
-	
-	@Override
-	public CharArrayFilter ranges(char[] chars, int offset, int length) {
-		throw new UnsupportedOperationException();
-	}
-	
 
 }

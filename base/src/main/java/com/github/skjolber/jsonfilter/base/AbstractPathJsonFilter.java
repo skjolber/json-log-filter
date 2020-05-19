@@ -1,10 +1,10 @@
 package com.github.skjolber.jsonfilter.base;
 
-public abstract class AbstractPathJsonFilter extends AbstractRangesJsonFilter {
+public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public enum FilterType {
 		/** public for testing */
-		ANON(CharArrayFilter.FILTER_ANON), PRUNE(CharArrayFilter.FILTER_PRUNE);
+		ANON(CharArrayRangesFilter.FILTER_ANON), PRUNE(CharArrayRangesFilter.FILTER_PRUNE);
 		
 		private final int type;
 		

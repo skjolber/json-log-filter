@@ -1,16 +1,17 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.CharArrayFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
 
-public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter {
+public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter implements RangesJsonFilter {
 
 	public SingleFullPathJsonFilter(int maxPathMatches, String expression, FilterType type) {
 		super(-1, maxPathMatches, expression, type);
 	}
 
 	@Override
-	public CharArrayFilter ranges(final char[] chars, int offset, int length) {
+	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
 		int matches = 0;
@@ -21,7 +22,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 
 		int level = 0;
 		
-		final CharArrayFilter filter = new CharArrayFilter(pathMatches);
+		final CharArrayRangesFilter filter = new CharArrayRangesFilter(pathMatches);
 
 		length += offset;
 
@@ -33,7 +34,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						level++;
 						
 						if(level > elementPaths.length) {
-							offset = CharArrayFilter.skipObject(chars, offset);
+							offset = CharArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
 						}
@@ -103,22 +104,22 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 									nextOffset++;
 								}
-								filter.add(nextOffset, offset = CharArrayFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+								filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							} else {
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									offset = CharArrayFilter.scanBeyondQuotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 									
 									filter.addAnon(nextOffset, offset);
 								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 									// scalar value
-									offset = CharArrayFilter.scanBeyondUnquotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 
 									filter.addAnon(nextOffset, offset);
 								} else {
 									// filter as tree
-									offset = CharArrayFilter.anonymizeSubtree(chars, nextOffset, filter);
+									offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
 								}
 							}
 							

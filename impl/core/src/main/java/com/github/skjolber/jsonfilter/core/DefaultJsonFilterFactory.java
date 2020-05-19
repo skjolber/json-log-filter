@@ -23,20 +23,19 @@ import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 /**
- * Property maxFilterMatches is ignored.
  * 
  */
 
-public class JsonFilterFactory extends AbstractJsonFilterFactory {
+public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 		
 	/**
 	 * Spawn a factory instance. Equivalent to using the default constructor.
 	 * 
-	 * @return newly created {@linkplain JsonFilterFactory}.
+	 * @return newly created {@linkplain DefaultJsonFilterFactory}.
 	 */
 	
-	public static JsonFilterFactory newInstance() {
-		return new JsonFilterFactory();
+	public static DefaultJsonFilterFactory newInstance() {
+		return new DefaultJsonFilterFactory();
 	}
 	
 	/**

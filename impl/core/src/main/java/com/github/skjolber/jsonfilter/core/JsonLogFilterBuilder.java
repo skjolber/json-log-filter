@@ -35,7 +35,7 @@ public class JsonLogFilterBuilder {
 	protected List<String> pruneFilters = new ArrayList<>();
 	
 	public JsonFilter build() {
-		JsonFilterFactory factory = new JsonFilterFactory();
+		DefaultJsonFilterFactory factory = new DefaultJsonFilterFactory();
 		
 		factory.setMaxStringLength(maxStringLength);
 		factory.setMaxPathMatches(maxPathMatches);
