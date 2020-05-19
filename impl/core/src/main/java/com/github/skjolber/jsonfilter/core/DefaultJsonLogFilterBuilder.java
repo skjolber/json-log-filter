@@ -22,10 +22,10 @@ import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
-public class JsonLogFilterBuilder {
+public class DefaultJsonLogFilterBuilder {
 
-	public static JsonLogFilterBuilder createInstance() {
-		return new JsonLogFilterBuilder();
+	public static DefaultJsonLogFilterBuilder createInstance() {
+		return new DefaultJsonLogFilterBuilder();
 	}
 	
 	protected int maxStringLength = -1;
@@ -50,25 +50,25 @@ public class JsonLogFilterBuilder {
 		return factory.newJsonFilter();
 	}
 	
-	public JsonLogFilterBuilder withMaxStringLength(int length) {
+	public DefaultJsonLogFilterBuilder withMaxStringLength(int length) {
 		this.maxStringLength = length;
 		
 		return this;
 	}	
 		
-	public JsonLogFilterBuilder withMaxPathMatches(int length) {
+	public DefaultJsonLogFilterBuilder withMaxPathMatches(int length) {
 		this.maxPathMatches = length;
 		
 		return this;
 	}	
 	
-	public JsonLogFilterBuilder withPrune(String ... filters) {
+	public DefaultJsonLogFilterBuilder withPrune(String ... filters) {
 		Collections.addAll(pruneFilters, filters);
 		
 		return this;
 	}
 	
-	public JsonLogFilterBuilder withAnonymize(String ... filters) {
+	public DefaultJsonLogFilterBuilder withAnonymize(String ... filters) {
 		Collections.addAll(anonymizeFilters, filters);
 		return this;
 	}

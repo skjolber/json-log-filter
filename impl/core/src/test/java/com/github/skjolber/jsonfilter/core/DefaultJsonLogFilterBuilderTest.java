@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-public class JsonLogFilterBuilderTest {
+public class DefaultJsonLogFilterBuilderTest {
 
 	@Test
 	public void testBuilder() {
-		JsonFilter filter = JsonLogFilterBuilder.createInstance()
+		JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                 .withMaxStringLength(127)
                 .withAnonymize("/customer/email") // inserts ***** for values
                 .withPrune("/customer/account") // removes whole subtree

@@ -70,10 +70,10 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 
 
 # Usage
-Use a `JsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
+Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
 
 ```java
-JsonFilter filter = JsonLogFilterBuilder.createInstance()
+JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
                        .withAnonymize("/customer/email") // inserts ***** for values
                        .withPrune("/customer/account") // removes whole subtree
