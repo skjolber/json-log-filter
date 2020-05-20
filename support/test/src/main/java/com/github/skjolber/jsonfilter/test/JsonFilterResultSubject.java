@@ -149,5 +149,11 @@ public class JsonFilterResultSubject extends Subject {
 		return this;
 	}
 
+	public JsonFilterResultSubject hasMaxPathMatches(int size) {
+		if (!actual.hasPropertyKeyValue("maxPathMatches", Integer.toString(size))) {
+			failWithoutActual(simpleFact("expected maxPathMatches " + size));
+		}
+		return this;
+	}	
 
 }
