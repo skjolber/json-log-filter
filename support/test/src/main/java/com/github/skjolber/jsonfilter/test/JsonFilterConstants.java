@@ -18,4 +18,7 @@ public interface JsonFilterConstants {
 	public static final String DEEP_PATH2 = "/grandparent/parent/child2";
 	public static final String DEEP_PATH3 = "/grandparent/parent/child3";
 
+	public static final String TRUNCATED = "{\"unterminated\":\"value";
+	public static final char[] FULL = "{\"terminated\":\"value\"}".toCharArray();
+
 }

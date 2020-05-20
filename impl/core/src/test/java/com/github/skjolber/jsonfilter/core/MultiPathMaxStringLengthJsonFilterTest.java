@@ -1,7 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
@@ -17,10 +21,26 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	}
 	
 	@Test
+	public void exception_returns_false() throws Exception {
+		assertFalse(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH}).process(new char[] {}, 1, 1, new StringBuilder()));
+	}	
+	
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		assertNull(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null).process(TRUNCATED));
+		assertFalse(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null).process(FULL, 0, FULL.length - 3, new StringBuilder()));
+	}
+	
+	@Test
 	public void anonymize() throws Exception {
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH);
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1);
+	}
+	
+	@Test
+	public void anonymizeMaxPathMatches() throws Exception {
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, new String[]{"/key1"}, null)).hasAnonymized("/key1");
 	}
 
 	@Test
@@ -38,6 +58,11 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH})).hasPruned(DEFAULT_PATH);
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, new String[]{DEEP_PATH3, PASSTHROUGH_XPATH})).hasPruned(DEEP_PATH3);
+	}
+	
+	@Test
+	public void pruneMaxPathMatches() throws Exception {
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, null, new String[]{"/key3"})).hasPruned("/key3");
 	}
 
 	@Test

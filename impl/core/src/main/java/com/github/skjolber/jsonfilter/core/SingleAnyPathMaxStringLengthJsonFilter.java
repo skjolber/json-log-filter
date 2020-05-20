@@ -90,7 +90,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 							pathMatches--;
 							if(pathMatches == 0) {
 								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, nextOffset, length, maxStringLength, filter);
+								return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
 							}
 						}
 					} else {

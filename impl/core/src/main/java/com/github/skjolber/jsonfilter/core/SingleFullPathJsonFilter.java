@@ -37,6 +37,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 							offset = CharArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
+							
+							continue;
 						}
 						break;
 					case '}' :

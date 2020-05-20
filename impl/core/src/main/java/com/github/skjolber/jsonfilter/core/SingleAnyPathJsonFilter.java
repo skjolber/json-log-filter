@@ -87,7 +87,8 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 							if(pathMatches == 0) {
 								break main; // done filtering
 							}
-						}					} else {
+						}					
+					} else {
 						offset = nextOffset;
 						
 						continue;

@@ -29,6 +29,14 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testNoMaxPathMatchesWithoutPaths() {
+		factory.setMaxPathMatches(1);
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.newJsonFilter();
+		});		
+	}	
+
+	@Test
 	public void testMaxStringLength() {
 		factory.setMaxStringLength(123);
 		AbstractJsonFilter filter = (AbstractJsonFilter)factory.newJsonFilter();
