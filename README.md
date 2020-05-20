@@ -33,7 +33,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -43,7 +43,7 @@ or
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>jackson</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -52,7 +52,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.3'
+  jsonLogFilterVersion = '1.0.4'
 }
 ```
 
@@ -173,6 +173,7 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
+- 1.0.4: A few bugs fixes. The `core` module now has 100% test coverage.
 - 1.0.3: Minor adjustments
 - 1.0.2: Manually inlining a few methods, minor adjustments.
 - 1.0.1: Max path matches support
@@ -180,9 +181,9 @@ See the [xml-log-filter] for corresponding high-performance filtering of XML.
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
-[Maven]:				https://maven.apache.org/
-[JMH]:					benchmark/jmh
-[xml-log-filter]:       https://github.com/skjolber/xml-log-filter
+[Maven]:			https://maven.apache.org/
+[JMH]:				benchmark/jmh
+[xml-log-filter]:       	https://github.com/skjolber/xml-log-filter
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
-[Jackson]:				https://github.com/FasterXML/jackson-core
+[Jackson]:			https://github.com/FasterXML/jackson-core
 [JSON]:					https://www.json.org/json-en.html
