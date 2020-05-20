@@ -97,7 +97,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 					FilterType filterType = matchAnyElements(parser.getCurrentName());
 					if(filterType == FilterType.ANON) {
 						anon = true;
-					} else {
+					} else if(filterType == FilterType.PRUNE) {
 						prune = true;
 					}
 				}
