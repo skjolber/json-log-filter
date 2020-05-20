@@ -173,7 +173,7 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
-- 1.0.4: A few bugs fixes. The `core` module now has 100% test coverage.
+- 1.0.4: A few bugs fixes. The `core` module now has 100% line coverage.
 - 1.0.3: Minor adjustments
 - 1.0.2: Manually inlining a few methods, minor adjustments.
 - 1.0.1: Max path matches support
