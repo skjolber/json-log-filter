@@ -63,7 +63,12 @@ public class CharArrayRangesFilter {
 	}
 	
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		buffer.ensureCapacity(buffer.length() + length);
+		
+		// this might be controversial performance-wise; for heavy filtered documents, it might introduce a
+		// bottleneck on memory / cache bandwidth
+		// alternative approaches would be to keep track of the diff, and thus know exactly 
+		// the proper buffer size
+		buffer.ensureCapacity(buffer.length() + length); 
 		
 		length += offset;
 		
