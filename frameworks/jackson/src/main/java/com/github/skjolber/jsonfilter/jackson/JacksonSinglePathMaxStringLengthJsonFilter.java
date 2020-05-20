@@ -2,13 +2,14 @@ package com.github.skjolber.jsonfilter.jackson;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.output.StringBuilderWriter;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.AbstractSingleStringFullPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 
 public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleStringFullPathJsonFilter implements JacksonJsonFilter {
 

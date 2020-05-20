@@ -3,13 +3,14 @@ package com.github.skjolber.jsonfilter.jmh.utils;
 import java.io.CharArrayReader;
 import java.io.IOException;
 
+import org.apache.commons.io.output.StringBuilderWriter;
+
 import com.arakelian.json.ImmutableJsonFilterOptions;
 import com.arakelian.json.JsonFilter;
 import com.arakelian.json.JsonFilterOptions;
 import com.arakelian.json.JsonReader;
 import com.arakelian.json.JsonWriter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
-import com.github.skjolber.jsonfilter.base.StringBuilderWriter;
 
 public class ArakelianJsonFilterJsonFilter extends DefaultJsonFilter {
 

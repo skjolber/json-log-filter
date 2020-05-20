@@ -81,7 +81,7 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			if(isActiveMaxStringLength()) {
 				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters);
 			} else {
-				if(!isAnyPrefix(anonymizeFilters) && !isAnyPrefix(pruneFilters)) {
+				if(!hasAnyPrefix(anonymizeFilters) && !hasAnyPrefix(pruneFilters)) {
 					return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters);
 				}
 				
@@ -97,15 +97,5 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 		return new DefaultJsonFilter();
 	}
 
-	protected boolean isAnyPrefix(String[] filters) {
-		if(filters != null) {
-			for(String string : filters) {
-				if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
 
 }

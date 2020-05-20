@@ -29,11 +29,11 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected String[] pruneFilters;
 
 	protected boolean isSinglePruneFilter() {
-		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters.length == 1;
+		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters != null && pruneFilters.length == 1;
 	}
 
 	protected boolean isSingleAnonymizeFilter() {
-		return (pruneFilters == null || pruneFilters.length == 0)  && anonymizeFilters.length == 1;
+		return (pruneFilters == null || pruneFilters.length == 0) && anonymizeFilters != null && anonymizeFilters.length == 1;
 	}
 
 	protected boolean isActiveMaxStringLength() {
@@ -192,7 +192,22 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 
 	@Override
 	public boolean isPropertySupported(String name) {
-		return name.equals(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName()) || name.equals(JsonFilterFactoryProperty.PRUNE.getPropertyName()) || name.equals(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName());
+		for (JsonFilterFactoryProperty p : JsonFilterFactoryProperty.values()) {
+			if(name.equals(p.getPropertyName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
+	protected static boolean hasAnyPrefix(String[] filters) {
+		if(filters != null) {
+			for(String string : filters) {
+				if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}	
 }
