@@ -5,6 +5,6 @@ module com.github.skjolber.jsonfilter.core {
     exports com.github.skjolber.jsonfilter.core;
     
 	provides com.github.skjolber.jsonfilter.JsonFilterFactory with
-	com.github.skjolber.jsonfilter.core.JsonFilterFactory;
+	com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
     
 }
