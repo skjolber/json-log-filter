@@ -5,6 +5,7 @@ build/
 bin/
 dist/
 vendor/
+*.releaseBackup
 
 #eclipse
 .settings

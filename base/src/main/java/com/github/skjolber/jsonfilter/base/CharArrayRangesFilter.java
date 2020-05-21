@@ -95,33 +95,38 @@ public class CharArrayRangesFilter {
 					//
 					// where X is hex
 					
-					int index = filter[i] - 1; // index of last character which is included
-					
-					// absolute minimium is length 8:
-					// ["\ uABCD"] (without the space) so
-					// ["\ u (without the space) is the minimum
-					// so must at least be 2 characters
-					
-					if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
-
-						filter[i] -= 2;
-						filter[i+2] -= 2;
-
-					} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
-
-						filter[i] -= 3;
-						filter[i+2] -= 3;
-
-					} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-
-						filter[i] -= 4;
-						filter[i+2] -= 4;
-
-					} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-
-						filter[i] -= 5;
-						filter[i+2] -= 5;
-
+					char peek = chars[filter[i]];
+					// check for unicode encoding. That means the peek char must be a hex
+					if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
+						int index = filter[i] - 1; // index of last character which is included
+						
+						// absolute minimium is length 8:
+						// ["\ uABCD"] (without the space) so
+						// ["\ u (without the space) is the minimum
+						// so must at least be 2 characters
+						
+						if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
+	
+							filter[i] -= 2;
+							filter[i+2] -= 2;
+	
+						} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
+	
+							filter[i] -= 3;
+							filter[i+2] -= 3;
+	
+						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+	
+							filter[i] -= 4;
+							filter[i+2] -= 4;
+	
+						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+	
+							filter[i] -= 5;
+							filter[i+2] -= 5;
+						} else {
+							// not unicode encoded
+						}
 					} else {
 						// not unicode encoded
 					}
