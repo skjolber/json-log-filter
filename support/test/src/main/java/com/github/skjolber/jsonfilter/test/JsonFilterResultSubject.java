@@ -69,7 +69,11 @@ public class JsonFilterResultSubject extends Subject {
 		}
 	}
 
-	/** Fails if the map does not have the given size. */
+	/** Fails if the map does not have the given size.
+	 * 
+	 * @param expectedSize expected size
+	 * @return this  
+	 */
 	public final JsonFilterResultSubject hasSize(int expectedSize) {
 		checkArgument(expectedSize >= 0, "expectedSize (%s) must be >= 0", expectedSize);
 		check("size()").that(actual.size()).isEqualTo(expectedSize);
