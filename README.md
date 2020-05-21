@@ -1,3 +1,4 @@
+
 [![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
 
 # json-log-filter
@@ -29,11 +30,19 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 The project is built with [Maven] and is available on the central Maven repository. 
 
 ### Maven
+
+Add the property
+```xml
+<json-log-filter.version>1.0.5</json-log-filter>
+```
+
+then add
+
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
-    <version>1.0.4</version>
+    <version>${json-log-filter.version}</version>
 </dependency>
 ```
 
@@ -43,7 +52,7 @@ or
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>jackson</artifactId>
-    <version>1.0.4</version>
+    <version>${json-log-filter.version}</version>
 </dependency>
 ```
 
@@ -52,7 +61,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.4'
+  jsonLogFilterVersion = '1.0.5'
 }
 ```
 
@@ -160,7 +169,7 @@ Performance summary:
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
-Note that both processors can parse __at least one thousand 100KB documents per second__, so while system-wide optimization like this are hard to come by, for a typical web service the fastest filters will improve overall system performance by no more than a few percent at best.
+Note that both processors can parse __at least one thousand 100KB documents per second__. For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
 Memory use will be approximately two times the JSON string size.
 
@@ -173,6 +182,7 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
+- 1.0.5: Take escaping into account when truncating text values.
 - 1.0.4: A few bugs fixes. The `core` module now has 100% line coverage.
 - 1.0.3: Minor adjustments
 - 1.0.2: Manually inlining a few methods, minor adjustments.
