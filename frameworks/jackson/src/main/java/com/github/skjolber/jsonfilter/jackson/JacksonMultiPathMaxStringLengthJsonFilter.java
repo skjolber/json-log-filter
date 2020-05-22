@@ -134,7 +134,14 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				String text = parser.getText();
-				generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+				
+				// A high surrogate precedes a low surrogate.
+				// check last include character
+				if(Character.isHighSurrogate(text.charAt(maxStringLength - 1))) {
+					generator.writeString(text.substring(0, maxStringLength - 1) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength + 1));
+				} else {
+					generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+				}
 				
 				continue;
 			}

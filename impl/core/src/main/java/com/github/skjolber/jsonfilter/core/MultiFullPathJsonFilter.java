@@ -107,8 +107,11 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 									} else {
 										// special case: anon scalar values
 										if(chars[nextOffset] == '"') {
+											
 											// quoted value
-											offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+											offset = nextOffset;
+											while(chars[++offset] != '"' || chars[offset - 1] == '\\');
+											offset++;
 											
 											filter.addAnon(nextOffset, offset);
 										} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
