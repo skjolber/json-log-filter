@@ -33,7 +33,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>1.0.5</json-log-filter>
+<json-log-filter.version>1.0.6</json-log-filter>
 ```
 
 then add
@@ -61,7 +61,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.5'
+  jsonLogFilterVersion = '1.0.6'
 }
 ```
 
@@ -182,6 +182,7 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 # History
+- 1.0.6: Take code points into account truncating text values in `Jackson` filters.
 - 1.0.5: Take escaping into account when truncating text values.
 - 1.0.4: A few bugs fixes. The `core` module now has 100% line coverage.
 - 1.0.3: Minor adjustments
