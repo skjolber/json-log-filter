@@ -428,6 +428,16 @@
 				<module>benchmark/jmh</module>
 			</modules>
 		</profile>
+		<profile>
+			<id>java11</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<modules>
+				<module>examples/java-11</module>
+			</modules>
+		</profile>
+		
 	</profiles>
 
 	<distributionManagement>
