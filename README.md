@@ -4,7 +4,7 @@
 # json-log-filter
 High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases
 
-  * Filter sensitive values from logs 
+  * Filter sensitive values from logs (i.e. on request-/-response logging)
      * technical details like passwords and so on
      * sensitive personal information, for [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation) compliance and such
   * Improve log readability, filtering
@@ -171,9 +171,11 @@ Performance summary:
 
 Note that both processors can parse __at least one thousand 100KB documents per second__. For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
-Memory use will be approximately two times the JSON string size.
+Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).   
 
 See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+
+Please consider refactoring your interfaces if you do a lot of filtering of static data and such.
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
