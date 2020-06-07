@@ -1,8 +1,9 @@
 
+
 [![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
 
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/-response logging)
      * technical details like passwords and so on
@@ -171,17 +172,21 @@ Performance summary:
 
 Note that both processors can parse __at least one thousand 100KB documents per second__. For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
-Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).   
+Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).
 
 See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
-Please consider refactoring your interfaces if you do a lot of filtering of static data and such.
+Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
+
+Using SIMD for parsing JSON: 
+ * [simdjson](https://github.com/simdjson/simdjson).
+ * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
 - 1.0.6: Take code points into account truncating text values in `Jackson` filters.
@@ -199,4 +204,4 @@ See the [xml-log-filter] for corresponding high-performance filtering of XML.
 [xml-log-filter]:       	https://github.com/skjolber/xml-log-filter
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:			https://github.com/FasterXML/jackson-core
-[JSON]:					https://www.json.org/json-en.html
+[JSON]:			https://www.json.org/json-en.html
