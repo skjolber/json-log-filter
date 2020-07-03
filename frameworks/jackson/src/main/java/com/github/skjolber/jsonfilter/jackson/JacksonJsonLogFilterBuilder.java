@@ -17,6 +17,10 @@ public class JacksonJsonLogFilterBuilder {
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
 	
+	protected String pruneMessage;
+	protected String anonymizeMessage;
+	protected String truncateMessage;
+	
 	public JsonFilter build() {
 		JacksonJsonFilterFactory factory = new JacksonJsonFilterFactory();
 		
@@ -48,6 +52,22 @@ public class JacksonJsonLogFilterBuilder {
 		return this;
 	}
 		
+	public JacksonJsonLogFilterBuilder withPruneMessage(String message) {
+		this.pruneMessage = message;
+		
+		return this;
+	}
 	
+	public JacksonJsonLogFilterBuilder withAnonymizeMessage(String message) {
+		this.anonymizeMessage = message;
+		
+		return this;
+	}
+	
+	public JacksonJsonLogFilterBuilder withTruncateMessage(String message) {
+		this.truncateMessage = message;
+		
+		return this;
+	}
 	
 }

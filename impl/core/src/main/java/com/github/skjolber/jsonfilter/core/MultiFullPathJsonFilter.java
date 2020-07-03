@@ -6,12 +6,16 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
 public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter implements RangesJsonFilter {
 
-	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
-		super(-1, maxPathMatches, anonymizes, prunes);
+	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(anyElementFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
 		}
+	}
+	
+	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
+		this(maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override

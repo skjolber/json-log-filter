@@ -15,14 +15,22 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 
 	protected final JsonFactory jsonFactory;
 
-	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, JsonFactory jsonFactory) {
-		super(maxStringLength, -1, anonymizes, prunes);
-		
-		this.jsonFactory = jsonFactory;
-	}
-
 	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes) {
 		this(maxStringLength, anonymizes, prunes, new JsonFactory());
+	}
+
+	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, JsonFactory jsonFactory) {
+		this(maxStringLength, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, jsonFactory);
+	}
+
+	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		this(maxStringLength, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		
+		this.jsonFactory = jsonFactory;
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {

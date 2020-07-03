@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {

@@ -6,8 +6,12 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
 public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implements RangesJsonFilter {
 
+	public MultiPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+	}
+	
 	public MultiPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
-		super(-1, maxPathMatches, anonymizes, prunes);
+		this(maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override

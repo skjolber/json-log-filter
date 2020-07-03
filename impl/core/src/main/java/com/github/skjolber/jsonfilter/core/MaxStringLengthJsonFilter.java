@@ -22,8 +22,12 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
 public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
 
+	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage);
+	}
+
 	public MaxStringLengthJsonFilter(int maxStringLength) {
-		super(maxStringLength);
+		this(maxStringLength, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override

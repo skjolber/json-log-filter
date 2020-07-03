@@ -15,7 +15,7 @@ public class AbstractSinglePathJsonFilterTest {
 	public class DefaultSinglePathJsonFilter extends AbstractSinglePathJsonFilter {
 	
 		public DefaultSinglePathJsonFilter(int maxScalarLength, String expression, FilterType type) {
-			super(maxScalarLength, -1, expression, type);
+			super(maxScalarLength, -1, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 		}
 
 		@Override

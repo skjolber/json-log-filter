@@ -6,9 +6,13 @@ import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFi
 
 public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter implements RangesJsonFilter {
 
-	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type) {
-		super(maxStringLength, maxPathMatches, expression, type);
+	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 	}
+	
+	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type) {
+		this(maxStringLength, maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+	}	
 
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {

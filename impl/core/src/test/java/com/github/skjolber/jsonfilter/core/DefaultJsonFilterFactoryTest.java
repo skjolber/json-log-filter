@@ -1,17 +1,17 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
-
-import static com.google.common.truth.Truth.*;
-
-import java.util.Arrays;
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 
 public class DefaultJsonFilterFactoryTest {
 

@@ -4,8 +4,8 @@ public abstract class AbstractSingleCharArrayFullPathJsonFilter extends Abstract
 
 	protected final char[][] paths;
 	
-	public AbstractSingleCharArrayFullPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type) {
-		super(maxStringLength, maxPathMatches, expression, type);
+	public AbstractSingleCharArrayFullPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(expression.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
 			throw new IllegalArgumentException("Any element expression not supported");

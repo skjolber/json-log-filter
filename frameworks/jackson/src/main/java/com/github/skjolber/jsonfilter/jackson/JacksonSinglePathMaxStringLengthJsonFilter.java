@@ -20,7 +20,15 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	}
 
 	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, JsonFactory jsonFactory) {
-		super(maxStringLength, -1, expression, type);
+		this(maxStringLength, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, jsonFactory);
+	}
+
+	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		this(maxStringLength, expression, type,  pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, -1, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 
 		this.jsonFactory = jsonFactory;
 	}

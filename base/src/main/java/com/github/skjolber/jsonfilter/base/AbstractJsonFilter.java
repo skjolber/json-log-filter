@@ -9,13 +9,21 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public abstract class AbstractJsonFilter implements JsonFilter {
 
+	public static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
+	public static final String FILTER_ANONYMIZE = "*****";
+	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
+
 	protected final int maxStringLength; // not always in use, if so set to max int
 	
+	protected final char[] pruneMessage;
+	protected final char[] anonymizeMessage;
+	protected final char[] truncateMessage;
+	
 	public AbstractJsonFilter() {
-		this(-1) ;
+		this(-1, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE) ;
 	}
 
-	public AbstractJsonFilter(int maxStringLength) {
+	public AbstractJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		if(maxStringLength < -1 || maxStringLength > Integer.MAX_VALUE - 2) {
 			throw new IllegalArgumentException("Expected -1 or positive integer lower than Integer.MAX_VALUE - 1");
 		}
@@ -25,6 +33,11 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		} else {
 			this.maxStringLength = maxStringLength;
 		}
+		
+		this.pruneMessage = ('"' + pruneMessage + '"').toCharArray();
+		this.anonymizeMessage = ('"' + anonymizeMessage + '"').toCharArray();
+		this.truncateMessage = truncateMessage.toCharArray();
+		
 	}
 
 	public boolean process(String jsonString, StringBuilder output) {

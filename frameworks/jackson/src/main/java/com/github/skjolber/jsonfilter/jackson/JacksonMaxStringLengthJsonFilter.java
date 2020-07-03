@@ -20,7 +20,15 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 
 	public JacksonMaxStringLengthJsonFilter(int maxStringLength, JsonFactory jsonFactory) {
-		super(maxStringLength);
+		this(maxStringLength, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, jsonFactory);
+	}
+
+	public JacksonMaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		this(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public JacksonMaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage);
 		this.jsonFactory = jsonFactory;
 	}
 	

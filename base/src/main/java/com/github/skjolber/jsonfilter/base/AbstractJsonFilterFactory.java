@@ -28,6 +28,10 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected String[] anonymizeFilters;
 	protected String[] pruneFilters;
 
+	protected String pruneMessage;
+	protected String anonymizeMessage;
+	protected String truncateMessage;
+	
 	protected boolean isSinglePruneFilter() {
 		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters != null && pruneFilters.length == 1;
 	}
@@ -209,5 +213,19 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			}
 		}
 		return false;
-	}	
+	}
+
+	public void setPruneMessage(String pruneMessage) {
+		this.pruneMessage = pruneMessage;
+	}
+
+	public void setAnonymizeMessage(String anonymizeMessage) {
+		this.anonymizeMessage = anonymizeMessage;
+	}
+
+	public void setTruncateMessage(String truncateMessage) {
+		this.truncateMessage = truncateMessage;
+	}
+	
+	
 }

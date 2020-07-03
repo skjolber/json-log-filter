@@ -35,8 +35,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected final String[] prunes;
 	protected final int maxPathMatches;
 	
-	public AbstractPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes) {
-		super(maxStringLength);
+	public AbstractPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(maxPathMatches < -1) {
 			throw new IllegalArgumentException();
@@ -59,8 +59,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		this.prunes = prunes;
 	}
 
-	public AbstractPathJsonFilter(String[] anonymizes, String[] prunes) {
-		this(-1, -1, anonymizes, prunes);
+	public AbstractPathJsonFilter(String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		this(-1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public static void validateAnonymizeExpressions(String[] expressions) {

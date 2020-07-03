@@ -15,20 +15,32 @@ public class CharArrayRangesFilter {
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	
 	public static final String FILTER_ANONYMIZE = "*****";
-	public static final String FILTER_ANONYMIZE_MESSAGE = "\"*****\"";
+	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
 	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
 
-	public static final char[] FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
-	public static final char[] FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
-	public static final char[] FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
+	public static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
+	public static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
+	public static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
 
 	protected int[] filter;
-	protected int filterIndex = 0;
 	
+	protected int filterIndex = 0;
+	protected final char[] pruneMessage;
+	protected final char[] anonymizeMessage;
+	protected final char[] truncateMessage;
+
 	public CharArrayRangesFilter(int pathMatches) {
+		this(pathMatches, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
+	}
+
+	public CharArrayRangesFilter(int pathMatches, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
 		if(pathMatches == -1) {
 			pathMatches = DEFAULT_INITIAL_ARRAY_SIZE;
 		}
+		this.pruneMessage = pruneMessage;
+		this.anonymizeMessage = anonymizeMessage;
+		this.truncateMessage = truncateMessage;
+		
 		this.filter = new int[Math.min(pathMatches, MAX_INITIAL_ARRAY_SIZE) * 3];
 	}
 
@@ -76,10 +88,10 @@ public class CharArrayRangesFilter {
 			
 			if(filter[i+2] == FILTER_ANON) {
 				buffer.append(chars, offset, filter[i] - offset);
-				buffer.append(FILTER_ANONYMIZE_MESSAGE_CHARS);
+				buffer.append(anonymizeMessage);
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.append(chars, offset, filter[i] - offset);
-				buffer.append(FILTER_PRUNE_MESSAGE_CHARS);
+				buffer.append(pruneMessage);
 			} else {
 				// account for code points and escaping
 				
@@ -141,9 +153,7 @@ public class CharArrayRangesFilter {
 				}
 				
 				buffer.append(chars, offset, filter[i] - offset);
-				
-				
-				buffer.append(FILTER_TRUNCATE_MESSAGE_CHARS);
+				buffer.append(truncateMessage);
 				buffer.append(-filter[i+2]);
 			}
 			offset = filter[i + 1];

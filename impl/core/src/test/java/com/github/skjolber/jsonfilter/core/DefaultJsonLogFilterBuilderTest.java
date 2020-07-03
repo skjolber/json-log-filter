@@ -1,11 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
-
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
+
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 
 public class DefaultJsonLogFilterBuilderTest {
 

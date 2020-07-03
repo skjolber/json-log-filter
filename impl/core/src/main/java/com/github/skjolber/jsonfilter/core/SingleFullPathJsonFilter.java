@@ -6,8 +6,12 @@ import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFi
 
 public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter implements RangesJsonFilter {
 
+	public SingleFullPathJsonFilter(int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(-1, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
+	}
+	
 	public SingleFullPathJsonFilter(int maxPathMatches, String expression, FilterType type) {
-		super(-1, maxPathMatches, expression, type);
+		this(maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override
