@@ -65,10 +65,10 @@ public class JacksonJsonLogFilterBuilder {
 	 * @return this instance
 	 */
 
-	public JacksonJsonLogFilterBuilder withPruneStringValue(String pruneMessage) {
-		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
+	public JacksonJsonLogFilterBuilder withPruneStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
 		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
 		stringBuilder.append('"');
 		return withPruneRawJsonValue(stringBuilder.toString());
 	}
@@ -81,10 +81,10 @@ public class JacksonJsonLogFilterBuilder {
 	 * @return this instance
 	 */
 
-	public JacksonJsonLogFilterBuilder withAnonymizeStringValue(String anonymizeMessage) {
-		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
+	public JacksonJsonLogFilterBuilder withAnonymizeStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
 		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
 		stringBuilder.append('"');
 		return withAnonymizeRawJsonValue(stringBuilder.toString());
 	}
@@ -97,9 +97,9 @@ public class JacksonJsonLogFilterBuilder {
 	 * @return this instance
 	 */
 	
-	public JacksonJsonLogFilterBuilder withTruncateStringValue(String truncateMessage) {
-		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
-		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
+	public JacksonJsonLogFilterBuilder withTruncateStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
 		return withTruncateRawJsonStringValue(stringBuilder.toString());
 	}
 	
