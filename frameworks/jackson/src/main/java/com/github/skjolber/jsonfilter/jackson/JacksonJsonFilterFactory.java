@@ -24,6 +24,8 @@ import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 /**
+ * Jackson {@linkplain JsonFilter} factory.
+ * <br><br>
  * Property maxFilterMatches is ignored.
  * 
  */
@@ -49,39 +51,39 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 	public JsonFilter newJsonFilter() {
 		// check for any prune/anon filter
 		
-		String pruneMessage = this.pruneJsonValue;
-		if(pruneMessage == null) {
-			pruneMessage = AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
+		String pruneJsonValue = this.pruneJsonValue;
+		if(pruneJsonValue == null) {
+			pruneJsonValue = AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
 		}
-		String anonymizeMessage = this.anonymizeJsonValue;
-		if(anonymizeMessage == null) {
-			anonymizeMessage = AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
+		String anonymizeJsonValue = this.anonymizeJsonValue;
+		if(anonymizeJsonValue == null) {
+			anonymizeJsonValue = AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
 		}
 		
-		String truncateMessage = this.truncateStringValue;
-		if(truncateMessage == null) {
-			truncateMessage = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
+		String truncateStringValue = this.truncateStringValue;
+		if(truncateStringValue == null) {
+			truncateStringValue = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
 		}
 		
 		if(isActivePathFilters()) {
 			// check for single prune/anon filter
 			if(isSinglePruneFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(pruneFilters[0])) {
-					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
+					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 			} else if(isSingleAnonymizeFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters[0])) {				
-					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
+					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 			}
 			if(!isFullPrefix(anonymizeFilters) && !isFullPrefix(pruneFilters)) {
-				return new JacksonMultiAnyPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
+				return new JacksonMultiAnyPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 			}
 		
-			return new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
+			return new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		}
 		if(isActiveMaxStringLength()) {
-			return new JacksonMaxStringLengthJsonFilter(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage);
+			return new JacksonMaxStringLengthJsonFilter(maxStringLength, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		}
 
 		return new DefaultJsonFilter();

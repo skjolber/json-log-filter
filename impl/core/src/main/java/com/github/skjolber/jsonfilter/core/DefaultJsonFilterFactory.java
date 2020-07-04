@@ -24,7 +24,7 @@ import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 /**
- * 
+ * Default {@linkplain JsonFilter} factory.
  */
 
 public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
@@ -46,18 +46,18 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 	 */
 	
 	public JsonFilter newJsonFilter() {
-		String pruneMessage = this.pruneJsonValue;
-		if(pruneMessage == null) {
-			pruneMessage = AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
+		String pruneJsonValue = this.pruneJsonValue;
+		if(pruneJsonValue == null) {
+			pruneJsonValue = AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
 		}
-		String anonymizeMessage = this.anonymizeJsonValue;
-		if(anonymizeMessage == null) {
-			anonymizeMessage = AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
+		String anonymizeJsonValue = this.anonymizeJsonValue;
+		if(anonymizeJsonValue == null) {
+			anonymizeJsonValue = AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
 		}
 		
-		String truncateMessage = this.truncateStringValue;
-		if(truncateMessage == null) {
-			truncateMessage = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
+		String truncateStringValue = this.truncateStringValue;
+		if(truncateStringValue == null) {
+			truncateStringValue = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
 		}
 		// check for any prune/anon filter
 		if(isActivePathFilters()) {
@@ -65,41 +65,41 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			if(isSinglePruneFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(pruneFilters[0])) {
 					if(isActiveMaxStringLength()) {
-						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					} else {
-						return new SingleFullPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleFullPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
 				} else {
 					if(isActiveMaxStringLength()) {
-						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					} else {
-						return new SingleAnyPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleAnyPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
 				}
 			} else if(isSingleAnonymizeFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters[0])) {
 					if(isActiveMaxStringLength()) {
-						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					} else {
-						return new SingleFullPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleFullPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
 				} else {
 					if(isActiveMaxStringLength()) {
-						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					} else {
-						return new SingleAnyPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
+						return new SingleAnyPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
 				}
 			}
 		
 			if(isActiveMaxStringLength()) {
-				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
+				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 			} else {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters) && !AbstractPathJsonFilter.hasAnyPrefix(pruneFilters)) {
-					return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
+					return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 				
-				return new MultiPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
+				return new MultiPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 			}
 		} else if(maxPathMatches != -1) {
 			throw new IllegalArgumentException("If no prune or anonymize paths exists, max path matches should not be set.");

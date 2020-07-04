@@ -57,41 +57,65 @@ public class JacksonJsonLogFilterBuilder {
 		return this;
 	}
 		
+	/**
+	 * Set a textual value as use for replacement for pruned value(s)
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
+
 	public JacksonJsonLogFilterBuilder withPruneStringValue(String pruneMessage) {
 		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
 		stringBuilder.append('"');
 		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
 		stringBuilder.append('"');
-		return withPruneJsonValue(stringBuilder.toString());
+		return withPruneRawJsonValue(stringBuilder.toString());
 	}
+
+	/**
+	 * Set a textual value as use for replacement for anonymized value(s)
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
 
 	public JacksonJsonLogFilterBuilder withAnonymizeStringValue(String anonymizeMessage) {
 		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
 		stringBuilder.append('"');
 		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
 		stringBuilder.append('"');
-		return withAnonymizeJsonValue(stringBuilder.toString());
+		return withAnonymizeRawJsonValue(stringBuilder.toString());
 	}
-
+	
+	/**
+	 * Set the truncate textual value.
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
+	
 	public JacksonJsonLogFilterBuilder withTruncateStringValue(String truncateMessage) {
 		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
 		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
-		return withTruncateJsonStringValue(stringBuilder.toString());
+		return withTruncateRawJsonStringValue(stringBuilder.toString());
 	}
 	
-	public JacksonJsonLogFilterBuilder withTruncateJsonStringValue(String escaped) {
+	public JacksonJsonLogFilterBuilder withTruncateRawJsonStringValue(String escaped) {
 		this.truncateStringValue = escaped;
 		
 		return this;
 	}
 	
-	public JacksonJsonLogFilterBuilder withPruneJsonValue(String raw) {
+	public JacksonJsonLogFilterBuilder withPruneRawJsonValue(String raw) {
 		this.pruneJsonValue = raw;
 		
 		return this;
 	}
 
-	public JacksonJsonLogFilterBuilder withAnonymizeJsonValue(String raw) {
+	public JacksonJsonLogFilterBuilder withAnonymizeRawJsonValue(String raw) {
 		this.anonymizeJsonValue = raw;
 		
 		return this;

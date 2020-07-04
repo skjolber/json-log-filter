@@ -82,41 +82,65 @@ public class DefaultJsonLogFilterBuilder {
 		return this;
 	}
 
-	public DefaultJsonLogFilterBuilder withPruneStringValue(String pruneMessage) {
-		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
+	/**
+	 * Set a textual value as use for replacement for pruned value(s)
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
+	
+	public DefaultJsonLogFilterBuilder withPruneStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
 		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
 		stringBuilder.append('"');
-		return withPruneJsonValue(stringBuilder.toString());
-	}
-
-	public DefaultJsonLogFilterBuilder withAnonymizeStringValue(String anonymizeMessage) {
-		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
-		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
-		stringBuilder.append('"');
-		return withAnonymizeJsonValue(stringBuilder.toString());
-	}
-
-	public DefaultJsonLogFilterBuilder withTruncateStringValue(String truncateMessage) {
-		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
-		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
-		return withTruncateJsonStringValue(stringBuilder.toString());
+		return withPruneRawJsonValue(stringBuilder.toString());
 	}
 	
-	public DefaultJsonLogFilterBuilder withTruncateJsonStringValue(String escaped) {
+	/**
+	 * Set a textual value as use for replacement for anonymized value(s)
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
+
+	public DefaultJsonLogFilterBuilder withAnonymizeStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
+		stringBuilder.append('"');
+		return withAnonymizeRawJsonValue(stringBuilder.toString());
+	}
+
+	/**
+	 * Set the truncate textual value.
+	 * 
+	 * @param value the (unescaped) message
+	 * 
+	 * @return this instance
+	 */
+	
+	public DefaultJsonLogFilterBuilder withTruncateStringValue(String value) {
+		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
+		AbstractJsonFilter.quoteAsString(value, stringBuilder);
+		return withTruncateRawJsonStringValue(stringBuilder.toString());
+	}
+	
+	public DefaultJsonLogFilterBuilder withTruncateRawJsonStringValue(String escaped) {
 		this.truncateStringValue = escaped;
 		
 		return this;
 	}
 	
-	public DefaultJsonLogFilterBuilder withPruneJsonValue(String raw) {
+	public DefaultJsonLogFilterBuilder withPruneRawJsonValue(String raw) {
 		this.pruneJsonValue = raw;
 		
 		return this;
 	}
 
-	public DefaultJsonLogFilterBuilder withAnonymizeJsonValue(String raw) {
+	public DefaultJsonLogFilterBuilder withAnonymizeRawJsonValue(String raw) {
 		this.anonymizeJsonValue = raw;
 		
 		return this;
