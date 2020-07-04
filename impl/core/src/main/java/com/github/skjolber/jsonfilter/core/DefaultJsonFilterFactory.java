@@ -63,7 +63,7 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 		if(isActivePathFilters()) {
 			// check for single prune/anon filter
 			if(isSinglePruneFilter()) {
-				if(!pruneFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+				if(!AbstractPathJsonFilter.hasAnyPrefix(pruneFilters[0])) {
 					if(isActiveMaxStringLength()) {
 						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneMessage, anonymizeMessage, truncateMessage);
 					} else {
@@ -77,7 +77,7 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 					}
 				}
 			} else if(isSingleAnonymizeFilter()) {
-				if(!anonymizeFilters[0].startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters[0])) {
 					if(isActiveMaxStringLength()) {
 						return new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneMessage, anonymizeMessage, truncateMessage);
 					} else {
@@ -95,7 +95,7 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			if(isActiveMaxStringLength()) {
 				return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
 			} else {
-				if(!hasAnyPrefix(anonymizeFilters) && !hasAnyPrefix(pruneFilters)) {
+				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters) && !AbstractPathJsonFilter.hasAnyPrefix(pruneFilters)) {
 					return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneMessage, anonymizeMessage, truncateMessage);
 				}
 				

@@ -7,7 +7,7 @@ public abstract class AbstractSingleCharArrayFullPathJsonFilter extends Abstract
 	public AbstractSingleCharArrayFullPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 		
-		if(expression.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
+		if(hasAnyPrefix(expression)) {
 			throw new IllegalArgumentException("Any element expression not supported");
 		}
 
@@ -16,5 +16,5 @@ public abstract class AbstractSingleCharArrayFullPathJsonFilter extends Abstract
 			paths[i] = intern(paths[i]);
 		}
 	}
-	
+
 }

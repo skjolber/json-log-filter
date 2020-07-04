@@ -22,7 +22,7 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new SingleFullPathJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON).process(new char[] {}, 1, 1, new StringBuilder()));
-	}	
+	}
 
 	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {

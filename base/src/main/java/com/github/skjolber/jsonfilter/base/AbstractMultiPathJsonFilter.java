@@ -84,7 +84,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		if(prunes != null) {
 			for(int i = 0; i < prunes.length; i++) {
 				String prune = prunes[i];
-				if(prune.startsWith(ANY_PREFIX)) {
+				if(hasAnyPrefix(prune)) {
 					any.add(new AnyPathFilter(prune.substring(2), FilterType.PRUNE));
 				} else {
 					elements.add(new AbsolutePathFilter(parse(prune), FilterType.PRUNE));
@@ -95,7 +95,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		if(anonymizes != null) {
 			for(int i = 0; i < anonymizes.length; i++) {
 				String anonymize = anonymizes[i];
-				if(anonymize.startsWith(ANY_PREFIX)) {
+				if(hasAnyPrefix(anonymize)) {
 					any.add(new AnyPathFilter(anonymize.substring(2), FilterType.ANON));
 				} else {
 					elements.add(new AbsolutePathFilter(parse(anonymize), FilterType.ANON));

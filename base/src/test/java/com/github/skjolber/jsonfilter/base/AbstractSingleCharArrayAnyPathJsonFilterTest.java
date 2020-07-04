@@ -15,7 +15,6 @@ public class AbstractSingleCharArrayAnyPathJsonFilterTest {
 
 		@Override
 		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 

@@ -22,7 +22,11 @@ public interface JsonFilterFactory {
 		MAX_STRING_LENGTH("com.skjolberg.jsonfilter.maxStringLength"),
 		PRUNE("com.skjolberg.jsonfilter.prune"),
 		ANONYMIZE("com.skjolberg.jsonfilter.anonymize"),
-		MAX_PATH_MATCHES("com.skjolberg.jsonfilter.maxPathMatches");
+		MAX_PATH_MATCHES("com.skjolberg.jsonfilter.maxPathMatches"),
+		PRUNE_MESSAGE("com.skjolberg.jsonfilter.pruneMessage"),
+		ANON_MESSAGE("com.skjolberg.jsonfilter.anonymizeMessage"),
+		TRUNCATE_MESSAGE("com.skjolberg.jsonfilter.truncateMessage")
+		;
 		
 		private final String name;
 		

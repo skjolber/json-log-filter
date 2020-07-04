@@ -21,14 +21,34 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	 * group 1 starting with slash and containing no special chars except star (*). 
 	 * optional group 2 starting with slash and containing no special chars except star (*) and at (@), must be last. 
 	 */ 
-	protected static final String pruneSyntaxAbsolutePath = "^(\\/([^\\/]+)|\\*)+$"; // slash + non-special chars '/' '*'
-	protected static final String syntaxAnyPath = "^(\\/\\/[^\\/|\\*]+)$"; // 2x slash + non-special chars '/' '*'
+	
+	protected static final String syntaxAbsolutePathSlashes = "^(\\/([^\\/]+)|\\*)+$"; // slash + non-special chars '/' '*'
+	protected static final String syntaxAnyPathSlashes = "^(\\/\\/[^\\/|\\*]+)$"; // 2x slash + non-special chars '/' '*'
 
+	protected static final String syntaxAbsolutePathDots = "^(\\.([^\\.]+)|\\*)+$"; // slash + non-special chars '/' '*'
+	protected static final String syntaxAnyPathDots = "^(\\.\\.[^\\.|\\*]+)$"; // 2x slash + non-special chars '/' '*'
+	
 	protected static final String[] EMPTY = new String[]{};
-	public static final String ANY_PREFIX = "//";
+	protected static final String ANY_PREFIX_SLASHES = "//";
+	protected static final String ANY_PREFIX_DOTS = "..";
 	
 	public static final String STAR = "*";
 	public static final char[] STAR_CHARS = STAR.toCharArray();
+	
+	public static boolean hasAnyPrefix(String[] filters) {
+		if(filters != null) {
+			for(String string : filters) {
+				if(hasAnyPrefix(string)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean hasAnyPrefix(String string) {
+		return string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_SLASHES) || string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_DOTS);
+	}
 	
 	/** strictly not needed, but necessary for testing */
 	protected final String[] anonymizes;
@@ -70,8 +90,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validateAnonymizeExpression(String expression) {
-		if(!expression.matches(pruneSyntaxAbsolutePath) && !expression.matches(syntaxAnyPath)) {
-			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c with wildcards or //a without wildcards");
+		if(!expression.matches(syntaxAbsolutePathSlashes) && !expression.matches(syntaxAnyPathSlashes) && !expression.matches(syntaxAbsolutePathDots) && !expression.matches(syntaxAnyPathDots)) {
+			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
 	}
 	
@@ -82,13 +102,13 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validatePruneExpression(String expression) {
-		if(!expression.matches(pruneSyntaxAbsolutePath) && !expression.matches(syntaxAnyPath) ) {
-			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c with wildcards or //a without wildcards");
+		if(!expression.matches(syntaxAbsolutePathSlashes) && !expression.matches(syntaxAnyPathSlashes) && !expression.matches(syntaxAbsolutePathDots) && !expression.matches(syntaxAnyPathDots)) {
+			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
 	}
 	
 	protected static String[] parse(String expression) {
-		String[] split = expression.split("/");
+		String[] split = expression.split("/|\\.");
 		String[] elementPath = new String[split.length - 1];
 		for(int k = 0; k < elementPath.length; k++) {
 			elementPath[k] = intern(split[k + 1]);

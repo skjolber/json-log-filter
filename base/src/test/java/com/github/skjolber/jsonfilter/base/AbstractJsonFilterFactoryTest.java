@@ -75,10 +75,17 @@ public class AbstractJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), 123);
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), 13);
 
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), "prune");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), "anon");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
+
 		assertThat(factory.getMaxStringLength()).isEqualTo(123);
 		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"//def"});
 		assertThat(factory.getMaxPathMatches()).isEqualTo(13);
+		assertThat(factory.getPruneMessage()).isEqualTo("prune");
+		assertThat(factory.getAnonymizeMessage()).isEqualTo("anon");
+		assertThat(factory.getTruncateMessage()).isEqualTo("truncate");
 	}
 
 	@Test
@@ -121,14 +128,17 @@ public class AbstractJsonFilterFactoryTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), new Object());
 		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), new Object());
+		});
 	}	
-	
-	@Test
-	public void testAnyPrefix() {
-		assertTrue(AbstractJsonFilterFactory.hasAnyPrefix(new String[] {"//a"}));
-		assertFalse(AbstractJsonFilterFactory.hasAnyPrefix(new String[] {"/a"}));
-	}
-	
+
 	@Test
 	public void clearProperties() {
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), Arrays.asList());

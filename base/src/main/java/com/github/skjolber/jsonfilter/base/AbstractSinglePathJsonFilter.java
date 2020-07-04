@@ -26,5 +26,4 @@ public abstract class AbstractSinglePathJsonFilter extends AbstractPathJsonFilte
 		
 		this.filterType = type;
 	}
-
 }

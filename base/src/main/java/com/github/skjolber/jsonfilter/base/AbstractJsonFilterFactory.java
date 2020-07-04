@@ -191,6 +191,31 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			}
 			break;
 		}
+		case PRUNE_MESSAGE : {
+			if(value instanceof String) {
+				setPruneMessage((String) value);
+			} else {
+				throw new IllegalArgumentException("Cannot set prune message, unexpected value type");
+			}
+			break;
+		}
+		case ANON_MESSAGE : {
+			if(value instanceof String) {
+				setAnonymizeMessage((String) value);
+			} else {
+				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
+			}
+			break;
+		}
+		case TRUNCATE_MESSAGE : {
+			if(value instanceof String) {
+				setTruncateMessage((String) value);
+			} else {
+				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
+			}
+			break;
+		}
+		
 		}
 	}
 
@@ -199,17 +224,6 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		for (JsonFilterFactoryProperty p : JsonFilterFactoryProperty.values()) {
 			if(name.equals(p.getPropertyName())) {
 				return true;
-			}
-		}
-		return false;
-	}
-	
-	protected static boolean hasAnyPrefix(String[] filters) {
-		if(filters != null) {
-			for(String string : filters) {
-				if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX)) {
-					return true;
-				}
 			}
 		}
 		return false;
@@ -227,5 +241,16 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		this.truncateMessage = truncateMessage;
 	}
 	
+	public String getAnonymizeMessage() {
+		return anonymizeMessage;
+	}
+	
+	public String getPruneMessage() {
+		return pruneMessage;
+	}
+	
+	public String getTruncateMessage() {
+		return truncateMessage;
+	}
 	
 }
