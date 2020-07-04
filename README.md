@@ -34,7 +34,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>1.0.6</json-log-filter>
+<json-log-filter.version>1.0.8</json-log-filter>
 ```
 
 then add
@@ -62,7 +62,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.6'
+  jsonLogFilterVersion = '1.0.8'
 }
 ```
 
@@ -189,6 +189,7 @@ Using SIMD for parsing JSON:
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
+- 1.0.8: Add support for custom replacements
 - 1.0.6: Take code points into account truncating text values in `Jackson` filters.
 - 1.0.5: Take escaping into account when truncating text values.
 - 1.0.4: A few bugs fixes. The `core` module now has 100% line coverage.
