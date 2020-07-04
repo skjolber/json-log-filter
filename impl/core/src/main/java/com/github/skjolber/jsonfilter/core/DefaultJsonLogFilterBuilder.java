@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class DefaultJsonLogFilterBuilder {
 
@@ -34,19 +35,27 @@ public class DefaultJsonLogFilterBuilder {
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
 	
+	/** Raw JSON */
+	protected String pruneJsonValue;
+	/** Raw JSON */
+	protected String anonymizeJsonValue;
+	
+	/** Raw (escaped) JSON string */
+	protected String truncateStringValue;
+	
 	public JsonFilter build() {
 		DefaultJsonFilterFactory factory = new DefaultJsonFilterFactory();
 		
 		factory.setMaxStringLength(maxStringLength);
 		factory.setMaxPathMatches(maxPathMatches);
 		
-		if(!anonymizeFilters.isEmpty()) {
-			factory.setAnonymizeFilters(anonymizeFilters);
-		}
-		if(!pruneFilters.isEmpty()) {
-			factory.setPruneFilters(pruneFilters);
-		}
+		factory.setAnonymizeFilters(anonymizeFilters);
+		factory.setPruneFilters(pruneFilters);
 
+		factory.setPruneJsonValue(pruneJsonValue);
+		factory.setAnonymizeJsonValue(anonymizeJsonValue);
+		factory.setTruncateJsonStringValue(truncateStringValue);
+		
 		return factory.newJsonFilter();
 	}
 	
@@ -72,5 +81,45 @@ public class DefaultJsonLogFilterBuilder {
 		Collections.addAll(anonymizeFilters, filters);
 		return this;
 	}
+
+	public DefaultJsonLogFilterBuilder withPruneStringValue(String pruneMessage) {
+		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
+		stringBuilder.append('"');
+		return withPruneJsonValue(stringBuilder.toString());
+	}
+
+	public DefaultJsonLogFilterBuilder withAnonymizeStringValue(String anonymizeMessage) {
+		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
+		stringBuilder.append('"');
+		return withAnonymizeJsonValue(stringBuilder.toString());
+	}
+
+	public DefaultJsonLogFilterBuilder withTruncateStringValue(String truncateMessage) {
+		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
+		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
+		return withTruncateJsonStringValue(stringBuilder.toString());
+	}
+	
+	public DefaultJsonLogFilterBuilder withTruncateJsonStringValue(String escaped) {
+		this.truncateStringValue = escaped;
+		
+		return this;
+	}
+	
+	public DefaultJsonLogFilterBuilder withPruneJsonValue(String raw) {
+		this.pruneJsonValue = raw;
+		
+		return this;
+	}
+
+	public DefaultJsonLogFilterBuilder withAnonymizeJsonValue(String raw) {
+		this.anonymizeJsonValue = raw;
+		
+		return this;
+	}	
 	
 }

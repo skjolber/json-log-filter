@@ -11,7 +11,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 	}
 	
 	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type) {
-		this(maxStringLength, maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+		this(maxStringLength, maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}	
 
 	@Override
@@ -28,7 +28,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = new CharArrayRangesFilter(pathMatches);
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
 
 		length += offset;
 

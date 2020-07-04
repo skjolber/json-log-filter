@@ -11,7 +11,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 	}
 	
 	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes) {
-		this(maxStringLength, maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+		this(maxStringLength, maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 	
 	@Override
@@ -28,7 +28,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = new CharArrayRangesFilter(pathMatches);
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
 
 		try {
 			while(offset < length) {

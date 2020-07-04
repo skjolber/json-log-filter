@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class JacksonJsonLogFilterBuilder {
 
@@ -16,10 +17,14 @@ public class JacksonJsonLogFilterBuilder {
 	
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
+
+	/** Raw JSON */
+	protected String pruneJsonValue;
+	/** Raw JSON */
+	protected String anonymizeJsonValue;
 	
-	protected String pruneMessage;
-	protected String anonymizeMessage;
-	protected String truncateMessage;
+	/** Raw (escaped) JSON string */
+	protected String truncateStringValue;
 	
 	public JsonFilter build() {
 		JacksonJsonFilterFactory factory = new JacksonJsonFilterFactory();
@@ -52,22 +57,44 @@ public class JacksonJsonLogFilterBuilder {
 		return this;
 	}
 		
-	public JacksonJsonLogFilterBuilder withPruneMessage(String message) {
-		this.pruneMessage = message;
+	public JacksonJsonLogFilterBuilder withPruneStringValue(String pruneMessage) {
+		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
+		stringBuilder.append('"');
+		return withPruneJsonValue(stringBuilder.toString());
+	}
+
+	public JacksonJsonLogFilterBuilder withAnonymizeStringValue(String anonymizeMessage) {
+		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
+		stringBuilder.append('"');
+		return withAnonymizeJsonValue(stringBuilder.toString());
+	}
+
+	public JacksonJsonLogFilterBuilder withTruncateStringValue(String truncateMessage) {
+		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
+		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
+		return withTruncateJsonStringValue(stringBuilder.toString());
+	}
+	
+	public JacksonJsonLogFilterBuilder withTruncateJsonStringValue(String escaped) {
+		this.truncateStringValue = escaped;
 		
 		return this;
 	}
 	
-	public JacksonJsonLogFilterBuilder withAnonymizeMessage(String message) {
-		this.anonymizeMessage = message;
+	public JacksonJsonLogFilterBuilder withPruneJsonValue(String raw) {
+		this.pruneJsonValue = raw;
 		
 		return this;
 	}
-	
-	public JacksonJsonLogFilterBuilder withTruncateMessage(String message) {
-		this.truncateMessage = message;
+
+	public JacksonJsonLogFilterBuilder withAnonymizeJsonValue(String raw) {
+		this.anonymizeJsonValue = raw;
 		
 		return this;
-	}
+	}	
 	
 }

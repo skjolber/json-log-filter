@@ -28,9 +28,13 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected String[] anonymizeFilters;
 	protected String[] pruneFilters;
 
-	protected String pruneMessage;
-	protected String anonymizeMessage;
-	protected String truncateMessage;
+	/** Raw JSON */
+	protected String pruneJsonValue;
+	/** Raw JSON */
+	protected String anonymizeJsonValue;
+	
+	/** Raw (escaped) JSON string */
+	protected String truncateStringValue;
 	
 	protected boolean isSinglePruneFilter() {
 		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters != null && pruneFilters.length == 1;
@@ -193,7 +197,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		}
 		case PRUNE_MESSAGE : {
 			if(value instanceof String) {
-				setPruneMessage((String) value);
+				setPruneStringValue((String) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set prune message, unexpected value type");
 			}
@@ -201,7 +205,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		}
 		case ANON_MESSAGE : {
 			if(value instanceof String) {
-				setAnonymizeMessage((String) value);
+				setAnonymizeStringValue((String) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
 			}
@@ -209,7 +213,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		}
 		case TRUNCATE_MESSAGE : {
 			if(value instanceof String) {
-				setTruncateMessage((String) value);
+				setTruncateStringValue((String) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
 			}
@@ -229,28 +233,51 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		return false;
 	}
 
-	public void setPruneMessage(String pruneMessage) {
-		this.pruneMessage = pruneMessage;
+	public void setPruneStringValue(String pruneMessage) {
+		StringBuilder stringBuilder = new StringBuilder(pruneMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(pruneMessage, stringBuilder);
+		stringBuilder.append('"');
+		setPruneJsonValue(stringBuilder.toString());
 	}
 
-	public void setAnonymizeMessage(String anonymizeMessage) {
-		this.anonymizeMessage = anonymizeMessage;
+	public void setAnonymizeStringValue(String anonymizeMessage) {
+		StringBuilder stringBuilder = new StringBuilder(anonymizeMessage.length() * 2);
+		stringBuilder.append('"');
+		AbstractJsonFilter.quoteAsString(anonymizeMessage, stringBuilder);
+		stringBuilder.append('"');
+		setAnonymizeJsonValue(stringBuilder.toString());
 	}
 
-	public void setTruncateMessage(String truncateMessage) {
-		this.truncateMessage = truncateMessage;
+	public void setTruncateStringValue(String truncateMessage) {
+		StringBuilder stringBuilder = new StringBuilder(truncateMessage.length() * 2);
+		AbstractJsonFilter.quoteAsString(truncateMessage, stringBuilder);
+		setTruncateJsonStringValue(stringBuilder.toString());
 	}
 	
-	public String getAnonymizeMessage() {
-		return anonymizeMessage;
+	public void setTruncateJsonStringValue(String escaped) {
+		this.truncateStringValue = escaped;
 	}
 	
-	public String getPruneMessage() {
-		return pruneMessage;
+	public void setPruneJsonValue(String raw) {
+		this.pruneJsonValue = raw;
+	}
+
+	public void setAnonymizeJsonValue(String raw) {
+		this.anonymizeJsonValue = raw;
 	}
 	
-	public String getTruncateMessage() {
-		return truncateMessage;
+	public String getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
 	}
+	
+	public String getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	public String getTruncateJsonStringValue() {
+		return truncateStringValue;
+	}
+	
 	
 }

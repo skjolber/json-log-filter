@@ -29,19 +29,19 @@ public class CharArrayRangesFilter {
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
 
-	public CharArrayRangesFilter(int pathMatches) {
-		this(pathMatches, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
+	public CharArrayRangesFilter(int initialCapacity) {
+		this(initialCapacity, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public CharArrayRangesFilter(int pathMatches, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
-		if(pathMatches == -1) {
-			pathMatches = DEFAULT_INITIAL_ARRAY_SIZE;
+	public CharArrayRangesFilter(int initialCapacity, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+		if(initialCapacity == -1) {
+			initialCapacity = DEFAULT_INITIAL_ARRAY_SIZE;
 		}
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 		
-		this.filter = new int[Math.min(pathMatches, MAX_INITIAL_ARRAY_SIZE) * 3];
+		this.filter = new int[Math.min(initialCapacity, MAX_INITIAL_ARRAY_SIZE) * 3];
 	}
 
 	public void addMaxLength(int start, int end, int length) {

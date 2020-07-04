@@ -27,7 +27,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 	}
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
-		this(maxStringLength, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+		this(maxStringLength, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayRangesFilter filter = new CharArrayRangesFilter(-1);
+		CharArrayRangesFilter filter = getCharArrayRangesFilter();
 
 		try {
 			return ranges(chars, offset, offset + length, maxStringLength, filter);

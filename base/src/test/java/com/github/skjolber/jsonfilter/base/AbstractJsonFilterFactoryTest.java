@@ -83,9 +83,9 @@ public class AbstractJsonFilterFactoryTest {
 		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"//def"});
 		assertThat(factory.getMaxPathMatches()).isEqualTo(13);
-		assertThat(factory.getPruneMessage()).isEqualTo("prune");
-		assertThat(factory.getAnonymizeMessage()).isEqualTo("anon");
-		assertThat(factory.getTruncateMessage()).isEqualTo("truncate");
+		assertThat(factory.getPruneJsonValue()).isEqualTo("\"prune\"");
+		assertThat(factory.getAnonymizeJsonValue()).isEqualTo("\"anon\"");
+		assertThat(factory.getTruncateJsonStringValue()).isEqualTo("truncate");
 	}
 
 	@Test

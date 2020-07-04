@@ -15,7 +15,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 	}
 	
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
-		this(maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+		this(maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override
@@ -30,7 +30,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = new CharArrayRangesFilter(pathMatches);
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
 
 		try {
 			main:
@@ -162,6 +162,5 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 			return null;
 		}		
 	}
-
 	
 }

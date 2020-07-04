@@ -53,6 +53,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	/** strictly not needed, but necessary for testing */
 	protected final String[] anonymizes;
 	protected final String[] prunes;
+	
 	protected final int maxPathMatches;
 	
 	public AbstractPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
@@ -174,5 +175,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	public int getMaxPathMatches() {
 		return maxPathMatches;
 	}
+	
 	
 }

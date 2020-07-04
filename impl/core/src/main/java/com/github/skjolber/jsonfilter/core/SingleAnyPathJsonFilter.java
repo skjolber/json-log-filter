@@ -11,7 +11,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 	}
 	
 	public SingleAnyPathJsonFilter(int maxPathMatches, String expression, FilterType type) {
-		this(maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
+		this(maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override
@@ -22,7 +22,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 
 		length += offset;
 
-		final CharArrayRangesFilter filter = new CharArrayRangesFilter(pathMatches);
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
 		
 		length += offset;
 

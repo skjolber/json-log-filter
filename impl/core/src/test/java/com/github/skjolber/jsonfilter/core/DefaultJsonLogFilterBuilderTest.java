@@ -15,6 +15,9 @@ public class DefaultJsonLogFilterBuilderTest {
                 .withMaxStringLength(127)
                 .withAnonymize("/customer/email") // inserts ***** for values
                 .withPrune("/customer/account") // removes whole subtree
+                .withPruneStringValue("pruneMessage")
+                .withAnonymizeStringValue("pruneMessage")
+                .withTruncateStringValue("truncateMessage")
                 .withMaxPathMatches(10)
                 .build();
 		assertNotNull(filter);

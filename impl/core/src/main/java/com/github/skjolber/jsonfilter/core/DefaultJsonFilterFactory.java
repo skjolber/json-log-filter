@@ -46,16 +46,16 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 	 */
 	
 	public JsonFilter newJsonFilter() {
-		String pruneMessage = this.pruneMessage;
+		String pruneMessage = this.pruneJsonValue;
 		if(pruneMessage == null) {
-			pruneMessage = AbstractJsonFilter.FILTER_PRUNE_MESSAGE;
+			pruneMessage = AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
 		}
-		String anonymizeMessage = this.anonymizeMessage;
+		String anonymizeMessage = this.anonymizeJsonValue;
 		if(anonymizeMessage == null) {
-			anonymizeMessage = AbstractJsonFilter.FILTER_ANONYMIZE;
+			anonymizeMessage = AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
 		}
 		
-		String truncateMessage = this.truncateMessage;
+		String truncateMessage = this.truncateStringValue;
 		if(truncateMessage == null) {
 			truncateMessage = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
 		}
