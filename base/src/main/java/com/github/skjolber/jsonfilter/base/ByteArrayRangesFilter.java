@@ -1,8 +1,13 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class CharArrayRangesFilter {
+public class ByteArrayRangesFilter {
 	
 	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
 	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
@@ -18,22 +23,22 @@ public class CharArrayRangesFilter {
 	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
 	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
 
-	public static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
-	public static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
-	public static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
+	public static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
+	public static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
+	public static final byte[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 
 	protected int[] filter;
 	
 	protected int filterIndex = 0;
-	protected final char[] pruneMessage;
-	protected final char[] anonymizeMessage;
-	protected final char[] truncateMessage;
+	protected final byte[] pruneMessage;
+	protected final byte[] anonymizeMessage;
+	protected final byte[] truncateMessage;
 
-	public CharArrayRangesFilter(int initialCapacity) {
+	public ByteArrayRangesFilter(int initialCapacity) {
 		this(initialCapacity, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public CharArrayRangesFilter(int initialCapacity, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+	public ByteArrayRangesFilter(int initialCapacity, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		if(initialCapacity == -1) {
 			initialCapacity = DEFAULT_INITIAL_ARRAY_SIZE;
 		}
@@ -74,29 +79,29 @@ public class CharArrayRangesFilter {
 		return filterIndex;
 	}
 	
-	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		
 		// this might be controversial performance-wise; for heavy filtered documents, it might introduce a
 		// bottleneck on memory / cache bandwidth
 		// alternative approaches would be to keep track of the diff, and thus know exactly 
 		// the proper buffer size
-		buffer.ensureCapacity(buffer.length() + length); 
+		//buffer.ensureCapacity(buffer.length() + length); 
 		
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
 			
 			if(filter[i+2] == FILTER_ANON) {
-				buffer.append(chars, offset, filter[i] - offset);
-				buffer.append(anonymizeMessage);
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(anonymizeMessage, 0, pruneMessage.length);
 			} else if(filter[i+2] == FILTER_PRUNE) {
-				buffer.append(chars, offset, filter[i] - offset);
-				buffer.append(pruneMessage);
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(pruneMessage, 0, pruneMessage.length);
 			} else {
 				// account for code points and escaping
 				
 				// A high surrogate precedes a low surrogate.
-				if(Character.isHighSurrogate(chars[filter[i] - 1])) {
+				if(chars[filter[i] - 1] >= 0x80) {
 					filter[i]--;
 					filter[i+2]--;
 				} else {
@@ -107,7 +112,7 @@ public class CharArrayRangesFilter {
 					//
 					// where X is hex
 					
-					char peek = chars[filter[i]];
+					byte peek = chars[filter[i]];
 					// check for unicode encoding. That means the peek char must be a hex
 					if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
 						int index = filter[i] - 1; // index of last character which is included
@@ -152,19 +157,26 @@ public class CharArrayRangesFilter {
 					}
 				}
 				
-				buffer.append(chars, offset, filter[i] - offset);
-				buffer.append(truncateMessage);
-				buffer.append(-filter[i+2]);
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(truncateMessage, 0, truncateMessage.length);
+				writeInt(buffer, -filter[i+2]);
 			}
 			offset = filter[i + 1];
 		}
 		
 		if(offset < length) {
-			buffer.append(chars, offset, length - offset);
+			buffer.write(chars, offset, length - offset);
 		}
 	}
 	
-	public static int skipObject(char[] chars, int offset) {
+    public final void writeInt(ByteArrayOutputStream out, int v) {
+        out.write((v >>> 24) & 0xFF);
+        out.write((v >>> 16) & 0xFF);
+        out.write((v >>>  8) & 0xFF);
+        out.write((v >>>  0) & 0xFF);
+    }
+	
+	public static int skipObject(byte[] chars, int offset) {
 		int level = 0;
 
 		while(true) {
@@ -192,49 +204,6 @@ public class CharArrayRangesFilter {
 		}
 	}	
 
-	public static int skipSubtree(char[] chars, int offset) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == 0) {
-						return offset + 1;
-					}
-				}
-				default :
-			}
-			offset++;
-		}
-	}
-	
 	public static int skipSubtree(byte[] chars, int offset) {
 		int level = 0;
 
@@ -276,27 +245,12 @@ public class CharArrayRangesFilter {
 			}
 			offset++;
 		}
-	}	
-
-	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-
-		return offset + 1;
 	}
-
 
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
 		return offset + 1;
-	}
-	
-	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
-		do {
-			offset++;
-		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
-
-		return offset;
 	}
 
 	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
@@ -305,113 +259,6 @@ public class CharArrayRangesFilter {
 		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
 
 		return offset;
-	}
-	
-	public static int anonymizeSubtree(char[] chars, int offset, CharArrayRangesFilter filter) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ' ' : 
-				case '\t' : 
-				case '\n' : 
-				case '\r' : {
-					break;
-				}
-				case '"' : {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					nextOffset++;
-	
-					// is this a field name or a value? A field name must be followed by a colon
-					
-					// special case: no whitespace
-					if(chars[nextOffset] == ':') {
-						// key
-						offset = nextOffset + 1;
-					} else {
-						// most likely there is now no whitespace, but a comma, end array or end object
-						
-						// legal whitespaces are:
-						// space: 0x20
-						// tab: 0x09 \t
-						// carriage return: 0x0D \r
-						// newline: 0x0A \n
-						
-						if(chars[nextOffset] > 0x20) {						
-							// was a value
-							filter.add(offset, nextOffset, FilterType.ANON.getType());
-							offset = nextOffset;						
-						} else {
-							// fast-forward over whitespace
-							int end = nextOffset;
-	
-							// optimization: scan for highest value
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-	
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
-							
-							if(chars[nextOffset] == ':') {
-								// key
-								offset = nextOffset + 1;
-							} else {
-								// value
-								filter.add(offset, end, FilterType.ANON.getType());
-								
-								offset = nextOffset;
-							}
-						}
-					}
-					
-					continue;
-				}
-				default : {
-					// scalar value
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
-					
-					filter.add(offset, nextOffset, FilterType.ANON.getType());
-					
-					offset = nextOffset;
-					
-					continue;
-							
-				}
-			}
-			offset++;
-		}
 	}
 	
 	public static int anonymizeSubtree(byte[] chars, int offset, ByteArrayRangesFilter filter) {
@@ -520,5 +367,5 @@ public class CharArrayRangesFilter {
 			offset++;
 		}
 	}
-		
+	
 }

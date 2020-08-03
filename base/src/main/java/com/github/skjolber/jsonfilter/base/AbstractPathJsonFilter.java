@@ -140,6 +140,21 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return false;
 	}
 	
+	public static boolean matchPath(final byte[] chars, int start, int end, final char[] attribute) {
+		// check if wildcard
+		if(attribute.length == 1 && attribute[0] == '*') {
+			return true;
+		} else if(attribute.length == end - start) {
+			for(int i = 0; i < attribute.length; i++) {
+				if(attribute[i] != chars[start + i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}	
+	
 	public static boolean matchPath(final String chars, final String attribute) {
 		// check if wildcard, assume interned locally
 		if(attribute == STAR) {

@@ -47,6 +47,29 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		return match;
 	}
 
+	protected boolean matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
+		boolean match = false;
+		
+		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
+			if(elementMatches[i] == level - 1) {
+				
+				if(elementMatches[i] >= elementFilters[i].paths.length) {
+					// this filter is at the maximum
+					continue;
+				}
+
+				if(matchPath(chars, start, end, elementFilters[i].paths[elementMatches[i]])) {
+					elementMatches[i]++;
+					
+					if(i < elementFilterEnd[level]) {
+						match = true;
+					}
+				}
+
+			}
+		}
+		return match;
+	}	
 	/**
 	 * Note that the order or the filters establishes precedence (prune over anon).
 	 * 
@@ -74,4 +97,21 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 			
 	}
 
+	protected FilterType matchAnyElements(final byte[] chars, int start, int end) {
+		anyFilters:
+		for(int i = 0; i < anyElementFilters.length; i++) {
+			if(anyElementFilters[i].path.length != end - start) {
+				continue;
+			}
+			for(int k = 0; k < anyElementFilters[i].path.length; k++) {
+				if(anyElementFilters[i].path[k] != chars[start + k]) {
+					continue anyFilters;
+				}
+			}
+			
+			return anyElementFilters[i].getFilterType();
+		}
+		return null;
+			
+	}
 }

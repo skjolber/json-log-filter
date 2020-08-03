@@ -18,6 +18,7 @@
 package com.github.skjolber.jsonfilter;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
 
 /**
@@ -72,6 +73,10 @@ public interface JsonFilter {
 	 */
 
 	boolean process(char[] chars, int offset, int length, StringBuilder output);
+
+	default boolean process(byte[] chars, int offset, int length, OutputStream output) {
+		return false;
+	}
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.

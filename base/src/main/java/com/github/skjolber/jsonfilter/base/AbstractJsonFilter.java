@@ -4,6 +4,7 @@ import java.io.CharArrayWriter;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
@@ -21,6 +22,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected final char[] pruneJsonValue;
 	protected final char[] anonymizeJsonValue;
 	protected final char[] truncateStringValue;
+	
+	protected final byte[] pruneJsonValueAsBytes;
+	protected final byte[] anonymizeJsonValueAsBytes;
+	protected final byte[] truncateStringValueAsBytes;
 	
 	public AbstractJsonFilter() {
 		this(-1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE) ;
@@ -41,6 +46,9 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		this.anonymizeJsonValue = anonymizeJson.toCharArray();
 		this.truncateStringValue = truncateJsonString.toCharArray();
 		
+		this.pruneJsonValueAsBytes = pruneJson.getBytes(StandardCharsets.UTF_8);
+		this.anonymizeJsonValueAsBytes = anonymizeJson.getBytes(StandardCharsets.UTF_8);
+		this.truncateStringValueAsBytes = truncateJsonString.getBytes(StandardCharsets.UTF_8);
 	}
 
 	public boolean process(String jsonString, StringBuilder output) {
@@ -115,6 +123,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity) {
 		return new CharArrayRangesFilter(capacity, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+	
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity) {
+		return new ByteArrayRangesFilter(capacity, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 	}
 	
     /**
