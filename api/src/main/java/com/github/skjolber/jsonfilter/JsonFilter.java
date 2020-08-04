@@ -31,7 +31,7 @@ import java.io.Reader;
 
 public interface JsonFilter {
 	
-	// Implementation note: Support for `byte[]` on the input is possible, but the optimal output format 
+	// Implementation note: The optimal output format 
 	// depends on what will be done with the filtered document, which translates to the the raw JSON append capabilities 
 	// of log frameworks; Jackson with Logback-logstash only supports characters (and this is the primary use-case).
 	

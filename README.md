@@ -174,7 +174,7 @@ Note that both processors can parse __at least one thousand 100KB documents per 
 
 Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).
 
-See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.2.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
@@ -189,6 +189,7 @@ Using SIMD for parsing JSON:
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
+- 1.0.9: Add support for byte-array inputs (previously only supported char[] inputs)
 - 1.0.8: Add support for custom replacements
 - 1.0.6: Take code points into account truncating text values in `Jackson` filters.
 - 1.0.5: Take escaping into account when truncating text values.
