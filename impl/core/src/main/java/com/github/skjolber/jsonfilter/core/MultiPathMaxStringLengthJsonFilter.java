@@ -252,7 +252,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
 							
 							if(pathMatches != -1) {
 								pathMatches--;
@@ -267,17 +267,17 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiCharArrayPa
 							// special case: anon scalar values
 							if(chars[nextOffset] == '"') {
 								// quoted value
-								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 								
 								filter.addAnon(nextOffset, offset);
 							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 								// scalar value
-								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 
 								filter.addAnon(nextOffset, offset);
 							} else {
 								// filter as tree
-								offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
 							}
 							
 							if(pathMatches != -1) {

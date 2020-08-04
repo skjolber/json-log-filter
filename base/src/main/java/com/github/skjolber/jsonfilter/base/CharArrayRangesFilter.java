@@ -235,62 +235,12 @@ public class CharArrayRangesFilter {
 		}
 	}
 	
-	public static int skipSubtree(byte[] chars, int offset) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == 0) {
-						return offset + 1;
-					}
-				}
-				default :
-			}
-			offset++;
-		}
-	}	
-
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
 		return offset + 1;
 	}
 
-
-	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
-		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-
-		return offset + 1;
-	}
-	
 	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
 		do {
 			offset++;
@@ -299,14 +249,6 @@ public class CharArrayRangesFilter {
 		return offset;
 	}
 
-	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
-		do {
-			offset++;
-		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
-
-		return offset;
-	}
-	
 	public static int anonymizeSubtree(char[] chars, int offset, CharArrayRangesFilter filter) {
 		int level = 0;
 
@@ -414,111 +356,4 @@ public class CharArrayRangesFilter {
 		}
 	}
 	
-	public static int anonymizeSubtree(byte[] chars, int offset, ByteArrayRangesFilter filter) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ' ' : 
-				case '\t' : 
-				case '\n' : 
-				case '\r' : {
-					break;
-				}
-				case '"' : {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					nextOffset++;
-	
-					// is this a field name or a value? A field name must be followed by a colon
-					
-					// special case: no whitespace
-					if(chars[nextOffset] == ':') {
-						// key
-						offset = nextOffset + 1;
-					} else {
-						// most likely there is now no whitespace, but a comma, end array or end object
-						
-						// legal whitespaces are:
-						// space: 0x20
-						// tab: 0x09 \t
-						// carriage return: 0x0D \r
-						// newline: 0x0A \n
-						
-						if(chars[nextOffset] > 0x20) {						
-							// was a value
-							filter.add(offset, nextOffset, FilterType.ANON.getType());
-							offset = nextOffset;						
-						} else {
-							// fast-forward over whitespace
-							int end = nextOffset;
-	
-							// optimization: scan for highest value
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-	
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
-							
-							if(chars[nextOffset] == ':') {
-								// key
-								offset = nextOffset + 1;
-							} else {
-								// value
-								filter.add(offset, end, FilterType.ANON.getType());
-								
-								offset = nextOffset;
-							}
-						}
-					}
-					
-					continue;
-				}
-				default : {
-					// scalar value
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
-					
-					filter.add(offset, nextOffset, FilterType.ANON.getType());
-					
-					offset = nextOffset;
-					
-					continue;
-							
-				}
-			}
-			offset++;
-		}
-	}
-		
 }

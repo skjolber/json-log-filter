@@ -28,8 +28,6 @@ public interface RangesJsonFilter extends JsonFilter {
 		return true;
 	}
 	
-	public default ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		return null;
-	}
+	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length);
 
 }

@@ -1,7 +1,11 @@
 package com.github.skjolber.jsonfilter.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,14 +100,16 @@ public class JsonFilterRunner {
 			
 			if(filteredFile == null) {
 				// no filtered file, so expect passthrough
-				compare(filter, sourceFile, sourceFile, properties);
+				compareChars(filter, sourceFile, sourceFile, properties);
+				compareBytes(filter, sourceFile, sourceFile, properties);
 			} else {
-				compare(filter, sourceFile, filteredFile, properties);
+				compareChars(filter, sourceFile, filteredFile, properties);
+				compareBytes(filter, sourceFile, filteredFile, properties);
 			}
 		}
 	}
 
-	protected void compare(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
 		String from = cache.getFile(sourceFile);
 		
 		StringBuilder output = new StringBuilder(from.length() * 2);
@@ -111,6 +117,45 @@ public class JsonFilterRunner {
 			System.out.println(sourceFile);
 			System.out.println(from);
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
+		}
+		String result = output.toString();
+
+		String expected = cache.getFile(filteredFile);
+		
+		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
+			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+		}
+
+		if(literal) {
+			if(!new String(expected).equals(result)) {
+				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+			}
+		} else {
+			// compare events
+			if(!parseCompare(new String(expected), result)) {
+				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+			}
+		}
+	}
+
+	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+		String from = cache.getFile(sourceFile);
+		
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			if(!filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output)) {
+				System.out.println(sourceFile);
+				System.out.println(from);
+				
+				filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output);
+				
+				throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 		String result = output.toString();
 

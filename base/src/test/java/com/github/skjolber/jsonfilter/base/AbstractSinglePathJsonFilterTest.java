@@ -4,6 +4,8 @@ import static com.github.skjolber.jsonfilter.test.JsonFilterConstants.INVALID_PA
 import static com.github.skjolber.jsonfilter.test.JsonFilterConstants.PASSTHROUGH_XPATH;
 import static com.google.common.truth.Truth.assertThat;
 
+import java.io.ByteArrayOutputStream;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +24,16 @@ public class AbstractSinglePathJsonFilterTest {
 		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 			if(JsonFilterRunner.isWellformed(new String(chars, offset, length))) {
 				output.append(chars, offset, length);
+				
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+			if(JsonFilterRunner.isWellformed(new String(chars, offset, length))) {
+				output.write(chars, offset, length);
 				
 				return true;
 			}

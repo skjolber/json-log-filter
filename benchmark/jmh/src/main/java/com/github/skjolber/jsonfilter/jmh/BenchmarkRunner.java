@@ -114,7 +114,6 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		return sizeSum;
 	}	
 	
-	/*
 	public long benchmarkBytes2() {
 
 		// warmup
@@ -145,5 +144,4 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		}
 		return sizeSum;
 	}	
-	*/
 }

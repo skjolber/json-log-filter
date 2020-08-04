@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.io.ByteArrayOutputStream;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +17,11 @@ public class AbstractSingleCharArrayFullPathJsonFilterTest {
 
 		@Override
 		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+			return false;
+		}
+
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 			return false;
 		}
 		

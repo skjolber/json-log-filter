@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -165,5 +166,16 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 		}  				
 
 	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		//output.ensureCapacity(output.length() + length);
+
+		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
+			return process(chars, offset, length, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}	
 
 }

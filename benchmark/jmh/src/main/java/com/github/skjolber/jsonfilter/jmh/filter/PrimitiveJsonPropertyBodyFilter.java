@@ -2,8 +2,11 @@ package com.github.skjolber.jsonfilter.jmh.filter;
 
 import static java.util.regex.Pattern.compile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -118,6 +121,40 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	@Override
 	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
 		throw new RuntimeException("Not implemented");
+	}
+
+	@Override
+	public boolean process(Reader reader, StringBuilder output) throws IOException {
+		return process(reader, -1, output);
+	}
+
+	@Override
+	public byte[] process(byte[] chars) {
+		return process(new String(chars)).getBytes(StandardCharsets.UTF_8);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		String process = process(new String(chars, offset, length));
+		
+		byte[] bytes = process.getBytes(StandardCharsets.UTF_8);
+		output.write(bytes, 0, bytes.length);
+		return true;
+	}
+
+	@Override
+	public boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException {
+		throw new RuntimeException("Not implemented");
+	}
+
+	@Override
+	public boolean process(InputStream input, ByteArrayOutputStream output) throws IOException {
+		return process(input, -1, output);
+	}
+
+	@Override
+	public boolean process(byte[] chars, ByteArrayOutputStream output) {
+		return process(chars, 0, chars.length, output);
 	}
 
 

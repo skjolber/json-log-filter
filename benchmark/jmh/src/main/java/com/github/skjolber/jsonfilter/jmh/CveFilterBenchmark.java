@@ -78,7 +78,7 @@ public class CveFilterBenchmark {
 	public long all_core() {
 		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
-
+/*
 	@Benchmark
 	public long maxStringLength_jackson() {
 		return maxStringLengthJacksonJsonFilter.benchmarkBytes();
@@ -98,7 +98,12 @@ public class CveFilterBenchmark {
 	public long anon_single_core() {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}	
-
+	*/
+	@Benchmark
+	public long all_core_bytes() {
+		return multiPathMaxStringLengthJsonFilter.benchmarkBytes2();
+	}
+	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(CveFilterBenchmark.class.getSimpleName())

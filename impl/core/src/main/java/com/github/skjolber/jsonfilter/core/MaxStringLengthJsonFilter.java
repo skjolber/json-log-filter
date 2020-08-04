@@ -45,6 +45,20 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		}
 	}
 
+	@Override
+	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+		
+		int maxStringLength = this.maxStringLength + 2; // account for quotes
+		
+		ByteArrayRangesFilter filter = getByteArrayRangesFilter();
+
+		try {
+			return ranges(chars, offset, offset + length, maxStringLength, filter);
+		} catch(Exception e) {
+			return null;
+		}
+	}
+	
 	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
@@ -171,5 +185,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		}
 
 		return filter;
-	}	
+	}
+
+
 }

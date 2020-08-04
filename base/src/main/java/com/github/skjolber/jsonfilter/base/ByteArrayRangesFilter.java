@@ -1,8 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
@@ -27,12 +25,91 @@ public class ByteArrayRangesFilter {
 	public static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 	public static final byte[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 
+
+    protected static final byte[] DigitTens = {
+        '0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+        '1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+        '2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+        '3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+        '4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+        '5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+        '6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+        '7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+        '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+        '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
+        } ;
+
+    protected static final byte[] DigitOnes = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        };
+
+    /**
+     * Places characters representing the integer i into the
+     * character array buf. The characters are placed into
+     * the buffer backwards starting with the least significant
+     * digit at the specified index (exclusive), and working
+     * backwards from there.
+     *
+     * @implNote This method converts positive inputs into negative
+     * values, to cover the Integer.MIN_VALUE case. Converting otherwise
+     * (negative to positive) will expose -Integer.MIN_VALUE that overflows
+     * integer.
+     *
+     * @param i     value to convert
+     * @param index next index, after the least significant digit
+     * @param buf   target buffer, Latin1-encoded
+     * @return index of the most significant digit or minus sign, if present
+     */
+    static int getChars(int i, int index, byte[] buf) {
+        int q, r;
+        int charPos = index;
+
+        boolean negative = i < 0;
+        if (!negative) {
+            i = -i;
+        }
+
+        // Generate two digits per iteration
+        while (i <= -100) {
+            q = i / 100;
+            r = (q * 100) - i;
+            i = q;
+            buf[--charPos] = DigitOnes[r];
+            buf[--charPos] = DigitTens[r];
+        }
+
+        // We know there are at most two digits left at this point.
+        q = i / 10;
+        r = (q * 10) - i;
+        buf[--charPos] = (byte)('0' + r);
+
+        // Whatever left is the remaining digit.
+        if (q < 0) {
+            buf[--charPos] = (byte)('0' - q);
+        }
+
+        if (negative) {
+            buf[--charPos] = (byte)'-';
+        }
+        return charPos;
+    }
 	protected int[] filter;
 	
 	protected int filterIndex = 0;
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
 	protected final byte[] truncateMessage;
+	
+	protected final byte[] digit = new byte[11];
 
 	public ByteArrayRangesFilter(int initialCapacity) {
 		this(initialCapacity, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
@@ -93,68 +170,68 @@ public class ByteArrayRangesFilter {
 			
 			if(filter[i+2] == FILTER_ANON) {
 				buffer.write(chars, offset, filter[i] - offset);
-				buffer.write(anonymizeMessage, 0, pruneMessage.length);
+				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(pruneMessage, 0, pruneMessage.length);
 			} else {
-				// account for code points and escaping
+				// account for 1-4 bytes UTF-8 encoding
+				// i.e. backwards sync
 				
-				// A high surrogate precedes a low surrogate.
-				if(chars[filter[i] - 1] >= 0x80) {
+				while(chars[filter[i] - 1] >= 0x80) { // will max run three times
 					filter[i]--;
 					filter[i+2]--;
-				} else {
-					// \ u
-					// \ uX
-					// \ uXX
-					// \ uXXX
-					//
-					// where X is hex
+				}				
+				
+				// \ u
+				// \ uX
+				// \ uXX
+				// \ uXXX
+				//
+				// where X is hex
+				
+				byte peek = chars[filter[i]];
+				// check for unicode encoding. That means the peek char must be a hex
+				if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
+					int index = filter[i] - 1; // index of last character which is included
 					
-					byte peek = chars[filter[i]];
-					// check for unicode encoding. That means the peek char must be a hex
-					if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
-						int index = filter[i] - 1; // index of last character which is included
-						
-						// absolute minimium is length 8:
-						// ["\ uABCD"] (without the space) so
-						// ["\ u (without the space) is the minimum
-						// so must at least be 2 characters
-						
-						if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
-	
-							filter[i] -= 2;
-							filter[i+2] -= 2;
-	
-						} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
-	
-							filter[i] -= 3;
-							filter[i+2] -= 3;
-	
-						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-	
-							filter[i] -= 4;
-							filter[i+2] -= 4;
-	
-						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-	
-							filter[i] -= 5;
-							filter[i+2] -= 5;
-						} else {
-							// not unicode encoded
-						}
+					// absolute minimium is length 8:
+					// ["\ uABCD"] (without the space) so
+					// ["\ u (without the space) is the minimum
+					// so must at least be 2 characters
+					
+					if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
+
+						filter[i] -= 2;
+						filter[i+2] -= 2;
+
+					} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
+
+						filter[i] -= 3;
+						filter[i+2] -= 3;
+
+					} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+
+						filter[i] -= 4;
+						filter[i+2] -= 4;
+
+					} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+
+						filter[i] -= 5;
+						filter[i+2] -= 5;
 					} else {
 						// not unicode encoded
 					}
-					
-					//  \r \n \\ or start of \\uXXXX
-					// while loop because we could be looking at an arbitrary number of slashes, i.e.
-					// for the usual escaped values, or if one wanted to write an unicode code as text
-					while(chars[filter[i] - 1] == '\\') {
-						filter[i]--;
-						filter[i+2]--;
-					}
+				} else {
+					// not unicode encoded
+				}
+				
+				//  \r \n \\ or start of \\uXXXX
+				// while loop because we could be looking at an arbitrary number of slashes, i.e.
+				// for the usual escaped values, or if one wanted to write an unicode code as text
+				while(chars[filter[i] - 1] == '\\') {
+					filter[i]--;
+					filter[i+2]--;
 				}
 				
 				buffer.write(chars, offset, filter[i] - offset);
@@ -169,13 +246,12 @@ public class ByteArrayRangesFilter {
 		}
 	}
 	
-    public final void writeInt(ByteArrayOutputStream out, int v) {
-        out.write((v >>> 24) & 0xFF);
-        out.write((v >>> 16) & 0xFF);
-        out.write((v >>>  8) & 0xFF);
-        out.write((v >>>  0) & 0xFF);
+    protected final void writeInt(ByteArrayOutputStream out, int v) {
+    	int chars = getChars(v, 11, digit);
+    	
+    	out.write(digit, chars, 11 - chars);
     }
-	
+    
 	public static int skipObject(byte[] chars, int offset) {
 		int level = 0;
 
