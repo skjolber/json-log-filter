@@ -130,7 +130,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 					builder = this.outputstream;
 				}
 				if(jsonFilter.process(bytes, 0, bytes.length, builder)) {
-					sizeSum += builder.toString().length();
+					sizeSum += builder.toString().length(); // note: string output
 				} else {
 					throw new RuntimeException("Unable to filter using " + jsonFilter + " for source " + directory.getFile(i));
 				}
