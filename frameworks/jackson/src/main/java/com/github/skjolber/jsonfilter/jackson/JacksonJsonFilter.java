@@ -20,6 +20,12 @@ public interface JacksonJsonFilter extends JsonFilter {
 	default boolean process(char[] chars, JsonGenerator generator) throws IOException {
 		return process(chars, 0, chars.length, generator);
 	}
+	
+	default boolean process(byte[] bytes, StringBuilder output) {
+		return process(bytes, 0, bytes.length, output);
+	}
+
+	boolean process(byte[] bytes, int offset, int length, StringBuilder output);
 
 	boolean process(char[] chars, int offset, int length, JsonGenerator generator) throws IOException;
 

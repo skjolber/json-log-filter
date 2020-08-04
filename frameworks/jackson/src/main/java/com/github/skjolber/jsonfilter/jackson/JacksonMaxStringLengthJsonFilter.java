@@ -41,15 +41,25 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 			return false;
 		}
 	}
+	
+	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
+		output.ensureCapacity(output.length() + length);
 
+		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
+			return process(bytes, offset, length, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
 	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
 		try (final JsonParser parser = jsonFactory.createParser(in)) {
 			return process(parser, generator);
 		}
 	}
 
-	public boolean process(byte[] chars, int offset, int length, JsonGenerator generator) throws IOException {
-		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) throws IOException {
+		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			return process(parser, generator);
 		}
 	}
