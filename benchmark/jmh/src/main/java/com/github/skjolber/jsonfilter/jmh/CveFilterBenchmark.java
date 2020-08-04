@@ -98,7 +98,7 @@ public class CveFilterBenchmark {
 	public long anon_single_core() {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}	
-
+	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(CveFilterBenchmark.class.getSimpleName())

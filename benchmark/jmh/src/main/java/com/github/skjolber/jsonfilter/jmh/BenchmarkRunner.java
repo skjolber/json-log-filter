@@ -81,7 +81,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		return sizeSum;
 	}
 	
-	public long benchmarkBytes() {
+	public long benchmarkBytesViaChars() {
 
 		// warmup
 		long sizeSum = 0;
@@ -114,8 +114,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		return sizeSum;
 	}	
 	
-	/*
-	public long benchmarkBytes2() {
+	public long benchmarkBytes() {
 
 		// warmup
 		long sizeSum = 0;
@@ -131,7 +130,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 					builder = this.outputstream;
 				}
 				if(jsonFilter.process(bytes, 0, bytes.length, builder)) {
-					sizeSum += builder.toString().length();
+					sizeSum += builder.toString().length(); // note: string output
 				} else {
 					throw new RuntimeException("Unable to filter using " + jsonFilter + " for source " + directory.getFile(i));
 				}
@@ -145,5 +144,4 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		}
 		return sizeSum;
 	}	
-	*/
 }

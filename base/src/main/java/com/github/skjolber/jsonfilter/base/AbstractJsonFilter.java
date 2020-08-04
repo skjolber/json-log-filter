@@ -1,9 +1,13 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
@@ -21,6 +25,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected final char[] pruneJsonValue;
 	protected final char[] anonymizeJsonValue;
 	protected final char[] truncateStringValue;
+	
+	protected final byte[] pruneJsonValueAsBytes;
+	protected final byte[] anonymizeJsonValueAsBytes;
+	protected final byte[] truncateStringValueAsBytes;
 	
 	public AbstractJsonFilter() {
 		this(-1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE) ;
@@ -41,10 +49,12 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		this.anonymizeJsonValue = anonymizeJson.toCharArray();
 		this.truncateStringValue = truncateJsonString.toCharArray();
 		
+		this.pruneJsonValueAsBytes = pruneJson.getBytes(StandardCharsets.UTF_8);
+		this.anonymizeJsonValueAsBytes = anonymizeJson.getBytes(StandardCharsets.UTF_8);
+		this.truncateStringValueAsBytes = truncateJsonString.getBytes(StandardCharsets.UTF_8);
 	}
 
 	public boolean process(String jsonString, StringBuilder output) {
-		
 		char[] chars = jsonString.toCharArray();
 		
 		return process(chars, 0, chars.length, output);
@@ -89,20 +99,71 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		char[] chars = new char[4 * 1024];
 
 		CharArrayWriter writer = new CharArrayWriter(chars.length);
-		int offset = 0;
 		int read;
 		do {
-			read = reader.read(chars, offset, chars.length);
+			read = reader.read(chars, 0, chars.length);
 			if(read == -1) {
 				break;
 			}
 			
 			writer.write(chars, 0, read);
-
-			offset += read;
 		} while(true);
 
 		return process(writer.toString(), output);
+	}
+	
+	@Override
+	public byte[] process(byte[] chars) {
+		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
+		
+		if(process(chars, 0, chars.length, output)) {
+			return output.toByteArray();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException {
+		if(length == -1) {
+			return process(input, output);
+		}
+		byte[] chars = new byte[length];
+
+		int offset = 0;
+		int read;
+		do {
+			read = input.read(chars, offset, length - offset);
+			if(read == -1) {
+				throw new EOFException("Expected reader with " + length + " characters");
+			}
+
+			offset += read;
+		} while(offset < length);
+
+		return process(chars, 0, chars.length, output);
+	}
+
+	@Override
+	public boolean process(InputStream input, ByteArrayOutputStream output) throws IOException {
+		byte[] chars = new byte[4 * 1024];
+
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		int read;
+		do {
+			read = input.read(chars, 0, chars.length);
+			if(read == -1) {
+				break;
+			}
+			
+			bout.write(chars, 0, read);
+		} while(true);
+
+		return process(bout.toByteArray(), output);
+	}
+	
+	@Override
+	public boolean process(byte[] chars, ByteArrayOutputStream output) {
+		return process(chars, 0, chars.length, output);
 	}
 
 	public int getMaxStringLength() {
@@ -110,11 +171,19 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 	protected CharArrayRangesFilter getCharArrayRangesFilter() {
-		return new CharArrayRangesFilter(-1);
+		return getCharArrayRangesFilter(-1);
 	}
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity) {
 		return new CharArrayRangesFilter(capacity, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+	
+	protected ByteArrayRangesFilter getByteArrayRangesFilter() {
+		return getByteArrayRangesFilter(-1);
+	}
+	
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity) {
+		return new ByteArrayRangesFilter(capacity, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 	}
 	
     /**

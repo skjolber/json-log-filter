@@ -19,6 +19,28 @@ for all benchmarks. Display the file `jmh-result` with a visualizer like [JMH Vi
 
 # Benchmark results
 
+## 1.0.9:
+
+ * Lenovo T495 (AMD)
+ * Fedora Linux 5.7.11-200
+ 
+### Results
+
+ * [openjdk-1.8.0.262.b10-1](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk8.json&topBar=off)
+ * [openjdk-11.0.8.10-2](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk11.json&topBar=off)
+
+## 1.0.8:
+
+ * Lenovo T495 (AMD)
+ * Fedora Linux 5.7.11-200
+ 
+Moved from char[] inputs to byte[] inputs to make comparison more fair. 
+
+### Results
+
+ * [openjdk-1.8.0.262.b10-1](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.8.jdk8.json&topBar=off)
+ * [openjdk-11.0.8.10-2](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.8.jdk11.json&topBar=off)
+
 ## 1.0.2:
 
 ### Results

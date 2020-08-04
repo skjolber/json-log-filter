@@ -234,7 +234,7 @@ public class CharArrayRangesFilter {
 			offset++;
 		}
 	}
-
+	
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
@@ -248,7 +248,7 @@ public class CharArrayRangesFilter {
 
 		return offset;
 	}
-	
+
 	public static int anonymizeSubtree(char[] chars, int offset, CharArrayRangesFilter filter) {
 		int level = 0;
 

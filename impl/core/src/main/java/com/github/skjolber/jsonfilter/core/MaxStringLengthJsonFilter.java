@@ -17,6 +17,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
@@ -44,6 +45,20 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		}
 	}
 
+	@Override
+	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+		
+		int maxStringLength = this.maxStringLength + 2; // account for quotes
+		
+		ByteArrayRangesFilter filter = getByteArrayRangesFilter();
+
+		try {
+			return ranges(chars, offset, offset + length, maxStringLength, filter);
+		} catch(Exception e) {
+			return null;
+		}
+	}
+	
 	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
@@ -107,4 +122,70 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 
 		return filter;
 	}
+	
+	public static ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] == '"') {
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				nextOffset++;
+				
+				if(nextOffset - offset > maxStringLength) {
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+					} else {
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
+						// space: 0x20
+						// tab: 0x09
+						// carriage return: 0x0D
+						// newline: 0x0A
+
+						if(chars[nextOffset] > 0x20) {
+							// was a value
+							filter.add(offset + maxStringLength - 1, nextOffset - 1, offset + maxStringLength - nextOffset);
+							offset = nextOffset;
+						} else {
+							// fast-forward over whitespace
+							
+							// optimization: scan for highest value
+
+							int end = nextOffset;
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
+
+							if(chars[nextOffset] == ':') {
+								// was a key
+								offset = nextOffset + 1;
+							} else {
+								// value
+								filter.add(offset + maxStringLength - 1, end - 1, offset + maxStringLength - end);
+								offset = nextOffset;
+							}
+						}
+					}
+				} else {
+					offset = nextOffset;
+				}
+			} else {
+				offset++;
+			}
+		}				
+
+		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+			return null;
+		}
+
+		return filter;
+	}
+
+
 }
