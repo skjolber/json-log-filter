@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.jmh.fileutils;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 public class FileDirectoryValue {
 
@@ -8,23 +9,30 @@ public class FileDirectoryValue {
 	
 	private File[] files;
 	
-	private char[][] values;
+	private char[][] valuesAsCharacters;
+	private byte[][] valuesAsBytes;
 	
 	public FileDirectoryValue(File directory, File[] inputFiles, String[] inputValues) {
 		this.directory = directory;
 		this.files = inputFiles;
-		this.values = new char[inputValues.length][];
-		for(int i = 0; i < values.length; i++) {
-			this.values[i] = inputValues[i].toCharArray();
+		this.valuesAsCharacters = new char[inputValues.length][];
+		this.valuesAsBytes = new byte[inputValues.length][];
+		for(int i = 0; i < valuesAsCharacters.length; i++) {
+			this.valuesAsCharacters[i] = inputValues[i].toCharArray();
+			this.valuesAsBytes[i] = inputValues[i].getBytes(StandardCharsets.UTF_8);
 		}
 	}
 
 	public int size() {
 		return files.length;
 	}
-	
-	public char[] getValue(int index) {
-		return values[index];
+
+	public byte[] getValueAsBytes(int index) {
+		return valuesAsBytes[index];
+	}
+
+	public char[] getValueAsCharacters(int index) {
+		return valuesAsCharacters[index];
 	}
 
 	public File getFile(int index) {
@@ -40,15 +48,15 @@ public class FileDirectoryValue {
 	}
 
 	public char[][] getValues() {
-		return values;
+		return valuesAsCharacters;
 	}
 
 	public void setValues(char[][] values) {
-		this.values = values;
+		this.valuesAsCharacters = values;
 	}
 
 	public String getStringValue(int i) {
-		return new String(values[i]);
+		return new String(valuesAsCharacters[i]);
 	}
 	
 	
@@ -57,7 +65,7 @@ public class FileDirectoryValue {
 	}
 
 	public void setValue(int i, String clean) {
-		this.values[i] = clean.toCharArray();
+		this.valuesAsCharacters[i] = clean.toCharArray();
 	}
 	
 }

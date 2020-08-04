@@ -104,12 +104,12 @@ public abstract class ScratchFilterBenchmark {
 	
 	@Benchmark
 	public long original() {
-		return original.benchmark();
+		return original.benchmarkCharacters();
 	}
 	
 	@Benchmark
 	public long modified() {
-		return modified.benchmark();
+		return modified.benchmarkCharacters();
 	}	
 
 	public static void main(String[] args) throws RunnerException {

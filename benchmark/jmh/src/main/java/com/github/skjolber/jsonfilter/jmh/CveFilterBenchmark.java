@@ -18,10 +18,12 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonSinglePathMaxStringLengthJsonFilter;
@@ -40,13 +42,13 @@ public class CveFilterBenchmark {
 	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};
 	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
 	
-	private BenchmarkRunner multiPathMaxStringLengthJsonFilter;
-	private BenchmarkRunner multiPathMaxStringLengthJacksonJsonFilter;
-	private BenchmarkRunner maxStringLengthJsonFilter;
-	private BenchmarkRunner maxStringLengthJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> multiPathMaxStringLengthJsonFilter;
+	private BenchmarkRunner<JacksonJsonFilter> multiPathMaxStringLengthJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> maxStringLengthJsonFilter;
+	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	
-	private BenchmarkRunner singlePathMaxStringLengthJsonFilter;
-	private BenchmarkRunner singlePathMaxStringLengthJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
+	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
@@ -57,44 +59,44 @@ public class CveFilterBenchmark {
 	public void init() throws Exception {
 		File file = new File("./src/test/resources/benchmark/cves/" + fileName);
 		
-		multiPathMaxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune));
-		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, -1, anon, prune));
+		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune));
+		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, -1, anon, prune));
 
-		singlePathMaxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anon[0], FilterType.ANON));
-		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, anon[0], FilterType.ANON));
+		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anon[0], FilterType.ANON));
+		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, anon[0], FilterType.ANON));
 
-		maxStringLengthJacksonJsonFilter = new BenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength));
-		maxStringLengthJsonFilter = new BenchmarkRunner(file, true, new MaxStringLengthJsonFilter(maxStringLength));
+		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength));
+		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength));
 	}
 
 	@Benchmark
 	public long all_jackson() {
-		return multiPathMaxStringLengthJacksonJsonFilter.benchmark();
+		return multiPathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long all_core() {
-		return multiPathMaxStringLengthJsonFilter.benchmark();
+		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
 	public long maxStringLength_jackson() {
-		return maxStringLengthJacksonJsonFilter.benchmark();
+		return maxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long maxStringLength_core() {
-		return maxStringLengthJsonFilter.benchmark();
+		return maxStringLengthJsonFilter.benchmarkBytes();
 	}	
 
 	@Benchmark
 	public long anon_single_jackson() {
-		return singlePathMaxStringLengthJacksonJsonFilter.benchmark();
+		return singlePathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long anon_single_core() {
-		return singlePathMaxStringLengthJsonFilter.benchmark();
+		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}	
 
 	public static void main(String[] args) throws RunnerException {
