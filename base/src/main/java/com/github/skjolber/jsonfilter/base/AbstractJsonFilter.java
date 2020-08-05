@@ -29,10 +29,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected final byte[] anonymizeJsonValueAsBytes;
 	protected final byte[] truncateStringValueAsBytes;
 	
-	public AbstractJsonFilter() {
-		this(-1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE) ;
-	}
-
 	public AbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString) {
 		if(maxStringLength < -1 || maxStringLength > Integer.MAX_VALUE - 2) {
 			throw new IllegalArgumentException("Expected -1 or positive integer lower than Integer.MAX_VALUE - 1");
@@ -60,7 +56,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 	public String process(char[] chars) {
-		
 		StringBuilder output = new StringBuilder(chars.length);
 		
 		if(process(chars, 0, chars.length, output)) {
@@ -73,7 +68,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return process(jsonString.toCharArray());
 	}
 	
-	
 	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
 		if(length == -1) {
 			return process(reader, output);
@@ -81,15 +75,14 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		char[] chars = new char[length];
 
 		int offset = 0;
-		int read;
-		do {
-			read = reader.read(chars, offset, length - offset);
+		while(offset < length) {
+			int read = reader.read(chars, offset, length - offset);
 			if(read == -1) {
 				throw new EOFException("Expected reader with " + length + " characters");
 			}
 
 			offset += read;
-		} while(offset < length);
+		}
 
 		return process(chars, 0, chars.length, output);
 	}
@@ -129,15 +122,15 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		byte[] chars = new byte[length];
 
 		int offset = 0;
-		int read;
-		do {
-			read = input.read(chars, offset, length - offset);
+		
+		while(offset < length) {
+			int read = input.read(chars, offset, length - offset);
 			if(read == -1) {
-				throw new EOFException("Expected reader with " + length + " characters");
+				throw new EOFException("Expected stream with " + length + " characters");
 			}
 
 			offset += read;
-		} while(offset < length);
+		}
 
 		return process(chars, 0, chars.length, output);
 	}
@@ -157,7 +150,9 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			bout.write(chars, 0, read);
 		} while(true);
 
-		return process(bout.toByteArray(), output);
+		byte[] bytes = bout.toByteArray();
+		
+		return process(bytes, 0, bytes.length, output);
 	}
 	
 	@Override

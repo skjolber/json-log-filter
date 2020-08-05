@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +27,9 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 			return false;
 		}
 		
+		public String[] getPaths() {
+			return paths;
+		}
 	}
 
 	@Test
@@ -32,5 +37,11 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new MySingleStringPathJsonFilter(-1, "//abc", FilterType.ANON);
 		});
+	}
+	
+	@Test
+	public void testFullPath() {
+		String[] paths = new MySingleStringPathJsonFilter(-1, "/abc", FilterType.ANON).getPaths();
+		assertEquals(new String(paths[0]), "abc");
 	}
 }
