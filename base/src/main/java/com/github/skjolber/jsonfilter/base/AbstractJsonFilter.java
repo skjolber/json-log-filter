@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.EOFException;

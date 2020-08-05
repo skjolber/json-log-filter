@@ -1,15 +1,9 @@
 package com.github.skjolber.jsonfilter.jmh;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
-import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryCache;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 public class JacksonBenchmarkRunner extends BenchmarkRunner<JacksonJsonFilter> {

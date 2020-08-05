@@ -1,7 +1,6 @@
 package com.skjolber.github.modules.example;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 
 public class TestFilter {

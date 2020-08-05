@@ -20,6 +20,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 
@@ -49,8 +50,8 @@ public abstract class ScratchFilterBenchmark {
 	public static final String DEFAULT_XPATH = "/address";
 	public static final String DEFAULT_ANY_XPATH = "//address";
 
-	private BenchmarkRunner original;
-	private BenchmarkRunner modified;
+	private BenchmarkRunner<JsonFilter> original;
+	private BenchmarkRunner<JsonFilter> modified;
 	
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
@@ -66,8 +67,8 @@ public abstract class ScratchFilterBenchmark {
 		String xpath = "/CVE_Items/cve/affects/vendor/vendor_data/vendor_name";
 
 		// xml-log-filter
-		original = new BenchmarkRunner(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
-		modified = new BenchmarkRunner(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
+		original = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
+		modified = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
 
 		/*
 		// path - single
