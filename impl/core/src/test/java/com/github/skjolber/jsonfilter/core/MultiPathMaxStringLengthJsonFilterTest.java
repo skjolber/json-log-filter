@@ -3,6 +3,9 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -21,13 +24,19 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	
 	@Test
 	public void exception_returns_false() throws Exception {
-		assertFalse(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH}).process(new char[] {}, 1, 1, new StringBuilder()));
+		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
 	}	
 	
 	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
-		assertNull(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null).process(TRUNCATED));
-		assertFalse(new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null).process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null);
+		assertNull(filter.process(TRUNCATED));
+		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		
+		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
 	}
 	
 	@Test
