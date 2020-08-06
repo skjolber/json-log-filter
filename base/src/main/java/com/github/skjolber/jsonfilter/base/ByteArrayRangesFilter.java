@@ -178,10 +178,49 @@ public class ByteArrayRangesFilter {
 				// account for 1-4 bytes UTF-8 encoding
 				// i.e. backwards sync
 				
-				while(chars[filter[i] - 1] >= 0x80) { // will max run three times
-					filter[i]--;
-					filter[i+2]--;
-				}				
+				// check the last byte to be excluded
+				// if it is not an ascii byte, then we're in the middle of a multi-byte
+				// utf-8 character
+				
+				// byte 1 begins with bits 0xxx xxxx if single char per byte (ascii)
+				if( (chars[filter[i] - 1] & 0x80) != 0) {
+					// multi-byte character
+					
+					// check whether the whole character was included, and if not, 
+					// exclude it
+					
+					// rewind to the first byte
+					// bytes 2, 3 and 4 all start with bits 10xx xxxx
+					// so and'ing with filter 1100 0000 should always result in 
+					// bits 1000 0000
+					int index = filter[i] - 1;
+					while( (chars[index] & 0xC0) == 0x80) { 
+						index--;
+					}
+
+					//    8421
+					// 2: 110x xxxx
+					// 3: 1110 xxxx
+					// 4: 1111 0xxx
+					
+					int utfLength;
+					if((chars[index] & 0xF0) == 0xF0) { // 4
+						utfLength = 4;
+					} else if((chars[index] & 0xE0) == 0xE0) { // 3
+						utfLength = 3;
+					} else { // 2
+						utfLength = 2;
+					}
+					
+					if(index + utfLength == filter[i]) {
+						// keep it
+					} else {
+						// remove it
+						int difference = filter[i] - index;
+						filter[i] -= difference;
+						filter[i+2] -= difference;
+					}
+				}
 				
 				// \ u
 				// \ uX
