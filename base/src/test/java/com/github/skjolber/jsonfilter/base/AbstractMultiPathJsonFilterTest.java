@@ -2,10 +2,7 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class AbstractMultiPathJsonFilterTest {
 
