@@ -1,0 +1,8 @@
+jsonfilter:
+   paths:
+     - antMatcher: /*
+       request:
+           maxStringLength: 127 
+       response:
+           maxStringLength: 127 
+  

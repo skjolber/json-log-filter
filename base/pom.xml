@@ -79,8 +79,8 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 			</plugin>
 			<plugin>
-			    <groupId>org.moditect</groupId>
-			    <artifactId>moditect-maven-plugin</artifactId>
+				<groupId>org.moditect</groupId>
+				<artifactId>moditect-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

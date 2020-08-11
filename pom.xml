@@ -114,6 +114,16 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.github.skjolber.json-log-filter</groupId>
+				<artifactId>spring-boot-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.skjolber.json-log-filter</groupId>
+				<artifactId>spring-boot-starter-logbook</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
@@ -156,24 +166,24 @@
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.zalando</groupId>
-			    <artifactId>logbook-spring-boot-starter</artifactId>
-			    <version>${logbook.version}</version>
+				<groupId>org.zalando</groupId>
+				<artifactId>logbook-spring-boot-autoconfigure</artifactId>
+				<version>${logbook.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.springframework.boot</groupId>
-			    <artifactId>spring-boot-starter-web</artifactId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.springframework.boot</groupId>
-			    <artifactId>spring-boot-starter-test</artifactId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-test</artifactId>
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.zalando</groupId>
-			    <artifactId>logbook-api</artifactId>
-			    <version>${logbook.version}</version>
+				<groupId>org.zalando</groupId>
+				<artifactId>logbook-api</artifactId>
+				<version>${logbook.version}</version>
 			</dependency>		
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -418,8 +428,8 @@
 		<module>impl/core</module>
 		<module>support/test</module>
 		<module>frameworks/jackson</module>
-		<module>frameworks/spring-boot</module>
-		<module>frameworks/logbook</module>
+		<module>frameworks/spring-boot-starter</module>
+		<module>frameworks/spring-boot-starter-logbook</module>
 	</modules>
 
 	<profiles>

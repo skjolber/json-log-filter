@@ -15,36 +15,36 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 
-    /*language=RegExp*/
-    private static final String BOOLEAN_PATTERN = "(?:true|false)";
+	/*language=RegExp*/
+	private static final String BOOLEAN_PATTERN = "(?:true|false)";
 
-    /*language=RegExp*/
-    private static final String NUMBER_PATTERN =
-            "(?:-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)";
+	/*language=RegExp*/
+	private static final String NUMBER_PATTERN =
+			"(?:-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)";
 
-    private static final Pattern NUMBER = pattern(NUMBER_PATTERN);
+	private static final Pattern NUMBER = pattern(NUMBER_PATTERN);
 
-    /**
-     * @see <a href="https://stackoverflow.com/a/43597014/232539">Regex for quoted string with escaping quotes</a>
-     */
-    /*language=RegExp*/
-    private static final String STRING_PATTERN = "(?:\"(.*?[^\\\\])??((\\\\\\\\)+)?+\")";
+	/**
+	 * @see <a href="https://stackoverflow.com/a/43597014/232539">Regex for quoted string with escaping quotes</a>
+	 */
+	/*language=RegExp*/
+	private static final String STRING_PATTERN = "(?:\"(.*?[^\\\\])??((\\\\\\\\)+)?+\")";
 
-    private static final Pattern STRING = pattern(STRING_PATTERN);
+	private static final Pattern STRING = pattern(STRING_PATTERN);
 
-    /*language=RegExp*/
-    private static final String PRIMITIVE_PATTERN =
-            "(?:" + BOOLEAN_PATTERN + "|" + NUMBER_PATTERN + "|" + STRING_PATTERN + ")";
+	/*language=RegExp*/
+	private static final String PRIMITIVE_PATTERN =
+			"(?:" + BOOLEAN_PATTERN + "|" + NUMBER_PATTERN + "|" + STRING_PATTERN + ")";
 
-    private static final Pattern PRIMITIVE = pattern(PRIMITIVE_PATTERN);
+	private static final Pattern PRIMITIVE = pattern(PRIMITIVE_PATTERN);
 
-    private final Pattern pattern;
+	private final Pattern pattern;
 
-    private final Predicate<String> predicate;
+	private final Predicate<String> predicate;
 
-    private final String replacement;
+	private final String replacement;
 
-    public PrimitiveJsonPropertyBodyFilter(Pattern pattern, Predicate<String> predicate, String replacement) {
+	public PrimitiveJsonPropertyBodyFilter(Pattern pattern, Predicate<String> predicate, String replacement) {
 		super();
 		this.pattern = pattern;
 		this.predicate = predicate;
@@ -52,49 +52,49 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	private static Pattern pattern(final String value) {
-        return compile("(?<key>\"(?<property>.*?)\"\\s*:\\s*)(" + value + "|null)");
-    }
+		return compile("(?<key>\"(?<property>.*?)\"\\s*:\\s*)(" + value + "|null)");
+	}
 
-    public static PrimitiveJsonPropertyBodyFilter replaceString(
-            final Predicate<String> predicate, final String replacement) {
-        return create(STRING, predicate, quote(replacement));
-    }
+	public static PrimitiveJsonPropertyBodyFilter replaceString(
+			final Predicate<String> predicate, final String replacement) {
+		return create(STRING, predicate, quote(replacement));
+	}
 
-    private static PrimitiveJsonPropertyBodyFilter create(Pattern pattern, Predicate<String> predicate, String replacement) {
+	private static PrimitiveJsonPropertyBodyFilter create(Pattern pattern, Predicate<String> predicate, String replacement) {
 		return new PrimitiveJsonPropertyBodyFilter(pattern, predicate, replacement);
 	}
 
-    public static PrimitiveJsonPropertyBodyFilter replaceNumber(
-            final Predicate<String> predicate, final Number replacement) {
-        return create(NUMBER, predicate, String.valueOf(replacement));
-    }
+	public static PrimitiveJsonPropertyBodyFilter replaceNumber(
+			final Predicate<String> predicate, final Number replacement) {
+		return create(NUMBER, predicate, String.valueOf(replacement));
+	}
 
 	public static PrimitiveJsonPropertyBodyFilter replacePrimitive(
-            final Predicate<String> predicate, final String replacement) {
-        return create(PRIMITIVE, predicate, quote(replacement));
-    }
+			final Predicate<String> predicate, final String replacement) {
+		return create(PRIMITIVE, predicate, quote(replacement));
+	}
 
-    public static String quote(final String s) {
-        return "\"" + s + "\"";
-    }
+	public static String quote(final String s) {
+		return "\"" + s + "\"";
+	}
 
-    public String filter(final String body) {
-        final Matcher matcher = pattern.matcher(body);
-        final StringBuffer result = new StringBuffer(body.length());
+	public String filter(final String body) {
+		final Matcher matcher = pattern.matcher(body);
+		final StringBuffer result = new StringBuffer(body.length());
 
-        while (matcher.find()) {
-            if (predicate.test(matcher.group("property"))) {
-                // this preserves whitespaces around properties
-                matcher.appendReplacement(result, "${key}");
-                result.append(replacement);
-            } else {
-                matcher.appendReplacement(result, "$0");
-            }
-        }
-        matcher.appendTail(result);
+		while (matcher.find()) {
+			if (predicate.test(matcher.group("property"))) {
+				// this preserves whitespaces around properties
+				matcher.appendReplacement(result, "${key}");
+				result.append(replacement);
+			} else {
+				matcher.appendReplacement(result, "$0");
+			}
+		}
+		matcher.appendTail(result);
 
-        return result.toString();
-    }
+		return result.toString();
+	}
 
 	@Override
 	public String process(char[] chars) {

@@ -10,10 +10,10 @@ public class JacksonJsonLogFilterBuilderTest {
 	@Test
 	public void testBuilder() {
 		JsonFilter filter = JacksonJsonLogFilterBuilder.createInstance()
-                .withMaxStringLength(127)
-                .withAnonymize("/customer/email") // inserts ***** for values
-                .withPrune("/customer/account") // removes whole subtree
-                .build();
+				.withMaxStringLength(127)
+				.withAnonymize("/customer/email") // inserts ***** for values
+				.withPrune("/customer/account") // removes whole subtree
+				.build();
 		assertNotNull(filter);
 	}
 }

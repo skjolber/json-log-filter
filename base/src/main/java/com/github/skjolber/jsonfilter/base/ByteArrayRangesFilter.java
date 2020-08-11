@@ -26,82 +26,82 @@ public class ByteArrayRangesFilter {
 	public static final byte[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 
 
-    protected static final byte[] DigitTens = {
-        '0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
-        '1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
-        '2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
-        '3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
-        '4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
-        '5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
-        '6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
-        '7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
-        '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
-        '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
-        } ;
+	protected static final byte[] DigitTens = {
+		'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+		'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+		'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+		'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+		'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+		'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+		'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+		'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+		'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+		'9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
+		} ;
 
-    protected static final byte[] DigitOnes = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        };
+	protected static final byte[] DigitOnes = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		};
 
-    /**
-     * Places characters representing the integer i into the
-     * character array buf. The characters are placed into
-     * the buffer backwards starting with the least significant
-     * digit at the specified index (exclusive), and working
-     * backwards from there.
-     *
-     * @implNote This method converts positive inputs into negative
-     * values, to cover the Integer.MIN_VALUE case. Converting otherwise
-     * (negative to positive) will expose -Integer.MIN_VALUE that overflows
-     * integer.
-     *
-     * @param i     value to convert
-     * @param index next index, after the least significant digit
-     * @param buf   target buffer, Latin1-encoded
-     * @return index of the most significant digit or minus sign, if present
-     */
-    static int getChars(int i, int index, byte[] buf) {
-        int q, r;
-        int charPos = index;
+	/**
+	 * Places characters representing the integer i into the
+	 * character array buf. The characters are placed into
+	 * the buffer backwards starting with the least significant
+	 * digit at the specified index (exclusive), and working
+	 * backwards from there.
+	 *
+	 * @implNote This method converts positive inputs into negative
+	 * values, to cover the Integer.MIN_VALUE case. Converting otherwise
+	 * (negative to positive) will expose -Integer.MIN_VALUE that overflows
+	 * integer.
+	 *
+	 * @param i	 value to convert
+	 * @param index next index, after the least significant digit
+	 * @param buf   target buffer, Latin1-encoded
+	 * @return index of the most significant digit or minus sign, if present
+	 */
+	static int getChars(int i, int index, byte[] buf) {
+		int q, r;
+		int charPos = index;
 
-        boolean negative = i < 0;
-        if (!negative) {
-            i = -i;
-        }
+		boolean negative = i < 0;
+		if (!negative) {
+			i = -i;
+		}
 
-        // Generate two digits per iteration
-        while (i <= -100) {
-            q = i / 100;
-            r = (q * 100) - i;
-            i = q;
-            buf[--charPos] = DigitOnes[r];
-            buf[--charPos] = DigitTens[r];
-        }
+		// Generate two digits per iteration
+		while (i <= -100) {
+			q = i / 100;
+			r = (q * 100) - i;
+			i = q;
+			buf[--charPos] = DigitOnes[r];
+			buf[--charPos] = DigitTens[r];
+		}
 
-        // We know there are at most two digits left at this point.
-        q = i / 10;
-        r = (q * 10) - i;
-        buf[--charPos] = (byte)('0' + r);
+		// We know there are at most two digits left at this point.
+		q = i / 10;
+		r = (q * 10) - i;
+		buf[--charPos] = (byte)('0' + r);
 
-        // Whatever left is the remaining digit.
-        if (q < 0) {
-            buf[--charPos] = (byte)('0' - q);
-        }
+		// Whatever left is the remaining digit.
+		if (q < 0) {
+			buf[--charPos] = (byte)('0' - q);
+		}
 
-        if (negative) {
-            buf[--charPos] = (byte)'-';
-        }
-        return charPos;
-    }
+		if (negative) {
+			buf[--charPos] = (byte)'-';
+		}
+		return charPos;
+	}
 	protected int[] filter;
 	
 	protected int filterIndex = 0;
@@ -198,7 +198,7 @@ public class ByteArrayRangesFilter {
 						index--;
 					}
 
-					//    8421
+					//	8421
 					// 2: 110x xxxx
 					// 3: 1110 xxxx
 					// 4: 1111 0xxx
@@ -285,12 +285,12 @@ public class ByteArrayRangesFilter {
 		}
 	}
 	
-    protected final void writeInt(ByteArrayOutputStream out, int v) {
-    	int chars = getChars(v, 11, digit);
-    	
-    	out.write(digit, chars, 11 - chars);
-    }
-    
+	protected final void writeInt(ByteArrayOutputStream out, int v) {
+		int chars = getChars(v, 11, digit);
+		
+		out.write(digit, chars, 11 - chars);
+	}
+	
 	public static int skipObject(byte[] chars, int offset) {
 		int level = 0;
 

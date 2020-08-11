@@ -233,7 +233,7 @@ public class JsonFilterRunner {
 
 	public static boolean isWellformed(String s, JsonFactory jsonFactory) {
 		try (JsonParser parser = jsonFactory.createParser(new StringReader(s))) {
-	        while(parser.nextToken() != null);
+			while(parser.nextToken() != null);
 		} catch(Exception e) {
 			return false;
 		}

@@ -8,11 +8,11 @@ public class TestFilter {
 	public static final void main(String[] args) {
 		
 		JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
-                .withMaxStringLength(127)
-                .withAnonymize("/customer/email") // inserts ***** for values
-                .withPrune("/customer/account") // removes whole subtree
-                .withMaxPathMatches(10)
-                .build();
+				.withMaxStringLength(127)
+				.withAnonymize("/customer/email") // inserts ***** for values
+				.withPrune("/customer/account") // removes whole subtree
+				.withMaxPathMatches(10)
+				.build();
 		
 		System.out.println("Got filter " + filter.getClass().getName());
 	}

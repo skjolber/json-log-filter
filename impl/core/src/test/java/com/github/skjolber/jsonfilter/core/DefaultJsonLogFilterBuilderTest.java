@@ -12,14 +12,14 @@ public class DefaultJsonLogFilterBuilderTest {
 	@Test
 	public void testBuilder() {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)DefaultJsonLogFilterBuilder.createInstance()
-                .withMaxStringLength(127)
-                .withAnonymize("/customer/email") // inserts ***** for values
-                .withPrune("/customer/account") // removes whole subtree
-                .withPruneStringValue("pruneMessage")
-                .withAnonymizeStringValue("pruneMessage")
-                .withTruncateStringValue("truncateMessage")
-                .withMaxPathMatches(10)
-                .build();
+				.withMaxStringLength(127)
+				.withAnonymize("/customer/email") // inserts ***** for values
+				.withPrune("/customer/account") // removes whole subtree
+				.withPruneStringValue("pruneMessage")
+				.withAnonymizeStringValue("pruneMessage")
+				.withTruncateStringValue("truncateMessage")
+				.withMaxPathMatches(10)
+				.build();
 		assertNotNull(filter);
 		
 		assertThat(filter.getMaxStringLength()).isEqualTo(127);
