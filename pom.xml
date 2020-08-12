@@ -184,7 +184,12 @@
 				<groupId>org.zalando</groupId>
 				<artifactId>logbook-api</artifactId>
 				<version>${logbook.version}</version>
-			</dependency>		
+			</dependency>
+			<dependency>
+				<groupId>org.zalando</groupId>
+				<artifactId>logbook-logstash</artifactId>
+				<version>${logbook.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter</artifactId>

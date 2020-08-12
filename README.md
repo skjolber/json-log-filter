@@ -1,5 +1,6 @@
 
 
+
 [![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
 
 # json-log-filter
@@ -178,6 +179,9 @@ See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.g
 
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
+## Framework support
+See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging. Filtering can be specified per path and request/response.
+
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
 
@@ -189,6 +193,7 @@ Using SIMD for parsing JSON:
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
+- 1.0.11: Add support for Spring Boot and [Logbook] request-/response filtering.
 - 1.0.10: Fix UTF-8 multibyte truncate.
 - 1.0.9: Add support for byte-array inputs (previously only supported char[] inputs)
 - 1.0.8: Add support for custom replacements
@@ -208,3 +213,4 @@ Using SIMD for parsing JSON:
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:			https://github.com/FasterXML/jackson-core
 [JSON]:			https://www.json.org/json-en.html
+[Logbook]:			https://github.com/zalando/logbook

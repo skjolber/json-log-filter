@@ -16,7 +16,11 @@ jsonfilter:
 
 ```
 
-For untrusted requests, add `compact` and `validate` 
+## Untrusted sources
+When requests or responses come from untrusted sources, add the parameters:
+
+ * `validate`: parse the document to see whether its JSON structure is valid. 
+ * `compact`: remove all linebreaks
 
 ```yaml
 jsonfilter:
@@ -26,3 +30,5 @@ jsonfilter:
            compact: true
            validate: true
 ```
+
+The output can be safely appended (as raw JSON) to any log output.

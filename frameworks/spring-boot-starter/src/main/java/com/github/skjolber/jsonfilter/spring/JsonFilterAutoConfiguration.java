@@ -61,11 +61,11 @@ public class JsonFilterAutoConfiguration {
 				JsonFilter jsonFilter = createFilter(response, replacements);
 				
 				if(antMatcher == null) {
-					requestFilters.add(new AllJsonFilterPathMatcher(jsonFilter));
+					responseFilters.add(new AllJsonFilterPathMatcher(jsonFilter));
 				} else if(!matcher.isPattern(antMatcher)) {
-					requestFilters.add(new PrefixJsonFilterPathMatcher(antMatcher, jsonFilter));
+					responseFilters.add(new PrefixJsonFilterPathMatcher(antMatcher, jsonFilter));
 				} else {
-					requestFilters.add(new AntJsonFilterPathMatcher(matcher, antMatcher, jsonFilter));
+					responseFilters.add(new AntJsonFilterPathMatcher(matcher, antMatcher, jsonFilter));
 				}
 			}
 			

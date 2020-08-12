@@ -1,13 +1,14 @@
 package com.github.skjolber.jsonfilter.spring.logbook;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.zalando.logbook.DefaultSink;
 import org.zalando.logbook.HttpLogFormatter;
 import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.Sink;
@@ -16,30 +17,44 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import com.github.skjolber.jsonfilter.spring.JsonFilterAutoConfiguration;
 import com.github.skjolber.jsonfilter.spring.RequestResponseJsonFilter;
 
+/**
+ * 
+ * Use a sink so that the response can also be filtered by path.
+ * 
+ */
+
+
 @AutoConfigureAfter(JsonFilterAutoConfiguration.class)
 @AutoConfigureBefore(LogbookAutoConfiguration.class)
 @Configuration
+@ConditionalOnProperty(name = { "jsonfilter.enabled" }, havingValue = "true", matchIfMissing = true)
 public class LogbookJsonFilterAutoConfiguration {
 
-	private static Logger log = LoggerFactory.getLogger(LogbookJsonFilterAutoConfiguration.class);
+	@Configuration
+	@ConditionalOnBean(Sink.class)
+	public static class SinkWrapper {
 
-	/**
-	 * Use a sink so that the response can also be filtered by path.
-	 * 
-	 * @param formatter target formatter
-	 * @param writer target writer
-	 * @param filter target filters
-	 * @return a newly created sink which also filters.
-	 */
-	
-	@Bean
+		@Bean
+		@Primary
+		public Sink jsonFilterSinkWrapper(Sink sink, RequestResponseJsonFilter filter) {
+			return new PathFilterSink(sink, filter);
+		}
+	}
+
+	@Configuration
 	@ConditionalOnMissingBean(Sink.class)
-	@ConditionalOnBean(RequestResponseJsonFilter.class)
-	public Sink sink(HttpLogFormatter formatter, HttpLogWriter writer, RequestResponseJsonFilter filter) {
-		log.info("Add per-path JSON body filter");
-		return new PathFilterSink(formatter, writer, filter);
+	public static class Default {
+
+	    @Bean
+	    public Sink defaultSink(
+	    		RequestResponseJsonFilter filter,
+	    		HttpLogFormatter formatter,
+	            HttpLogWriter writer) {
+	    	Sink sink = new DefaultSink(formatter, writer);
+			return new PathFilterSink(sink, filter);
+	    }
+
 	}
 	
-
 	
 }

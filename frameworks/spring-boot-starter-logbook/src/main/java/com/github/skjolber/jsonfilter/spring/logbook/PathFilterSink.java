@@ -3,8 +3,6 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 import java.io.IOException;
 
 import org.zalando.logbook.Correlation;
-import org.zalando.logbook.HttpLogFormatter;
-import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.HttpRequest;
 import org.zalando.logbook.HttpResponse;
 import org.zalando.logbook.Precorrelation;
@@ -42,20 +40,12 @@ public class PathFilterSink implements Sink {
 		return false;
 	}
 	
-	protected final HttpLogFormatter formatter;
-	protected final HttpLogWriter writer;
+	protected final Sink sink;
 	protected final RequestResponseJsonFilter filter;
 	
-	public PathFilterSink(HttpLogFormatter formatter, HttpLogWriter writer, RequestResponseJsonFilter filter) {
-		super();
-		this.formatter = formatter;
-		this.writer = writer;
+	public PathFilterSink(Sink sink, RequestResponseJsonFilter filter) {
+		this.sink = sink;
 		this.filter = filter;
-	}
-
-	@Override
-	public boolean isActive() {
-		return writer.isActive();
 	}
 
 	@Override
@@ -66,17 +56,18 @@ public class PathFilterSink implements Sink {
 				request = new JsonFilterHttpRequest(request, jsonFilter);
 			}
 		}
-		writer.write(precorrelation, formatter.format(precorrelation, request));
+		sink.write(precorrelation, request);
 	}
 
 	@Override
 	public void write(Correlation correlation, HttpRequest request, HttpResponse response) throws IOException {
-		if(isJson(request.getContentType())) {
+		if(isJson(response.getContentType())) {
 			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath());
 			if(jsonFilter != null) {
 				response = new JsonFilterHttpResponse(response, jsonFilter);
 			}
 		}
-		writer.write(correlation, formatter.format(correlation, response));
+		sink.write(correlation, request, response);
 	}
+
 }

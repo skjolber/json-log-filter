@@ -1,8 +1,14 @@
 jsonfilter:
    paths:
-     - antMatcher: /*
+     - antMatcher: /**
        request:
            maxStringLength: 127 
+           anonymizes:
+             - /content
        response:
            maxStringLength: 127 
-  
+           anonymizes:
+             - /name
+
+logging.level.org.zalando.logbook: TRACE
+logbook.format.style: json
