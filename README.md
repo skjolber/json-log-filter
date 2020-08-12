@@ -63,7 +63,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.10'
+  jsonLogFilterVersion = '1.0.11'
 }
 ```
 
