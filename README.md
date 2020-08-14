@@ -35,7 +35,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>1.0.10</json-log-filter>
+<json-log-filter.version>1.0.11</json-log-filter>
 ```
 
 then add
