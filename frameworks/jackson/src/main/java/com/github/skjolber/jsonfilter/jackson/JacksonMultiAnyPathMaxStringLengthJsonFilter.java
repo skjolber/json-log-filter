@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 
 /**
  * Any field 
@@ -30,7 +29,7 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 	}
 
 	public JacksonMultiAnyPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, JsonFactory jsonFactory) {
-		this(maxStringLength, anonymizes, prunes, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, jsonFactory);
+		this(maxStringLength, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, jsonFactory);
 	}
 
 	public JacksonMultiAnyPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
@@ -103,6 +102,8 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
+
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {
@@ -118,9 +119,9 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 					nextToken = parser.nextToken();
 					if(nextToken.isScalarValue()) {
 						if(filterType == FilterType.ANON) {
-							generator.writeString(CharArrayRangesFilter.FILTER_ANONYMIZE);
+							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 						} else {
-							generator.writeString(CharArrayRangesFilter.FILTER_PRUNE_MESSAGE);
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 						}
 					} else {
 						// array or object
@@ -130,7 +131,7 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 							// keep structure, but mark all values
 							anonymizeChildren(parser, generator);
 						} else {
-							generator.writeString(CharArrayRangesFilter.FILTER_PRUNE_MESSAGE);
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 							parser.skipChildren(); // skip children
 						}
 					}
@@ -139,14 +140,25 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				String text = parser.getText();
-				
+
 				// A high surrogate precedes a low surrogate.
 				// check last include character
+				builder.append('"');
+
+				int max;
 				if(Character.isHighSurrogate(text.charAt(maxStringLength - 1))) {
-					generator.writeString(text.substring(0, maxStringLength - 1) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength + 1));
+					max = maxStringLength - 1;
 				} else {
-					generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+					max = maxStringLength;
 				}
+
+				quoteAsString(text.substring(0, maxStringLength), builder);
+				builder.append(truncateStringValue);
+				builder.append(text.length() - max);
+				builder.append('"');
+				
+				generator.writeRawValue(builder.toString());
+				builder.setLength(0);
 				
 				continue;
 			}
@@ -169,7 +181,7 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
 				level--;
 			} else if(nextToken.isScalarValue()) {
-				generator.writeString(CharArrayRangesFilter.FILTER_ANONYMIZE);
+				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 
 				continue;
 			}

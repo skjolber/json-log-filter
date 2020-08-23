@@ -19,6 +19,8 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	public static final String FILTER_ANONYMIZE_JSON = '"' + FILTER_ANONYMIZE + '"';
 
+	protected static final int MAX_STRING_LENGTH = Integer.MAX_VALUE - 2;
+
 	protected final int maxStringLength; // not always in use, if so set to max int
 	
 	protected final char[] pruneJsonValue;
@@ -30,12 +32,12 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected final byte[] truncateStringValueAsBytes;
 	
 	public AbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString) {
-		if(maxStringLength < -1 || maxStringLength > Integer.MAX_VALUE - 2) {
+		if(maxStringLength < -1 || maxStringLength > MAX_STRING_LENGTH) {
 			throw new IllegalArgumentException("Expected -1 or positive integer lower than Integer.MAX_VALUE - 1");
 		}
 		
 		if(maxStringLength == -1) {
-			this.maxStringLength = Integer.MAX_VALUE - 2; // make room for quotes, without overflow
+			this.maxStringLength = MAX_STRING_LENGTH; // make room for quotes, without overflow
 		} else {
 			this.maxStringLength = maxStringLength;
 		}

@@ -2,25 +2,11 @@ package com.github.skjolber.jsonfilter.base;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class CharArrayRangesFilter {
+public class CharArrayRangesFilter extends AbstractRangesFilter {
 	
-	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
-	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
-
-	public static final int FILTER_PRUNE = 0;
-	public static final int FILTER_ANON = 1;
-	public static final int FILTER_MAX_LENGTH = 2;
-	
-	public static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
-	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
-	
-	public static final String FILTER_ANONYMIZE = "*****";
-	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
-	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
-
-	public static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
-	public static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
-	public static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
+	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
+	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
+	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
 
 	protected int[] filter;
 	
@@ -34,44 +20,10 @@ public class CharArrayRangesFilter {
 	}
 
 	public CharArrayRangesFilter(int initialCapacity, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
-		if(initialCapacity == -1) {
-			initialCapacity = DEFAULT_INITIAL_ARRAY_SIZE;
-		}
+		super(initialCapacity);
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
-		
-		this.filter = new int[Math.min(initialCapacity, MAX_INITIAL_ARRAY_SIZE) * 3];
-	}
-
-	public void addMaxLength(int start, int end, int length) {
-		add(start, end, -length);
-	}
-	
-	public void addAnon(int start, int end) {
-		add(start, end, FILTER_ANON);
-	}
-	
-	public void addPrune(int start, int end) {
-		add(start, end, FILTER_PRUNE);
-	}
-	
-	public void add(int start, int end, int type) {
-		if(filter.length <= filterIndex) {
-			
-			int[] next = new int[filter.length * 2];
-			System.arraycopy(filter, 0, next, 0, filter.length);
-			
-			filter = next;
-		}
-
-		filter[filterIndex++] = start;
-		filter[filterIndex++] = end;
-		filter[filterIndex++] = type;
-	}
-
-	public int getFilterIndex() {
-		return filterIndex;
 	}
 	
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {

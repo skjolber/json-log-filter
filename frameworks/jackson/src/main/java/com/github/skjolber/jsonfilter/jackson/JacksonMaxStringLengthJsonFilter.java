@@ -10,7 +10,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 
 public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter implements JacksonJsonFilter {
 
@@ -72,6 +71,8 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
+
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {
@@ -83,11 +84,22 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 				
 				// A high surrogate precedes a low surrogate.
 				// check last include character
+				builder.append('"');
+
+				int max;
 				if(Character.isHighSurrogate(text.charAt(maxStringLength - 1))) {
-					generator.writeString(text.substring(0, maxStringLength - 1) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength + 1));
+					max = maxStringLength - 1;
 				} else {
-					generator.writeString(text.substring(0, maxStringLength) + CharArrayRangesFilter.FILTER_TRUNCATE_MESSAGE + (text.length() - maxStringLength));
+					max = maxStringLength;
 				}
+
+				quoteAsString(text.substring(0, maxStringLength), builder);
+				builder.append(truncateStringValue);
+				builder.append(text.length() - max);
+				builder.append('"');
+				
+				generator.writeRawValue(builder.toString());
+				builder.setLength(0);
 				
 				continue;
 			}
