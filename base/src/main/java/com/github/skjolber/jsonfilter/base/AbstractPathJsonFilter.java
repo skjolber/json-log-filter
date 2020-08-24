@@ -4,7 +4,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public enum FilterType {
 		/** public for testing */
-		ANON(CharArrayRangesFilter.FILTER_ANON), PRUNE(CharArrayRangesFilter.FILTER_PRUNE);
+		ANON(AbstractRangesFilter.FILTER_ANON), PRUNE(AbstractRangesFilter.FILTER_PRUNE);
 		
 		private final int type;
 		
