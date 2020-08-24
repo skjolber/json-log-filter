@@ -8,9 +8,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
 	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
 
-	protected int[] filter;
-	
-	protected int filterIndex = 0;
 	protected final char[] pruneMessage;
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
