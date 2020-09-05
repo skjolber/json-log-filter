@@ -187,7 +187,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * and append results to a supplied {@link StringBuilder}.
 	 * Use this variant if you have e.g. a {@link StringBuilder} and want to avoid superfluous copying of it.
 	 *
-	 * @since 2.8
+	 * From the Jackson library.
 	 */
 	public static void quoteAsString(CharSequence input, StringBuilder output) {
 		final int[] escCodes = sOutputEscapes128;
