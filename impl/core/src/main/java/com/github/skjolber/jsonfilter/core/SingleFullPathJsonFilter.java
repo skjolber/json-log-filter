@@ -298,7 +298,18 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		} catch(Exception e) {
 			return null;
 		}
+	}
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
 	}
 	
 }

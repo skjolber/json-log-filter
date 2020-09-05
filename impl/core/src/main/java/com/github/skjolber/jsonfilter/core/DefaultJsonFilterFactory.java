@@ -105,7 +105,7 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			throw new IllegalArgumentException("If no prune or anonymize paths exists, max path matches should not be set.");
 		}
 		if(isActiveMaxStringLength()) {
-			return new MaxStringLengthJsonFilter(maxStringLength);
+			return new MaxStringLengthJsonFilter(maxStringLength, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		}
 
 		return new DefaultJsonFilter();

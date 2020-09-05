@@ -199,7 +199,18 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		} catch(final Exception e) {
 			return false;
 		}
-	}	
+	}
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
+	}
 
 }

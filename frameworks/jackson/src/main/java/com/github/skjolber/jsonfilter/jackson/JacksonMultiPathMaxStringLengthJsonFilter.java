@@ -215,4 +215,15 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}	
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
+	}	
 }

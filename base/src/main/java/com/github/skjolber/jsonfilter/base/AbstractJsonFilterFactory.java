@@ -102,7 +102,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		if(filters != null && !filters.isEmpty()) {
 			setPruneFilters(filters.toArray(new String[filters.size()]));
 		} else {
-			setPruneFilters();
+			this.pruneFilters = new String[]{};
 		}
 	}
 	
@@ -135,7 +135,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		if(filters != null && !filters.isEmpty()) {
 			setAnonymizeFilters(filters.toArray(new String[filters.size()]));
 		} else {
-			setAnonymizeFilters();
+			this.anonymizeFilters = new String[]{};
 		}
 	}
 	

@@ -121,4 +121,15 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}	
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
+	}		
 }

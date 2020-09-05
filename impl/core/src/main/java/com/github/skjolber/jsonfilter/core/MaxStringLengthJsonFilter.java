@@ -187,5 +187,16 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		return filter;
 	}
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
+	}	
 
 }

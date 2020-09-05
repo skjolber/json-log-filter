@@ -191,5 +191,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return maxPathMatches;
 	}
 	
+	protected String[] getAnonymizes() {
+		return anonymizes;
+	}
 	
+	protected String[] getPrunes() {
+		return prunes;
+	}
 }

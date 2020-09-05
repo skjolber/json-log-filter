@@ -36,6 +36,10 @@ public class JacksonJsonLogFilterBuilder {
 		if(!pruneFilters.isEmpty()) {
 			factory.setPruneFilters(pruneFilters);
 		}
+		
+		factory.setAnonymizeJsonValue(anonymizeJsonValue);
+		factory.setPruneJsonValue(pruneJsonValue);
+		factory.setTruncateJsonStringValue(truncateStringValue);
 
 		return factory.newJsonFilter();
 	}
