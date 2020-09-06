@@ -14,8 +14,9 @@ public class JsonBodyFilterTest {
 		JsonFilter jsonFilter = new DefaultJsonFilter();
 		JsonBodyFilter jsonBodyFilter = new JsonBodyFilter(jsonFilter);
 		
-		assertEquals(jsonBodyFilter.filter("appliction/json", "{}"), "{}");
-		assertEquals(jsonBodyFilter.filter("appliction/xml", "{}"), "{}");
+		assertEquals(jsonBodyFilter.filter("application/json", "{}"), "{}");
+		assertEquals(jsonBodyFilter.filter("application/xml", "{}"), "{}");
+		assertEquals(jsonBodyFilter.filter("application/xml", "{corrupt"), "{corrupt");
 		assertEquals(jsonBodyFilter.filter(null, "{}"), "{}");
 	}
 }

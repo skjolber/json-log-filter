@@ -12,9 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
-
+import static com.google.common.truth.Truth.*;
 public class AbstractJsonFilterTest {
 
 	@Test
@@ -44,5 +45,18 @@ public class AbstractJsonFilterTest {
 		mock.process(new ByteArrayInputStream(new byte[]{}), new ByteArrayOutputStream());
 		
 		verify(mock, times(3)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));
-	}	
+	}
+	
+	@Test
+	public void testEncoding() throws IOException {
+	
+		StringBuilder output = new StringBuilder();
+		AbstractJsonFilter.quoteAsString("\"", output);
+		assertThat(output.toString()).isEqualTo("\\\"");
+
+		output.setLength(0);
+		AbstractJsonFilter.quoteAsString(new String(new byte[] {0}), output);
+		assertThat(output.toString()).isEqualTo("\\u0000");
+}
+	
 }

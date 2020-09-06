@@ -1,0 +1,63 @@
+package com.github.skjolber.jsonfilter.spring.logbook;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
+import org.zalando.logbook.HttpRequest;
+import org.zalando.logbook.HttpResponse;
+import org.zalando.logbook.Sink;
+
+import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.spring.RequestResponseJsonFilter;
+
+public class PathFilterSinkTest {
+
+	@Test
+	public void testJson() {
+		assertTrue(PathFilterSink.isJson("application/json"));
+		assertTrue(PathFilterSink.isJson("application/test+json"));
+		assertTrue(PathFilterSink.isJson("application/json;charset=abc"));
+		assertTrue(PathFilterSink.isJson("application/test+json;charset=abc"));
+	}
+	
+	@Test
+	public void testSink() throws IOException {
+
+		RequestResponseJsonFilter requestResponseJsonFilter = mock(RequestResponseJsonFilter.class);
+		Sink sink = mock(Sink.class);
+		PathFilterSink pathFilterSink = new PathFilterSink(sink, requestResponseJsonFilter);
+		
+		JsonFilter jsonFilter = mock(JsonFilter.class);
+		when(requestResponseJsonFilter.getResponseFilter("/def")).thenReturn(jsonFilter);
+
+		// response
+		HttpRequest matchRequest = mock(HttpRequest.class);
+		when(matchRequest.getPath()).thenReturn("/def");
+
+		HttpResponse matchResponse = mock(HttpResponse.class);
+		when(matchResponse.getContentType()).thenReturn("application/json");
+		
+		pathFilterSink.write(null, matchRequest, matchResponse);
+		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(JsonFilterHttpResponse.class));
+
+		HttpResponse otherResponse = mock(HttpResponse.class);
+		when(otherResponse.getContentType()).thenReturn("application/xml");
+
+		pathFilterSink.write(null, matchRequest, otherResponse);
+		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(JsonFilterHttpResponse.class));
+
+		HttpRequest missRequest = mock(HttpRequest.class);
+		when(missRequest.getPath()).thenReturn("/yyy");
+
+		pathFilterSink.write(null, missRequest, matchResponse);
+		verify(sink, times(3)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
+		
+	}
+}

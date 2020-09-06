@@ -1,26 +1,25 @@
 package com.github.skjolber.jsonfilter.spring.logbook;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.zalando.logbook.HttpRequest;
 import org.junit.jupiter.api.Test;
+import org.zalando.logbook.HttpRequest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.spring.RequestResponseJsonFilter;
 import com.github.skjolber.jsonfilter.spring.matcher.JsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.PrefixJsonFilterPathMatcher;
-
-import static com.google.common.truth.Truth.*;
 
 public class PathRequestFilterTest {
 
@@ -47,8 +46,8 @@ public class PathRequestFilterTest {
 		assertNotNull(requestResponseJsonFilter.getResponseFilter("/def"));
 		assertNull(requestResponseJsonFilter.getRequestFilter("/def"));
 		
+		// request
 		PathRequestFilter filter = new PathRequestFilter(requestResponseJsonFilter);
-
 		HttpRequest miss = mock(HttpRequest.class);
 		when(miss.getContentType()).thenReturn("application/json");
 		when(miss.getPath()).thenReturn("/xyz");
