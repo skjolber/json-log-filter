@@ -55,7 +55,7 @@ public class JsonFilterHttpResponseTest {
 	@Test
 	public void testFilterInvalidContent() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
-System.out.println(firstName);
+
 		HttpResponse response = mock(HttpResponse.class);
 		JsonFilterHttpResponse  jsonFilterHttpResponse = new  JsonFilterHttpResponse(response, firstName);
 		
