@@ -134,7 +134,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 									if(pathMatches != -1) {
 										pathMatches--;
 										if(pathMatches == 0) {
-											break main; // done filtering
+											return filter; // done filtering
 										}
 									}
 									
@@ -158,8 +158,13 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 				return null;
 			}
 
+			if(level != 0) {
+				return null;
+			}
+
 			return filter;
 		} catch(Exception e) {
+			e.printStackTrace();
 			return null;
 		}		
 	}
@@ -280,7 +285,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 									if(pathMatches != -1) {
 										pathMatches--;
 										if(pathMatches == 0) {
-											break main; // done filtering
+											return filter; // done filtering
 										}
 									}
 									
@@ -301,6 +306,10 @@ public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter im
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+
+			if(level != 0) {
 				return null;
 			}
 

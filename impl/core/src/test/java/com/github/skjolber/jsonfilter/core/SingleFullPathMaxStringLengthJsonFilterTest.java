@@ -40,6 +40,13 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 	}
 
 	@Test
+	public void exception_incorrect_level() throws Exception {
+		SingleFullPathMaxStringLengthJsonFilter filter = new SingleFullPathMaxStringLengthJsonFilter(-1, 127, PASSTHROUGH_XPATH, FilterType.ANON);
+		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
+		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
 	public void anonymize() throws Exception {
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);

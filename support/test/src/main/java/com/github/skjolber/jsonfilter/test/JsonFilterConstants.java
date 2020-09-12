@@ -20,5 +20,6 @@ public interface JsonFilterConstants {
 
 	public static final String TRUNCATED = "{\"unterminated\":\"value";
 	public static final char[] FULL = "{\"terminated\":\"value\"}".toCharArray();
+	public static final String INCORRECT_LEVEL = "{";
 
 }

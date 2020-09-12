@@ -143,6 +143,10 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 				return null;
 			}
 
+			if(level != 0) {
+				return null;
+			}
+
 			return filter;
 		} catch(Exception e) {
 			return null;
@@ -275,6 +279,10 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+
+			if(level != 0) {
 				return null;
 			}
 

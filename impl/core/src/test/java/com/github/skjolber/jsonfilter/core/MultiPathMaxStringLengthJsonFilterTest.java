@@ -40,6 +40,13 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	}
 	
 	@Test
+	public void exception_incorrect_level() throws Exception {
+		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxStringLengthJsonFilter(-1, 127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
+		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
 	public void anonymize() throws Exception {
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH);

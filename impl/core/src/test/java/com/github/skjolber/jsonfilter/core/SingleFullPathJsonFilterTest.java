@@ -40,6 +40,13 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void exception_incorrect_level() throws Exception {
+		SingleFullPathJsonFilter filter = new SingleFullPathJsonFilter(127, PASSTHROUGH_XPATH, FilterType.ANON);
+		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
+		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
 	public void anonymize() throws Exception {
 		assertThat(new SingleFullPathJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new SingleFullPathJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);

@@ -28,7 +28,6 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 		length += offset;
 
 		try {
-			main : 
 			while(offset < length) {
 				if(chars[offset] == '"') {
 					int nextOffset = offset;
@@ -90,7 +89,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								break main; // done filtering
+								return filter; // done filtering
 							}
 						}					
 					} else {
@@ -126,7 +125,6 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 		length += offset;
 
 		try {
-			main : 
 			while(offset < length) {
 				if(chars[offset] == '"') {
 					int nextOffset = offset;
@@ -188,7 +186,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								break main; // done filtering
+								return filter; // done filtering
 							}
 						}					
 					} else {

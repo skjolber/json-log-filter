@@ -32,7 +32,6 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		length += offset;
 
 		try {
-			main : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -94,7 +93,6 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 								continue;
 							}
 						}
-						
 						if(matchPath(chars, offset + 1, mark, elementPaths[matches])) {
 							matches++;
 						} else {
@@ -133,7 +131,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}							
 							}
 							
@@ -148,6 +146,10 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			
+			if(level != 0) {
 				return null;
 			}
 
@@ -175,7 +177,6 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		length += offset;
 
 		try {
-			main : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -276,7 +277,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}							
 							}
 							
@@ -291,6 +292,10 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+
+			if(level != 0) {
 				return null;
 			}
 

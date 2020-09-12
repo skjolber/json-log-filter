@@ -30,7 +30,6 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches);
 
 		try {
-			main : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' : 
@@ -104,7 +103,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}
 							}
 							
@@ -129,7 +128,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}
 							}
 							
@@ -146,6 +145,10 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+
+			if(level != 0) {
 				return null;
 			}
 
@@ -171,7 +174,6 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches);
 
 		try {
-			main : 
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' : 
@@ -245,7 +247,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}
 							}
 							
@@ -270,7 +272,7 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									break main; // done filtering
+									return filter; // done filtering
 								}
 							}
 							
@@ -287,6 +289,10 @@ public class MultiPathJsonFilter extends AbstractMultiCharArrayPathFilter implem
 			}
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+
+			if(level != 0) {
 				return null;
 			}
 
