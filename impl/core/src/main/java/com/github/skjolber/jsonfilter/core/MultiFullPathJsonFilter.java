@@ -1,11 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractMultiCharArrayPathFilter;
+import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MultiFullPathJsonFilter extends AbstractMultiCharArrayPathFilter implements RangesJsonFilter {
+public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
 
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);

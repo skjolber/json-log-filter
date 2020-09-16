@@ -1,9 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
 public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayAnyPathJsonFilter implements RangesJsonFilter {
 

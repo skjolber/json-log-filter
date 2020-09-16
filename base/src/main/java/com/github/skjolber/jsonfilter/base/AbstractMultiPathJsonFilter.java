@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+
 public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter {
 
 	public static class AbsolutePathFilter {
@@ -175,12 +177,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		boolean match = false;
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
-				
-				if(elementMatches[i] >= elementFilters[i].paths.length) {
-					// this filter is at the maximum
-					continue;
-				}
-
 				if(matchPath(chars, elementFilters[i].pathStrings[elementMatches[i]])) {
 					elementMatches[i]++;
 					if(i < elementFilterEnd[level]) {
@@ -208,5 +204,121 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 		return null;
 			
-	}		
+	}
+	
+	/**
+	 * Match a char range against a specific level of path expressions.
+	 * 
+	 * @param chars text source
+	 * @param start text source start
+	 * @param end text source end (exclusive)
+	 * @param level path level
+	 * @param elementMatches current expression matches, constrained to the current level minus one
+	 * @return true if all segments of a path expression is matched
+	 */
+
+	protected boolean matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {
+		boolean match = false;
+		
+		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
+			if(elementMatches[i] == level - 1) {
+				if(matchPath(chars, start, end, elementFilters[i].paths[elementMatches[i]])) {
+					elementMatches[i]++;
+					
+					if(i < elementFilterEnd[level]) {
+						match = true;
+					}
+				}
+
+			}
+		}
+		return match;
+	}
+
+	/**
+	 * Match a byte range against a specific level of path expressions.
+	 * 
+	 * @param chars text source
+	 * @param start text source start
+	 * @param end text source end (exclusive)
+	 * @param level path level
+	 * @param elementMatches current expression matches, constrained to the current level minus one
+	 * @return true if all segments of a path expression is matched
+	 */
+
+	protected boolean matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
+		boolean match = false;
+		
+		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
+			if(elementMatches[i] == level - 1) {
+				if(matchPath(chars, start, end, elementFilters[i].paths[elementMatches[i]])) {
+					elementMatches[i]++;
+					
+					if(i < elementFilterEnd[level]) {
+						match = true;
+					}
+				}
+
+			}
+		}
+		return match;
+	}	
+	
+	/**
+	 * Match a char range against any-type expressions.
+	 * 
+	 * Note that the order or the filters establishes precedence (prune over anon).
+	 * 
+	 * @param chars JSON characters
+	 * @param start JSON characters start position
+	 * @param end JSON characters end position
+	 * @return the matching filter type, or null if none
+	 */
+	
+	protected FilterType matchAnyElements(final char[] chars, int start, int end) {
+		anyFilters:
+		for(int i = 0; i < anyElementFilters.length; i++) {
+			if(anyElementFilters[i].path.length != end - start) {
+				continue;
+			}
+			for(int k = 0; k < anyElementFilters[i].path.length; k++) {
+				if(anyElementFilters[i].path[k] != chars[start + k]) {
+					continue anyFilters;
+				}
+			}
+			
+			return anyElementFilters[i].getFilterType();
+		}
+		return null;
+			
+	}
+
+	/**
+	 * Match a byte range against any-type expressions.
+	 * 
+	 * Note that the order or the filters establishes precedence (prune over anon).
+	 * 
+	 * @param chars JSON characters
+	 * @param start JSON characters start position
+	 * @param end JSON characters end position
+	 * @return the matching filter type, or null if none
+	 */
+
+	protected FilterType matchAnyElements(final byte[] chars, int start, int end) {
+		anyFilters:
+		for(int i = 0; i < anyElementFilters.length; i++) {
+			if(anyElementFilters[i].path.length != end - start) {
+				continue;
+			}
+			for(int k = 0; k < anyElementFilters[i].path.length; k++) {
+				if(anyElementFilters[i].path[k] != chars[start + k]) {
+					continue anyFilters;
+				}
+			}
+			
+			return anyElementFilters[i].getFilterType();
+		}
+		return null;
+			
+	}	
 }
