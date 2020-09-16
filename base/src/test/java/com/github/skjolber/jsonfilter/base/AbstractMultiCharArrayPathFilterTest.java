@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.base;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -39,16 +40,29 @@ public class AbstractMultiCharArrayPathFilterTest {
 	
 	@Test
 	public void testMatchAny() {
-		MyAbstractMultiCharArrayPathFilter filter = new MyAbstractMultiCharArrayPathFilter(127, 127, new String[] {"/abc/def", "//def"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
+		AbstractMultiCharArrayPathFilter filter = new MyAbstractMultiCharArrayPathFilter(127, 127, new String[] {"/abc/def", "//def"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
 		
 		String def = "def";
 		assertEquals(filter.matchAnyElements(def.toCharArray(), 0, 3), FilterType.ANON);
 		assertEquals(filter.matchAnyElements(def.getBytes(StandardCharsets.UTF_8), 0, 3), FilterType.ANON);
+
+		String de = "de";
+		assertNull(filter.matchAnyElements(de.toCharArray(), 0, 2));
+		assertNull(filter.matchAnyElements(de.getBytes(StandardCharsets.UTF_8), 0, 2));
+
+		String defgh = "defgh";
+		assertNull(filter.matchAnyElements(defgh.toCharArray(), 0, 5));
+		assertNull(filter.matchAnyElements(defgh.getBytes(StandardCharsets.UTF_8), 0, 5));
+		
+		String fgh = "fgh";
+		assertNull(filter.matchAnyElements(fgh.toCharArray(), 0, 3));
+		assertNull(filter.matchAnyElements(fgh.getBytes(StandardCharsets.UTF_8), 0, 3));
+		
 	}
 	
 	@Test
 	public void testMatchElements() {
-		MyAbstractMultiCharArrayPathFilter filter = new MyAbstractMultiCharArrayPathFilter(127, 127, new String[] {"/abc/def", "//def"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
+		AbstractMultiCharArrayPathFilter filter = new MyAbstractMultiCharArrayPathFilter(127, 127, new String[] {"/xzy", "/abc/def", "//def"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
 		
 		String abc = "abc";
 		String def = "def";
@@ -58,12 +72,22 @@ public class AbstractMultiCharArrayPathFilterTest {
 		int start = 0;
 		int end = 3;
 		
-		assertFalse(filter.matchElements(abc.toCharArray(), start, end, 1, new int[] {0}));
-		assertTrue(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {1}));
+		assertFalse(filter.matchElements(abc.toCharArray(), start, end, 1, new int[] {0, 0}));
+		assertTrue(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 1}));
+
+		// incorrect level
+		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 0}));
+		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 2}));
+		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 3}));
+
 		
-		assertFalse(filter.matchElements(abc.getBytes(StandardCharsets.UTF_8), start, end, 1, new int[] {0}));
-		assertTrue(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {1}));
+		assertFalse(filter.matchElements(abc.getBytes(StandardCharsets.UTF_8), start, end, 1, new int[] {0, 0}));
+		assertTrue(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 1}));
 		
+		// incorrect level
+		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 0}));
+		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 2}));
+		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 3}));
 	}		
 	
 }

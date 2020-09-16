@@ -23,6 +23,7 @@ import com.github.skjolber.jsonfilter.spring.matcher.PrefixJsonFilterPathMatcher
 
 public class PathRequestFilterTest {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFilter() throws Exception {
 		
@@ -72,10 +73,10 @@ public class PathRequestFilterTest {
 		when(match.getBodyAsString()).thenReturn(mapper.writeValueAsString(document));
 		when(match.getBody()).thenReturn(mapper.writeValueAsBytes(document));
 		
-		Map readValue1 = mapper.readValue(filtering.getBody(), Map.class);
+		Map<String, Object> readValue1 = mapper.readValue(filtering.getBody(), Map.class);
 		assertThat(readValue1.get("firstName")).isEqualTo("*****");
 		
-		Map readValue2 = mapper.readValue(filtering.getBodyAsString(), Map.class);
+		Map<String, Object> readValue2 = mapper.readValue(filtering.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
 	}
 }

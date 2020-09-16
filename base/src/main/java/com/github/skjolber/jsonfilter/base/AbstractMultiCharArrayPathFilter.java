@@ -23,17 +23,22 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		super(maxStringLength, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
+	/**
+	 * Match a char range against a specific level of path expressions.
+	 * 
+	 * @param chars text source
+	 * @param start text source start
+	 * @param end text source end (exclusive)
+	 * @param level path level
+	 * @param elementMatches current expression matches, constrained to the current level minus one
+	 * @return true if all segments of a path expression is matched
+	 */
+
 	protected boolean matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {
 		boolean match = false;
 		
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
-				
-				if(elementMatches[i] >= elementFilters[i].paths.length) {
-					// this filter is at the maximum
-					continue;
-				}
-
 				if(matchPath(chars, start, end, elementFilters[i].paths[elementMatches[i]])) {
 					elementMatches[i]++;
 					
@@ -47,17 +52,22 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		return match;
 	}
 
+	/**
+	 * Match a byte range against a specific level of path expressions.
+	 * 
+	 * @param chars text source
+	 * @param start text source start
+	 * @param end text source end (exclusive)
+	 * @param level path level
+	 * @param elementMatches current expression matches, constrained to the current level minus one
+	 * @return true if all segments of a path expression is matched
+	 */
+
 	protected boolean matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
 		boolean match = false;
 		
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
-				
-				if(elementMatches[i] >= elementFilters[i].paths.length) {
-					// this filter is at the maximum
-					continue;
-				}
-
 				if(matchPath(chars, start, end, elementFilters[i].paths[elementMatches[i]])) {
 					elementMatches[i]++;
 					
@@ -70,7 +80,10 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		}
 		return match;
 	}	
+	
 	/**
+	 * Match a char range against any-type expressions.
+	 * 
 	 * Note that the order or the filters establishes precedence (prune over anon).
 	 * 
 	 * @param chars JSON characters
@@ -96,6 +109,17 @@ public abstract class AbstractMultiCharArrayPathFilter extends AbstractMultiPath
 		return null;
 			
 	}
+
+	/**
+	 * Match a byte range against any-type expressions.
+	 * 
+	 * Note that the order or the filters establishes precedence (prune over anon).
+	 * 
+	 * @param chars JSON characters
+	 * @param start JSON characters start position
+	 * @param end JSON characters end position
+	 * @return the matching filter type, or null if none
+	 */
 
 	protected FilterType matchAnyElements(final byte[] chars, int start, int end) {
 		anyFilters:

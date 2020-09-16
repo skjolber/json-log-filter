@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.spring;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
