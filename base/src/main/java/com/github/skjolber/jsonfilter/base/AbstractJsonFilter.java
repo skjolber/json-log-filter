@@ -225,7 +225,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * 7-bit ASCII range need to be quoted.
 	 */
 	private final static int[] sOutputEscapes128;
-	private final static int sOutputEscapes128Length = '\\' + 1;
+	private final static int sOutputEscapes128Length = 93; // slash + 1
 	private final static char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
 	static {
 		int[] table = new int[sOutputEscapes128Length];
