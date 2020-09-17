@@ -82,5 +82,10 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 	public void maxStringLength() throws Exception {
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
 	}
-	
+
+	@Test
+	public void maxStringLengthMaxStringLength() throws Exception {
+		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
+	}
+
 }

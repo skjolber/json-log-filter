@@ -67,5 +67,5 @@ public class SingleAnyPathMaxStringLengthJsonFilterTest extends DefaultJsonFilte
 	@Test
 	public void pruneAnyMaxStringLengthMaxPathMatches() throws Exception {
 		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
-	}		
+	}
 }

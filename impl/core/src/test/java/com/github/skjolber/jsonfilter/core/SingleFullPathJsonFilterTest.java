@@ -77,6 +77,5 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	public void pruneWildcard() throws Exception {
 		assertThat(new SingleFullPathJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
 	}
-
 	
 }

@@ -49,6 +49,13 @@ public class DefaultJsonFilterFactoryTest {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 	}
+	
+	@Test
+	public void testMultipleAnonFullPath() {
+		factory.setAnonymizeFilters("/abc", "/def");
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
+	}	
 
 	@Test
 	public void testAnonAnyPath() {

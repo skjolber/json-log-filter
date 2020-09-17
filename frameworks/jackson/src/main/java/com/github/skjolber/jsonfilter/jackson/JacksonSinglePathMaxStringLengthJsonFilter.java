@@ -39,7 +39,6 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
 			return process(chars, offset, length, generator);
 		} catch(final Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -50,7 +49,6 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
 			return process(bytes, offset, length, generator);
 		} catch(final Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}

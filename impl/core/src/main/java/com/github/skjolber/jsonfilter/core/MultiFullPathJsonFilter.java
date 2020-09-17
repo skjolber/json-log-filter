@@ -164,7 +164,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 
 			return filter;
 		} catch(Exception e) {
-			e.printStackTrace();
 			return null;
 		}		
 	}
