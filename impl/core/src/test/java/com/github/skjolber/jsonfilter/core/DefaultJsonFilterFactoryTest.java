@@ -33,7 +33,7 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setMaxPathMatches(1);
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.newJsonFilter();
-		});		
+		});
 	}	
 
 	@Test
@@ -53,9 +53,16 @@ public class DefaultJsonFilterFactoryTest {
 	@Test
 	public void testMultipleAnonFullPath() {
 		factory.setAnonymizeFilters("/abc", "/def");
-		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		MultiFullPathJsonFilter filter = (MultiFullPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
-	}	
+	}
+	
+	@Test
+	public void testMultipleAnonMixedPath() {
+		factory.setAnonymizeFilters("/abc", "//def");
+		MultiPathJsonFilter filter = (MultiPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "//def"});
+	}
 
 	@Test
 	public void testAnonAnyPath() {
@@ -135,8 +142,22 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setPruneFilters("/abc", "/def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
-	}	
+	}
+	
+	@Test
+	public void testMultiplePrunes() {
+		factory.setPruneFilters("/abc", "/def");
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
+	}
 
+	@Test
+	public void testMultiplePruneMixedPath() {
+		factory.setPruneFilters("/abc", "//def");
+		MultiPathJsonFilter filter = (MultiPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
+	}
+	
 	@Test
 	public void testPrunesMaxLength() {
 		factory.setPruneFilters("/abc", "/def");
@@ -161,7 +182,10 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setAnonymizeFilters("/abc");
 		factory.setPruneFilters("//def");
 		factory.setMaxPathMatches(13);
-
+		factory.setPruneStringValue("prune");
+		factory.setAnonymizeStringValue("anon");
+		factory.setTruncateStringValue("truncate");
+		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
@@ -176,6 +200,9 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE.getPropertyName(), "//def");
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), 123);
 		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), 13);
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), "prune");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), "anon");
+		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -213,6 +240,18 @@ public class DefaultJsonFilterFactoryTest {
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty("", new Object());
 		});
 	}	
 

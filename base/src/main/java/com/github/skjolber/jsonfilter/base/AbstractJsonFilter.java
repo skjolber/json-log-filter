@@ -277,5 +277,16 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return qbuf;
 	}
 
+	protected char[] getPruneJsonValue() {
+		return pruneJsonValue;
+	}
+	
+	protected char[] getAnonymizeJsonValue() {
+		return anonymizeJsonValue;
+	}
+	
+	protected char[] getTruncateStringValue() {
+		return truncateStringValue;
+	}
 	
 }
