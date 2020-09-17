@@ -208,14 +208,12 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			// something to escape; 2 or 6-char variant?
 			char d = input.charAt(inPtr++);
 			int escCode = escCodes[d];
-			output.append('\\'); // 0
 			if(escCode < 0) {
-				output.append('u'); // 1:
-				output.append('0'); // 2;
-				output.append('0'); // 3;
-				output.append(HC[d >> 4]);
-				output.append(HC[d & 0xF]);
+				output.append(sNumericPrefix); // 0-3:
+				output.append(HC[d >> 4]); // 4
+				output.append(HC[d & 0xF]); // 5
 			} else {
+				output.append('\\'); // 0
 				output.append((char) escCode); // 1:
 			}
 		}
@@ -227,7 +225,8 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * 7-bit ASCII range need to be quoted.
 	 */
 	private final static int[] sOutputEscapes128;
-	private final static int sOutputEscapes128Length = 128;
+	private final static int sOutputEscapes128Length = '\\' + 1;
+	private final static char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
 	static {
 		int[] table = new int[sOutputEscapes128Length];
 		// Control chars need generic escape sequence
