@@ -191,57 +191,45 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 */
 	public static void quoteAsString(CharSequence input, StringBuilder output) {
 		final int[] escCodes = sOutputEscapes128;
-		final int escCodeCount = escCodes.length;
 		int inPtr = 0;
 		final int inputLen = input.length();
-		char[] qbuf = null;
 
-		outer:
 		while (inPtr < inputLen) {
-			tight_loop:
 			while (true) {
 				char c = input.charAt(inPtr);
-				if (c < escCodeCount && escCodes[c] != 0) {
-					break tight_loop;
+				if (c < sOutputEscapes128Length && escCodes[c] != 0) {
+					break;
 				}
 				output.append(c);
 				if (++inPtr >= inputLen) {
-					break outer;
+					return;
 				}
 			}
 			// something to escape; 2 or 6-char variant?
-			if (qbuf == null) {
-				qbuf = _qbuf();
-			}
 			char d = input.charAt(inPtr++);
 			int escCode = escCodes[d];
-			int length = (escCode < 0)
-					? _appendNumeric(d, qbuf)
-					: _appendNamed(escCode, qbuf);
-			output.append(qbuf, 0, length);
+			output.append('\\'); // 0
+			if(escCode < 0) {
+				output.append('u'); // 1:
+				output.append('0'); // 2;
+				output.append('0'); // 3;
+				output.append(HC[d >> 4]);
+				output.append(HC[d & 0xF]);
+			} else {
+				output.append((char) escCode); // 1:
+			}
 		}
 	}
-	
-	private static int _appendNumeric(int value, char[] qbuf) {
-		qbuf[1] = 'u';
-		// We know it's a control char, so only the last 2 chars are non-0
-		qbuf[4] = HC[value >> 4];
-		qbuf[5] = HC[value & 0xF];
-		return 6;
-	}
 
-	private static int _appendNamed(int esc, char[] qbuf) {
-		qbuf[1] = (char) esc;
-		return 2;
-	}	
 	
 	/**
 	 * Lookup table used for determining which output characters in
 	 * 7-bit ASCII range need to be quoted.
 	 */
 	private final static int[] sOutputEscapes128;
+	private final static int sOutputEscapes128Length = 128;
 	static {
-		int[] table = new int[128];
+		int[] table = new int[sOutputEscapes128Length];
 		// Control chars need generic escape sequence
 		for (int i = 0; i < 32; ++i) {
 			// 04-Mar-2011, tatu: Used to use "-(i + 1)", replaced with constant
@@ -268,14 +256,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			HB[i] = (byte) HC[i];
 		}
 	}   
-	
-	private static char[] _qbuf() {
-		char[] qbuf = new char[6];
-		qbuf[0] = '\\';
-		qbuf[2] = '0';
-		qbuf[3] = '0';
-		return qbuf;
-	}
 
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;
