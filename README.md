@@ -1,6 +1,3 @@
-
-
-
 [![Build Status](https://travis-ci.org/skjolber/json-log-filter.svg?branch=master)](https://travis-ci.org/skjolber/json-log-filter) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=skjolber_json-log-filter&metric=coverage)](https://sonarcloud.io/dashboard?id=skjolber_json-log-filter)
 
 # json-log-filter
@@ -193,7 +190,7 @@ The project is intended as a complimentary tool for use alongside JSON framework
 See the [xml-log-filter] for corresponding high-performance filtering of XML. 
 
 Using SIMD for parsing JSON: 
- * [simdjson](https://github.com/simdjson/simdjson).
+ * [simdjson](https://github.com/simdjson/simdjson)
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
