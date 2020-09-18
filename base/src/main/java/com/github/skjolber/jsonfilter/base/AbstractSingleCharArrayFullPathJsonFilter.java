@@ -2,7 +2,8 @@ package com.github.skjolber.jsonfilter.base;
 
 public abstract class AbstractSingleCharArrayFullPathJsonFilter extends AbstractSinglePathJsonFilter {
 
-	protected final char[][] paths;
+	protected final char[][] pathChars;
+	protected final byte[][] pathBytes;
 	
 	public AbstractSingleCharArrayFullPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
@@ -11,10 +12,9 @@ public abstract class AbstractSingleCharArrayFullPathJsonFilter extends Abstract
 			throw new IllegalArgumentException("Any element expression not supported");
 		}
 
-		this.paths = toCharArray(parse(expression));
-		for(int i = 0; i < paths.length; i++) {
-			paths[i] = intern(paths[i]);
-		}
+		String[] parsed = parse(expression);
+		this.pathChars = toCharArray(parsed);
+		this.pathBytes = toByteArray(parsed);
 	}
 
 }

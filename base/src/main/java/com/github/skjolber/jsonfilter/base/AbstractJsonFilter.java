@@ -224,9 +224,9 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * Lookup table used for determining which output characters in
 	 * 7-bit ASCII range need to be quoted.
 	 */
-	private final static int[] sOutputEscapes128;
-	private final static int sOutputEscapes128Length = 93; // slash + 1
-	private final static char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
+	private static final int[] sOutputEscapes128;
+	private static final int sOutputEscapes128Length = 93; // slash + 1
+	private static final char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
 	static {
 		int[] table = new int[sOutputEscapes128Length];
 		// Control chars need generic escape sequence

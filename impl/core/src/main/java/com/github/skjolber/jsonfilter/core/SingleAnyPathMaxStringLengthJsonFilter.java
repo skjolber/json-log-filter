@@ -21,7 +21,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		final char[] path = this.path;
+		final char[] path = this.pathChars;
 
 		length += offset;
 
@@ -124,7 +124,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		final char[] path = this.path;
+		final byte[] path = this.pathBytes;
 
 		length += offset;
 

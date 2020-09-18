@@ -1,8 +1,11 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.nio.charset.StandardCharsets;
+
 public abstract class AbstractSingleCharArrayAnyPathJsonFilter extends AbstractSinglePathJsonFilter {
 
-	protected final char[] path;
+	protected final char[] pathChars;
+	protected final byte[] pathBytes;
 	
 	public AbstractSingleCharArrayAnyPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
@@ -11,7 +14,9 @@ public abstract class AbstractSingleCharArrayAnyPathJsonFilter extends AbstractS
 			throw new IllegalArgumentException("Full element path expression not supported");
 		}
 		
-		this.path = expression.substring(2).toCharArray();
+		String key = expression.substring(2);
+		this.pathChars = key.toCharArray();
+		this.pathBytes = key.getBytes(StandardCharsets.UTF_8);
 	}
 	
 }

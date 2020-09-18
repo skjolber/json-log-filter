@@ -19,7 +19,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final char[] path = this.path;
+		final char[] path = this.pathChars;
 
 		length += offset;
 
@@ -116,7 +116,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final char[] path = this.path;
+		final byte[] path = this.pathBytes;
 
 		length += offset;
 

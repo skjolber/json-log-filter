@@ -28,7 +28,7 @@ public class AbstractSingleCharArrayAnyPathJsonFilterTest {
 		}
 		
 		public char[] getPath() {
-			return path;
+			return pathChars;
 		}
 
 	}

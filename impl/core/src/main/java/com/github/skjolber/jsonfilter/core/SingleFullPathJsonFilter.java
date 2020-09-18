@@ -21,7 +21,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 
 		int matches = 0;
 
-		final char[][] elementPaths = this.paths;
+		final char[][] elementPaths = this.pathChars;
 
 		length += offset;
 
@@ -166,7 +166,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 
 		int matches = 0;
 
-		final char[][] elementPaths = this.paths;
+		final byte[][] elementPaths = this.pathBytes;
 
 		length += offset;
 

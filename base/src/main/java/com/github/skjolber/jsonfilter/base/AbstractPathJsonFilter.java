@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.nio.charset.StandardCharsets;
+
 public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public enum FilterType {
@@ -34,6 +36,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	
 	protected static final String STAR = "*";
 	protected static final char[] STAR_CHARS = STAR.toCharArray();
+	protected static final byte[] STAR_BYTES = new byte[] {'*'};
 	
 	public static boolean hasAnyPrefix(String[] filters) {
 		if(filters != null) {
@@ -80,10 +83,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		this.prunes = prunes;
 	}
 
-	public AbstractPathJsonFilter(String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		this(-1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
-	}
-
 	public static void validateAnonymizeExpressions(String[] expressions) {
 		for(String expression : expressions) {
 			validateAnonymizeExpression(expression);
@@ -127,7 +126,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static boolean matchPath(final char[] chars, int start, int end, final char[] attribute) {
 		// check if wildcard
-		if(attribute.length == 1 && attribute[0] == '*') {
+		if(attribute == STAR_CHARS) {
 			return true;
 		} else if(attribute.length == end - start) {
 			for(int i = 0; i < attribute.length; i++) {
@@ -140,9 +139,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return false;
 	}
 	
-	public static boolean matchPath(final byte[] chars, int start, int end, final char[] attribute) {
+	public static boolean matchPath(final byte[] chars, int start, int end, final byte[] attribute) {
 		// check if wildcard
-		if(attribute.length == 1 && attribute[0] == '*') {
+		if(attribute == STAR_BYTES) {
 			return true;
 		} else if(attribute.length == end - start) {
 			for(int i = 0; i < attribute.length; i++) {
@@ -171,6 +170,14 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return paths;
 	}
 	
+	protected static byte[][] toByteArray(String[] pathStrings) {
+		byte[][] paths = new byte[pathStrings.length][];
+		for(int i = 0; i < pathStrings.length; i++) {
+			paths[i] = intern(pathStrings[i].getBytes(StandardCharsets.UTF_8));
+		}
+		return paths;
+	}	
+	
 	public static String intern(String string) {
 		if(string.equals(STAR)) {
 			return STAR;
@@ -186,7 +193,15 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			return chars;
 		}
 	}	
-	
+
+	public static byte[] intern(byte[] bytes) {
+		if(bytes.length == 1 && bytes[0] == '*') {
+			return STAR_BYTES;
+		} else {
+			return bytes;
+		}
+	}	
+
 	public int getMaxPathMatches() {
 		return maxPathMatches;
 	}

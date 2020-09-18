@@ -1,6 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-public class AbstractRangesFilter {
+public abstract class AbstractRangesFilter {
 
 	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
 	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
@@ -22,6 +22,8 @@ public class AbstractRangesFilter {
 	public AbstractRangesFilter(int initialCapacity) {
 		if(initialCapacity == -1) {
 			initialCapacity = DEFAULT_INITIAL_ARRAY_SIZE;
+		} else if(initialCapacity == 0) {
+			throw new IllegalArgumentException();
 		}
 		
 		this.filter = new int[Math.min(initialCapacity, MAX_INITIAL_ARRAY_SIZE) * 3];
@@ -55,5 +57,10 @@ public class AbstractRangesFilter {
 
 	public int getFilterIndex() {
 		return filterIndex;
-	}	
+	}
+
+	// for testing
+	protected int[] getFilter() {
+		return filter;
+	}
 }
