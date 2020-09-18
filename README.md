@@ -22,7 +22,11 @@ Features:
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
-   
+
+Limitations:
+
+ * Path matching assumes input document field names are not (unexpectedly) encoded using codepoints (like \u00AB) for regular characters.
+
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
 ## License
@@ -35,7 +39,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>1.0.14</json-log-filter>
+<json-log-filter.version>1.0.15</json-log-filter>
 ```
 
 then add
@@ -63,7 +67,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.14'
+  jsonLogFilterVersion = '1.0.15'
 }
 ```
 
@@ -193,6 +197,7 @@ Using SIMD for parsing JSON:
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
+- 1.0.15: Fix non-ascii field name comparisons.
 - 1.0.14: Add level checks where possible.
 - 1.0.13: Fix custom messages.
 - 1.0.12: Fix custom anonymize, prune and truncate messages.
@@ -210,10 +215,10 @@ Using SIMD for parsing JSON:
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
-[Maven]:			https://maven.apache.org/
-[JMH]:				benchmark/jmh
-[xml-log-filter]:       	https://github.com/skjolber/xml-log-filter
+[Maven]:				https://maven.apache.org/
+[JMH]:					benchmark/jmh
+[xml-log-filter]:      	https://github.com/skjolber/xml-log-filter
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
-[Jackson]:			https://github.com/FasterXML/jackson-core
-[JSON]:			https://www.json.org/json-en.html
-[Logbook]:			https://github.com/zalando/logbook
+[Jackson]:				https://github.com/FasterXML/jackson-core
+[JSON]:					https://www.json.org/json-en.html
+[Logbook]:				https://github.com/zalando/logbook
