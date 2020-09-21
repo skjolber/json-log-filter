@@ -130,7 +130,7 @@ public interface JsonFilter {
 	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
 	
 	/**
-	 * Filter JSON characters to an output StringBuilder.
+	 * Filter JSON characters to an output ByteArrayOutputStream.
 	 * 
 	 * @param input input containing JSON characters to be filtered
 	 * @param length the number of characters within the reader
@@ -150,5 +150,8 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;		
+	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;
+	
+
+	
 }

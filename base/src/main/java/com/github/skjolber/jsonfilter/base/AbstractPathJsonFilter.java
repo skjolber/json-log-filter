@@ -206,6 +206,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		int sourceOffset = start;
 		while(attributeOffset < attribute.length && sourceOffset < end) {
 			if(source[sourceOffset] == '\\') {
+				// this code will probably not run very often
 				sourceOffset++;
 				if(source[sourceOffset] == 'u') {
 					// uXXXX
@@ -213,7 +214,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 					// Direct comparison of utf-8 and hex
 					// 
-					// https://tools.ietf.org/html/rfc7159:
+					// https://tools.ietf.org/html/rfc8259:
 					// Any character may be escaped.  If the character is in the Basic
 					// Multilingual Plane (U+0000 through U+FFFF), then it may be
 					// represented as a six-character sequence: a reverse solidus, followed
