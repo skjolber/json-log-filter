@@ -1,5 +1,10 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -62,4 +67,5 @@ public class JacksonMultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFi
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
 	}	
+
 }

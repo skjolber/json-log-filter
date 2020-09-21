@@ -122,7 +122,6 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 					}
 				}
 				
-				
 				if(prune || anon) {
 					generator.copyCurrentEvent(parser);
 

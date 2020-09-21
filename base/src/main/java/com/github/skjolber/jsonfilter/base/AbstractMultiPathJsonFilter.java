@@ -125,15 +125,20 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 				}
 			}
 			
-			elementFilterStart = new int[maxElementPaths + 1];
-			elementFilterEnd = new int[maxElementPaths + 1];
+			elementFilterStart = new int[maxElementPaths + 2];
+			elementFilterEnd = new int[maxElementPaths + 2];
+
+			for (AbsolutePathFilter absolutePathFilter : elements) {
+				elementFilterEnd[absolutePathFilter.getLength()]++;
+			}
 			
-			// count
-			for(int i = 0; i < elements.size(); i++) {
-				if(elementFilterEnd[elements.get(i).getLength()] == 0) { // first filter for this index
-					elementFilterStart[elements.get(i).getLength()] = i;
+			for(int i = 1; i < elementFilterEnd.length; i++) {
+				int sum = 0;
+				for(int k = 0; k < i; k++) {
+					sum += elementFilterEnd[k];
 				}
-				elementFilterEnd[elements.get(i).getLength()]++;
+				
+				elementFilterStart[i] = sum;
 			}
 
 			// add start to count for end
