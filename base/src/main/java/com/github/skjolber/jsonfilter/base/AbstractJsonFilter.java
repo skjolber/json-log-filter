@@ -209,6 +209,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			char d = input.charAt(inPtr++);
 			int escCode = escCodes[d];
 			if(escCode < 0) {
+				// \\u00XX
 				output.append(sNumericPrefix); // 0-3:
 				output.append(HC[d >> 4]); // 4
 				output.append(HC[d & 0xF]); // 5
@@ -219,13 +220,12 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		}
 	}
 
-	
 	/**
 	 * Lookup table used for determining which output characters in
 	 * 7-bit ASCII range need to be quoted.
 	 */
-	private static final int[] sOutputEscapes128;
-	private static final int sOutputEscapes128Length = 93; // slash + 1
+	protected static final int[] sOutputEscapes128;
+	protected static final int sOutputEscapes128Length = 93; // slash + 1
 	private static final char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
 	static {
 		int[] table = new int[sOutputEscapes128Length];
@@ -246,8 +246,8 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		sOutputEscapes128 = table;
 	}
 	
-	private final static char[] HC = "0123456789ABCDEF".toCharArray();
-	private final static byte[] HB;
+	protected final static char[] HC = "0123456789ABCDEF".toCharArray();
+	protected final static byte[] HB;
 	static {
 		int len = HC.length;
 		HB = new byte[len];

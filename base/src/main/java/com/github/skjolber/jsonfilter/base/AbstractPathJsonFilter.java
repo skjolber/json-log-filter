@@ -128,31 +128,298 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		// check if wildcard
 		if(attribute == STAR_CHARS) {
 			return true;
-		} else if(attribute.length == end - start) {
+		}
+		int l = end - start;
+		if(l < attribute.length) {
+			return false;
+		}
+		if(attribute.length == l) {
 			for(int i = 0; i < attribute.length; i++) {
 				if(attribute[i] != chars[start + i]) {
 					return false;
 				}
 			}
 			return true;
+		} 
+		// check for escape
+		// must be at least one escape within the attribute length
+		int attributeOffset = 0;
+		int sourceOffset = start;
+		while(attributeOffset < attribute.length && sourceOffset < end) {
+			if(chars[sourceOffset] == '\\') {
+				sourceOffset++;
+				if(chars[sourceOffset] == 'u') {
+					// uXXXX
+					sourceOffset++;
+					
+					if(HC[ (attribute[attributeOffset] >> 12) & 0xF] != chars[sourceOffset] ) {
+						return false;
+					}
+					sourceOffset++;
+					if(HC[ (attribute[attributeOffset] >> 8) & 0xF] != chars[sourceOffset] ) {
+						return false;
+					}
+					sourceOffset++;
+					if(HC[ (attribute[attributeOffset] >> 4) & 0xF] != chars[sourceOffset] ) {
+						return false;
+					}
+					sourceOffset++;
+					if(HC[ attribute[attributeOffset] & 0xF] != chars[sourceOffset] ) {
+						return false;
+					}
+				} else {
+					// n r t etc
+					if(!isEscape(chars[sourceOffset], attribute[attributeOffset])) {
+						return false;
+					}
+				}
+			} else if(attribute[attributeOffset] != chars[sourceOffset]) {
+				return false;
+			}
+
+			sourceOffset++;
+			attributeOffset++;
 		}
-		return false;
+		return sourceOffset == end && attributeOffset == attribute.length;
 	}
 	
-	public static boolean matchPath(final byte[] chars, int start, int end, final byte[] attribute) {
+	public static boolean matchPath(final byte[] source, int start, int end, final byte[] attribute) {
 		// check if wildcard
 		if(attribute == STAR_BYTES) {
 			return true;
-		} else if(attribute.length == end - start) {
+		}
+		int l = end - start;
+		if(l < attribute.length) {
+			return false;
+		}
+		if(attribute.length == l) {
 			for(int i = 0; i < attribute.length; i++) {
-				if(attribute[i] != chars[start + i]) {
+				if(attribute[i] != source[start + i]) {
 					return false;
 				}
 			}
 			return true;
 		}
-		return false;
+		// check for escape
+		// must be at least one escape within the attribute length
+		int attributeOffset = 0;
+		int sourceOffset = start;
+		while(attributeOffset < attribute.length && sourceOffset < end) {
+			if(source[sourceOffset] == '\\') {
+				// this code will probably not run very often
+				sourceOffset++;
+				if(source[sourceOffset] == 'u') {
+					// uXXXX
+					sourceOffset++;
+
+					// Direct comparison of utf-8 and hex
+					// 
+					// https://tools.ietf.org/html/rfc8259:
+					// Any character may be escaped.  If the character is in the Basic
+					// Multilingual Plane (U+0000 through U+FFFF), then it may be
+					// represented as a six-character sequence: a reverse solidus, followed
+					// by the lowercase letter u, followed by four hexadecimal digits that
+					// encode the character's code point.  The hexadecimal letters A though
+					// F can be upper or lower case.  So, for example, a string containing
+					// only a single reverse solidus character may be represented as
+					// "\u005C".
+					// 
+					// https://no.wikipedia.org/wiki/UTF-8:
+					// Three bytes are needed for characters in the rest of the Basic Multilingual Plane.
+					//
+					// 
+					byte b = attribute[attributeOffset];
+					if(b >= 0) { // single digit (ascii)
+						// 0xxxxxxx
+						// 0xxx
+						// 0   xxxx
+						//
+						// 007F
+						if(source[sourceOffset++] != '0' || source[sourceOffset] != '0') {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[(b >> 4) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[b & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+					} else if ((b & 0xe0) == 0xc0) {
+						// 110xxxxx 10xxxxxx
+						//	xxx   10
+						// 110   xx 10xx	
+						// 110	  10  xxxx
+						//
+						// 07FF
+						
+						if(source[sourceOffset] != '0') {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ (b >> 2) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						attributeOffset++;
+						byte b2 = attribute[attributeOffset];
+						sourceOffset++;
+						if(HC[ ((b2 >> 4) & 0x3) | (b << 2) & 0xC] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ b2 & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+					} else if ((b & 0xf0) == 0xe0) {
+						// 1110xxxx 10xxxxxx 10xxxxxx
+						// 1110xxxx 10	   10
+						// 1110	 10xxxx   10
+						// 1110	 10	xx 10xx
+						// 1110	 10	   10  xxxx
+						//
+						// FFFF
+						if(HC[b & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						
+						attributeOffset++;
+						byte b2 = attribute[attributeOffset];
+						
+						sourceOffset++;
+						if(HC[ (b2 >> 2) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+
+						attributeOffset++;
+						byte b3 = attribute[attributeOffset];
+
+						sourceOffset++;
+						if(HC[ ((b3 >> 4) & 0x3) | (b2 << 2) & 0xC] != source[sourceOffset] ) {
+							return false;
+						}
+
+						sourceOffset++;
+						if(HC[ b3 & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+					} else if ((b & 0xf8) == 0xf0) {
+						// So outside the Basic Multilingual Plane
+						// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+						// To escape an extended character that is not in the Basic Multilingual
+						// Plane, the character is represented as a 12-character sequence,
+						// encoding the UTF-16 surrogate pair.  So, for example, a string
+						// containing only the G clef character (U+1D11E) may be represented as
+						// "\uD834\uDD1E".
+						int value = b & 0x07; // 3
+						
+						attributeOffset++;
+						value = (value << 6) | (attribute[attributeOffset] & 0x3f); // 6
+						attributeOffset++;
+						value = (value << 6) | (attribute[attributeOffset] & 0x3f); // 6
+						attributeOffset++;
+						value = (value << 6) | (attribute[attributeOffset] & 0x3f); // 6
+						
+						 // 21 bits, 11 in the first, 10 in the second 
+						 
+						 /*
+						cbuf[i++] = (char) (((code - 0x10000) >> 10) + 0xd800);
+						cbuf[i++] = (char) (((code - 0x10000) & 0x3ff) + 0xdc00);						 
+						 */
+						 
+						char a = (char) (((value - 0x10000) >> 10) + 0xd800);
+						 
+						if(HC[ (a >> 12) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ (a >> 8) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ (a >> 4) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ a & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						
+						sourceOffset++;
+						
+						if(sourceOffset >= end) {
+							return false;
+						}
+						
+						if(source[sourceOffset] != '\\') {
+							return false;
+						}
+						
+						sourceOffset++;
+						if(source[sourceOffset] != 'u') {
+							return false;
+						}
+
+						a = (char) (((value - 0x10000) & 0x3ff) + 0xdc00);			 
+
+						sourceOffset++;
+						if(HC[ (a >> 12) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ (a >> 8) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ (a >> 4) & 0xF] != source[sourceOffset] ) {
+							return false;
+						}
+						sourceOffset++;
+						if(HC[ a & 0xF] != source[sourceOffset] ) {
+							return false;
+						}						 
+					} else {
+						return false;
+					}
+				} else {
+					// n r t etc
+					if(!isEscape(source[sourceOffset], attribute[attributeOffset])) {
+						return false;
+					}
+				}
+			} else if(attribute[attributeOffset] != source[sourceOffset]) {
+				return false;
+			}
+
+			sourceOffset++;
+			attributeOffset++;
+		}
+		return sourceOffset == end && attributeOffset == attribute.length;
 	}	
+	
+	private static boolean isEscape(int c, int expected) {
+		switch(c) {
+			case '"' : return '"' == expected;
+			case '\\' : return '\\' == expected;
+			case '/' : return '/' == expected;
+			case 'b' : return 0x08 == expected;
+			case 't' : return 0x09 == expected;
+			case 'f' : return 0x0C == expected;
+			case 'n' : return 0x0A == expected;
+			case 'r' : return 0x0D == expected;
+			default : return false;
+		}
+	}
+	
+	/**
+	 * 
+	 * Note: Expects input to be unencoded
+	 * 
+	 * @param chars text to test
+	 * @param attribute text to match
+	 * @return true if matches
+	 */
 	
 	public static boolean matchPath(final String chars, final String attribute) {
 		// check if wildcard, assume interned locally
@@ -160,7 +427,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		return chars.equals(attribute);
-	}	
+	}
 	
 	protected static char[][] toCharArray(String[] pathStrings) {
 		char[][] paths = new char[pathStrings.length][];

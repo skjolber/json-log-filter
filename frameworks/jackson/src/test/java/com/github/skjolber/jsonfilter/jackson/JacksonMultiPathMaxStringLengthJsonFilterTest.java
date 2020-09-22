@@ -62,4 +62,5 @@ public class JacksonMultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFi
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
 	}	
+
 }

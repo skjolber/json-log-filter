@@ -30,11 +30,11 @@ import java.io.Reader;
  */
 
 public interface JsonFilter {
-	
+
 	// Implementation note: The optimal output format 
 	// depends on what will be done with the filtered document, which translates to the the raw JSON append capabilities 
 	// of log frameworks; Jackson with Logback-logstash only supports characters (and this is the primary use-case).
-	
+
 	/**
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
@@ -52,7 +52,7 @@ public interface JsonFilter {
 	 */
 
 	String process(String chars);
-	
+
 	/**
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
@@ -97,7 +97,7 @@ public interface JsonFilter {
 	 */
 
 	boolean process(Reader reader, StringBuilder output) throws IOException;
-	
+
 	/**
 	 * Filter JSON characters.
 	 * 
@@ -116,7 +116,7 @@ public interface JsonFilter {
 	 */
 
 	boolean process(byte[] chars, ByteArrayOutputStream output);
-	
+
 	/**
 	 * Filter JSON characters to an output ByteArrayOutputStream.
 	 * 
@@ -126,11 +126,11 @@ public interface JsonFilter {
 	 * @param output the stream to which filtered JSON is appended
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
-	
+
 	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
-	
+
 	/**
-	 * Filter JSON characters to an output StringBuilder.
+	 * Filter JSON characters to an output ByteArrayOutputStream.
 	 * 
 	 * @param input input containing JSON characters to be filtered
 	 * @param length the number of characters within the reader
@@ -140,7 +140,7 @@ public interface JsonFilter {
 	 */
 
 	boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException;
-	
+
 	/**
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
@@ -150,5 +150,8 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;		
+	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;
+
+
+
 }
