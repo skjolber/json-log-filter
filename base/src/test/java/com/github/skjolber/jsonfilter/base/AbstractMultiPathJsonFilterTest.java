@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import static com.google.common.truth.Truth.*;
 
 public class AbstractMultiPathJsonFilterTest {
 
@@ -36,8 +37,22 @@ public class AbstractMultiPathJsonFilterTest {
 	public void testConstructor() {
 		new MyAbstractMultiPathJsonFilter(-1, -1, null, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
 		new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc", "//def"}, new String[] {"/abc", "//def"}, "pruneMessage", "anonymizeMessage", "truncateMessage");
+		
+		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc/def/ghi", "/def", "/ghi", "/abc/yyy", "/abc/zzz"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
+
+		assertThat(filter.elementFilterStart).hasLength(4);
+		assertThat(filter.elementFilterStart[0]).isEqualTo(0);
+		assertThat(filter.elementFilterEnd[0]).isEqualTo(0);
+		
+		assertThat(filter.elementFilterStart[1]).isEqualTo(0);  
+		assertThat(filter.elementFilterEnd[1]).isEqualTo(2); // /def and /ghi 
+		
+		assertThat(filter.elementFilterStart[2]).isEqualTo(2);
+		assertThat(filter.elementFilterEnd[2]).isEqualTo(4); // /abc/yyy, /abc/zzz
+		
+		assertThat(filter.elementFilterStart[3]).isEqualTo(4);
+		assertThat(filter.elementFilterEnd[3]).isEqualTo(5); // /abc/def/ghi  
 	}
-	
 
 	@Test
 	public void testMatchAny() {

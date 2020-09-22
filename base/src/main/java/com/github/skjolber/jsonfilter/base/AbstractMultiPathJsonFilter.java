@@ -78,7 +78,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	protected final AnyPathFilter[] anyElementFilters;
 	
 	protected final int[] elementFilterStart;
-	protected final int[] elementFilterEnd;
+	protected final int[] elementFilterEnd; // exclusive
 
 	public AbstractMultiPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
