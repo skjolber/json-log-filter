@@ -125,8 +125,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 				}
 			}
 			
-			elementFilterStart = new int[maxElementPaths + 2];
-			elementFilterEnd = new int[maxElementPaths + 2];
+			elementFilterStart = new int[maxElementPaths + 1];
+			elementFilterEnd = new int[maxElementPaths + 1];
 
 			for (AbsolutePathFilter absolutePathFilter : elements) {
 				elementFilterEnd[absolutePathFilter.getLength()]++;
