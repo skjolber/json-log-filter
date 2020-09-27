@@ -172,7 +172,7 @@ Note that both processors can parse __at least one thousand 100KB documents per 
 
 Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).
 
-See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.9.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.16.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.16.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
