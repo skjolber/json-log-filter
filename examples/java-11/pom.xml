@@ -7,24 +7,25 @@
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.16-SNAPSHOT</version>
+		<version>1.0.17-SNAPSHOT</version>
 		<relativePath>../../</relativePath>
 	</parent>
-	
+
 	<artifactId>json-log-filter-java-11-example</artifactId>
 	<packaging>jar</packaging>
 	<name>java-11-example</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		
+
 		<java.version>11</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
 
 	<dependencies>
-		<dependency>		<groupId>com.github.skjolber.json-log-filter</groupId>
+		<dependency>
+			<groupId>com.github.skjolber.json-log-filter</groupId>
 			<artifactId>api</artifactId>
 		</dependency>
 		<dependency>
@@ -40,7 +41,7 @@
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -48,7 +49,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-			<configuration>
+				<configuration>
 					<release>${java.version}</release>
 				</configuration>
 			</plugin>
