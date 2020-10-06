@@ -30,7 +30,9 @@ public class JsonFilterAutoConfiguration {
 	
 	@Bean
 	public RequestResponseJsonFilter requestResponseJsonFilter(JsonFiltersProperties properties) {
-		
+		if(!properties.isEnabled()) {
+			throw new IllegalStateException();
+		}
 		JsonFilterReplacementsProperties replacements = properties.getReplacements();
 		
 		List<JsonFilterPathProperties> filters = properties.getPaths();

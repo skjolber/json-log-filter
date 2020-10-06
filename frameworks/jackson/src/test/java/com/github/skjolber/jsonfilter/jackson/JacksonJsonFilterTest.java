@@ -17,13 +17,16 @@ public class JacksonJsonFilterTest {
 	
 		when(mock.process(any(char[].class), any(JsonGenerator.class))).thenCallRealMethod();
 		when(mock.process(any(byte[].class), any(JsonGenerator.class))).thenCallRealMethod();
+		when(mock.process(any(byte[].class), any(StringBuilder.class))).thenCallRealMethod();
 		
 		JsonGenerator generator = mock(JsonGenerator.class);
 		
 		mock.process(new char[] {}, generator);
 		mock.process(new byte[] {}, generator);
+		mock.process(new byte[] {}, new StringBuilder());
 		
 		verify(mock, times(1)).process(any(char[].class), any(JsonGenerator.class));
 		verify(mock, times(1)).process(any(byte[].class), any(JsonGenerator.class));
+		verify(mock, times(1)).process(any(byte[].class), any(StringBuilder.class));
 	}
 }
