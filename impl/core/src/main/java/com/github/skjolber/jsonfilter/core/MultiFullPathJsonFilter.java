@@ -41,6 +41,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						level++;
 						
 						if(level >= elementFilterStart.length) {
+							// so other always level < elementFilterStart.length
 							offset = CharArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
@@ -51,23 +52,10 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 					case '}' :
 						level--;
 						
-						if(level < elementFilterStart.length) {
-							constrainMatches(elementMatches, level);
-						}
+						constrainMatches(elementMatches, level);
 						
 						break;
 					case '"' : { 
-						if(level >= elementFilterStart.length) {
-							// not necessary to check if field or value; missing sub-path
-							// so if this is a key, there will never be a full match
-							do {
-								offset++;
-							} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-							offset++;							
-							
-							continue;
-						}
-						
 						int nextOffset = offset;
 						do {
 							nextOffset++;
@@ -99,7 +87,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						nextOffset++;
 
 						// match again any higher filter
-						if(level < elementFilterStart.length && matchElements(chars, offset + 1, mark, level, elementMatches)) {
+						if(matchElements(chars, offset + 1, mark, level, elementMatches)) {
 							for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
 								if(elementMatches[i] == level) {
 									// matched

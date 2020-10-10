@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.core;
 
-import java.util.Arrays;
-
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
@@ -39,7 +37,9 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 					case '{' :
 						level++;
 						
-						if(matches + 1 < level || level > elementPaths.length) {
+						if(level > matches + 1) {
+							// so always level < elementPaths.length
+
 							offset = CharArrayRangesFilter.skipObject(chars, offset);
 
 							level--;

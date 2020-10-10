@@ -56,6 +56,9 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, new String[]{"/key1"}, null)).hasAnonymized("/key1");
+		
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 2, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 	}
 
 	@Test
@@ -78,6 +81,9 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
 		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, null, new String[]{"/key3"})).hasPruned("/key3");
+		
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
+		assertThat(new MultiPathMaxStringLengthJsonFilter(-1, 2, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
 	}
 
 	@Test
