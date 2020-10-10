@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -74,10 +75,22 @@ public class AbstractJsonFilterTest {
 		verify(mock, times(6)).process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class));
 
 		mock.process(new byte[] {'{', '}'});
+		mock.process(new byte[] {'{', '}'}, new ByteArrayOutputStream());
 		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 2, new ByteArrayOutputStream());
+		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), -1, new ByteArrayOutputStream());
 		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), new ByteArrayOutputStream());
 		
-		verify(mock, times(3)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));
+		verify(mock, times(4)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));
+		
+		
+		assertThrows(EOFException.class, () -> {
+			mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 123, new ByteArrayOutputStream());
+		});
+		
+		assertThrows(EOFException.class, () -> {
+			mock.process(new StringReader("{}"), 123, new StringBuilder());
+		});		
+
 	}
 	
 	@Test

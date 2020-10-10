@@ -155,15 +155,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 
 	}
 	
-	protected boolean matchAnon(int[] matches, int level) {
-		for(int i = elementFilterStart[level]; i < matches.length; i++) {
-			if(matches[i] == elementFilters[i].getLength() && elementFilters[i].getFilterType() == FilterType.ANON) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	protected static void constrain(int[] filter, int[] matches, int level) {
 		for(int i = filter[level]; i < matches.length; i++) {
 			if(matches[i] > level) {
