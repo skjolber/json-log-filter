@@ -39,6 +39,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 					case '{' :
 						level++;
 						
+						// TODO check level vs matches here, go with max string length only for subtree
+						
 						break;
 					case '}' :
 						level--;

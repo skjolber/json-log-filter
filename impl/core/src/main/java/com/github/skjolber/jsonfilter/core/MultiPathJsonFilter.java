@@ -35,6 +35,14 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 					case '{' : 
 						level++;
 						
+						if(anyElementFilters == null && level >= elementFilterStart.length) {
+							offset = CharArrayRangesFilter.skipObject(chars, offset);
+
+							level--;
+							
+							continue;
+						}
+						
 						break;
 					case '}' :
 						level--;

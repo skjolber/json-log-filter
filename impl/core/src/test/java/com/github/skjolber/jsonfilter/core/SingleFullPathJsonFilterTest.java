@@ -4,8 +4,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
@@ -84,4 +87,18 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 		assertThat(new SingleFullPathJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
 	}
 	
+	public static void main(String[] args) throws IOException {
+		SingleFullPathJsonFilter filter = new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.ANON);
+		
+		File file = new File("../../support/test/src/main/resources/json/text/single/object1xKeyDeepEscaped.json");
+		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
+		
+		System.out.println(string);
+		
+		String process = filter.process(string);
+		System.out.println(process);
+		
+		
+		
+	}
 }

@@ -37,6 +37,8 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 					case '{' : 
 						level++;
 						
+						// TODO check level vs matches here, go with max string length only for subtree
+						
 						break;
 					case '}' :
 						level--;

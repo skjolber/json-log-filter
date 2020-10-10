@@ -40,7 +40,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 					case '{' :
 						level++;
 						
-						if(level > elementFilterStart.length) {
+						if(level >= elementFilterStart.length) {
 							offset = CharArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
