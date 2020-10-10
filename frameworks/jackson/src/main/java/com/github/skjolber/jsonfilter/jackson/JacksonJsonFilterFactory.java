@@ -89,10 +89,6 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 		return new DefaultJsonFilter();
 	}
 
-	protected boolean isAnyPrefix(String[] filters) {
-		return filters != null && AbstractPathJsonFilter.hasAnyPrefix(filters);
-	}
-
 	protected boolean isFullPrefix(String[] filters) {
 		return filters != null && !AbstractPathJsonFilter.hasAnyPrefix(filters);
 	}

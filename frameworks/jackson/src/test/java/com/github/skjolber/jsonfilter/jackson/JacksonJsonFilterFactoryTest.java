@@ -14,7 +14,7 @@ public class JacksonJsonFilterFactoryTest {
 
 	@BeforeEach
 	public void init() {
-		factory = new JacksonJsonFilterFactory();
+		factory = JacksonJsonFilterFactory.newInstance();
 	}
 	
 	@Test
