@@ -55,6 +55,9 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
 		assertThat(new SingleFullPathJsonFilter(1, "/key1", FilterType.ANON)).hasAnonymized("/key1");
+		
+		assertThat(new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
+		assertThat(new SingleFullPathJsonFilter(2, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 	}	
 
 	@Test
@@ -71,6 +74,9 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
 		assertThat(new SingleFullPathJsonFilter(1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
+		
+		assertThat(new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
+		assertThat(new SingleFullPathJsonFilter(2, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
 	}	
 
 	@Test
