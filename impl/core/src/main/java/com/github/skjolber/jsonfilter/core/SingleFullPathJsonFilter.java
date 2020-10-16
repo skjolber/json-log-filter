@@ -173,7 +173,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 					case '{' :
 						level++;
 						
-						if(level > elementPaths.length) {
+						if(level > matches + 1) {
+							// so always level < elementPaths.length
 							offset = ByteArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
@@ -190,17 +191,6 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						
 						break;
 					case '"' :
-						if(matches + 1 < level) {
-							// not necessary to check if field or value; missing sub-path
-							// so if this is a key, there will never be a full match
-							do {
-								offset++;
-							} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-							offset++;							
-							
-							continue;
-						}
-						
 						int nextOffset = offset;
 						do {
 							nextOffset++;

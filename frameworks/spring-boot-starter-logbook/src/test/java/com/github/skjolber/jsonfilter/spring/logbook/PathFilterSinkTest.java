@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.spring.logbook;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -25,6 +26,7 @@ public class PathFilterSinkTest {
 		assertTrue(PathFilterSink.isJson("application/test+json"));
 		assertTrue(PathFilterSink.isJson("application/json;charset=abc"));
 		assertTrue(PathFilterSink.isJson("application/test+json;charset=abc"));
+		assertFalse(PathFilterSink.isJson("application/xml"));
 	}
 	
 	@Test
@@ -37,7 +39,6 @@ public class PathFilterSinkTest {
 		JsonFilter jsonFilter = mock(JsonFilter.class);
 		when(requestResponseJsonFilter.getResponseFilter("/def")).thenReturn(jsonFilter);
 
-		// response
 		HttpRequest matchRequest = mock(HttpRequest.class);
 		when(matchRequest.getPath()).thenReturn("/def");
 
@@ -58,6 +59,6 @@ public class PathFilterSinkTest {
 
 		pathFilterSink.write(null, missRequest, matchResponse);
 		verify(sink, times(3)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
-		
 	}
+	
 }
