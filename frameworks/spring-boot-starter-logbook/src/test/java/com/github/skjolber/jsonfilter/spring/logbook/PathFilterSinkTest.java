@@ -58,6 +58,7 @@ public class PathFilterSinkTest {
 		when(missRequest.getPath()).thenReturn("/yyy");
 
 		pathFilterSink.write(null, missRequest, matchResponse);
+		pathFilterSink.write(null, missRequest);
 		verify(sink, times(3)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
 	}
 	
