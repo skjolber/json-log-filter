@@ -1,8 +1,11 @@
 jsonfilter:
-   paths:
-     - antMatcher: /*
-       request:
-           maxStringLength: 127 
-       response:
-           maxStringLength: 127 
-  
+    paths:
+      - antMatcher: /*
+        request:
+            maxStringLength: 127 
+        response:
+            maxStringLength: 127 
+    replacements:
+         prune: DELETED
+         anonymize: XXX
+         truncate: CUT

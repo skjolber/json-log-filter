@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpRequest;
-import org.zalando.logbook.HttpResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -33,10 +32,10 @@ public class JsonFilterHttpRequestTest {
 		when(response.getBodyAsString()).thenReturn(mapper.writeValueAsString(document));
 		when(response.getBody()).thenReturn(mapper.writeValueAsBytes(document));
 		
-		Map readValue1 = mapper.readValue(http.getBody(), Map.class);
+		Map<?, ?> readValue1 = mapper.readValue(http.getBody(), Map.class);
 		assertThat(readValue1.get("firstName")).isEqualTo("*****");
 		
-		Map readValue2 = mapper.readValue(http.getBodyAsString(), Map.class);
+		Map<?, ?> readValue2 = mapper.readValue(http.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
 	}
 	

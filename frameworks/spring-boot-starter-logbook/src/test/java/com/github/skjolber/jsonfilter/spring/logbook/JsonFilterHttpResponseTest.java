@@ -32,10 +32,10 @@ public class JsonFilterHttpResponseTest {
 		when(response.getBodyAsString()).thenReturn(mapper.writeValueAsString(document));
 		when(response.getBody()).thenReturn(mapper.writeValueAsBytes(document));
 		
-		Map readValue1 = mapper.readValue(jsonFilterHttpResponse.getBody(), Map.class);
+		Map<?, ?> readValue1 = mapper.readValue(jsonFilterHttpResponse.getBody(), Map.class);
 		assertThat(readValue1.get("firstName")).isEqualTo("*****");
 		
-		Map readValue2 = mapper.readValue(jsonFilterHttpResponse.getBodyAsString(), Map.class);
+		Map<?, ?> readValue2 = mapper.readValue(jsonFilterHttpResponse.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
 	}
 	

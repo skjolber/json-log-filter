@@ -1,9 +1,12 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static com.github.skjolber.jsonfilter.base.AbstractJsonFilter.FILTER_ANONYMIZE_JSON;
+import static com.github.skjolber.jsonfilter.base.AbstractJsonFilter.FILTER_PRUNE_MESSAGE_JSON;
+import static com.github.skjolber.jsonfilter.base.AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
-import static com.github.skjolber.jsonfilter.base.AbstractJsonFilter.*;
 
 public class SkipSubtreeJsonFilterTest  extends DefaultJsonFilterTest {
 

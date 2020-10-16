@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-import org.junit.jupiter.api.Test;
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
@@ -10,6 +9,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Test;
 
 public class DefaultJsonFilterTest {
 

@@ -1,9 +1,9 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static com.google.common.truth.Truth.*;
 
 public class AbstractRangesFilterTest {
 

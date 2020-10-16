@@ -1,13 +1,12 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-
-import static com.google.common.truth.Truth.*;
 
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Assertions;

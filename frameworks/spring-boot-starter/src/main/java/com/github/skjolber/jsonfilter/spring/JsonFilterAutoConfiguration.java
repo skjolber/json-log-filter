@@ -74,7 +74,7 @@ public class JsonFilterAutoConfiguration {
 		return m;
 	}
 
-	protected JsonFilter createFilter(JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
+	protected static JsonFilter createFilter(JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
 		
 		AbstractJsonFilterFactory factory;
 		if(request.isCompact() || request.isValidate()) {

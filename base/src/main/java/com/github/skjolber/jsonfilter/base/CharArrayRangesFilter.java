@@ -134,6 +134,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					do {
 						offset++;
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					break;
 				}
 				default :
 			}
@@ -177,6 +178,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					if(level == 0) {
 						return offset + 1;
 					}
+					break;
 				}
 				default :
 			}
