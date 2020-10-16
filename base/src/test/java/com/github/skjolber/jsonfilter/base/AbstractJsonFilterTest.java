@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -55,6 +54,63 @@ public class AbstractJsonFilterTest {
 
 	@Test
 	public void testConvenienceMethods() throws IOException {
+		AbstractJsonFilter successFilter = getJsonFilterMock();
+
+		// abstract methods
+		when(successFilter.process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class))).thenReturn(true);
+		when(successFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class))).thenReturn(true);
+		
+		assertTrue(successFilter.process("{}", new StringBuilder()));
+		assertNotNull(successFilter.process(new char[] {}));
+		assertNotNull(successFilter.process("{}"));
+		assertTrue(successFilter.process(new StringReader("{}"), 2, new StringBuilder()));
+		assertTrue(successFilter.process(new StringReader("{}"), -1, new StringBuilder()));
+		assertTrue(successFilter.process(new StringReader("{}"), new StringBuilder()));
+		
+		verify(successFilter, times(6)).process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class));
+
+		assertNotNull(successFilter.process(new byte[] {'{', '}'}));
+		assertTrue(successFilter.process(new byte[] {'{', '}'}, new ByteArrayOutputStream()));
+		assertTrue(successFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 2, new ByteArrayOutputStream()));
+		assertTrue(successFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), -1, new ByteArrayOutputStream()));
+		assertTrue(successFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), new ByteArrayOutputStream()));
+		
+		verify(successFilter, times(5)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));
+		
+		assertThrows(EOFException.class, () -> {
+			successFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 123, new ByteArrayOutputStream());
+		});
+		
+		assertThrows(EOFException.class, () -> {
+			successFilter.process(new StringReader("{}"), 123, new StringBuilder());
+		});		
+		
+		
+		AbstractJsonFilter failFilter = getJsonFilterMock();
+
+		// abstract methods
+		when(failFilter.process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class))).thenReturn(false);
+		when(failFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class))).thenReturn(false);
+
+		assertFalse(failFilter.process("{}", new StringBuilder()));
+		assertNull(failFilter.process(new char[] {}));
+		assertNull(failFilter.process("{}"));
+		assertFalse(failFilter.process(new StringReader("{}"), 2, new StringBuilder()));
+		assertFalse(failFilter.process(new StringReader("{}"), -1, new StringBuilder()));
+		assertFalse(failFilter.process(new StringReader("{}"), new StringBuilder()));
+		
+		verify(failFilter, times(6)).process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class));
+
+		assertNull(failFilter.process(new byte[] {'{', '}'}));
+		assertFalse(failFilter.process(new byte[] {'{', '}'}, new ByteArrayOutputStream()));
+		assertFalse(failFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 2, new ByteArrayOutputStream()));
+		assertFalse(failFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), -1, new ByteArrayOutputStream()));
+		assertFalse(failFilter.process(new ByteArrayInputStream(new byte[]{'{', '}'}), new ByteArrayOutputStream()));
+		
+		verify(failFilter, times(5)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));		
+	}
+
+	private AbstractJsonFilter getJsonFilterMock() throws IOException {
 		AbstractJsonFilter mock = mock(AbstractJsonFilter.class);
 
 		when(mock.process(any(String.class), any(StringBuilder.class))).thenCallRealMethod();
@@ -64,39 +120,10 @@ public class AbstractJsonFilterTest {
 		when(mock.process(any(Reader.class), any(StringBuilder.class))).thenCallRealMethod();
 
 		when(mock.process(any(byte[].class))).thenCallRealMethod();
+		when(mock.process(any(byte[].class), any(ByteArrayOutputStream.class))).thenCallRealMethod();
 		when(mock.process(any(InputStream.class), any(Integer.class), any(ByteArrayOutputStream.class))).thenCallRealMethod();
 		when(mock.process(any(InputStream.class), any(ByteArrayOutputStream.class))).thenCallRealMethod();
-
-		// abstract methods
-		when(mock.process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class))).thenReturn(true);
-		when(mock.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class))).thenReturn(true);
-		
-		mock.process("{}", new StringBuilder());
-		mock.process(new char[] {});
-		mock.process("{}");
-		mock.process(new StringReader("{}"), 2, new StringBuilder());
-		mock.process(new StringReader("{}"), -1, new StringBuilder());
-		mock.process(new StringReader("{}"), new StringBuilder());
-		
-		verify(mock, times(6)).process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class));
-
-		mock.process(new byte[] {'{', '}'});
-		mock.process(new byte[] {'{', '}'}, new ByteArrayOutputStream());
-		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 2, new ByteArrayOutputStream());
-		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), -1, new ByteArrayOutputStream());
-		mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), new ByteArrayOutputStream());
-		
-		verify(mock, times(4)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ByteArrayOutputStream.class));
-		
-		
-		assertThrows(EOFException.class, () -> {
-			mock.process(new ByteArrayInputStream(new byte[]{'{', '}'}), 123, new ByteArrayOutputStream());
-		});
-		
-		assertThrows(EOFException.class, () -> {
-			mock.process(new StringReader("{}"), 123, new StringBuilder());
-		});		
-
+		return mock;
 	}
 	
 	@Test
@@ -120,6 +147,25 @@ public class AbstractJsonFilterTest {
 		output.setLength(0);
 		AbstractJsonFilter.quoteAsString(new String(new byte[] {0}), output);
 		assertThat(output.toString()).isEqualTo("\\u0000");
-}
+	}
+	
+	@Test
+	public void testGetFilters() {
+		
+		MyAbstractJsonFilter filter = new MyAbstractJsonFilter(-1, "pruneJson", "anonymizeJson", "truncateJsonString");
+		
+		CharArrayRangesFilter charArrayRangesFilter = filter.getCharArrayRangesFilter();
+		assertSame(charArrayRangesFilter.anonymizeMessage, filter.getAnonymizeJsonValue());
+		assertSame(charArrayRangesFilter.pruneMessage, filter.getPruneJsonValue());
+		assertSame(charArrayRangesFilter.truncateMessage, filter.getTruncateStringValue());
+		
+		ByteArrayRangesFilter byteArrayRangesFilter = filter.getByteArrayRangesFilter();
+		assertEquals(new String(byteArrayRangesFilter.anonymizeMessage), new String(filter.getAnonymizeJsonValue()));
+		assertEquals(new String(byteArrayRangesFilter.pruneMessage), new String(filter.getPruneJsonValue()));
+		assertEquals(new String(byteArrayRangesFilter.truncateMessage), new String(filter.getTruncateStringValue()));
+		
+		
+		
+	}
 	
 }

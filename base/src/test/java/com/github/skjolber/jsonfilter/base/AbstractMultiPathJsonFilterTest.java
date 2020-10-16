@@ -118,6 +118,29 @@ public class AbstractMultiPathJsonFilterTest {
 		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 0}));
 		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 2}));
 		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 3}));
-	}			
+	}
+	
+
+	@Test
+	public void testConstrain() {
+		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/a/b/c", "/d/e/f/h"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
+
+		int[] matches = new int[] {2, 2};
+		filter.constrainMatchesCheckLevel(matches, 1);
+		assertThat(matches).asList().containsExactly(1, 1);
+
+		matches = new int[] {2, 2};
+		filter.constrainMatchesCheckLevel(matches, 5);
+		assertThat(matches).asList().containsExactly(2, 2);
+
+		matches = new int[] {0, 1};
+		filter.constrainMatchesCheckLevel(matches, 2);
+		assertThat(matches).asList().containsExactly(0, 1);
+
+		matches = new int[] {2, 2};
+		filter.constrainMatches(matches, 1);
+		assertThat(matches).asList().containsExactly(1, 1);
+		
+	}
 	
 }

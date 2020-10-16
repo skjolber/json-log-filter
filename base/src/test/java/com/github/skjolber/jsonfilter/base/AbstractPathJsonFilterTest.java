@@ -36,6 +36,12 @@ public class AbstractPathJsonFilterTest {
 	
 	@Test
 	public void testConstructor() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[] {"/a/b"}, new String[] {"/c/d"}, "a", "b", "c");
+		assertThat(filter.getAnonymizes()).asList().containsExactly("/a/b");
+		assertThat(filter.getPrunes()).asList().containsExactly("/c/d");
+		
+		assertThat(filter.getMaxPathMatches()).isEqualTo(5);
+		
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new MyAbstractPathJsonFilter(1, -2, null, null, "a", "b", "c");
 		});
@@ -114,11 +120,13 @@ public class AbstractPathJsonFilterTest {
 		assertTrue(AbstractPathJsonFilter.matchPath(chars, 0, 3, "abc".toCharArray()));
 		assertTrue(AbstractPathJsonFilter.matchPath(chars, 1, 4, "bcd".toCharArray()));
 		assertTrue(AbstractPathJsonFilter.matchPath(chars, chars.length - 3, chars.length, "ijk".toCharArray()));
+		assertFalse(AbstractPathJsonFilter.matchPath(chars, chars.length - 2, chars.length, "ijk".toCharArray()));
 		
 		byte[] bytes = "abcdefghijk".getBytes();
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, 0, 3, "abc".getBytes()));
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, 1, 4, "bcd".getBytes()));
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, bytes.length - 3, bytes.length, "ijk".getBytes()));
+		assertFalse(AbstractPathJsonFilter.matchPath(bytes, 0, 2, "abc".getBytes()));
 		
 	}
 	
@@ -126,13 +134,19 @@ public class AbstractPathJsonFilterTest {
 	public void testMatchEscaped() {
 		char[] special = {'"', '\\', '/', 0x08, 0x09, 0x0C, 0x0A, 0x0D};
 		
+		// positive
 		for(char c : special) {
-			String[] strings = {"abc"+c, c + "abc", "ab" + c + "c"};
-			for(String string : strings) {
-				char[] charArray = string.toCharArray();
-				StringBuilder builder = new StringBuilder();
-				AbstractJsonFilter.quoteAsString(string, builder);
-				assertTrue(AbstractPathJsonFilter.matchPath(builder.toString().toCharArray(), 0, builder.length(), charArray));
+			String[] cs = {"abc"+c, c + "abc", "ab" + c + "c"};
+
+			for(char d : special) {
+				String[] ds = {"abc"+d, d + "abc", "ab" + d + "c"};
+
+				for(int i = 0; i < ds.length; i++) {
+					StringBuilder builder = new StringBuilder();
+					AbstractJsonFilter.quoteAsString(ds[i], builder);
+					
+					assertEquals(c == d, AbstractPathJsonFilter.matchPath(builder.toString().toCharArray(), 0, builder.length(), cs[i].toCharArray()));
+				}
 			}
 		}
 	}

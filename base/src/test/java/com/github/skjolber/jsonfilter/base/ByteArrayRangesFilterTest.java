@@ -1,8 +1,10 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static com.google.common.truth.Truth.*;
@@ -178,5 +180,38 @@ public class ByteArrayRangesFilterTest {
 				}
 			}
 		}
-	}	
+	}
+	
+	@Test
+	public void testAnonymizeSubtree() throws IOException {
+		String input = IOUtils.resourceToString("/anon/input.json", StandardCharsets.UTF_8);
+		String output = IOUtils.resourceToString("/anon/output.json", StandardCharsets.UTF_8);
+		
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12);
+		ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
+		
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		filter.filter(input.getBytes(), 0, input.length(), buffer);
+		
+		assertThat(buffer.toString()).isEqualTo(output);
+	}
+	
+	@Test
+	public void testAnonymizeSubtreeScalar() throws IOException {
+		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
+		String[] outputs = new String[]{"\"*****\",", "\"*****\"}"};
+		
+		for(int i = 0; i < inputs.length; i++) {
+			String input = inputs[i];
+			
+			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12);
+			ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+			filter.filter(input.getBytes(), 0, input.length(), buffer);
+			
+			assertThat(buffer.toString()).isEqualTo(outputs[i]);
+		}
+	}
+
+	
 }

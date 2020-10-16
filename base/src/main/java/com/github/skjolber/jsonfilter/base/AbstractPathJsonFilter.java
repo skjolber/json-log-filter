@@ -90,7 +90,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validateAnonymizeExpression(String expression) {
-		if(!expression.matches(syntaxAbsolutePathSlashes) && !expression.matches(syntaxAnyPathSlashes) && !expression.matches(syntaxAbsolutePathDots) && !expression.matches(syntaxAnyPathDots)) {
+		if(
+				!expression.matches(syntaxAbsolutePathSlashes) 
+				&& !expression.matches(syntaxAnyPathSlashes) 
+				&& !expression.matches(syntaxAbsolutePathDots) 
+				&& !expression.matches(syntaxAnyPathDots)) {
 			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
 	}
@@ -102,7 +106,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validatePruneExpression(String expression) {
-		if(!expression.matches(syntaxAbsolutePathSlashes) && !expression.matches(syntaxAnyPathSlashes) && !expression.matches(syntaxAbsolutePathDots) && !expression.matches(syntaxAnyPathDots)) {
+		if(
+				!expression.matches(syntaxAbsolutePathSlashes) 
+				&& !expression.matches(syntaxAnyPathSlashes) 
+				&& !expression.matches(syntaxAbsolutePathDots) 
+				&& !expression.matches(syntaxAnyPathDots)) {
 			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
 	}

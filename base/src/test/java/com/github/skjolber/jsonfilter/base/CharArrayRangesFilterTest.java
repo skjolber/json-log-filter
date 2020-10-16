@@ -4,6 +4,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 public class CharArrayRangesFilterTest {
@@ -138,6 +143,38 @@ public class CharArrayRangesFilterTest {
 					assertFalse(string + " ->  " + c, string.contains(c + ""));
 				}
 			}
+		}
+	}
+	
+	@Test
+	public void testAnonymizeSubtree() throws IOException {
+		String input = IOUtils.resourceToString("/anon/input.json", StandardCharsets.UTF_8);
+		String output = IOUtils.resourceToString("/anon/output.json", StandardCharsets.UTF_8);
+		
+		CharArrayRangesFilter filter = new CharArrayRangesFilter(12);
+		CharArrayRangesFilter.anonymizeSubtree(input.toCharArray(), 0, filter);
+		
+		StringBuilder buffer = new StringBuilder();
+		filter.filter(input.toCharArray(), 0, input.length(), buffer);
+		
+		assertThat(buffer.toString()).isEqualTo(output);
+	}
+	
+	@Test
+	public void testAnonymizeSubtreeScalar() throws IOException {
+		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
+		String[] outputs = new String[]{"\"*****\",", "\"*****\"}"};
+		
+		for(int i = 0; i < inputs.length; i++) {
+			String input = inputs[i];
+			
+			CharArrayRangesFilter filter = new CharArrayRangesFilter(12);
+			CharArrayRangesFilter.anonymizeSubtree(input.toCharArray(), 0, filter);
+			
+			StringBuilder buffer = new StringBuilder();
+			filter.filter(input.toCharArray(), 0, input.length(), buffer);
+			
+			assertThat(buffer.toString()).isEqualTo(outputs[i]);
 		}
 	}	
 }
