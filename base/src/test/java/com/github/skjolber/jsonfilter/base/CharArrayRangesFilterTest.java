@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -7,6 +8,25 @@ import org.junit.jupiter.api.Test;
 
 public class CharArrayRangesFilterTest {
 
+	@Test
+	public void testScanning() {
+		String value = "\"abcdef\"";
+		String escapedValue = "\"abc\\\"def\"";
+		
+		assertThat(CharArrayRangesFilter.scanBeyondQuotedValue(value.toCharArray(), 1)).isEqualTo(value.length());
+		assertThat(CharArrayRangesFilter.scanBeyondQuotedValue(escapedValue.toCharArray(), 1)).isEqualTo(escapedValue.length());
+		
+		String booleanValue = "true";
+		char[] terminators = new char[] {'}', ',', ']'};
+		
+		for(char terminator : terminators) {
+			String terminatedValue = booleanValue + terminator;
+					
+			assertThat(CharArrayRangesFilter.scanUnquotedValue(terminatedValue.toCharArray(), 0)).isEqualTo(terminatedValue.length() - 1);
+		}
+		
+	}
+	
 	@Test
 	public void testSimpleEscapeAlignment() {
 		char[] encoded = "abcdef\\nghijkl".toCharArray();

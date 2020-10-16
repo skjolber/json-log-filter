@@ -1,15 +1,32 @@
 package com.github.skjolber.jsonfilter.base;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static com.google.common.truth.Truth.*;
 
 public class ByteArrayRangesFilterTest {
+
+	@Test
+	public void testScanning() {
+		String value = "\"abcdef\"";
+		String escapedValue = "\"abc\\\"def\"";
+		
+		assertThat(ByteArrayRangesFilter.scanBeyondQuotedValue(value.getBytes(), 1)).isEqualTo(value.length());
+		assertThat(ByteArrayRangesFilter.scanBeyondQuotedValue(escapedValue.getBytes(), 1)).isEqualTo(escapedValue.length());
+		
+		String booleanValue = "true";
+		char[] terminators = new char[] {'}', ',', ']'};
+		
+		for(char terminator : terminators) {
+			String terminatedValue = booleanValue + terminator;
+					
+			assertThat(ByteArrayRangesFilter.scanUnquotedValue(terminatedValue.getBytes(), 0)).isEqualTo(terminatedValue.length() - 1);
+		}
+		
+	}
 
 	@Test
 	public void testSimpleEscapeAlignment() {
@@ -26,7 +43,7 @@ public class ByteArrayRangesFilterTest {
 			String string = b.toString();
 			
 			// check that both n and slash are present or gone
-			assertTrue(string, (string.contains("n") && string.contains("\\")) || (!string.contains("n") && !string.contains("\\")));
+			assertTrue((string.contains("n") && string.contains("\\")) || (!string.contains("n") && !string.contains("\\")));
 		}
 	}
 	
@@ -45,7 +62,7 @@ public class ByteArrayRangesFilterTest {
 			String string = b.toString();
 			
 			// check that two slashes are present, or none
-			assertTrue(string, !string.contains("\\") || string.contains("\\\\"));
+			assertTrue(!string.contains("\\") || string.contains("\\\\"));
 		}
 	}
 
@@ -68,7 +85,7 @@ public class ByteArrayRangesFilterTest {
 			// check that all chars are present, or none
 			if(!string.contains(escaped)) {
 				for(char c : escaped.toCharArray()) {
-					assertFalse(string + " ->  " + c, string.contains(c + ""));
+					assertFalse(string.contains(c + ""));
 				}
 			}
 		}
@@ -97,7 +114,7 @@ public class ByteArrayRangesFilterTest {
 				ByteArrayOutputStream b = new ByteArrayOutputStream();
 				filter.filter(encoded, 0, encoded.length, b);
 				String string = b.toString();
-				assertEquals(string, string.length(), prefix.length() + "...TRUNCATED BY XX".length());
+				assertEquals(string.length(), prefix.length() + "...TRUNCATED BY XX".length());
 			}
 
 			// make sure last included character is byte 2, 3 or 4
@@ -108,7 +125,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayOutputStream b = new ByteArrayOutputStream();
 			filter.filter(encoded, 0, encoded.length, b);
 			String string = b.toString();
-			assertTrue(string, string.startsWith(prefix + unicode));
+			assertTrue(string.startsWith(prefix + unicode));
 		}
 	}
 
@@ -132,7 +149,7 @@ public class ByteArrayRangesFilterTest {
 			// check that all chars are present, or none
 			if(!string.contains(escaped)) {
 				for(char c : escaped.toCharArray()) {
-					assertFalse(string + " ->  " + c, string.contains(c + ""));
+					assertFalse(string.contains(c + ""));
 				}
 			}
 		}
@@ -157,7 +174,7 @@ public class ByteArrayRangesFilterTest {
 			// check that all chars are present, or none
 			if(!string.contains(escaped)) {
 				for(char c : escaped.toCharArray()) {
-					assertFalse(string + " ->  " + c, string.contains(c + ""));
+					assertFalse(string.contains(c + ""));
 				}
 			}
 		}

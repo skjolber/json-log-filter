@@ -43,10 +43,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			return pathChars.length;
 		}
 		
-		protected FilterType getFilterType() {
-			return filterType;
-		}
-		
 	}
 	
 	public static class AnyPathFilter {

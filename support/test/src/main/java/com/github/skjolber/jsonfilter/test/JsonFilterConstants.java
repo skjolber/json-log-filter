@@ -12,7 +12,7 @@ public interface JsonFilterConstants {
 
 	public static final int DEFAULT_MAX_LENGTH = 5;
 
-	public static final String BASE_PATH = "./../../support/test/src/main/resources/json/";
+	public static final String BASE_PATH = "support/test/src/main/resources/json/";
 
 	public static final String DEEP_PATH1 = "/grandparent/parent/child1";
 	public static final String DEEP_PATH2 = "/grandparent/parent/child2";

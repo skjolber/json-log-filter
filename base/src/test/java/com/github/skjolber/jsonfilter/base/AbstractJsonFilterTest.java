@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -45,6 +46,11 @@ public class AbstractJsonFilterTest {
 		assertThrows(IllegalArgumentException.class, () -> {
 			new MyAbstractJsonFilter(Integer.MAX_VALUE, "pruneJson", "anonymizeJson", "truncateJsonString");
 		});
+		
+		MyAbstractJsonFilter myAbstractJsonFilter = new MyAbstractJsonFilter(-1, "pruneJson", "anonymizeJson", "truncateJsonString");
+		assertEquals("pruneJson", new String(myAbstractJsonFilter.getPruneJsonValue()));
+		assertEquals("anonymizeJson", new String(myAbstractJsonFilter.getAnonymizeJsonValue()));
+		assertEquals("truncateJsonString", new String(myAbstractJsonFilter.getTruncateStringValue()));
 	}
 
 	@Test

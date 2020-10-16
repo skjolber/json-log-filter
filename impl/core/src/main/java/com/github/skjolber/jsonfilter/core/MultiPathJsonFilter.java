@@ -125,7 +125,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 								filter.addAnon(nextOffset, offset);
 							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 								// scalar value
-								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 
 								filter.addAnon(nextOffset, offset);
 							} else {
@@ -269,7 +269,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 								filter.addAnon(nextOffset, offset);
 							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 								// scalar value
-								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 
 								filter.addAnon(nextOffset, offset);
 							} else {

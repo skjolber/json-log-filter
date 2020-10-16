@@ -318,7 +318,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		return offset + 1;
 	}
 
-	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
+	public static final int scanUnquotedValue(final byte[] chars, int offset) {
 		do {
 			offset++;
 		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
