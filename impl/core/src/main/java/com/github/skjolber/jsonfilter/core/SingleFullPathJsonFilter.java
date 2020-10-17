@@ -50,9 +50,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 					case '}' :
 						level--;
 						
-						if(matches >= level) {
-							matches = level;
-						}
+						// always skips start object if not on a matching level, so must always constrain here
+						matches = level;
 						
 						break;
 					case '"' :
@@ -185,9 +184,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 					case '}' :
 						level--;
 						
-						if(matches >= level) {
-							matches = level;
-						}
+						// always skips start object if not on a matching level, so must always constrain here
+						matches = level;
 						
 						break;
 					case '"' :

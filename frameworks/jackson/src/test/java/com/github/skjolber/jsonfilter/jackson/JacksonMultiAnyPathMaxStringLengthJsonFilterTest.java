@@ -1,9 +1,11 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -20,6 +22,13 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilterTest extends AbstractJa
 		super();
 	}
 
+	@Test
+	public void testConstructor() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			assertThat(new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {PASSTHROUGH_XPATH}, null)).hasPassthrough();
+		});
+	}
+	
 	@Test
 	public void passthrough_success() throws Exception {
 		assertThat(new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, null, null)).hasPassthrough();
