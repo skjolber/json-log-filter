@@ -1,14 +1,15 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
-public class JacksonSinglePathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
+public class JacksonSinglePathMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonSinglePathMaxStringLengthJsonFilterTest() throws Exception {
-		super(false);
+		super();
 	}
 
 	@Test
@@ -42,6 +43,11 @@ public class JacksonSinglePathMaxStringLengthJsonFilterTest extends DefaultJsonF
 	public void maxStringLength() throws Exception {
 		assertThat(new JacksonSinglePathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
 	}
+	
+	@Test
+	public void testConvenienceMethods() throws IOException {
+		testConvenienceMethods(new JacksonSinglePathMaxStringLengthJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON));
+	}	
 	
 	/*
 	@Test

@@ -89,15 +89,19 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		}
 	}
 
-	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) throws IOException {
+	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) {
 		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
 		}
 	}
 
-	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) throws IOException {
+	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
 		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
 		}
 	}
 

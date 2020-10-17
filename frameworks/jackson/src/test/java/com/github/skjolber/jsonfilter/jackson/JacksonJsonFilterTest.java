@@ -1,12 +1,16 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
 
 public class JacksonJsonFilterTest {
 

@@ -11,13 +11,13 @@ public interface JacksonJsonFilter extends JsonFilter {
 
 	boolean process(InputStream in, JsonGenerator generator) throws IOException;
 	
-	default boolean process(byte[] chars, JsonGenerator generator) throws IOException {
+	default boolean process(byte[] chars, JsonGenerator generator){
 		return process(chars, 0, chars.length, generator);
 	}
 
-	boolean process(byte[] chars, int offset, int length, JsonGenerator generator) throws IOException;
+	boolean process(byte[] chars, int offset, int length, JsonGenerator generator);
 
-	default boolean process(char[] chars, JsonGenerator generator) throws IOException {
+	default boolean process(char[] chars, JsonGenerator generator){
 		return process(chars, 0, chars.length, generator);
 	}
 	
@@ -27,7 +27,7 @@ public interface JacksonJsonFilter extends JsonFilter {
 
 	boolean process(byte[] bytes, int offset, int length, StringBuilder output);
 
-	boolean process(char[] chars, int offset, int length, JsonGenerator generator) throws IOException;
+	boolean process(char[] chars, int offset, int length, JsonGenerator generator);
 
 	boolean process(final JsonParser parser, JsonGenerator generator) throws IOException;
 }

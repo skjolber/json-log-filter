@@ -1,10 +1,11 @@
 package com.github.skjolber.jsonfilter.jackson;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
-import static com.google.common.truth.Truth.*;
+
+import com.github.skjolber.jsonfilter.JsonFilter;
 public class JacksonJsonLogFilterBuilderTest {
 
 	@Test
@@ -54,4 +55,5 @@ public class JacksonJsonLogFilterBuilderTest {
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*****\"");
 		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("...TRUNCATED BY ");
 	}
+	
 }

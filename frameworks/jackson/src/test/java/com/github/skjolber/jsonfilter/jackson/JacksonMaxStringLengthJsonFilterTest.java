@@ -1,13 +1,13 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
-
-public class JacksonMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
+public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonMaxStringLengthJsonFilterTest() throws Exception {
-		super(false);
+		super();
 	}
 
 	@Test
@@ -18,6 +18,11 @@ public class JacksonMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest 
 	@Test
 	public void maxStringLength() throws Exception {
 		assertThat(new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+	}
+	
+	@Test
+	public void testConvenienceMethods() throws IOException {
+		testConvenienceMethods(new JacksonMaxStringLengthJsonFilter(-1));
 	}
 	
 }
