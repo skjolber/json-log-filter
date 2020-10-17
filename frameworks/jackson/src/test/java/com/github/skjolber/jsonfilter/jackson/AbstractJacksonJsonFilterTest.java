@@ -27,14 +27,10 @@ public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTes
 		super(false);
 	}
 	
-	public void testConvenienceMethods(JacksonJsonFilter filter) throws IOException {
-		JacksonJsonFilter successFilter = getFilter(filter);
-		
-		// abstract methods
-		doReturn(true).when(successFilter).process(any(JsonParser.class), any(JsonGenerator.class));
-		
+	public void testConvenienceMethods(JacksonJsonFilter successFilter, JacksonJsonFilter failureFilter, JacksonJsonFilter brokenFactory) throws IOException {
 		JsonFactory jsonFactory = new JsonFactory();
 		
+		// returns true
 		JsonGenerator generator = jsonFactory.createGenerator(new ByteArrayOutputStream());
 		JsonParser parser = jsonFactory.createParser(new byte[] {});
 		
@@ -48,19 +44,13 @@ public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTes
 		
 		assertTrue(successFilter.process(jsonBytes, 0, 2, new StringBuilder()));
 		assertTrue(successFilter.process(jsonChars, 0, 2, new StringBuilder()));
-		
-		verify(successFilter, times(6)).process(any(JsonParser.class), any(JsonGenerator.class));
-		
-		JacksonJsonFilter failureFilter = getFilter(new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, null, null));
-		
-		// abstract methods
-		doThrow(new IOException()).when(failureFilter).process(any(JsonParser.class), any(JsonGenerator.class));
-		
-		assertThrows(IOException.class, () -> {
+
+		// throws exception
+		assertThrows(RuntimeException.class, () -> {
 			failureFilter.process(new ByteArrayInputStream(jsonBytes), generator);
 		});
-		failureFilter.process(jsonBytes, 0, 2, generator);
-		assertThrows(IOException.class, () -> {
+		assertFalse(failureFilter.process(jsonBytes, 0, 2, generator));
+		assertThrows(RuntimeException.class, () -> {
 			failureFilter.process(parser, generator);
 		});
 		
@@ -68,7 +58,18 @@ public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTes
 		assertFalse(failureFilter.process(jsonBytes, 0, 2, new StringBuilder()));
 		assertFalse(failureFilter.process(jsonChars, 0, 2, new StringBuilder()));
 		
-		verify(failureFilter, times(6)).process(any(JsonParser.class), any(JsonGenerator.class));
+		// broken factory
+		assertThrows(RuntimeException.class, () -> {
+			brokenFactory.process(new ByteArrayInputStream(jsonBytes), generator);
+		});
+		assertFalse(brokenFactory.process(jsonBytes, 0, 2, generator));
+		assertThrows(RuntimeException.class, () -> {
+			brokenFactory.process(parser, generator);
+		});
+		
+		assertFalse(brokenFactory.process(jsonBytes, 0, 2, new ByteArrayOutputStream()));
+		assertFalse(brokenFactory.process(jsonBytes, 0, 2, new StringBuilder()));
+		assertFalse(brokenFactory.process(jsonChars, 0, 2, new StringBuilder()));
 	}
 
 	private JacksonJsonFilter getFilter(JacksonJsonFilter filter) throws IOException {

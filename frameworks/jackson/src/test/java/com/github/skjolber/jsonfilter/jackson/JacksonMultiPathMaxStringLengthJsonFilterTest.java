@@ -1,8 +1,18 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 
 public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -65,7 +75,27 @@ public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractJacks
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {
-		testConvenienceMethods(new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null));
+		JsonFactory jsonFactory = mock(JsonFactory.class);
+		when(jsonFactory.createGenerator(any(StringBuilderWriter.class))).thenThrow(new RuntimeException());
+		when(jsonFactory.createGenerator(any(ByteArrayOutputStream.class))).thenThrow(new RuntimeException());
+		
+		testConvenienceMethods(
+			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
+				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+					return true;
+				}
+			}, 
+			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
+				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+					throw new RuntimeException();
+				}
+			},
+			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {
+				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+					throw new RuntimeException();
+				}
+			}			
+		);
 	}	
 
 }
