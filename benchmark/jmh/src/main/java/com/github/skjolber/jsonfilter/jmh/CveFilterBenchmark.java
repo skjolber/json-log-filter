@@ -19,14 +19,9 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSinglePathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
 
 
 @State(Scope.Thread)
@@ -59,14 +54,14 @@ public class CveFilterBenchmark {
 	public void init() throws Exception {
 		File file = new File("./src/test/resources/benchmark/cves/" + fileName);
 		
-		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune));
-		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, -1, anon, prune));
+		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
+		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
 
-		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anon[0], FilterType.ANON));
-		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, anon[0], FilterType.ANON));
+		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
+		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
 
-		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength));
-		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength));
+		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
+		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
 	}
 
 	@Benchmark
