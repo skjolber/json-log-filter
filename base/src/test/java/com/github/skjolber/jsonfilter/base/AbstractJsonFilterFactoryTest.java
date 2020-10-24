@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +47,14 @@ public class AbstractJsonFilterFactoryTest {
 
 	@Test
 	public void testAnonymize() {
+		factory.setPruneFilters((List<String>)null);
+		assertFalse(factory.isSingleAnonymizeFilter());
+		factory.setPruneFilters(Collections.emptyList());
+		assertFalse(factory.isSingleAnonymizeFilter());
+
+		factory.setAnonymizeFilters(Collections.emptyList());
+		assertFalse(factory.isSingleAnonymizeFilter());
+
 		factory.setAnonymizeFilters("/abc");
 		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertTrue(factory.isSingleAnonymizeFilter());
@@ -53,6 +63,14 @@ public class AbstractJsonFilterFactoryTest {
 
 	@Test
 	public void testPrune() {
+		factory.setAnonymizeFilters((List<String>)null);
+		assertFalse(factory.isSinglePruneFilter());
+		factory.setAnonymizeFilters(Collections.emptyList());
+		assertFalse(factory.isSinglePruneFilter());
+		
+		factory.setPruneFilters(Collections.emptyList());
+		assertFalse(factory.isSinglePruneFilter());
+		
 		factory.setPruneFilters("/def");
 		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"/def"});
 		assertTrue(factory.isSinglePruneFilter());

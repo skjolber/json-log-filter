@@ -189,9 +189,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 					case '}' :
 						level--;
 						
-						if(level < elementFilterStart.length) {
-							constrainMatches(elementMatches, level);
-						}
+						constrainMatches(elementMatches, level);
 						
 						break;
 					case '"' : { 
