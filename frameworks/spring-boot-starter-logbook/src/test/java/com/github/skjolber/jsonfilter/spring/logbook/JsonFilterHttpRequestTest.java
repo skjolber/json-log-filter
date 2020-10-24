@@ -1,12 +1,14 @@
 package com.github.skjolber.jsonfilter.spring.logbook;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpRequest;
@@ -37,6 +39,22 @@ public class JsonFilterHttpRequestTest {
 		
 		Map<?, ?> readValue2 = mapper.readValue(http.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
+
+		// test forwarding
+		when(response.getCharset()).thenReturn(StandardCharsets.UTF_8);
+		when(response.getScheme()).thenReturn("https");
+		when(response.getQuery()).thenReturn("a=b");
+		when(response.getHost()).thenReturn("localhost");
+		when(response.getPort()).thenReturn(Optional.of(443));
+
+		assertThat(response.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(response.getScheme()).isEqualTo("https");
+		assertThat(response.getQuery()).isEqualTo("a=b");
+		assertThat(response.getHost()).isEqualTo("localhost");
+		assertThat(response.getPort().get()).isEqualTo(443);
+		
+		assertThat(response.withBody()).isNull();
+		assertThat(response.withoutBody()).isNull();
 	}
 	
 	@Test

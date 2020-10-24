@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpResponse;
@@ -37,6 +38,14 @@ public class JsonFilterHttpResponseTest {
 		
 		Map<?, ?> readValue2 = mapper.readValue(jsonFilterHttpResponse.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
+		
+		
+		// test forwarding
+		when(response.getCharset()).thenReturn(StandardCharsets.UTF_8);
+		assertThat(response.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+		
+		assertThat(response.withBody()).isNull();
+		assertThat(response.withoutBody()).isNull();
 	}
 	
 	@Test

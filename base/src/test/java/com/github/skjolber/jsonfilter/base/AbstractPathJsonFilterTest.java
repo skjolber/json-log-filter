@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Assertions;
@@ -49,23 +53,39 @@ public class AbstractPathJsonFilterTest {
 	
 	@Test
 	public void testRegexpExpressions() {
-		AbstractPathJsonFilter.validateAnonymizeExpression("/a");
-		AbstractPathJsonFilter.validateAnonymizeExpression("/a/b");
-		AbstractPathJsonFilter.validateAnonymizeExpression("/a/b/*");
-
-		AbstractPathJsonFilter.validateAnonymizeExpression(".a");
-		AbstractPathJsonFilter.validateAnonymizeExpression(".a.b");
-		AbstractPathJsonFilter.validateAnonymizeExpression(".a.b.*");
-
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			AbstractPathJsonFilter.validateAnonymizeExpression("/a//b");
-		});
+		Consumer<String> p = AbstractPathJsonFilter::validateAnonymizeExpression;
+		Consumer<String> a = AbstractPathJsonFilter::validatePruneExpression;
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			AbstractPathJsonFilter.validateAnonymizeExpression(".a..b");
-		});
-		AbstractPathJsonFilter.validateAnonymizeExpression("/abc");
-		AbstractPathJsonFilter.validateAnonymizeExpression(".abc");
+		for(Consumer<String> c : Arrays.asList(p, a)) { 
+			c.accept("/a");
+			c.accept("/a/b");
+			c.accept("/a/b/*");
+	
+			c.accept(".a");
+			c.accept(".a.b");
+			c.accept(".a.b.*");
+	
+			Assertions.assertThrows(IllegalArgumentException.class, () -> {
+				c.accept("aa");
+			});
+			
+			Assertions.assertThrows(IllegalArgumentException.class, () -> {
+				c.accept("bb");
+			});
+			Assertions.assertThrows(IllegalArgumentException.class, () -> {
+				c.accept("/a//b");
+			});
+			
+			Assertions.assertThrows(IllegalArgumentException.class, () -> {
+				c.accept(".a..b");
+			});
+			c.accept("/abc");
+			c.accept(".abc");
+			
+			c.accept("//abc");
+			c.accept("..abc");
+		}
+		
 	}
 	
 	@Test

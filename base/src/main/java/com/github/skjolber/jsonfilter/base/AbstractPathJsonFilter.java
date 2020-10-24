@@ -90,13 +90,16 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validateAnonymizeExpression(String expression) {
-		if(
-				!expression.matches(syntaxAbsolutePathSlashes) 
-				&& !expression.matches(syntaxAnyPathSlashes) 
-				&& !expression.matches(syntaxAbsolutePathDots) 
-				&& !expression.matches(syntaxAnyPathDots)) {
-			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
+		if(!validateExpression(expression)) {
+			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
+	}
+
+	private static boolean validateExpression(String expression) {
+		return expression.matches(syntaxAbsolutePathSlashes) 
+		|| expression.matches(syntaxAnyPathSlashes) 
+		|| expression.matches(syntaxAbsolutePathDots) 
+		|| expression.matches(syntaxAnyPathDots);
 	}
 	
 	public static void validatePruneExpressions(String[] expressions) {
@@ -106,12 +109,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static void validatePruneExpression(String expression) {
-		if(
-				!expression.matches(syntaxAbsolutePathSlashes) 
-				&& !expression.matches(syntaxAnyPathSlashes) 
-				&& !expression.matches(syntaxAbsolutePathDots) 
-				&& !expression.matches(syntaxAnyPathDots)) {
-			throw new IllegalArgumentException("Illegal expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
+		if(!validateExpression(expression)) {
+			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
 		}
 	}
 	
