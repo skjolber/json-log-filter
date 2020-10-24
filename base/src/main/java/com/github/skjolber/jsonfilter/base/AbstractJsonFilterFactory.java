@@ -37,11 +37,17 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected String truncateStringValue;
 	
 	protected boolean isSinglePruneFilter() {
-		return (anonymizeFilters == null || anonymizeFilters.length == 0) && pruneFilters != null && pruneFilters.length == 1;
+		return 
+				(anonymizeFilters == null || anonymizeFilters.length == 0)
+				&& pruneFilters != null 
+				&& pruneFilters.length == 1;
 	}
 
 	protected boolean isSingleAnonymizeFilter() {
-		return (pruneFilters == null || pruneFilters.length == 0) && anonymizeFilters != null && anonymizeFilters.length == 1;
+		return 
+				(pruneFilters == null || pruneFilters.length == 0)
+				&& anonymizeFilters != null 
+				&& anonymizeFilters.length == 1;
 	}
 
 	protected boolean isActiveMaxStringLength() {
@@ -49,7 +55,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	}
 
 	protected boolean isActivePathFilters() {
-		return (anonymizeFilters != null && anonymizeFilters.length > 0) || (pruneFilters != null && pruneFilters.length > 0);
+		return 
+				(anonymizeFilters != null && anonymizeFilters.length > 0) 
+				|| (pruneFilters != null && pruneFilters.length > 0);
 	}
 
 	/**

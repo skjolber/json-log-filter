@@ -49,6 +49,13 @@ public class AbstractJsonFilterFactoryTest {
 	public void testAnonymize() {
 		factory.setPruneFilters((List<String>)null);
 		assertFalse(factory.isSingleAnonymizeFilter());
+
+		factory.setPruneFilters((String[])null);
+		assertFalse(factory.isSingleAnonymizeFilter());
+
+		factory.setPruneFilters(new String[0]);
+		assertFalse(factory.isSingleAnonymizeFilter());
+		
 		factory.setPruneFilters(Collections.emptyList());
 		assertFalse(factory.isSingleAnonymizeFilter());
 
@@ -65,6 +72,13 @@ public class AbstractJsonFilterFactoryTest {
 	public void testPrune() {
 		factory.setAnonymizeFilters((List<String>)null);
 		assertFalse(factory.isSinglePruneFilter());
+		
+		factory.setAnonymizeFilters((String[])null);
+		assertFalse(factory.isSinglePruneFilter());
+
+		factory.setAnonymizeFilters(new String[0]);
+		assertFalse(factory.isSinglePruneFilter());
+
 		factory.setAnonymizeFilters(Collections.emptyList());
 		assertFalse(factory.isSinglePruneFilter());
 		
