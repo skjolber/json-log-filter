@@ -405,7 +405,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return sourceOffset == end && attributeOffset == attribute.length;
 	}	
 	
-	private static boolean isEscape(int c, int expected) {
+	protected static boolean isEscape(int c, int expected) {
 		switch(c) {
 			case '"' : return '"' == expected;
 			case '\\' : return '\\' == expected;

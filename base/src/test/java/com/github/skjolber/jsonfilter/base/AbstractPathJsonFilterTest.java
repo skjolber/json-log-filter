@@ -169,6 +169,13 @@ public class AbstractPathJsonFilterTest {
 			}
 		}
 	}
+	
+	@Test
+	public void testEscapes() {
+		assertTrue(AbstractPathJsonFilter.isEscape('/', '/'));
+		assertFalse(AbstractPathJsonFilter.isEscape('/', ' '));
+		assertFalse(AbstractPathJsonFilter.isEscape('e', 'e'));
+	}
 
 	@Test
 	public void testMatchUnicodes() {

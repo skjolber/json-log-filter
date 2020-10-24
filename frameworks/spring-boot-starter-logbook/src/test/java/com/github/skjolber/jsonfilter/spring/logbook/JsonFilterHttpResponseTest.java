@@ -39,13 +39,12 @@ public class JsonFilterHttpResponseTest {
 		Map<?, ?> readValue2 = mapper.readValue(jsonFilterHttpResponse.getBodyAsString(), Map.class);
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
 		
-		
 		// test forwarding
 		when(response.getCharset()).thenReturn(StandardCharsets.UTF_8);
-		assertThat(response.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(jsonFilterHttpResponse.getCharset()).isEqualTo(StandardCharsets.UTF_8);
 		
-		assertThat(response.withBody()).isNull();
-		assertThat(response.withoutBody()).isNull();
+		assertThat(jsonFilterHttpResponse.withBody()).isNull();
+		assertThat(jsonFilterHttpResponse.withoutBody()).isNull();
 	}
 	
 	@Test

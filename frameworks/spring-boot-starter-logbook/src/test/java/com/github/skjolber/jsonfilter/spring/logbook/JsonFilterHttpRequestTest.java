@@ -23,16 +23,16 @@ public class JsonFilterHttpRequestTest {
 	public void testFilterJson() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
-		HttpRequest response = mock(HttpRequest.class);
-		JsonFilterHttpRequest http = new JsonFilterHttpRequest(response, firstName);
+		HttpRequest request = mock(HttpRequest.class);
+		JsonFilterHttpRequest http = new JsonFilterHttpRequest(request, firstName);
 
 		Map<String, Object> document = new HashMap<>();
 		document.put("firstName", "secret1");
 		document.put("lastName", "secret2");
 		ObjectMapper mapper = new ObjectMapper();
 		
-		when(response.getBodyAsString()).thenReturn(mapper.writeValueAsString(document));
-		when(response.getBody()).thenReturn(mapper.writeValueAsBytes(document));
+		when(request.getBodyAsString()).thenReturn(mapper.writeValueAsString(document));
+		when(request.getBody()).thenReturn(mapper.writeValueAsBytes(document));
 		
 		Map<?, ?> readValue1 = mapper.readValue(http.getBody(), Map.class);
 		assertThat(readValue1.get("firstName")).isEqualTo("*****");
@@ -41,20 +41,20 @@ public class JsonFilterHttpRequestTest {
 		assertThat(readValue2.get("firstName")).isEqualTo("*****");
 
 		// test forwarding
-		when(response.getCharset()).thenReturn(StandardCharsets.UTF_8);
-		when(response.getScheme()).thenReturn("https");
-		when(response.getQuery()).thenReturn("a=b");
-		when(response.getHost()).thenReturn("localhost");
-		when(response.getPort()).thenReturn(Optional.of(443));
+		when(request.getCharset()).thenReturn(StandardCharsets.UTF_8);
+		when(request.getScheme()).thenReturn("https");
+		when(request.getQuery()).thenReturn("a=b");
+		when(request.getHost()).thenReturn("localhost");
+		when(request.getPort()).thenReturn(Optional.of(443));
 
-		assertThat(response.getCharset()).isEqualTo(StandardCharsets.UTF_8);
-		assertThat(response.getScheme()).isEqualTo("https");
-		assertThat(response.getQuery()).isEqualTo("a=b");
-		assertThat(response.getHost()).isEqualTo("localhost");
-		assertThat(response.getPort().get()).isEqualTo(443);
+		assertThat(http.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+		assertThat(http.getScheme()).isEqualTo("https");
+		assertThat(http.getQuery()).isEqualTo("a=b");
+		assertThat(http.getHost()).isEqualTo("localhost");
+		assertThat(http.getPort().get()).isEqualTo(443);
 		
-		assertThat(response.withBody()).isNull();
-		assertThat(response.withoutBody()).isNull();
+		assertThat(http.withBody()).isNull();
+		assertThat(http.withoutBody()).isNull();
 	}
 	
 	@Test
