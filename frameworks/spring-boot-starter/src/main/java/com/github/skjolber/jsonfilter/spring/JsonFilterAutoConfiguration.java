@@ -45,14 +45,16 @@ public class JsonFilterAutoConfiguration {
 		return new RequestResponseJsonFilter(requestFilters, responseFilters);
 	}
 	
-	protected List<JsonFilterPathMatcher> extract(AntPathMatcher matcher, JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper) {
+	protected static List<JsonFilterPathMatcher> extract(AntPathMatcher matcher, JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper) {
 		List<JsonFilterPathMatcher> requestFilters = new ArrayList<JsonFilterPathMatcher>();
 		for(JsonFilterPathProperties filter : filters) {
 			JsonFilterProperties request = mapper.apply(filter);
 			if(request.isEnabled()) {
 				String antMatcher = filter.getAntMatcher();
 				
-				JsonFilter jsonFilter = createFilter(request, replacements);
+				AbstractJsonFilterFactory factory = createFactory(request, replacements);
+
+				JsonFilter jsonFilter = factory.newJsonFilter();
 				
 				JsonFilterPathMatcher m = toFilter(matcher, antMatcher, jsonFilter);
 				
@@ -62,7 +64,7 @@ public class JsonFilterAutoConfiguration {
 		return requestFilters;
 	}
 
-	protected JsonFilterPathMatcher toFilter(AntPathMatcher matcher, String antMatcher, JsonFilter jsonFilter) {
+	protected static JsonFilterPathMatcher toFilter(AntPathMatcher matcher, String antMatcher, JsonFilter jsonFilter) {
 		JsonFilterPathMatcher m; 
 		if(antMatcher == null || antMatcher.isEmpty()) {
 			m = new AllJsonFilterPathMatcher(jsonFilter);
@@ -74,7 +76,7 @@ public class JsonFilterAutoConfiguration {
 		return m;
 	}
 
-	protected static JsonFilter createFilter(JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
+	protected static AbstractJsonFilterFactory createFactory(JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
 		
 		AbstractJsonFilterFactory factory;
 		if(request.isCompact() || request.isValidate()) {
@@ -99,8 +101,8 @@ public class JsonFilterAutoConfiguration {
 		factory.setPruneFilters(request.getPrunes());
 		factory.setMaxStringLength(request.getMaxStringLength());
 		factory.setMaxPathMatches(request.getMaxPathMatches());
-		
-		return factory.newJsonFilter();
+
+		return factory;
 	}
 	
 }

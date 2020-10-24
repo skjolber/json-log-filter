@@ -1,7 +1,8 @@
 package com.github.skjolber.jsonfilter.spring;
 
-import static org.junit.jupiter.api.Assertions.*;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static com.google.common.truth.Truth.*;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,8 +11,11 @@ import org.springframework.util.AntPathMatcher;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilterFactory;
 import com.github.skjolber.jsonfilter.spring.matcher.AllJsonFilterPathMatcher;
+import com.github.skjolber.jsonfilter.spring.matcher.AntJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.JsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.PrefixJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.properties.JsonFilterProperties;
@@ -27,11 +31,13 @@ public class JsonFilterAutoConfigurationTest {
 		JsonFiltersProperties properties = new JsonFiltersProperties();
 		c.requestResponseJsonFilter(properties);
 		
-		assertTrue(c.toFilter(null,  null,  null) instanceof AllJsonFilterPathMatcher);
+		assertTrue(JsonFilterAutoConfiguration.toFilter(null,  null,  null) instanceof AllJsonFilterPathMatcher);
+		assertTrue(JsonFilterAutoConfiguration.toFilter(null,  "",  null) instanceof AllJsonFilterPathMatcher);
 		
 		AntPathMatcher someAntPathMatcher = new AntPathMatcher("#");
 		
-		assertTrue(c.toFilter(someAntPathMatcher, "/ABC", null) instanceof PrefixJsonFilterPathMatcher);
+		assertTrue(JsonFilterAutoConfiguration.toFilter(someAntPathMatcher, "/ABC", null) instanceof PrefixJsonFilterPathMatcher);
+		assertTrue(JsonFilterAutoConfiguration.toFilter(new AntPathMatcher("/ABC*"), "/ABC*", null) instanceof AntJsonFilterPathMatcher);
 		
 	}
 	
@@ -40,7 +46,7 @@ public class JsonFilterAutoConfigurationTest {
 		
 		JsonFilter filter = new DefaultJsonFilter();
 		
-		JsonFilterPathMatcher matcher = new JsonFilterAutoConfiguration().toFilter(null, null, filter);
+		JsonFilterPathMatcher matcher = JsonFilterAutoConfiguration.toFilter(null, null, filter);
 		assertTrue(matcher instanceof AllJsonFilterPathMatcher);
 	}
 	
@@ -68,7 +74,7 @@ public class JsonFilterAutoConfigurationTest {
 		assertTrue(replacements.hasPrune());
 		assertTrue(replacements.hasTruncate());
 		
-		JsonFilter filter = JsonFilterAutoConfiguration.createFilter(request, replacements);
+		JsonFilter filter = JsonFilterAutoConfiguration.createFactory(request, replacements).newJsonFilter();
 		
 		assertTrue(filter instanceof JacksonJsonFilter);
 	}
@@ -83,6 +89,27 @@ public class JsonFilterAutoConfigurationTest {
 			c.requestResponseJsonFilter(properties);
 		});
 
+	}
+	
+	@Test
+	public void isJacksonForCompactAndValidate() {
+		JsonFilterReplacementsProperties replacements = new JsonFilterReplacementsProperties();
+		
+		JsonFilterProperties request = new JsonFilterProperties();
+		assertThat(JsonFilterAutoConfiguration.createFactory(request, replacements)).isInstanceOf(DefaultJsonFilterFactory.class);
+	
+		request = new JsonFilterProperties();
+		request.setValidate(true);
+		assertThat(JsonFilterAutoConfiguration.createFactory(request, replacements)).isInstanceOf(JacksonJsonFilterFactory.class);
+		
+		request = new JsonFilterProperties();
+		request.setCompact(true);
+		assertThat(JsonFilterAutoConfiguration.createFactory(request, replacements)).isInstanceOf(JacksonJsonFilterFactory.class);
+		
+		request = new JsonFilterProperties();
+		request.setValidate(true);
+		request.setCompact(true);
+		assertThat(JsonFilterAutoConfiguration.createFactory(request, replacements)).isInstanceOf(JacksonJsonFilterFactory.class);
 	}
 	
 }
