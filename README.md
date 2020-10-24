@@ -190,6 +190,7 @@ Using SIMD for parsing JSON:
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
 
 # History
+- 1.0.17: Minor adjustments and cleanups + improved code coverage.
 - 1.0.16: Support unicode encoding (i.e. `\uABCD`) for special characters in field names used in path expressions.
 - 1.0.15: Fix non-ASCII field name comparisons.
 - 1.0.14: Add level checks where possible.
