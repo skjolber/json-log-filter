@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.AntPathMatcher;
 
@@ -54,12 +55,34 @@ public class JsonFilterAutoConfigurationTest {
 		request.setEnabled(true);
 		
 		JsonFilterReplacementsProperties replacements = new JsonFilterReplacementsProperties();
+		
+		assertFalse(replacements.hasAnonymize());
+		assertFalse(replacements.hasPrune());
+		assertFalse(replacements.hasTruncate());
+
 		replacements.setPrune("a");
 		replacements.setAnonymize("b");
 		replacements.setTruncate("c");
 
+		assertTrue(replacements.hasAnonymize());
+		assertTrue(replacements.hasPrune());
+		assertTrue(replacements.hasTruncate());
+		
 		JsonFilter filter = JsonFilterAutoConfiguration.createFilter(request, replacements);
 		
 		assertTrue(filter instanceof JacksonJsonFilter);
 	}
+	
+	@Test
+	public void test() {
+		JsonFiltersProperties properties = new JsonFiltersProperties();
+		properties.setEnabled(false);
+		JsonFilterAutoConfiguration c = new JsonFilterAutoConfiguration();
+		
+		Assertions.assertThrows(IllegalStateException.class, () -> {
+			c.requestResponseJsonFilter(properties);
+		});
+
+	}
+	
 }

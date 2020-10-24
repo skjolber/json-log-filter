@@ -27,6 +27,7 @@ public class PathFilterSinkTest {
 		assertTrue(PathFilterSink.isJson("application/json;charset=abc"));
 		assertTrue(PathFilterSink.isJson("application/test+json;charset=abc"));
 		assertFalse(PathFilterSink.isJson("application/xml"));
+		assertFalse(PathFilterSink.isJson("text/xml"));
 	}
 	
 	@Test
@@ -55,6 +56,7 @@ public class PathFilterSinkTest {
 		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(JsonFilterHttpResponse.class));
 
 		HttpRequest missRequest = mock(HttpRequest.class);
+		when(missRequest.getContentType()).thenReturn("application/json");
 		when(missRequest.getPath()).thenReturn("/yyy");
 
 		pathFilterSink.write(null, missRequest, matchResponse);
