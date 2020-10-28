@@ -18,6 +18,7 @@ import com.github.skjolber.jsonfilter.spring.matcher.AllJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.AntJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.JsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.spring.matcher.PrefixJsonFilterPathMatcher;
+import com.github.skjolber.jsonfilter.spring.properties.JsonFilterPathProperties;
 import com.github.skjolber.jsonfilter.spring.properties.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.spring.properties.JsonFilterReplacementsProperties;
 import com.github.skjolber.jsonfilter.spring.properties.JsonFiltersProperties;
@@ -25,7 +26,7 @@ import com.github.skjolber.jsonfilter.spring.properties.JsonFiltersProperties;
 public class JsonFilterAutoConfigurationTest {
 
 	@Test
-	public void isGuardedByProperty() {
+	public void testAutoconfiguration() {
 		JsonFilterAutoConfiguration c = new JsonFilterAutoConfiguration();
 		
 		JsonFiltersProperties properties = new JsonFiltersProperties();
@@ -39,11 +40,50 @@ public class JsonFilterAutoConfigurationTest {
 		assertTrue(JsonFilterAutoConfiguration.toFilter(someAntPathMatcher, "/ABC", null) instanceof PrefixJsonFilterPathMatcher);
 		assertTrue(JsonFilterAutoConfiguration.toFilter(new AntPathMatcher("/ABC*"), "/ABC*", null) instanceof AntJsonFilterPathMatcher);
 		
+		
+		JsonFilterPathProperties p = new JsonFilterPathProperties();
+	
+		JsonFilterProperties request = new JsonFilterProperties();
+		request.setEnabled(false);
+		request.setValidate(true);
+		request.setCompact(true);
+		request.setAnonymizes(Arrays.asList("/a"));
+		request.setPrunes(Arrays.asList("/b"));
+		request.setMaxPathMatches(1);
+		request.setEnabled(true);
+		
+		p.setRequest(request);
 	}
+	
+	@Test
+	public void testEnabled() {
+		JsonFilterAutoConfiguration c = new JsonFilterAutoConfiguration();
+		
+		JsonFiltersProperties properties = new JsonFiltersProperties();
+		
+		JsonFilterPathProperties p = new JsonFilterPathProperties();
+	
+		JsonFilterProperties request = new JsonFilterProperties();
+		request.setEnabled(false);
+		request.setValidate(true);
+		request.setCompact(true);
+		request.setAnonymizes(Arrays.asList("/a"));
+		request.setPrunes(Arrays.asList("/b"));
+		request.setMaxPathMatches(1);
+		
+		p.setRequest(request);
+		
+		properties.getPaths().add(p);
+
+		c.requestResponseJsonFilter(properties);
+
+		RequestResponseJsonFilter requestResponseJsonFilter = c.requestResponseJsonFilter(properties);
+		assertEquals(requestResponseJsonFilter.getRequests().length, 0);
+		assertEquals(requestResponseJsonFilter.getResponses().length, 0);
+	}	
 	
 	@Test 
 	public void testAllForEmptyMatcher() {
-		
 		JsonFilter filter = new DefaultJsonFilter();
 		
 		JsonFilterPathMatcher matcher = JsonFilterAutoConfiguration.toFilter(null, null, filter);

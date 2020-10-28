@@ -49,7 +49,7 @@ public class JsonFilterAutoConfiguration {
 		List<JsonFilterPathMatcher> requestFilters = new ArrayList<JsonFilterPathMatcher>();
 		for(JsonFilterPathProperties filter : filters) {
 			JsonFilterProperties request = mapper.apply(filter);
-			if(request.isEnabled()) {
+			if(request != null && request.isEnabled()) {
 				String antMatcher = filter.getAntMatcher();
 				
 				AbstractJsonFilterFactory factory = createFactory(request, replacements);

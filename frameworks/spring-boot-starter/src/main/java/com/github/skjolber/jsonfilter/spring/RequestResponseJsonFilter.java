@@ -36,5 +36,13 @@ public class RequestResponseJsonFilter {
 		}
 		return null;
 	}
+	
+	protected JsonFilterPathMatcher[] getRequests() {
+		return requests;
+	}
+	
+	protected JsonFilterPathMatcher[] getResponses() {
+		return responses;
+	}
 
 }
