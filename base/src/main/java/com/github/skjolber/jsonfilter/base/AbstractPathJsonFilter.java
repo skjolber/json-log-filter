@@ -219,7 +219,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					// uXXXX
 					sourceOffset++;
 
-					// Direct comparison of utf-8 and hex
+					// Direct comparison of UTF-8 and hexadecimal
 					// 
 					// https://tools.ietf.org/html/rfc8259:
 					// Any character may be escaped.  If the character is in the Basic
@@ -236,7 +236,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					//
 					// 
 					byte b = attribute[attributeOffset];
-					if(b >= 0) { // single digit (ascii)
+					if(b >= 0) { // single digit (ASCII)
 						// 0xxxxxxx
 						// 0xxx
 						// 0   xxxx

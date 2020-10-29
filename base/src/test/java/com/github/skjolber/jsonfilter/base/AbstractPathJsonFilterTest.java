@@ -48,6 +48,11 @@ public class AbstractPathJsonFilterTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new MyAbstractPathJsonFilter(1, -2, null, null, "a", "b", "c");
 		});
+		
+		MyAbstractPathJsonFilter emptyFilter= new MyAbstractPathJsonFilter(1, 5, null, null, "a", "b", "c");
+		assertThat(emptyFilter.getAnonymizes()).asList().isEmpty();
+		assertThat(emptyFilter.getPrunes()).asList().isEmpty();
+		
 	}
 
 	
@@ -140,15 +145,32 @@ public class AbstractPathJsonFilterTest {
 		assertTrue(AbstractPathJsonFilter.matchPath(chars, 1, 4, "bcd".toCharArray()));
 		assertTrue(AbstractPathJsonFilter.matchPath(chars, chars.length - 3, chars.length, "ijk".toCharArray()));
 		assertFalse(AbstractPathJsonFilter.matchPath(chars, chars.length - 2, chars.length, "ijk".toCharArray()));
+		assertFalse(AbstractPathJsonFilter.matchPath(chars, 0, 2, "abc".toCharArray()));
+		assertFalse(AbstractPathJsonFilter.matchPath(chars, 1, 5, "abc".toCharArray()));
 		
 		byte[] bytes = "abcdefghijk".getBytes();
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, 0, 3, "abc".getBytes()));
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, 1, 4, "bcd".getBytes()));
 		assertTrue(AbstractPathJsonFilter.matchPath(bytes, bytes.length - 3, bytes.length, "ijk".getBytes()));
+		assertFalse(AbstractPathJsonFilter.matchPath(bytes, bytes.length - 2, bytes.length, "ijk".getBytes()));
 		assertFalse(AbstractPathJsonFilter.matchPath(bytes, 0, 2, "abc".getBytes()));
-		
+		assertFalse(AbstractPathJsonFilter.matchPath(bytes, 1, 5, "abc".getBytes()));
 	}
 	
+	@Test
+	public void testMatchTooShort() {
+		// looks long enough, is not
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0041".toCharArray(), 0, 6, "AB".toCharArray()));
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0041".getBytes(), 0, 6, "AB".getBytes()));
+	}
+
+	@Test
+	public void testMatchTooLong() {
+		// is too long
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0041\\u0042\\u0043".toCharArray(), 0, 18, "AB".toCharArray()));
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0041\\u0042\\u0043".getBytes(), 0, 18, "AB".getBytes()));
+	}
+
 	@Test
 	public void testMatchEscaped() {
 		char[] special = {'"', '\\', '/', 0x08, 0x09, 0x0C, 0x0A, 0x0D};
@@ -164,6 +186,7 @@ public class AbstractPathJsonFilterTest {
 					StringBuilder builder = new StringBuilder();
 					AbstractJsonFilter.quoteAsString(ds[i], builder);
 					
+					assertEquals(c == d, AbstractPathJsonFilter.matchPath(builder.toString().getBytes(), 0, builder.length(), cs[i].getBytes()));
 					assertEquals(c == d, AbstractPathJsonFilter.matchPath(builder.toString().toCharArray(), 0, builder.length(), cs[i].toCharArray()));
 				}
 			}
@@ -175,6 +198,55 @@ public class AbstractPathJsonFilterTest {
 		assertTrue(AbstractPathJsonFilter.isEscape('/', '/'));
 		assertFalse(AbstractPathJsonFilter.isEscape('/', ' '));
 		assertFalse(AbstractPathJsonFilter.isEscape('e', 'e'));
+	}
+	
+	@Test 
+	public void testEscapesWithDoNotMatch() {
+		// ascii - 1 byte
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uF041\\u0042".getBytes(), 0, 18, "AB".getBytes()));
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0F41\\u0042".getBytes(), 0, 18, "AB".getBytes()));
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uFF41\\u0042".getBytes(), 0, 18, "AB".getBytes()));
+		
+		// 2 bytes
+		assertTrue(AbstractPathJsonFilter.matchPath("\\u00E5\\u0042".getBytes(), 0, 12, "\u00E5B".getBytes())); // å
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uF0E5\\u0042".getBytes(), 0, 12, "\u00E5B".getBytes())); // å
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u0FE5\\u0042".getBytes(), 0, 12, "\u00E5B".getBytes())); // å
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u00F5\\u0042".getBytes(), 0, 12, "\u00E5B".getBytes())); // å
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u00EF\\u0042".getBytes(), 0, 12, "\u00E5B".getBytes())); // å
+
+		// 3 bytes
+		assertTrue(AbstractPathJsonFilter.matchPath("\\u20AC\\u0042".getBytes(), 0, 12, "\u20ACB".getBytes())); // €
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uF0AC\\u0042".getBytes(), 0, 12, "\u20ACB".getBytes())); // €
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u2FAC\\u0042".getBytes(), 0, 12, "\u20ACB".getBytes())); // €
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u20FC\\u0042".getBytes(), 0, 12, "\u20ACB".getBytes())); // €
+		assertFalse(AbstractPathJsonFilter.matchPath("\\u20AF\\u0042".getBytes(), 0, 12, "\u20ACB".getBytes())); // €
+		
+		// 4 bytes - two chars
+		assertTrue(AbstractPathJsonFilter.matchPath("\\uD800\\uDF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uF800\\uDF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uDF00\\uDF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD8F0\\uDF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD80F\\uDF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800\\uFF48\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800\\uD048\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800\\uDFF8\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800\\uDF4F\\u0042".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		
+		// 4 bytes, however escape runs out
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800B".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		
+		// 4 bytes, however unexpected escape
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800\\t".getBytes(), 0, 18, "\uD800\uDF48B".getBytes())); // 𐍈
+		
+		// 4 bytes, however unexpectedly end of string
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800".getBytes(), 0, 6, "\uD800\uDF48B".getBytes())); // 𐍈
+		
+		// invalid UTF-8 length encoding
+		byte[] bytes = "\uD800\uDF48B".getBytes();
+		bytes[0] = (byte) 0xf8;
+		assertFalse(AbstractPathJsonFilter.matchPath("\\uD800".getBytes(), 0, 6, bytes)); // 𐍈
+		
 	}
 
 	@Test
