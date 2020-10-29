@@ -44,8 +44,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			} else {
 				// account for code points and escaping
 				
-				// A high surrogate precedes a low surrogate.
-				if(Character.isHighSurrogate(chars[filter[i] - 1])) {
+				// A high surrogate precedes a low surrogate. Together they make up a 'real character'.
+				if(Character.isLowSurrogate(chars[filter[i]])) {
 					filter[i]--;
 					filter[i+2]--;
 				} else {
@@ -175,7 +175,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 						offset++;
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					
-					if(level == 0) {
+					if(level == 0) { 
 						return offset + 1;
 					}
 					break;

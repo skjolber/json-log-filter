@@ -187,8 +187,8 @@ public class ByteArrayRangesFilterTest {
 	
 	@Test
 	public void testAnonymizeSubtree() throws IOException {
-		String input = IOUtils.resourceToString("/anon/input.json", StandardCharsets.UTF_8);
-		String output = IOUtils.resourceToString("/anon/output.json", StandardCharsets.UTF_8);
+		String input = IOUtils.resourceToString("/input.json", StandardCharsets.UTF_8);
+		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
 		
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12);
 		ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
@@ -215,6 +215,43 @@ public class ByteArrayRangesFilterTest {
 			assertThat(buffer.toString()).isEqualTo(outputs[i]);
 		}
 	}
+	
+	@Test
+	public void testPruneSubtreeScalar() throws IOException {
+		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
+		String[] outputs = new String[]{"\"SUBTREE REMOVED\",", "\"SUBTREE REMOVED\"}"};
+		
+		for(int i = 0; i < inputs.length; i++) {
+			String input = inputs[i];
+			
+			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12);
+			filter.addPrune(0, input.length() -1);
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+			filter.filter(input.getBytes(), 0, input.length(), buffer);
+			
+			assertThat(buffer.toString()).isEqualTo(outputs[i]);
+		}
+	}
+
+	@Test
+	public void testSkip() {
+		String endCurlyBracket = "abcde}";
+		int skipSubtree = ByteArrayRangesFilter.skipSubtree(endCurlyBracket.getBytes(), 0);
+		assertEquals(skipSubtree, endCurlyBracket.length() - 1);
+		
+		String endComma = "abcde,";
+		skipSubtree = ByteArrayRangesFilter.skipSubtree(endComma.getBytes(), 0);
+		assertEquals(skipSubtree, endComma.length() - 1);
+		
+		String endBracket = "abcde]";
+		skipSubtree = ByteArrayRangesFilter.skipSubtree(endBracket.getBytes(), 0);
+		assertEquals(skipSubtree, endBracket.length() - 1);
+		
+		String quoted = "\"abcde\"";
+		skipSubtree = ByteArrayRangesFilter.skipSubtree(quoted.getBytes(), 0);
+		assertEquals(skipSubtree, quoted.length());		
+	}
+
 
 	
 }
