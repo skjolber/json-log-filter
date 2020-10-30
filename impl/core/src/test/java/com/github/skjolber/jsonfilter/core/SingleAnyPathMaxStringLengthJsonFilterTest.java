@@ -57,6 +57,8 @@ public class SingleAnyPathMaxStringLengthJsonFilterTest extends DefaultJsonFilte
 	@Test
 	public void anonymizeAnyMaxStringLengthMaxPathMatches() throws Exception {
 		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(4, 1, "//child1", FilterType.ANON)).hasAnonymized("//child1");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(4, 2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
 	}
 
 	@Test

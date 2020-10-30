@@ -80,7 +80,11 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 								
 								filter.addAnon(nextOffset, offset);
-							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
+							} else if(chars[nextOffset] == 't' 
+									|| chars[nextOffset] == 'f' 
+									|| (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') 
+									|| chars[nextOffset] == '-'
+									) {
 								// scalar value
 								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 

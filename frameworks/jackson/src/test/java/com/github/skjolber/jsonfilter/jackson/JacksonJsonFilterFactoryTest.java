@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 
 public class JacksonJsonFilterFactoryTest {
 
@@ -16,7 +17,12 @@ public class JacksonJsonFilterFactoryTest {
 	public void init() {
 		factory = JacksonJsonFilterFactory.newInstance();
 	}
-	
+
+	@Test
+	public void testDefault() {
+		assertThat(factory.newJsonFilter()).isInstanceOf(DefaultJsonFilter.class);
+	}
+
 	@Test
 	public void testMaxStringLength() {
 		factory.setMaxStringLength(123);

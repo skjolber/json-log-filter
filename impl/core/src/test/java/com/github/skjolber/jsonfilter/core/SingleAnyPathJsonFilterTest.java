@@ -52,6 +52,7 @@ public class SingleAnyPathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void anonymizeAnyMaxPathMatches() throws Exception {
 		assertThat(new SingleAnyPathJsonFilter(1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		assertThat(new SingleAnyPathJsonFilter(2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
 	}
 
 	@Test
