@@ -16,7 +16,7 @@ public abstract class AbstractRangesFilter {
 	protected static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
 	protected static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
 
-	protected int[] filter; // start, end, type
+	protected int[] filter; // start, end, type (if positive) or length (if negative)
 	protected int filterIndex = 0;
 
 	public AbstractRangesFilter(int initialCapacity) {

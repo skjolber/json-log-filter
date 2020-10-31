@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -17,7 +19,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilter;
 
 public class JsonFilterRunner {
-	
+
 	private JsonFileCache cache;
 	private JsonFilterPropertiesFactory jsonFilterPropertiesFactory;
 	private JsonFilterOutputDirectoriesFactory jsonOutputDirectoriesFactory;
@@ -40,43 +42,43 @@ public class JsonFilterRunner {
 		this.jsonFilterPropertiesFactory = jsonFilterPropertiesFactory;
 		this.literal = literal;
 		this.cache = cache;
-	
+
 		this.jsonFactory = new JsonFactory();
 		this.outputDirectories = jsonOutputDirectoriesFactory.create(directory);
 	}
 
 	public JsonFilterResult process(JsonFilter filter) throws Exception {
 		JsonFilterResult result = new JsonFilterResult();
-		
+
 		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(filter);
 		if(!properties.isNoop()) {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
 				if(inputDirectory.matches(properties)) {
 					processInputOutput(inputDirectory, outputDirectory, filter);
-					
+
 					result.addFiltered(outputDirectory);
 				}
 			}
 		} else {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
-				
+
 				processInput(inputDirectory, filter);
-				
+
 				Map<String, File> files = outputDirectory.getFiles();
 				processInputOutput(filter, files, files, properties.getProperties());
-				
+
 				result.addPassthrough(outputDirectory);
 			}
 		}
-				
+
 		return result;
 	}
 
 	private void processInput(JsonFilterInputDirectory inputDirectory, JsonFilter filter) {
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
-		
+
 		Properties properties = inputDirectory.getProperties();
 
 		processInputOutput(filter, sourceFiles, sourceFiles, properties);
@@ -85,7 +87,7 @@ public class JsonFilterRunner {
 	protected void processInputOutput(JsonFilterInputDirectory inputDirectory, JsonFilterOutputDirectory outputDirectory, JsonFilter filter) {
 		Map<String, File> filteredFiles = outputDirectory.getFiles();
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
-		
+
 		Properties properties = inputDirectory.getProperties();
 
 		processInputOutput(filter, filteredFiles, sourceFiles, properties);
@@ -95,9 +97,9 @@ public class JsonFilterRunner {
 			Properties properties) {
 		for (Entry<String, File> entry : sourceFiles.entrySet()) {
 			File sourceFile = entry.getValue();
-			
+
 			File filteredFile = filteredFiles.get(entry.getKey());
-			
+
 			if(filteredFile == null) {
 				// no filtered file, so expect passthrough
 				compareChars(filter, sourceFile, sourceFile, properties);
@@ -111,17 +113,18 @@ public class JsonFilterRunner {
 
 	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
 		String from = cache.getFile(sourceFile);
-		
+
 		StringBuilder output = new StringBuilder(from.length() * 2);
 		if(!filter.process(from, output)) {
 			System.out.println(sourceFile);
 			System.out.println(from);
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
+
 		String result = output.toString();
 
 		String expected = cache.getFile(filteredFile);
-		
+
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
 			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
@@ -141,67 +144,98 @@ public class JsonFilterRunner {
 		}
 	}
 
+	private boolean isSurrogates(String from) {
+		for(int i = 0; i < from.length(); i++) {
+			if(Character.isHighSurrogate(from.charAt(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
 		String from = cache.getFile(sourceFile);
-		
+
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
 			if(!filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output)) {
-				System.out.println(sourceFile);
+				System.out.println("Unable to process " + sourceFile);
 				System.out.println(from);
-				
+
 				filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output);
-				
+
 				throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
+		// this will break "truncated by XX"
+		// because it is bytes vs chars
+		boolean surrogates = isSurrogates(from);
+
 		String result = output.toString();
 
 		String expected = cache.getFile(filteredFile);
-		
+
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
 			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
+		String filteredResult = surrogates ? filterSurrogates(result) : result;
+		String filteredExpected = surrogates ? filterSurrogates(expected) : expected;
+
 		if(literal) {
-			if(!new String(expected).equals(result)) {
+			if(!new String(filteredExpected).equals(filteredResult)) {
 				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
-			if(!parseCompare(new String(expected), result)) {
+			if(!parseCompare(new String(filteredExpected), filteredResult)) {
 				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
 	}
 
+	public static String filterSurrogates(String result) {
+		// ...TRUNCATED BY 
+
+		Pattern patt = Pattern.compile("(TRUNCATED BY )([0-9]+)");
+		Matcher m = patt.matcher(result);
+		StringBuffer sb = new StringBuffer(result.length());
+		while (m.find()) {
+			String text = m.group(1);
+			m.appendReplacement(sb, text + "XX");
+		}
+		m.appendTail(sb);
+		return sb.toString();
+	}
+
 	private boolean parseCompare(String expected, String result) {
-		
+
 		try (
-			JsonParser expectedParser = jsonFactory.createParser(expected);
-			JsonParser resultParser = jsonFactory.createParser(result)) {
-			
+				JsonParser expectedParser = jsonFactory.createParser(expected);
+				JsonParser resultParser = jsonFactory.createParser(result)) {
+
 			while(true) {
 				JsonToken expectedToken = expectedParser.nextToken();
 				JsonToken resultToken = resultParser.nextToken();
 				if(expectedToken == null) {
 					break;
 				}
-				
+
 				if(!expectedToken.equals(resultToken)) {
 					return false;
 				}
-				
+
 			}
 		} catch(Exception e) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -218,11 +252,11 @@ public class JsonFilterRunner {
 		System.out.println("Expected:\n" + expected);
 		System.out.println("Actual:\n" + to);
 		System.out.println("(size " + expected.length() + " vs " + to.length() + ")");
-		
+
 		for(int k = 0; k < Math.min(expected.length(), to.length()); k++) {
 			if(expected.charAt(k) != to.charAt(k)) {
 				System.out.println("Diff at " + k + ": " + expected.charAt(k) + " vs + " + to.charAt(k));
-				
+
 				break;
 			}
 		}
@@ -239,9 +273,9 @@ public class JsonFilterRunner {
 		}
 		return true;			
 	}
-	
+
 	public File getDirectory() {
 		return directory;
 	}
-		
+
 }

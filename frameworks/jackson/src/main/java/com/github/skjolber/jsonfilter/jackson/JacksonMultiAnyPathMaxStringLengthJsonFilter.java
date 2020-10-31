@@ -150,13 +150,13 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 				builder.append('"');
 
 				int max;
-				if(Character.isHighSurrogate(text.charAt(maxStringLength - 1))) {
+				if(Character.isLowSurrogate(text.charAt(maxStringLength))) {
 					max = maxStringLength - 1;
 				} else {
 					max = maxStringLength;
 				}
 
-				quoteAsString(text.substring(0, maxStringLength), builder);
+				quoteAsString(text.substring(0, max), builder);
 				builder.append(truncateStringValue);
 				builder.append(text.length() - max);
 				builder.append('"');

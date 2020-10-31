@@ -44,10 +44,10 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			} else {
 				// account for code points and escaping
 				
-				// A high surrogate precedes a low surrogate. Together they make up a 'real character'.
+				// A high surrogate precedes a low surrogate. Together they make up a codepoint.
 				if(Character.isLowSurrogate(chars[filter[i]])) {
 					filter[i]--;
-					filter[i+2]--;
+					filter[i+2] = -(filter[i+1] - filter[i]);
 				} else {
 					// \ u
 					// \ uX

@@ -148,7 +148,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 						index--;
 					}
 
-					//	8421
+					//	  8421
 					// 2: 110x xxxx
 					// 3: 1110 xxxx
 					// 4: 1111 0xxx
