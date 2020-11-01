@@ -85,15 +85,8 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						FilterType type = null;
 						
 						// match again any higher filter
-						if(level < elementFilterStart.length && matchElements(chars, offset + 1, mark, level, elementMatches)) {
-							for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-								if(elementMatches[i] == level) {
-									// matched
-									type = elementFilters[i].filterType;
-									
-									break;
-								}
-							}
+						if(level < elementFilterStart.length) {
+							type = matchElements(chars, offset + 1, mark, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
@@ -229,21 +222,14 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						FilterType type = null;
 						
 						// match again any higher filter
-						if(level < elementFilterStart.length && matchElements(chars, offset + 1, mark, level, elementMatches)) {
-							for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-								if(elementMatches[i] == level) {
-									// matched
-									type = elementFilters[i].filterType;
-									
-									break;
-								}
-							}
+						if(level < elementFilterStart.length) {
+							type = matchElements(chars, offset + 1, mark, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
 							type = matchAnyElements(chars, offset + 1, mark);
 						}
-								
+
 						nextOffset++;
 						if(type == FilterType.PRUNE) {
 							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents

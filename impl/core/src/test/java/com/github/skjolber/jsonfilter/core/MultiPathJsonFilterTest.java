@@ -52,6 +52,9 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH);
 		assertThat(new MultiPathJsonFilter(-1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1);
+		
+		assertThat(new MultiPathJsonFilter(-1, new String[]{"/key1", "/key2", "/key3"}, null)).hasAnonymized("/key1", "/key2", "/key3");
+		assertThat(new MultiPathJsonFilter(-1, new String[]{"/xxkey2", "/xxkey3", "/key1"}, null)).hasAnonymized("/xxkey2", "/xxkey3", "/key1");
 	}
 
 	@Test

@@ -41,8 +41,10 @@ public class JsonFilterResult {
 		return true;
 	}
 
-	public boolean hasPropertyKeyValue(String key, String value) {
-		value = trimNull(value);
+	public boolean hasPropertyKeyValue(String key, Object value) {
+		if(value instanceof String) {
+			value = trimNull((String)value);
+		}
 
 		if(filtered.isEmpty()) {
 			return false;
@@ -51,6 +53,7 @@ public class JsonFilterResult {
 		for (JsonFilterOutputDirectory jsonFilterOutputDirectory : filtered) {
 			Properties properties = jsonFilterOutputDirectory.getProperties();
 			Object object = properties.get(key);
+			
 			if(!Objects.equals(object, value)) {
 				return false;
 			}

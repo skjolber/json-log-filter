@@ -103,21 +103,20 @@ public class JsonFilterResultSubject extends Subject {
 	}
 	
 	public final JsonFilterResultSubject hasPruned(String ... paths) {
-		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < paths.length; i++) {
-			builder.append(paths[i]);
-			if(i != paths.length - 1) {
-				builder.append(',');
-			}
+		Object value;
+		if(paths.length == 1) {
+			value = paths[0];
+		} else {
+			value = Arrays.asList(paths);
 		}
-		if (!actual.hasPropertyKeyValue("pruneFilters", builder.toString())) {
-			failWithoutActual(simpleFact("expected prune filters " + builder));
+		if (!actual.hasPropertyKeyValue("pruneFilters", value)) {
+			failWithoutActual(simpleFact("expected prune filters " + value));
 		}
 		return this;
 	}
 
 	public final JsonFilterResultSubject hasNotPruned() {
-		if (!actual.hasPropertyKeyValue("pruneFilters", null)) {
+		if (actual.hasPropertyKeyValue("pruneFilters", null)) {
 			failWithoutActual(simpleFact("expected no prune filters"));
 		}
 
@@ -125,7 +124,7 @@ public class JsonFilterResultSubject extends Subject {
 	}
 
 	public final JsonFilterResultSubject hasNotAnonymized() {
-		if (!actual.hasPropertyKeyValue("anonymizeFilters", null)) {
+		if (actual.hasPropertyKeyValue("anonymizeFilters", null)) {
 			failWithoutActual(simpleFact("expected no anonymize filters"));
 		}
 
@@ -133,15 +132,14 @@ public class JsonFilterResultSubject extends Subject {
 	}
 
 	public final JsonFilterResultSubject hasAnonymized(String ... paths) {
-		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < paths.length; i++) {
-			builder.append(paths[i]);
-			if(i != paths.length - 1) {
-				builder.append(',');
-			}
+		Object value;
+		if(paths.length == 1) {
+			value = paths[0];
+		} else {
+			value = Arrays.asList(paths);
 		}
-		if (!actual.hasPropertyKeyValue("anonymizeFilters", builder.toString())) {
-			failWithoutActual(simpleFact("expected anonymize filters " + builder));
+		if (!actual.hasPropertyKeyValue("anonymizeFilters", value)) {
+			failWithoutActual(simpleFact("expected anonymize filters " + value));
 		}
 		return this;
 	}

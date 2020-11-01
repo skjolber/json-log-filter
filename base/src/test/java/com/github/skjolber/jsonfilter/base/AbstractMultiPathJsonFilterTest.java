@@ -77,7 +77,6 @@ public class AbstractMultiPathJsonFilterTest {
 		assertNull(filter.matchAnyElements(fgh));
 		assertNull(filter.matchAnyElements(fgh.toCharArray(), 0, 3));
 		assertNull(filter.matchAnyElements(fgh.getBytes(StandardCharsets.UTF_8), 0, 3));
-		
 	}
 	
 	@Test
@@ -102,25 +101,31 @@ public class AbstractMultiPathJsonFilterTest {
 		assertFalse(filter.matchElements(def, 2, new int[] {0, 3}));
 		
 		// chars
-		assertFalse(filter.matchElements(abc.toCharArray(), start, end, 1, new int[] {0, 0}));
-		assertTrue(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 1}));
+		assertNull(filter.matchElements(abc.toCharArray(), start, end, 1, new int[] {0, 0}));
+		assertEquals(FilterType.ANON, filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 1}));
 
 		// incorrect level
-		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 0}));
-		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 2}));
-		assertFalse(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 3}));
+		assertNull(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 0}));
+		assertNull(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 2}));
+		assertNull(filter.matchElements(def.toCharArray(), start, end, 2, new int[] {0, 3}));
+
+		// prune over anonymize
+		AbstractMultiPathJsonFilter conflicting = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/bbb"}, new String[] {"/bbb"}, "pruneMessage", "anonymizeMessage", "truncateMessage");
+		assertEquals(FilterType.PRUNE, conflicting.matchElements("bbb".toCharArray(), start, end, 1, new int[] {0, 0}));
 
 		// bytes
-		assertFalse(filter.matchElements(abc.getBytes(StandardCharsets.UTF_8), start, end, 1, new int[] {0, 0}));
-		assertTrue(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 1}));
+		assertNull(filter.matchElements(abc.getBytes(StandardCharsets.UTF_8), start, end, 1, new int[] {0, 0}));
+		assertEquals(FilterType.ANON, filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 1}));
 		
 		// incorrect level
-		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 0}));
-		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 2}));
-		assertFalse(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 3}));
+		assertNull(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 0}));
+		assertNull(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 2}));
+		assertNull(filter.matchElements(def.getBytes(StandardCharsets.UTF_8), start, end, 2, new int[] {0, 3}));
+		
+		// prune over anonymize
+		assertEquals(FilterType.PRUNE, conflicting.matchElements("bbb".getBytes(StandardCharsets.UTF_8), start, end, 1, new int[] {0, 0}));
 	}
 	
-
 	@Test
 	public void testConstrain() {
 		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/a/b/c", "/d/e/f/h"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");

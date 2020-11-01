@@ -18,36 +18,6 @@ package com.github.skjolber.jsonfilter;
 
 public interface JsonFilterFactory {
 
-	public enum JsonFilterFactoryProperty {
-		MAX_STRING_LENGTH("com.skjolberg.jsonfilter.maxStringLength"),
-		PRUNE("com.skjolberg.jsonfilter.prune"),
-		ANONYMIZE("com.skjolberg.jsonfilter.anonymize"),
-		MAX_PATH_MATCHES("com.skjolberg.jsonfilter.maxPathMatches"),
-		PRUNE_MESSAGE("com.skjolberg.jsonfilter.pruneMessage"),
-		ANON_MESSAGE("com.skjolberg.jsonfilter.anonymizeMessage"),
-		TRUNCATE_MESSAGE("com.skjolberg.jsonfilter.truncateMessage")
-		;
-		
-		private final String name;
-		
-		private JsonFilterFactoryProperty(String name) {
-			this.name = name;
-		}
-
-		public String getPropertyName() {
-			return name;
-		}
-		
-		public static JsonFilterFactoryProperty parse(String key) {
-			for (JsonFilterFactoryProperty p : values()) {
-				if(key.equals(p.getPropertyName())) {
-					return p;
-				}
-			}
-			return null;
-		}
-	}
-	
 	/**
 	 * Spawn a {@linkplain JsonFilter} instance.
 	 * 
@@ -63,12 +33,26 @@ public interface JsonFilterFactory {
 	 * IllegalArgumentException to signal that an unsupported property may not be
 	 * set with the specified value.
 	 * 
+	 * @param property The name of the property (may not be null)
+	 * @param value The value of the property
+	 * @throws java.lang.IllegalArgumentException if the property is not supported
+	 */
+
+	void setProperty(JsonFilterFactoryProperty property, Object value);
+	
+	/**
+	 * Allows the user to set specific feature/property on the underlying
+	 * implementation. The underlying implementation is not required to support
+	 * every setting of every property in the specification and may use
+	 * IllegalArgumentException to signal that an unsupported property may not be
+	 * set with the specified value.
+	 * 
 	 * @param name The name of the property (may not be null)
 	 * @param value The value of the property
 	 * @throws java.lang.IllegalArgumentException if the property is not supported
 	 */
 
-	void setProperty(java.lang.String name, Object value);
+	void setProperty(String name, Object value);
 
 	/**
 	 * Query the set of properties that this factory supports.

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.JsonFilterFactory;
+import com.github.skjolber.jsonfilter.JsonFilterFactoryProperty;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
@@ -196,13 +196,13 @@ public class DefaultJsonFilterFactoryTest {
 
 	@Test
 	public void testUsingProperties() {
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), "/abc");
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE.getPropertyName(), "//def");
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), 123);
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), 13);
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), "prune");
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), "anon");
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
+		factory.setProperty(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), "/abc");
+		factory.setProperty(JsonFilterFactoryProperty.PRUNE.getPropertyName(), "//def");
+		factory.setProperty(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), 123);
+		factory.setProperty(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), 13);
+		factory.setProperty(JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), "prune");
+		factory.setProperty(JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), "anon");
+		factory.setProperty(JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -214,10 +214,10 @@ public class DefaultJsonFilterFactoryTest {
 
 	@Test
 	public void testUsingPropertiesAlternativeValues() {
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), Arrays.asList("/abc"));
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE.getPropertyName(), Arrays.asList("//def"));
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), "123");
-		factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), "13");
+		factory.setProperty(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), Arrays.asList("/abc"));
+		factory.setProperty(JsonFilterFactoryProperty.PRUNE.getPropertyName(), Arrays.asList("//def"));
+		factory.setProperty(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), "123");
+		factory.setProperty(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), "13");
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -230,25 +230,25 @@ public class DefaultJsonFilterFactoryTest {
 	@Test
 	public void testUsingPropertiesIllegalValues() {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.PRUNE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			factory.setProperty(JsonFilterFactory.JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), new Object());
+			factory.setProperty(JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.setProperty("", new Object());

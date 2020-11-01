@@ -201,7 +201,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		return null;
 			
 	}
-	
+
 	/**
 	 * Match a char range against a specific level of path expressions.
 	 * 
@@ -210,11 +210,11 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 * @param end text source end (exclusive)
 	 * @param level path level
 	 * @param elementMatches current expression matches, constrained to the current level minus one
-	 * @return true if all segments of a path expression is matched
+	 * @return first filter of a matched filter
 	 */
 
-	protected boolean matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {
-		boolean match = false;
+	protected FilterType matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {
+		FilterType type = null;
 		
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
@@ -222,15 +222,18 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 					elementMatches[i]++;
 					
 					if(i < elementFilterEnd[level]) {
-						match = true;
+						if(type == null) {
+							// matched
+							type = elementFilters[i].filterType;
+						}
 					}
 				}
-
 			}
 		}
-		return match;
+		return type;
 	}
-
+		
+	
 	/**
 	 * Match a byte range against a specific level of path expressions.
 	 * 
@@ -242,8 +245,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 * @return true if all segments of a path expression is matched
 	 */
 
-	protected boolean matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
-		boolean match = false;
+	protected FilterType matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
+		FilterType type = null;
 		
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
@@ -251,13 +254,17 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 					elementMatches[i]++;
 					
 					if(i < elementFilterEnd[level]) {
-						match = true;
+						if(type == null) {
+							// matched
+							type = elementFilters[i].filterType;
+						}
 					}
+
 				}
 
 			}
 		}
-		return match;
+		return type;
 	}	
 	
 	/**

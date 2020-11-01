@@ -19,6 +19,7 @@ package com.github.skjolber.jsonfilter.base;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
+import com.github.skjolber.jsonfilter.JsonFilterFactoryProperty;
 
 public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
@@ -150,14 +151,17 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	public String[] getAnonymizeFilters() {
 		return anonymizeFilters;
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Override
 	public void setProperty(String name, Object value) {
 		JsonFilterFactoryProperty p = JsonFilterFactoryProperty.parse(name);
 		if(p == null) {
 			throw new IllegalArgumentException("Unknown property " + name);
 		}
+		setProperty(p, value);
+	}
+
+	public void setProperty(JsonFilterFactoryProperty p, Object value) {
 		switch (p) {
 		case MAX_STRING_LENGTH: {
 			if(value instanceof Integer) {
@@ -227,7 +231,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			}
 			break;
 		}
-		
+		default : {
+			throw new RuntimeException(); // should never happen
+		}
 		}
 	}
 
