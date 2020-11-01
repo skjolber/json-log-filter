@@ -32,7 +32,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>1.0.16</json-log-filter>
+<json-log-filter.version>1.0.18</json-log-filter>
 ```
 
 then add
@@ -60,7 +60,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '1.0.16'
+  jsonLogFilterVersion = '1.0.18'
 }
 ```
 
@@ -188,25 +188,6 @@ See the [xml-log-filter] for corresponding high-performance filtering of XML.
 Using SIMD for parsing JSON: 
  * [simdjson](https://github.com/simdjson/simdjson)
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
-
-# History
-- 1.0.17: Minor adjustments and cleanups + improved code coverage.bb
-- 1.0.16: Support unicode encoding (i.e. `\uABCD`) for special characters in field names used in path expressions.
-- 1.0.15: Fix non-ASCII field name comparisons.
-- 1.0.14: Add level checks where possible.
-- 1.0.13: Fix custom messages.
-- 1.0.12: Fix custom anonymize, prune and truncate messages.
-- 1.0.11: Add support for Spring Boot and [Logbook] request-/response filtering.
-- 1.0.10: Fix UTF-8 multibyte truncate.
-- 1.0.9: Add support for byte-array inputs (previously only supported char[] inputs)
-- 1.0.8: Add support for custom replacements
-- 1.0.6: Take code points into account truncating text values in `Jackson` filters.
-- 1.0.5: Take escaping into account when truncating text values.
-- 1.0.4: A few bugs fixes. The `core` module now has 100% line coverage.
-- 1.0.3: Minor adjustments
-- 1.0.2: Manually inlining a few methods, minor adjustments.
-- 1.0.1: Max path matches support
-- 1.0.0: Initial version.
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
