@@ -170,7 +170,7 @@ Performance summary:
 
 Note that both processors can parse __at least one thousand 100KB documents per second__. For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
-Memory use will be at least 4x the raw JSON byte size; raw JSON bytes will be converted to characters in two copies (filter input- and output).
+Memory use will be at 2x-8x the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
 
 See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.17.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-1.0.17.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
