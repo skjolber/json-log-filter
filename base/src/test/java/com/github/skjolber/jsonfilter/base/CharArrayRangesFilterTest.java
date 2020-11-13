@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -170,7 +171,7 @@ public class CharArrayRangesFilterTest {
 				if(Character.isHighSurrogate(string.charAt(k))) {
 					k++;
 					if(!Character.isLowSurrogate(string.charAt(k))) {
-						throw new IllegalArgumentException();
+						fail();
 					}
 				}
 			}
