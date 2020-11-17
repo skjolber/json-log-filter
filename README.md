@@ -3,7 +3,7 @@
 # json-log-filter
 High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
 
-  * Filter sensitive values from logs (i.e. on request-/-response logging)
+  * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
      * sensitive personal information, for [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation) compliance and such
   * Improve log readability, filtering
