@@ -219,7 +219,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			if(value instanceof String) {
 				setAnonymizeStringValue((String) value);
 			} else {
-				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
+				throw new IllegalArgumentException("Cannot set anonymize message, unexpected value type");
 			}
 			break;
 		}
@@ -227,7 +227,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			if(value instanceof String) {
 				setTruncateStringValue((String) value);
 			} else {
-				throw new IllegalArgumentException("Cannot set max path matches, unexpected value type");
+				throw new IllegalArgumentException("Cannot set truncate message, unexpected value type");
 			}
 			break;
 		}
