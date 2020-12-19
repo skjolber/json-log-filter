@@ -190,14 +190,14 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * From the Jackson library.
 	 */
 	public static void quoteAsString(CharSequence input, StringBuilder output) {
-		final int[] escCodes = sOutputEscapes128;
+		final int[] escCodes = OUTPUT_ESCAPES_128;
 		int inPtr = 0;
 		final int inputLen = input.length();
 
 		while (inPtr < inputLen) {
 			while (true) {
 				char c = input.charAt(inPtr);
-				if (c < sOutputEscapes128Length && escCodes[c] != 0) {
+				if (c < OUTPUT_ESCAPE_128_LENGTH && escCodes[c] != 0) {
 					break;
 				}
 				output.append(c);
@@ -210,7 +210,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			int escCode = escCodes[d];
 			if(escCode < 0) {
 				// \\u00XX
-				output.append(sNumericPrefix); // 0-3:
+				output.append(NUMERIC_PREFIX); // 0-3:
 				output.append(HC[d >> 4]); // 4
 				output.append(HC[d & 0xF]); // 5
 			} else {
@@ -224,11 +224,11 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * Lookup table used for determining which output characters in
 	 * 7-bit ASCII range need to be quoted.
 	 */
-	protected static final int[] sOutputEscapes128;
-	protected static final int sOutputEscapes128Length = 93; // slash + 1
-	private static final char[] sNumericPrefix = new char[]{'\\', 'u', '0', '0'};
+	protected static final int[] OUTPUT_ESCAPES_128;
+	protected static final int OUTPUT_ESCAPE_128_LENGTH = 93; // slash + 1
+	private static final char[] NUMERIC_PREFIX = new char[]{'\\', 'u', '0', '0'};
 	static {
-		int[] table = new int[sOutputEscapes128Length];
+		int[] table = new int[OUTPUT_ESCAPE_128_LENGTH];
 		// Control chars need generic escape sequence
 		for (int i = 0; i < 32; ++i) {
 			// 04-Mar-2011, tatu: Used to use "-(i + 1)", replaced with constant
@@ -243,7 +243,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		table[0x0C] = 'f';
 		table[0x0A] = 'n';
 		table[0x0D] = 'r';
-		sOutputEscapes128 = table;
+		OUTPUT_ESCAPES_128 = table;
 	}
 	
 	protected final static char[] HC = "0123456789ABCDEF".toCharArray();
