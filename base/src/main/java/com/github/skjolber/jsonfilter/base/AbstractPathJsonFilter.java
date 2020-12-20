@@ -24,10 +24,10 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	 * optional group 2 starting with slash and containing no special chars except star (*) and at (@), must be last. 
 	 */ 
 	
-	protected static final String SYNTAX_ABSOLUTE_PATH_SLASHES = "^(\\/([^\\/]+)|\\*)+$"; // slash + non-special chars '/' '*'
+	protected static final String SYNTAX_ABSOLUTE_PATH_SLASHES = "^\\/(.*)[^\\/]+$"; // slash + non-special chars '/' '*'
 	protected static final String SYNTAX_ANY_PATH_SLASHES = "^(\\/\\/[^\\/|\\*]+)$"; // 2x slash + non-special chars '/' '*'
 
-	protected static final String SYNTAX_ABSOLUTE_PATH_DOTS = "^(\\.([^\\.]+)|\\*)+$"; // slash + non-special chars '/' '*'
+	protected static final String SYNTAX_ABSOLUTE_PATH_DOTS = "^\\.(.*)[^\\.]+$"; // slash + non-special chars '/' '*'
 	protected static final String SYNTAX_ANY_PAT_DOTS = "^(\\.\\.[^\\.|\\*]+)$"; // 2x slash + non-special chars '/' '*'
 	
 	protected static final String[] EMPTY = new String[]{};
@@ -96,10 +96,10 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	private static boolean validateExpression(String expression) {
-		return expression.matches(SYNTAX_ABSOLUTE_PATH_SLASHES) 
-		|| expression.matches(SYNTAX_ANY_PATH_SLASHES) 
-		|| expression.matches(SYNTAX_ABSOLUTE_PATH_DOTS) 
-		|| expression.matches(SYNTAX_ANY_PAT_DOTS);
+		if(!expression.contains("//") && !expression.contains("..")) {
+			return expression.matches(SYNTAX_ABSOLUTE_PATH_DOTS) || expression.matches(SYNTAX_ABSOLUTE_PATH_SLASHES);
+		}
+		return expression.matches(SYNTAX_ANY_PAT_DOTS) || expression.matches(SYNTAX_ANY_PATH_SLASHES);
 	}
 	
 	public static void validatePruneExpressions(String[] expressions) {
