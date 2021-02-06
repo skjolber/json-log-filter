@@ -21,7 +21,6 @@ public class DefaultJsonFilterFactoryTest {
 	public void init() {
 		factory = DefaultJsonFilterFactory.newInstance();
 		
-		throw new RuntimeException();
 	}
 
 	@Test
