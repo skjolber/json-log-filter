@@ -20,12 +20,14 @@ jobs:
       with:
         java-version: 1.8
     - name: Cache local Maven repository
-      uses: actions/cache@v2
+      uses: skjolber/maven-cache-github-action
       with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
+        step: restore
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-          
+    - name: Cache local Maven repository
+      uses: skjolber/maven-cache-github-action
+      with:
+        step: save
+
+
