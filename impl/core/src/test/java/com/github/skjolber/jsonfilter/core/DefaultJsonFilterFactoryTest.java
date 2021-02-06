@@ -20,6 +20,8 @@ public class DefaultJsonFilterFactoryTest {
 	@BeforeEach
 	public void init() {
 		factory = DefaultJsonFilterFactory.newInstance();
+		
+		throw new RuntimeException();
 	}
 
 	@Test
