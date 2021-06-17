@@ -52,7 +52,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<json-path.version>2.5.0</json-path.version>
+		<json-path.version>2.6.0</json-path.version>
 
 		<aalto.version>1.2.2</aalto.version>
 		<xerces.version>2.12.0</xerces.version>
@@ -63,23 +63,23 @@
 		<commons-io.version>2.10.0</commons-io.version>
 		<commons-codec.version>1.15</commons-codec.version>
 		
-		<mockito.version>3.6.28</mockito.version>
-		<junit.version>5.7.0</junit.version>
+		<mockito.version>3.11.1</mockito.version>
+		<junit.version>5.7.2</junit.version>
 		<logback.version>1.2.3</logback.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		
 		<!-- plugins -->
 		<build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-		<maven-shade-plugin.version>3.2.2</maven-shade-plugin.version>
+		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
@@ -434,7 +434,7 @@
 				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>3.7.0.1746</version>
+					<version>3.9.0.2155</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
