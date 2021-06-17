@@ -9,6 +9,7 @@ public class FileDirectoryValue {
 	
 	private File[] files;
 	
+	private String[] valuesAsString;
 	private char[][] valuesAsCharacters;
 	private byte[][] valuesAsBytes;
 	
@@ -17,14 +18,20 @@ public class FileDirectoryValue {
 		this.files = inputFiles;
 		this.valuesAsCharacters = new char[inputValues.length][];
 		this.valuesAsBytes = new byte[inputValues.length][];
+		this.valuesAsString = new String[inputValues.length];
 		for(int i = 0; i < valuesAsCharacters.length; i++) {
 			this.valuesAsCharacters[i] = inputValues[i].toCharArray();
 			this.valuesAsBytes[i] = inputValues[i].getBytes(StandardCharsets.UTF_8);
+			this.valuesAsString[i] = inputValues[i];
 		}
 	}
 
 	public int size() {
 		return files.length;
+	}
+
+	public String getValueAsString(int index) {
+		return valuesAsString[index];
 	}
 
 	public byte[] getValueAsBytes(int index) {

@@ -42,6 +42,10 @@
 			<artifactId>jackson</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.zalando</groupId>
+			<artifactId>logbook-json</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.arakelian</groupId>
 			<artifactId>json-filter</artifactId>
 			<version>${arakelian.jsonfilter.version}</version>

@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.codec.binary.Hex;
@@ -66,9 +64,9 @@ public class AbstractPathJsonFilterTest {
 			c.accept("/a/b");
 			c.accept("/a/b/*");
 	
-			c.accept(".a");
-			c.accept(".a.b");
-			c.accept(".a.b.*");
+			c.accept("$.a");
+			c.accept("$.a.b");
+			c.accept("$.a.b.*");
 	
 			Assertions.assertThrows(IllegalArgumentException.class, () -> {
 				c.accept("aa");
@@ -82,13 +80,13 @@ public class AbstractPathJsonFilterTest {
 			});
 			
 			Assertions.assertThrows(IllegalArgumentException.class, () -> {
-				c.accept(".a..b");
+				c.accept("$.a..b");
 			});
 			c.accept("/abc");
-			c.accept(".abc");
+			c.accept("$.abc");
 			
 			c.accept("//abc");
-			c.accept("..abc");
+			c.accept("$..abc");
 		}
 		
 	}

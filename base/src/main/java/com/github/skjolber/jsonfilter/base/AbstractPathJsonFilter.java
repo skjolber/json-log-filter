@@ -27,8 +27,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected static final String SYNTAX_ABSOLUTE_PATH_SLASHES = "^\\/(.*)[^\\/]+$"; // slash + non-special chars '/' '*'
 	protected static final String SYNTAX_ANY_PATH_SLASHES = "^(\\/\\/[^\\/|\\*]+)$"; // 2x slash + non-special chars '/' '*'
 
-	protected static final String SYNTAX_ABSOLUTE_PATH_DOTS = "^\\.(.*)[^\\.]+$"; // slash + non-special chars '/' '*'
-	protected static final String SYNTAX_ANY_PAT_DOTS = "^(\\.\\.[^\\.|\\*]+)$"; // 2x slash + non-special chars '/' '*'
+	protected static final String SYNTAX_ABSOLUTE_PATH_DOTS = "^\\$\\.(.*)[^\\.]+$"; // slash + non-special chars '/' '*'
+	protected static final String SYNTAX_ANY_PAT_DOTS = "^\\$(\\.\\.[^\\.|\\*]+)$"; // 2x slash + non-special chars '/' '*'
 	
 	protected static final String[] EMPTY = new String[]{};
 	protected static final String ANY_PREFIX_SLASHES = "//";
@@ -115,6 +115,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 	
 	protected static String[] parse(String expression) {
+		if(expression.startsWith("$")) {
+			expression = expression.substring(1);
+		}
 		String[] split = expression.split("/|\\.");
 		String[] elementPath = new String[split.length - 1];
 		for(int k = 0; k < elementPath.length; k++) {

@@ -133,14 +133,17 @@ For example if the to-be filtereded JSON document has a schema definition with a
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
     /my/field/name
+    $.my.field.name
 
 with support for wildcards; 
 
     /my/field/*
+    $.my.field.*
 
 or a simple any-level element search 
 
     //myFieldName
+    $..myFieldName
 
 The filters within this library support using multiple expressions at once.
 

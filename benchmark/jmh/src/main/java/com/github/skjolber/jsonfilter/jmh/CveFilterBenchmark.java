@@ -17,6 +17,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.zalando.logbook.BodyFilter;
+import org.zalando.logbook.json.JsonPathBodyFilters;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
@@ -35,15 +37,22 @@ public class CveFilterBenchmark {
 
 	private final int maxStringLength = 64;
 	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};
+	private static String[] anon2 = new String[] {"$.CVE_Items[?(@.cve.affects.vendor.vendor_data[?(@.vendor_name)])]"};
+	
 	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
+	private static String[] prune2 = new String[] {"$.CVE_Items[?(@.cve.references)]", "$..version"};
 	
 	private BenchmarkRunner<JsonFilter> multiPathMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> multiPathMaxStringLengthJacksonJsonFilter;
+	private LogbookBenchmarkRunner multiPathLogbookJsonFilter;
+	
 	private BenchmarkRunner<JsonFilter> maxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	
 	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
+	
+	private LogbookBenchmarkRunner singlePathLogbookJsonFilter;
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
@@ -53,15 +62,24 @@ public class CveFilterBenchmark {
 	@Setup
 	public void init() throws Exception {
 		File file = new File("./src/test/resources/benchmark/cves/" + fileName);
+
+		BodyFilter anon0 = JsonPathBodyFilters.jsonPath(anon2[0]).replace("*****");
+		BodyFilter prune0 = JsonPathBodyFilters.jsonPath(prune2[0]).delete();
+		BodyFilter prune1 = JsonPathBodyFilters.jsonPath(prune2[1]).delete();
+		
+		//BodyFilter maxLength = JsonPathBodyFilters.jsonPath("$..*[?(@.* =~ /^[\\w\\W]{" + maxStringLength + ",}$/)]").replace("..removed");
 		
 		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
 		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
+		multiPathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0.tryMerge(prune0).tryMerge(prune1));
 
 		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
 		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
+		singlePathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0);
 
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
 		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
+		
 	}
 
 	@Benchmark
@@ -72,6 +90,11 @@ public class CveFilterBenchmark {
 	@Benchmark
 	public long all_core() {
 		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long all_logbook() {
+		return multiPathLogbookJsonFilter.benchmarkCharacters();
 	}
 
 	@Benchmark
@@ -88,7 +111,12 @@ public class CveFilterBenchmark {
 	public long anon_single_jackson() {
 		return singlePathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
-	
+
+	@Benchmark
+	public long anon_single_logbook() {
+		return singlePathLogbookJsonFilter.benchmarkCharacters();
+	}
+
 	@Benchmark
 	public long anon_single_core() {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
