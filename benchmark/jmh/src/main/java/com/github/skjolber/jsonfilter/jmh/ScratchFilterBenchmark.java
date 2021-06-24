@@ -44,6 +44,8 @@ import com.github.skjolber.jsonfilter.jackson.JacksonSinglePathMaxStringLengthJs
 @Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
 
+// for prototyping
+
 @Fork(1)
 public abstract class ScratchFilterBenchmark {
 

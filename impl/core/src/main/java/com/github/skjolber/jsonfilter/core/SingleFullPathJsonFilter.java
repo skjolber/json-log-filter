@@ -54,7 +54,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						matches = level;
 						
 						break;
-					case '"' :
+					case '"' :					
 						int nextOffset = offset;
 						do {
 							nextOffset++;

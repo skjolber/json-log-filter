@@ -14,6 +14,18 @@ public class LogbookBenchmarkRunner extends BenchmarkRunner<LogbookBodyFilter> {
 		super(file, recursive, new LogbookBodyFilter(filter));
 	}
 	
+	// body is always characters within logbook
+	
+	@Override
+	public long benchmarkBytesViaChars() {
+		return benchmarkCharacters();
+	}
+	
+	@Override
+	public long benchmarkBytes() {
+		return benchmarkCharacters();
+	}
+	
 	public long benchmarkCharacters() {
 
 		long sizeSum = 0;
