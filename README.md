@@ -74,15 +74,14 @@ or
 api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 ```
 
-
 # Usage
 Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
-                       .withAnonymize("/customer/email") // inserts ***** for values
-                       .withPrune("/customer/account") // removes whole subtree
+                       .withAnonymize("$.customer.email") // inserts ***** for values
+                       .withPrune("$.customer.account") // removes whole subtree
                        .withMaxPathMatches(16) // halt anon/prune after a number of hits
                        .build();
                        
@@ -130,18 +129,18 @@ For example if the to-be filtereded JSON document has a schema definition with a
 ### Path expressions
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
-    /my/field/name
     $.my.field.name
+    /my/field/name
 
 with support for wildcards; 
 
-    /my/field/*
     $.my.field.*
+    /my/field/*
 
 or a simple any-level element search 
 
-    //myFieldName
     $..myFieldName
+    //myFieldName
 
 The filters within this library support using multiple expressions at once.
 
@@ -184,7 +183,7 @@ See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) mo
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
 
 # See also
-See the [xml-log-filter] for corresponding high-performance filtering of XML. 
+See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
 
 Using SIMD for parsing JSON: 
  * [simdjson](https://github.com/simdjson/simdjson)
