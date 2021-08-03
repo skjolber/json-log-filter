@@ -10,7 +10,10 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
   * Reduce amount of data sent to log accumulation tools
     * lower cost, and
     * potentially reduce search / visualization latency
-
+    * keep within max log-statement size
+       * GCP: [256 KB](https://cloud.google.com/logging/quotas)
+       * Azure: 32 KB 
+       
 Features:
 
  * Truncate large text values
