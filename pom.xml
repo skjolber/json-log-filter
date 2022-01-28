@@ -84,7 +84,7 @@
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
 		<spring-boot.version>2.5.6</spring-boot.version>
-		<logbook.version>2.13.0</logbook.version>
+		<logbook.version>2.14.0</logbook.version>
 		<!-- module descriptors -->
 		<java.module.version>11</java.module.version>
 	</properties>
