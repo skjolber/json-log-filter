@@ -12,18 +12,22 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpResponse;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 
 public class JsonFilterHttpResponseTest {
 
+	private JsonFactory factory = new JsonFactory();
+	
 	@Test
 	public void testFilterJson() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
 		HttpResponse response = mock(HttpResponse.class);
-		JsonFilterHttpResponse  jsonFilterHttpResponse = new  JsonFilterHttpResponse(response, firstName);
+		JsonFilterHttpResponse  jsonFilterHttpResponse = new JsonFilterHttpResponse(response, firstName, false, false, factory);
 
 		Map<String, Object> document = new HashMap<>();
 		document.put("firstName", "secret1");
@@ -50,7 +54,7 @@ public class JsonFilterHttpResponseTest {
 	@Test
 	public void testFilterNoContent() throws Exception {
 		HttpResponse response = mock(HttpResponse.class);
-		JsonFilterHttpResponse  jsonFilterHttpResponse = new  JsonFilterHttpResponse(response, null);
+		JsonFilterHttpResponse jsonFilterHttpResponse = new JsonFilterHttpResponse(response, new DefaultJsonFilter(), false, false, factory);
 		 
 		when(response.getBodyAsString()).thenReturn(null);
 		when(response.getBody()).thenReturn(null);
@@ -65,14 +69,16 @@ public class JsonFilterHttpResponseTest {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
 		HttpResponse response = mock(HttpResponse.class);
-		JsonFilterHttpResponse  jsonFilterHttpResponse = new  JsonFilterHttpResponse(response, firstName);
+		JsonFilterHttpResponse  jsonFilterHttpResponse = new JsonFilterHttpResponse(response, firstName, false, false, factory);
 		
 		String invalidJson = "{XXXX";
 		when(response.getBodyAsString()).thenReturn(invalidJson);
 		when(response.getBody()).thenReturn(invalidJson.getBytes(StandardCharsets.UTF_8));
 
-		assertThat(jsonFilterHttpResponse.getBody()).isEqualTo(invalidJson.getBytes(StandardCharsets.UTF_8));
-		assertThat(jsonFilterHttpResponse.getBodyAsString()).isEqualTo(invalidJson);
+		String invalidEscapedJson =  "\"{XXXX\"";
+		
+		assertThat(jsonFilterHttpResponse.getBody()).isEqualTo(invalidEscapedJson.getBytes(StandardCharsets.UTF_8));
+		assertThat(jsonFilterHttpResponse.getBodyAsString()).isEqualTo(invalidEscapedJson);
 
 	}
 }

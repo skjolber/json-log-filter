@@ -14,12 +14,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpRequest;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
-import com.github.skjolber.jsonfilter.spring.RequestResponseJsonFilter;
-import com.github.skjolber.jsonfilter.spring.matcher.JsonFilterPathMatcher;
-import com.github.skjolber.jsonfilter.spring.matcher.PrefixJsonFilterPathMatcher;
+import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.path.matcher.JsonFilterPathMatcher;
+import com.github.skjolber.jsonfilter.path.matcher.PrefixJsonFilterPathMatcher;
 
 public class PathRequestFilterTest {
 
@@ -48,15 +49,15 @@ public class PathRequestFilterTest {
 		assertNull(requestResponseJsonFilter.getRequestFilter("/def"));
 		
 		// request
-		PathRequestFilter filter = new PathRequestFilter(requestResponseJsonFilter);
+		PathRequestFilter filter = new PathRequestFilter(requestResponseJsonFilter, false, false, new JsonFactory());
 		HttpRequest miss = mock(HttpRequest.class);
 		when(miss.getContentType()).thenReturn("application/json");
 		when(miss.getPath()).thenReturn("/xyz");
-		assertThat(filter.filter(miss)).isNotInstanceOf(JsonFilterHttpRequest.class);
+		assertThat(filter.filter(miss)).isNotInstanceOf(JsonHttpRequest.class);
 		
 		HttpRequest other = mock(HttpRequest.class);
 		when(other.getContentType()).thenReturn("application/xml");
-		assertThat(filter.filter(other)).isNotInstanceOf(JsonFilterHttpRequest.class);
+		assertThat(filter.filter(other)).isNotInstanceOf(JsonHttpRequest.class);
 
 		HttpRequest match = mock(HttpRequest.class);
 		when(match.getContentType()).thenReturn("application/json");

@@ -13,18 +13,21 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.zalando.logbook.HttpRequest;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 
 public class JsonFilterHttpRequestTest {
 
+	private JsonFactory jsonFactory = new JsonFactory();
+	
 	@Test
 	public void testFilterJson() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
 		HttpRequest request = mock(HttpRequest.class);
-		JsonFilterHttpRequest http = new JsonFilterHttpRequest(request, firstName);
+		JsonFilterHttpRequest http = new JsonFilterHttpRequest(request, firstName, false, false, jsonFactory);
 
 		Map<String, Object> document = new HashMap<>();
 		document.put("firstName", "secret1");
@@ -61,11 +64,11 @@ public class JsonFilterHttpRequestTest {
 	public void testFilterNoContent() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
-		HttpRequest response = mock(HttpRequest.class);
-		JsonFilterHttpRequest http = new JsonFilterHttpRequest(response, firstName);
+		HttpRequest request = mock(HttpRequest.class);
+		JsonFilterHttpRequest http = new JsonFilterHttpRequest(request, firstName, false, false, jsonFactory);
 		 
-		when(response.getBodyAsString()).thenReturn(null);
-		when(response.getBody()).thenReturn(null);
+		when(request.getBodyAsString()).thenReturn(null);
+		when(request.getBody()).thenReturn(null);
 
 		assertThat(http.getBody()).isNull();
 		assertThat(http.getBodyAsString()).isNull();
@@ -76,15 +79,17 @@ public class JsonFilterHttpRequestTest {
 	public void testFilterInvalidContent() throws Exception {
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
 
-		HttpRequest response = mock(HttpRequest.class);
-		JsonFilterHttpRequest http = new JsonFilterHttpRequest(response, firstName);
+		HttpRequest request = mock(HttpRequest.class);
+		JsonFilterHttpRequest http = new JsonFilterHttpRequest(request, firstName, false, false, jsonFactory);
 		
 		String invalidJson = "{XXXX";
-		when(response.getBodyAsString()).thenReturn(invalidJson);
-		when(response.getBody()).thenReturn(invalidJson.getBytes(StandardCharsets.UTF_8));
+		when(request.getBodyAsString()).thenReturn(invalidJson);
+		when(request.getBody()).thenReturn(invalidJson.getBytes(StandardCharsets.UTF_8));
 
-		assertThat(http.getBody()).isEqualTo(invalidJson.getBytes(StandardCharsets.UTF_8));
-		assertThat(http.getBodyAsString()).isEqualTo(invalidJson);
+		String invalidEscapedJson =  "\"{XXXX\"";
+
+		assertThat(http.getBody()).isEqualTo(invalidEscapedJson.getBytes(StandardCharsets.UTF_8));
+		assertThat(http.getBodyAsString()).isEqualTo(invalidEscapedJson);
 
 	}
 }

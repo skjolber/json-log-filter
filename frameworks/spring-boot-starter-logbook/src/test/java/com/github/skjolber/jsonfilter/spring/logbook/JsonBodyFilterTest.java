@@ -16,11 +16,11 @@ public class JsonBodyFilterTest {
 		when(jsonFilter.process("{}")).thenReturn("{} filtered");
 		when(jsonFilter.process("{corrupt")).thenReturn(null);
 		
-		JsonBodyFilter jsonBodyFilter = new JsonBodyFilter(jsonFilter);
+		JsonBodyFilter jsonBodyFilter = new JsonBodyFilter(jsonFilter, false, false);
 		
 		assertEquals(jsonBodyFilter.filter("application/json", "{}"), "{} filtered");
 		assertEquals(jsonBodyFilter.filter("application/xml", "{}"), "{}");
-		assertEquals(jsonBodyFilter.filter("application/json", "{corrupt"), "{corrupt");
+		assertEquals(jsonBodyFilter.filter("application/json", "{corrupt"), "\"{corrupt\"");
 		assertEquals(jsonBodyFilter.filter(null, "{}"), "{}");
 	}
 }

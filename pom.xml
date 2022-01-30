@@ -118,7 +118,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>spring-boot-starter</artifactId>
+				<artifactId>path</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -446,7 +446,7 @@
 		<module>impl/core</module>
 		<module>support/test</module>
 		<module>frameworks/jackson</module>
-		<module>frameworks/spring-boot-starter</module>
+		<module>impl/path</module>
 		<module>frameworks/spring-boot-starter-logbook</module>
 	</modules>
 

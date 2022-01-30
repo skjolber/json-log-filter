@@ -155,7 +155,7 @@ Depending on your service stack and architecture, performing two additional oper
  * validate document syntax (as [JSON])
    * for raw inlining of JSON from untrusted sources in log statements
 
-For a typical REST service, the above operations might be necessary for the (untrusted) incoming request payload, but not the (trusted) outgoing response payload. 
+For a typical REST service, the above operations might be necessary for the (untrusted) incoming request payload, but not the (trusted) outgoing response payload. Depending on the service, all authorized requests may be considered trusted.
 
 Note that 
   
@@ -180,7 +180,14 @@ See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.g
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
 ## Framework support
-See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging. Filtering can be specified per path and request/response.
+
+### Logbook
+See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for REST services:
+
+ * filter in- and/or outgoing payloads per path
+ * enable validation/compacting per path, or for all requests and/or responses
+ * valid JSON payloads are appended as JSON, i.e. indexable to log accumulation tools
+ * invalid JSON payloads are added as text
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 

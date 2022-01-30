@@ -30,4 +30,12 @@ public interface JacksonJsonFilter extends JsonFilter {
 	boolean process(char[] chars, int offset, int length, JsonGenerator generator);
 
 	boolean process(final JsonParser parser, JsonGenerator generator) throws IOException;
+	
+	public default boolean isCompacting() {
+		return true;
+	}
+
+	public default boolean isValidating() {
+		return true;
+	}
 }

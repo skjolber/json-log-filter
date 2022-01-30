@@ -6,12 +6,11 @@ import java.util.Optional;
 import org.zalando.logbook.HttpRequest;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.github.skjolber.jsonfilter.JsonFilter;
 
-public class JsonFilterHttpRequest extends AbstractJsonFilterHttpMessage<HttpRequest> implements HttpRequest {
+public class JsonHttpRequest extends AbstractFilterHttpMessage<HttpRequest> implements HttpRequest {
 
-	public JsonFilterHttpRequest(HttpRequest request, JsonFilter filter, boolean compact, boolean validate, JsonFactory factory) {
-		super(request, filter, compact, validate, factory);
+	public JsonHttpRequest(HttpRequest request, boolean compact, boolean validate, JsonFactory factory) {
+		super(request, compact, validate, factory);
 	}
 
 	public String getRemote() {
