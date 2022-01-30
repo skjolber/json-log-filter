@@ -8,8 +8,9 @@ import org.zalando.logbook.HttpResponse;
 import org.zalando.logbook.Precorrelation;
 import org.zalando.logbook.Sink;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.spring.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
 
 public class PathFilterSink implements Sink {
 
@@ -43,9 +44,22 @@ public class PathFilterSink implements Sink {
 	protected final Sink sink;
 	protected final RequestResponseJsonFilter filter;
 	
-	public PathFilterSink(Sink sink, RequestResponseJsonFilter filter) {
+	protected final boolean validateRequests;
+	protected final boolean validateResponses;
+	
+	protected final boolean compactRequests;
+	protected final boolean compactResponses;
+	
+	protected JsonFactory factory;
+	
+	public PathFilterSink(Sink sink, RequestResponseJsonFilter filter, boolean validateRequests, boolean validateResponses, boolean compactRequests, boolean compactResponses, JsonFactory factory) {
 		this.sink = sink;
 		this.filter = filter;
+		this.validateRequests = validateRequests;
+		this.validateResponses = validateResponses;
+		this.compactRequests = compactRequests;
+		this.compactResponses = compactResponses;
+		this.factory = factory;
 	}
 
 	@Override
@@ -53,10 +67,15 @@ public class PathFilterSink implements Sink {
 		if(isJson(request.getContentType())) {
 			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath());
 			if(jsonFilter != null) {
-				request = new JsonFilterHttpRequest(request, jsonFilter);
+				sink.write(precorrelation, new JsonFilterHttpRequest(request, jsonFilter, compactRequests, validateRequests, factory));
+			} else if(validateRequests || compactRequests) {
+				sink.write(precorrelation, new JsonFilterHttpRequest(request, jsonFilter, compactRequests, validateRequests, factory));
+			} else {
+				sink.write(precorrelation, request);
 			}
+		} else {
+			sink.write(precorrelation, request);
 		}
-		sink.write(precorrelation, request);
 	}
 
 	@Override
@@ -64,10 +83,15 @@ public class PathFilterSink implements Sink {
 		if(isJson(response.getContentType())) {
 			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath());
 			if(jsonFilter != null) {
-				response = new JsonFilterHttpResponse(response, jsonFilter);
+				sink.write(correlation, request, new JsonFilterHttpResponse(response, jsonFilter, compactResponses, validateResponses, factory));
+			} else if(validateRequests || compactRequests) {
+				sink.write(correlation, request, new JsonHttpResponse(response, compactResponses, validateResponses, factory));
+			} else {
+				sink.write(correlation, request, response);
 			}
+		} else {
+			sink.write(correlation, request, response);
 		}
-		sink.write(correlation, request, response);
 	}
 
 }

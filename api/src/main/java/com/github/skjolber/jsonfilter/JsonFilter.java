@@ -152,6 +152,26 @@ public interface JsonFilter {
 
 	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;
 
+	/**
+	 * 
+	 * Check if validation
+	 * 
+	 * @return true if the processing returns true only if the input is valid json
+	 */
+	
+	default boolean isValidating() {
+		return false;
+	}
 
+	/**
+	 * 
+	 * Check if compacting, as in not containing any linebreaks.
+	 * 
+	 * @return true if the processing returns a compacted value
+	 */
+
+	default boolean isCompacting() {
+		return false;
+	}
 
 }

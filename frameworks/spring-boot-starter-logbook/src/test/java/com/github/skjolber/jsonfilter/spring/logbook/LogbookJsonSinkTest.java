@@ -13,12 +13,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zalando.logbook.Sink;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class LogbookDefaultSinkTest {
+@ActiveProfiles("json")
+public class LogbookJsonSinkTest {
 	
     @LocalServerPort
     private int randomServerPort;
@@ -30,7 +32,7 @@ public class LogbookDefaultSinkTest {
 	private Sink sink;
 
 	@Test 
-	public void testSpringBootStarter() { // this test produces a json output but with the http content as an json-in-json message
+	public void testSpringBootStarterGet() {
 		assertTrue(sink instanceof PathFilterSink);
 		
         HttpHeaders headers = new HttpHeaders();
@@ -43,9 +45,9 @@ public class LogbookDefaultSinkTest {
 
         assertThat(response.getBody().getContent()).isEqualTo("Hello get");
 	}
-
+	
 	@Test 
-	public void testSpringBootStarterPost() { // this test produces a json output but with the http content as an json-in-json message
+	public void testSpringBootStarterPost() {
 		assertTrue(sink instanceof PathFilterSink);
 
         MyEntity e = new MyEntity();
@@ -61,6 +63,21 @@ public class LogbookDefaultSinkTest {
         assertTrue(response.getStatusCode().is2xxSuccessful());
 
         assertThat(response.getBody().getContent()).isEqualTo("Hello post");
+	}
+
+	@Test 
+	public void testSpringBootStarterPostInvalidJson() {
+		assertTrue(sink instanceof PathFilterSink);
+
+		String invalid = "{name=this\n\n\n\\//\"}";
+		
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<?> entity = new HttpEntity<>(invalid, headers);
+        
+        String url = "http://localhost:" + randomServerPort + "/api/post";
+
+        ResponseEntity<MyEntity> response = restTemplate.exchange(url, HttpMethod.POST, entity, MyEntity.class);
+        assertTrue(response.getStatusCode().is4xxClientError());
 	}
 
 }

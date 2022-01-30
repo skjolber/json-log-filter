@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 
 import org.zalando.logbook.BodyFilter;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
 
 /**
@@ -9,23 +10,24 @@ import com.github.skjolber.jsonfilter.JsonFilter;
  * 
  */
 
-public class JsonBodyFilter implements BodyFilter {
+public class JsonBodyFilter extends JsonFilterProcessor implements BodyFilter {
 
-	protected final JsonFilter jsonFilter;
+	public JsonBodyFilter(JsonFilter filter, boolean compact, boolean validate) {
+		this(filter, compact, validate, new JsonFactory());
+	}
+
+	public JsonBodyFilter(JsonFilter filter, boolean compact, boolean validate, JsonFactory factory) {
+		super(filter, compact, validate, factory);
+	}
 	
-	public JsonBodyFilter(JsonFilter jsonFilter) {
-		this.jsonFilter = jsonFilter;
-	}
-
 	@Override
-	public String filter(String contentType, String body) {
+	public String filter(String contentType, String bodyAsString) {
 		if(PathFilterSink.isJson(contentType)) {
-			String filtered = jsonFilter.process(body);
-			if(filtered != null) {
-				return filtered;
+			if(bodyAsString != null) {
+				return handleBodyAsString(bodyAsString);
 			}
+			return null;
 		}
-		return body;
+		return bodyAsString;
 	}
-
 }

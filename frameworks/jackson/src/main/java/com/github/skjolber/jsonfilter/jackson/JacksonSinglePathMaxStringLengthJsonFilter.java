@@ -204,6 +204,6 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
-	}	
+	}
 
 }
