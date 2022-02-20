@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,7 +40,7 @@ public class PathFilterSinkTest {
 		PathFilterSink pathFilterSink = new PathFilterSink(sink, requestResponseJsonFilter, false, false, false, false, new JsonFactory());
 		
 		JsonFilter jsonFilter = mock(JsonFilter.class);
-		when(requestResponseJsonFilter.getResponseFilter("/def")).thenReturn(jsonFilter);
+		when(requestResponseJsonFilter.getResponseFilter("/def", false)).thenReturn(jsonFilter);
 
 		HttpRequest matchRequest = mock(HttpRequest.class);
 		when(matchRequest.getPath()).thenReturn("/def");
@@ -48,13 +49,13 @@ public class PathFilterSinkTest {
 		when(matchResponse.getContentType()).thenReturn("application/json");
 		
 		pathFilterSink.write(null, matchRequest, matchResponse);
-		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(JsonFilterHttpResponse.class));
+		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
 
 		HttpResponse otherResponse = mock(HttpResponse.class);
 		when(otherResponse.getContentType()).thenReturn("application/xml");
 
 		pathFilterSink.write(null, matchRequest, otherResponse);
-		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(JsonFilterHttpResponse.class));
+		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
 
 		HttpRequest missRequest = mock(HttpRequest.class);
 		when(missRequest.getContentType()).thenReturn("application/json");

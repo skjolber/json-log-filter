@@ -15,7 +15,7 @@ public class LogbookJsonFiltersProperties extends JsonFiltersProperties {
 	 * In other words, the result can be appended as raw data to a JSON output (after a field name). 
 	 */
 
-	protected boolean compactRequests;
+	protected boolean compactRequests = true;
 	protected boolean compactResponses;
 
 	public boolean isCompactRequests() {

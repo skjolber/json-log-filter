@@ -7,7 +7,7 @@ public class JsonFiltersProperties {
 
 	protected boolean enabled = true;
 	
-	protected boolean validateRequests;
+	protected boolean validateRequests = true;
 	protected boolean validateResponses;
 
 	protected List<JsonFilterPathProperties> paths = new ArrayList<>();

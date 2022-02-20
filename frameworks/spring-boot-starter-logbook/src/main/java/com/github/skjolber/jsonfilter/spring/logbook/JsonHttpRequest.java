@@ -5,12 +5,10 @@ import java.util.Optional;
 
 import org.zalando.logbook.HttpRequest;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
 public class JsonHttpRequest extends AbstractFilterHttpMessage<HttpRequest> implements HttpRequest {
 
-	public JsonHttpRequest(HttpRequest request, boolean compact, boolean validate, JsonFactory factory) {
-		super(request, compact, validate, factory);
+	public JsonHttpRequest(HttpRequest request, JsonProcessor jsonProcessor) {
+		super(request, jsonProcessor);
 	}
 
 	public String getRemote() {

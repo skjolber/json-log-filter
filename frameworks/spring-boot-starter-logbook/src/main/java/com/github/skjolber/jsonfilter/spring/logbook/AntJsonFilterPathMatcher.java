@@ -3,27 +3,22 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 import org.springframework.util.AntPathMatcher;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.path.matcher.JsonFilterPathMatcher;
+import com.github.skjolber.jsonfilter.path.matcher.AbstractJsonFilterPathMatcher;
 
-public class AntJsonFilterPathMatcher implements JsonFilterPathMatcher {
+public class AntJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 
 	private final AntPathMatcher matcher;
-	private final JsonFilter filter;
 	private final String pattern;
 	
-	public AntJsonFilterPathMatcher(AntPathMatcher matcher, String pattern, JsonFilter filter) {
+	public AntJsonFilterPathMatcher(AntPathMatcher matcher, String pattern, JsonFilter validatingFilter, JsonFilter nonvalidatingFilter) {
+		super(validatingFilter, nonvalidatingFilter);
 		this.matcher = matcher;
-		this.filter = filter;
 		this.pattern = pattern;
 	}
 	
 	@Override
 	public boolean matches(String path) {
 		return matcher.match(pattern, path);
-	}
-	@Override
-	public JsonFilter getFilter() {
-		return filter;
 	}
 	
 }

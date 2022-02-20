@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
+import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
 import com.github.skjolber.jsonfilter.path.matcher.JsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.path.matcher.PrefixJsonFilterPathMatcher;
@@ -32,21 +33,24 @@ public class PathRequestFilterTest {
 		List<JsonFilterPathMatcher> responses = new ArrayList<>();
 		
 		JsonFilter firstName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
+		JsonFilter firstNameValidate = JacksonJsonLogFilterBuilder.createInstance().withAnonymize("/firstName").build();
+		
 		JsonFilter lastName = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/lastName").build();
+		JsonFilter lastNameValidate = JacksonJsonLogFilterBuilder.createInstance().withAnonymize("/lastName").build();
 
-		requests.add(new PrefixJsonFilterPathMatcher("/abc", firstName));
-		responses.add(new PrefixJsonFilterPathMatcher("/def", lastName));
+		requests.add(new PrefixJsonFilterPathMatcher("/abc", firstName, firstNameValidate));
+		responses.add(new PrefixJsonFilterPathMatcher("/def", lastName, lastNameValidate));
 		
 		RequestResponseJsonFilter requestResponseJsonFilter = new RequestResponseJsonFilter(requests, responses);
 
-		assertNull(requestResponseJsonFilter.getRequestFilter("/aaa"));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/aaa"));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/aaa", false));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/aaa", false));
 
-		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc"));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/abc"));
+		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc", false));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/abc", false));
 
-		assertNotNull(requestResponseJsonFilter.getResponseFilter("/def"));
-		assertNull(requestResponseJsonFilter.getRequestFilter("/def"));
+		assertNotNull(requestResponseJsonFilter.getResponseFilter("/def", false));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/def", false));
 		
 		// request
 		PathRequestFilter filter = new PathRequestFilter(requestResponseJsonFilter, false, false, new JsonFactory());

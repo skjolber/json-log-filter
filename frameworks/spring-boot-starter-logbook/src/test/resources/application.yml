@@ -15,3 +15,5 @@ jsonfilter:
 
 logging.level.org.zalando.logbook: TRACE
 logbook.format.style: json
+
+logbook.filter.enabled: false

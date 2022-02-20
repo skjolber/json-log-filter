@@ -7,14 +7,13 @@ import org.zalando.logbook.HttpHeaders;
 import org.zalando.logbook.HttpMessage;
 import org.zalando.logbook.Origin;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
-public abstract class AbstractFilterHttpMessage<B extends HttpMessage> extends JsonProcessor {
+public abstract class AbstractFilterHttpMessage<B extends HttpMessage> {
 
 	protected final B message;
-
-	public AbstractFilterHttpMessage(B request, boolean compact, boolean validate, JsonFactory factory) {
-		super(compact, validate, factory);
+	protected final JsonProcessor jsonProcessor;
+	
+	public AbstractFilterHttpMessage(B request, JsonProcessor jsonProcessor) {
+		this.jsonProcessor = jsonProcessor;
 		this.message = request;
 	}
 
@@ -39,43 +38,11 @@ public abstract class AbstractFilterHttpMessage<B extends HttpMessage> extends J
 	}
 
 	public byte[] getBody() throws IOException {
-		byte[] body = message.getBody();
-		if(body != null) {
-			if(validate) {
-				// will also compact
-				try {
-					return validate(body);
-				} catch (Exception e) {
-					// fall through to escape as string
-				}
-			} else if(compact) {
-				return compact(body);
-			} else {
-				return body;
-			}
-			return handleInvalidBodyAsBytes(body);
-		}
-		return body;
+		return jsonProcessor.processBody(message.getBody());
 	}
 
 	public String getBodyAsString() throws IOException {
-		String body = message.getBodyAsString();
-		if(body != null) {
-			if(validate) {
-				// will also compact
-				try {
-					return validate(body);
-				} catch (Exception e) {
-					// fall through to escape as string
-				}
-			} else if(compact) {
-				return compact(body);
-			} else {
-				return body;
-			}
-			return handleInvalidBodyAsString(body);
-		}
-		return body;
+		return jsonProcessor.processBody(message.getBodyAsString());
 	}
 
 }

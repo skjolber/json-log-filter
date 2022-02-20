@@ -28,7 +28,7 @@ public class MyEntityController {
     @PostMapping(path = "/post", consumes = "application/json", produces = "application/json")
     public MyEntity unprotectedPost(@RequestBody MyEntity greeting) {
         log.info("POST");
-
+        System.out.println("TEST");
         return new MyEntity(counter.incrementAndGet(), "Hello post", "Thomas");
     }
 

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilterFactory;
 import com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
@@ -49,11 +48,13 @@ public class RequestResponseJsonFilterFactory {
 			if(properties != null && properties.isEnabled()) {
 				String antMatcher = filter.getMatcher();
 
-				JsonFilterFactory factory = createFactory(properties, replacements, validate);
-
-				JsonFilter jsonFilter = factory.newJsonFilter();
-
-				JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, jsonFilter);
+				JacksonJsonFilterFactory jacksonJsonFilterFactory = new JacksonJsonFilterFactory();
+				configureFactory(jacksonJsonFilterFactory, properties, replacements);
+				
+				DefaultJsonFilterFactory nonvalidating = new DefaultJsonFilterFactory();
+				configureFactory(nonvalidating, properties, replacements);
+				
+				JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, jacksonJsonFilterFactory.newJsonFilter(), nonvalidating.newJsonFilter());
 
 				requestFilters.add(m);
 			}
@@ -62,16 +63,7 @@ public class RequestResponseJsonFilterFactory {
 	}
 
 
-	protected JsonFilterFactory createFactory(JsonFilterProperties request, JsonFilterReplacementsProperties replacements, boolean validate) {
-
-		AbstractJsonFilterFactory factory;
-		if(request.isValidate() || validate) {
-			// jackson
-			factory = new JacksonJsonFilterFactory();
-		} else {
-			// core
-			factory = new DefaultJsonFilterFactory();
-		}
+	protected JsonFilterFactory configureFactory(AbstractJsonFilterFactory factory ,JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
 
 		if(replacements.hasAnonymize()) {
 			factory.setAnonymizeStringValue(replacements.getAnonymize());

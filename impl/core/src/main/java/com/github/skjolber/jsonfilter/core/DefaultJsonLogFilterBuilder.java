@@ -61,19 +61,16 @@ public class DefaultJsonLogFilterBuilder {
 	
 	public DefaultJsonLogFilterBuilder withMaxStringLength(int length) {
 		this.maxStringLength = length;
-		
 		return this;
 	}	
 		
 	public DefaultJsonLogFilterBuilder withMaxPathMatches(int length) {
 		this.maxPathMatches = length;
-		
 		return this;
 	}	
 	
 	public DefaultJsonLogFilterBuilder withPrune(String ... filters) {
 		Collections.addAll(pruneFilters, filters);
-		
 		return this;
 	}
 	
@@ -130,19 +127,16 @@ public class DefaultJsonLogFilterBuilder {
 	
 	public DefaultJsonLogFilterBuilder withTruncateRawJsonStringValue(String escaped) {
 		this.truncateStringValue = escaped;
-		
 		return this;
 	}
 	
 	public DefaultJsonLogFilterBuilder withPruneRawJsonValue(String raw) {
 		this.pruneJsonValue = raw;
-		
 		return this;
 	}
 
 	public DefaultJsonLogFilterBuilder withAnonymizeRawJsonValue(String raw) {
 		this.anonymizeJsonValue = raw;
-		
 		return this;
 	}	
 	

@@ -65,11 +65,38 @@ public class PathFilterSink implements Sink {
 	@Override
 	public void write(Precorrelation precorrelation, HttpRequest request) throws IOException {
 		if(isJson(request.getContentType())) {
-			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath());
+			if(request instanceof PreprocessedHttpRequest) {
+				PreprocessedHttpRequest preprocessedHttpMessage = (PreprocessedHttpRequest)request;
+				
+				boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
+
+				if(databinding) {
+					// so no JSON validation is necessary
+					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
+					
+					if(jsonFilter != null) {
+						sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compactRequests)));
+					} else if(compactRequests) {
+						sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
+					} else {
+						sink.write(precorrelation, request);
+					}
+					return;
+				} else {
+					// might still be valid JSON
+				}
+			}
+			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests);
 			if(jsonFilter != null) {
-				sink.write(precorrelation, new JsonFilterHttpRequest(request, jsonFilter, compactRequests, validateRequests, factory));
-			} else if(validateRequests || compactRequests) {
-				sink.write(precorrelation, new JsonFilterHttpRequest(request, jsonFilter, compactRequests, validateRequests, factory));
+				if(validateRequests) {
+					sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, compactRequests)));
+				} else {
+					sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compactRequests)));
+				}
+			} else if(validateRequests) {
+				sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, compactRequests)));
+			} else if(compactRequests) {
+				sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
 			} else {
 				sink.write(precorrelation, request);
 			}
@@ -81,11 +108,38 @@ public class PathFilterSink implements Sink {
 	@Override
 	public void write(Correlation correlation, HttpRequest request, HttpResponse response) throws IOException {
 		if(isJson(response.getContentType())) {
-			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath());
+			if(response instanceof PreprocessedHttpResponse) {
+				PreprocessedHttpMessage preprocessedHttpMessage = (PreprocessedHttpMessage)response;
+
+				boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
+
+				if(databinding) {
+					// so no JSON validation is necessary
+					JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), false);
+					
+					if(jsonFilter != null) {
+						sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, compactResponses)));
+					} else if(compactRequests) {
+						sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
+					} else {
+						sink.write(correlation, request, response);
+					}
+					return;
+				} else {
+					// might still be valid JSON
+				}
+			}
+			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), validateResponses);
 			if(jsonFilter != null) {
-				sink.write(correlation, request, new JsonFilterHttpResponse(response, jsonFilter, compactResponses, validateResponses, factory));
-			} else if(validateRequests || compactRequests) {
-				sink.write(correlation, request, new JsonHttpResponse(response, compactResponses, validateResponses, factory));
+				if(validateRequests) {
+					sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonFilterProcessor(jsonFilter, factory, compactRequests)));
+				} else {
+					sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, compactRequests)));
+				}
+			} else if(validateRequests) {
+				sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonProcessor(factory, compactRequests)));
+			} else if(compactRequests) {
+				sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
 			} else {
 				sink.write(correlation, request, response);
 			}

@@ -4,14 +4,12 @@ import java.io.IOException;
 
 import org.zalando.logbook.HttpResponse;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
 public class JsonHttpResponse extends AbstractFilterHttpMessage<HttpResponse> implements HttpResponse {
 
-	public JsonHttpResponse(HttpResponse response, boolean compact, boolean validate, JsonFactory factory) {
-		super(response, compact, validate, factory);
-	}
-
+	public JsonHttpResponse(HttpResponse response, JsonProcessor jsonProcessor) {
+		super(response, jsonProcessor);
+	}	
+	
 	public int getStatus() {
 		return message.getStatus();
 	}
