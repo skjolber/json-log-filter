@@ -6,19 +6,20 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.DefaultJacksonJsonFilter;
 
 public class PrefixJsonFilterPathMatcherTest {
 
 	@Test
 	public void testConstructor() {
-		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJsonFilter());
+		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter());
 		
-		assertNotNull(matcher.getFilter());
+		assertNotNull(matcher.getFilter(false));
 	}
 
 	@Test
 	public void testMatching() {
-		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJsonFilter());
+		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter());
 		
 		assertThat(matcher.matches("/abcdef")).isTrue();
 		assertThat(matcher.matches("/cdef")).isFalse();

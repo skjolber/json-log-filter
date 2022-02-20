@@ -16,6 +16,7 @@ import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilterFactory;
+import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.path.matcher.AllJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.path.matcher.DefaultJsonFilterPathMatcherFactory;
 import com.github.skjolber.jsonfilter.path.matcher.JsonFilterPathMatcher;
@@ -28,24 +29,23 @@ import com.github.skjolber.jsonfilter.path.properties.JsonFiltersProperties;
 public class RequestResponseJsonFilterFactoryTest {
 
 	private DefaultJsonFilterPathMatcherFactory defaultJsonFilterPathMatcherFactory = new DefaultJsonFilterPathMatcherFactory();
-	private RequestResponseJsonFilterFactory c = new RequestResponseJsonFilterFactory(defaultJsonFilterPathMatcherFactory, false, false);
+	private RequestResponseJsonFilterFactory c = new RequestResponseJsonFilterFactory(defaultJsonFilterPathMatcherFactory);
 
 	@Test
 	public void testAutoconfiguration() {
 		JsonFiltersProperties properties = new JsonFiltersProperties();
 		c.requestResponseJsonFilter(properties);
 		
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher(null,  null) instanceof AllJsonFilterPathMatcher);
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("",  null) instanceof AllJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher(null, null, null) instanceof AllJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("",  null, null) instanceof AllJsonFilterPathMatcher);
 		
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("/ABC", null) instanceof PrefixJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("/ABC", null, null) instanceof PrefixJsonFilterPathMatcher);
 		
 		
 		JsonFilterPathProperties p = new JsonFilterPathProperties();
 	
 		JsonFilterProperties request = new JsonFilterProperties();
 		request.setEnabled(false);
-		request.setValidate(true);
 		request.setAnonymizes(Arrays.asList("/a"));
 		request.setPrunes(Arrays.asList("/b"));
 		request.setMaxPathMatches(1);
@@ -62,7 +62,6 @@ public class RequestResponseJsonFilterFactoryTest {
 	
 		JsonFilterProperties request = new JsonFilterProperties();
 		request.setEnabled(false);
-		request.setValidate(true);
 		request.setAnonymizes(Arrays.asList("/a"));
 		request.setPrunes(Arrays.asList("/b"));
 		request.setMaxPathMatches(1);
@@ -81,8 +80,8 @@ public class RequestResponseJsonFilterFactoryTest {
 	@Test 
 	public void testAllForEmptyMatcher() {
 		JsonFilter filter = new DefaultJsonFilter();
-		
-		JsonFilterPathMatcher matcher = defaultJsonFilterPathMatcherFactory.createMatcher(null, filter);
+		JacksonMaxStringLengthJsonFilter validatingFilter = new JacksonMaxStringLengthJsonFilter(1024);
+		JsonFilterPathMatcher matcher = defaultJsonFilterPathMatcherFactory.createMatcher(null, validatingFilter, filter);
 		assertTrue(matcher instanceof AllJsonFilterPathMatcher);
 	}
 	
@@ -91,7 +90,6 @@ public class RequestResponseJsonFilterFactoryTest {
 		JsonFiltersProperties jsonFiltersProperties = new JsonFiltersProperties();
 		
 		JsonFilterProperties request = new JsonFilterProperties();
-		request.setValidate(true);
 		request.setAnonymizes(Arrays.asList("/a"));
 		request.setPrunes(Arrays.asList("/b"));
 		request.setMaxPathMatches(1);
@@ -121,7 +119,7 @@ public class RequestResponseJsonFilterFactoryTest {
 		
 		RequestResponseJsonFilter requestResponseJsonFilter = c.requestResponseJsonFilter(jsonFiltersProperties);
 		
-		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath");
+		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", true);
 		
 		assertTrue(filter instanceof JacksonJsonFilter);
 	}
@@ -131,7 +129,6 @@ public class RequestResponseJsonFilterFactoryTest {
 		JsonFiltersProperties jsonFiltersProperties = new JsonFiltersProperties();
 		
 		JsonFilterProperties request = new JsonFilterProperties();
-		request.setValidate(false);
 		request.setAnonymizes(Arrays.asList("/a"));
 		request.setPrunes(Arrays.asList("/b"));
 		request.setMaxPathMatches(1);
@@ -161,7 +158,7 @@ public class RequestResponseJsonFilterFactoryTest {
 		
 		RequestResponseJsonFilter requestResponseJsonFilter = c.requestResponseJsonFilter(jsonFiltersProperties);
 		
-		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath");
+		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", false);
 		
 		assertFalse(filter instanceof JacksonJsonFilter);
 	}
@@ -175,22 +172,6 @@ public class RequestResponseJsonFilterFactoryTest {
 			c.requestResponseJsonFilter(properties);
 		});
 
-	}
-	
-	@Test
-	public void isJacksonForCompactAndValidate() {
-		JsonFilterReplacementsProperties replacements = new JsonFilterReplacementsProperties();
-		
-		JsonFilterProperties request = new JsonFilterProperties();
-		assertThat(c.createFactory(request, replacements, false)).isInstanceOf(DefaultJsonFilterFactory.class);
-	
-		request = new JsonFilterProperties();
-		request.setValidate(true);
-		assertThat(c.createFactory(request, replacements, false)).isInstanceOf(JacksonJsonFilterFactory.class);
-		
-		request = new JsonFilterProperties();
-		request.setValidate(true);
-		assertThat(c.createFactory(request, replacements, false)).isInstanceOf(JacksonJsonFilterFactory.class);
 	}
 	
 }

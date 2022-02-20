@@ -11,10 +11,26 @@
 	<packaging>jar</packaging>
 
 	<dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-core</artifactId>
+        </dependency>        
 		<dependency>
 			<groupId>com.github.skjolber.json-log-filter</groupId>
 			<artifactId>api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.skjolber.json-log-filter</groupId>
+			<artifactId>spring-boot-autoconfigure-logbook</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>com.github.skjolber.json-log-filter</groupId>
 			<artifactId>path</artifactId>
@@ -45,12 +61,11 @@
 		</dependency>		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>		
 		<dependency>

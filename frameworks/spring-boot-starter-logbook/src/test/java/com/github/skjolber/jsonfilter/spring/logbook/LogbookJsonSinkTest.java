@@ -12,10 +12,13 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zalando.logbook.Sink;
+
+import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PathFilterSink;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -50,7 +53,7 @@ public class LogbookJsonSinkTest {
 	public void testSpringBootStarterPost() {
 		assertTrue(sink instanceof PathFilterSink);
 
-        MyEntity e = new MyEntity();
+        MyEntity e = new MyEntity(1L, null);
         e.setContent("request-content");
         e.setName("request-name");
 
@@ -72,12 +75,50 @@ public class LogbookJsonSinkTest {
 		String invalid = "{name=this\n\n\n\\//\"}";
 		
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<?> entity = new HttpEntity<>(invalid, headers);
         
         String url = "http://localhost:" + randomServerPort + "/api/post";
 
-        ResponseEntity<MyEntity> response = restTemplate.exchange(url, HttpMethod.POST, entity, MyEntity.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        System.out.println("Got " + response.getBody());
         assertTrue(response.getStatusCode().is4xxClientError());
+	}
+	
+	@Test 
+	public void testSpringBootStarterPostStreaming() {
+		assertTrue(sink instanceof PathFilterSink);
+
+		MyOtherEntity e = new MyOtherEntity(1L, null);
+        e.setContent1("request-content");
+        e.setName1("request-name");
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<?> entity = new HttpEntity<>(e, headers);
+        
+        String url = "http://localhost:" + randomServerPort + "/api/postStreaming";
+
+        ResponseEntity<MyEntity> response = restTemplate.exchange(url, HttpMethod.POST, entity, MyEntity.class);
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+
+        assertThat(response.getBody().getContent()).isEqualTo("Hello post");
+	}
+
+	@Test 
+	public void testSpringBootStarterPostInvalidJsonStreaming() {
+		assertTrue(sink instanceof PathFilterSink);
+
+		String invalid = "{name=this\n\n\n\\//}";
+		
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<?> entity = new HttpEntity<>(invalid, headers);
+        
+        String url = "http://localhost:" + randomServerPort + "/api/postStreaming";
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        System.out.println("Got " + response.getBody());
+        assertTrue(response.getStatusCode().is2xxSuccessful());
 	}
 
 }

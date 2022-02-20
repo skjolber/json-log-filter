@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.DefaultJacksonJsonFilter;
 import com.github.skjolber.jsonfilter.path.matcher.JsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.path.matcher.PrefixJsonFilterPathMatcher;
 
@@ -19,25 +20,25 @@ public class RequestResponseJsonFilterTest {
 		List<JsonFilterPathMatcher> responses = new ArrayList<>();
 		RequestResponseJsonFilter requestResponseJsonFilter = new RequestResponseJsonFilter(requests, responses);
 		
-		assertNull(requestResponseJsonFilter.getRequestFilter("/abc"));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/abc"));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/abc", false));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/abc", false));
 	}
 
 	@Test 
 	public void testMatch() {
 		List<JsonFilterPathMatcher> requests = new ArrayList<>();
-		requests.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJsonFilter()));
+		requests.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter()));
 
 		List<JsonFilterPathMatcher> responses = new ArrayList<>();
-		responses.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJsonFilter()));
+		responses.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter()));
 
 		RequestResponseJsonFilter requestResponseJsonFilter = new RequestResponseJsonFilter(requests, responses);
 		
-		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc"));
-		assertNotNull(requestResponseJsonFilter.getResponseFilter("/abc"));
+		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc", false));
+		assertNotNull(requestResponseJsonFilter.getResponseFilter("/abc", false));
 		
-		assertNull(requestResponseJsonFilter.getRequestFilter("/def"));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/def"));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/def", false));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/def", false));
 		
 	}
 

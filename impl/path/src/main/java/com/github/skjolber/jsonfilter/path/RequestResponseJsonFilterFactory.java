@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilterFactory;
 import com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
@@ -19,13 +18,9 @@ import com.github.skjolber.jsonfilter.path.properties.JsonFiltersProperties;
 public class RequestResponseJsonFilterFactory {
 
 	protected final JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory;
-	protected final boolean validateRequests;
-	protected final boolean validateResponses;
 	
-	public RequestResponseJsonFilterFactory(JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory, boolean validateRequests, boolean validateResponses) {
+	public RequestResponseJsonFilterFactory(JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory) {
 		this.jsonFilterPathMatcherFactory = jsonFilterPathMatcherFactory;
-		this.validateRequests = validateRequests;
-		this.validateResponses = validateResponses;
 	}
 
 	public RequestResponseJsonFilter requestResponseJsonFilter(JsonFiltersProperties properties) {
@@ -36,24 +31,26 @@ public class RequestResponseJsonFilterFactory {
 
 		List<JsonFilterPathProperties> filters = properties.getPaths();
 
-		List<JsonFilterPathMatcher> requestFilters = extract(replacements, filters, (f) -> f.getRequest(), validateRequests);
-		List<JsonFilterPathMatcher> responseFilters = extract(replacements, filters, (f) -> f.getResponse(), validateResponses);
+		List<JsonFilterPathMatcher> requestFilters = extract(replacements, filters, (f) -> f.getRequest());
+		List<JsonFilterPathMatcher> responseFilters = extract(replacements, filters, (f) -> f.getResponse());
 
 		return new RequestResponseJsonFilter(requestFilters, responseFilters);
 	}
 
-	protected List<JsonFilterPathMatcher> extract(JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper, boolean validate) {
+	protected List<JsonFilterPathMatcher> extract(JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper) {
 		List<JsonFilterPathMatcher> requestFilters = new ArrayList<JsonFilterPathMatcher>();
 		for(JsonFilterPathProperties filter : filters) {
 			JsonFilterProperties properties = mapper.apply(filter);
 			if(properties != null && properties.isEnabled()) {
 				String antMatcher = filter.getMatcher();
 
-				JsonFilterFactory factory = createFactory(properties, replacements, validate);
-
-				JsonFilter jsonFilter = factory.newJsonFilter();
-
-				JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, jsonFilter);
+				JacksonJsonFilterFactory jacksonJsonFilterFactory = new JacksonJsonFilterFactory();
+				configureFactory(jacksonJsonFilterFactory, properties, replacements);
+				
+				DefaultJsonFilterFactory nonvalidating = new DefaultJsonFilterFactory();
+				configureFactory(nonvalidating, properties, replacements);
+				
+				JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, jacksonJsonFilterFactory.newJsonFilter(), nonvalidating.newJsonFilter());
 
 				requestFilters.add(m);
 			}
@@ -62,16 +59,7 @@ public class RequestResponseJsonFilterFactory {
 	}
 
 
-	protected JsonFilterFactory createFactory(JsonFilterProperties request, JsonFilterReplacementsProperties replacements, boolean validate) {
-
-		AbstractJsonFilterFactory factory;
-		if(request.isValidate() || validate) {
-			// jackson
-			factory = new JacksonJsonFilterFactory();
-		} else {
-			// core
-			factory = new DefaultJsonFilterFactory();
-		}
+	protected JsonFilterFactory configureFactory(AbstractJsonFilterFactory factory ,JsonFilterProperties request, JsonFilterReplacementsProperties replacements) {
 
 		if(replacements.hasAnonymize()) {
 			factory.setAnonymizeStringValue(replacements.getAnonymize());

@@ -7,8 +7,8 @@ public class JsonFiltersProperties {
 
 	protected boolean enabled = true;
 	
-	protected boolean validateRequests;
-	protected boolean validateResponses;
+	protected ProcessingProperties requests = new ProcessingProperties(true, true);
+	protected ProcessingProperties responses = new ProcessingProperties(false, false);
 
 	protected List<JsonFilterPathProperties> paths = new ArrayList<>();
 
@@ -38,21 +38,19 @@ public class JsonFiltersProperties {
 		this.replacements = replacements;
 	}
 
-	public boolean isValidateRequests() {
-		return validateRequests;
-	}
-
-	public void setValidateRequests(boolean validateRequests) {
-		this.validateRequests = validateRequests;
-	}
-
-	public boolean isValidateResponses() {
-		return validateResponses;
-	}
-
-	public void setValidateResponses(boolean validateResponses) {
-		this.validateResponses = validateResponses;
+	public void setRequests(ProcessingProperties requests) {
+		this.requests = requests;
 	}
 	
+	public void setResponses(ProcessingProperties responses) {
+		this.responses = responses;
+	}
 	
+	public ProcessingProperties getRequests() {
+		return requests;
+	}
+	
+	public ProcessingProperties getResponses() {
+		return responses;
+	}
 }

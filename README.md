@@ -150,7 +150,7 @@ The filters within this library support using multiple expressions at once.
 ## Post-processing
 Depending on your service stack and architecture, performing two additional operations might be necessary:
 
- * removing linebreaks (and possibly all whitespace)
+ * removing linebreaks (and possibly all extra whitespace)
    * for `one line per log-statement`, typically for console- and/or file logging
  * validate document syntax (as [JSON])
    * for raw inlining of JSON from untrusted sources in log statements
@@ -160,7 +160,7 @@ For a typical REST service, the above operations might be necessary for the (unt
 Note that 
   
  * the `Jackson`-based processors in this project do both of these automatically, and 
- * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON.
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON. See the Logbook module further down for an example.
 
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance. 
@@ -182,12 +182,13 @@ Please consider refactoring your JSON structure(s) if you do a lot of filtering 
 ## Framework support
 
 ### Logbook
-See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for REST services:
+See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for Spring-flavoured REST services:
 
  * filter in- and/or outgoing payloads per path
- * enable validation/compacting per path, or for all requests and/or responses
  * valid JSON payloads are appended as JSON, i.e. indexable to log accumulation tools
  * invalid JSON payloads are added as text
+ * optimal performance
+   * detects whether databinding was successful to avoid revalidating the JSON structure before logging
 
 ## Background
 The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 

@@ -6,15 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.DefaultJacksonJsonFilter;
 
 public class AllJsonFilterPathMatcherTest {
 
 	@Test
 	public void testPassthrough() {
 		DefaultJsonFilter filter = new DefaultJsonFilter();
+		DefaultJacksonJsonFilter defaultJacksonJsonFilter = new DefaultJacksonJsonFilter();
 		
-		AllJsonFilterPathMatcher all = new AllJsonFilterPathMatcher(filter);
+		AllJsonFilterPathMatcher all = new AllJsonFilterPathMatcher(defaultJacksonJsonFilter, filter);
 		assertTrue(all.matches("abc"));
-		assertSame(all.getFilter(), filter);
+		assertSame(all.getFilter(false), filter);
 	}
 }

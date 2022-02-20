@@ -1,7 +1,5 @@
 jsonfilter:
   logbook:
-    compactRequests: true
-    validateRequests: true
     paths:
       - matcher: /**
         request:
@@ -15,3 +13,5 @@ jsonfilter:
 
 logging.level.org.zalando.logbook: TRACE
 logbook.format.style: json
+
+logbook.filter.enabled: false

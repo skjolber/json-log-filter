@@ -2,14 +2,13 @@ package com.github.skjolber.jsonfilter.path.matcher;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
-public class PrefixJsonFilterPathMatcher implements JsonFilterPathMatcher {
+public class PrefixJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 
 	private final String prefix;
-	private final JsonFilter filter;
 	
-	public PrefixJsonFilterPathMatcher(String prefix, JsonFilter filter) {
+	public PrefixJsonFilterPathMatcher(String prefix, JsonFilter filterWithValidate, JsonFilter filter) {
+		super(filterWithValidate, filter);
 		this.prefix = prefix;
-		this.filter = filter;
 	}
 
 	@Override
@@ -17,9 +16,5 @@ public class PrefixJsonFilterPathMatcher implements JsonFilterPathMatcher {
 		return path.startsWith(prefix);
 	}
 
-	@Override
-	public JsonFilter getFilter() {
-		return filter;
-	}
 
 }

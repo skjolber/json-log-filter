@@ -2,6 +2,8 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +15,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.zalando.logbook.Sink;
 
+import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PathFilterSink;
+
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("json")
 public class LogbookDefaultSinkTest {
 	
     @LocalServerPort
@@ -34,6 +40,7 @@ public class LogbookDefaultSinkTest {
 		assertTrue(sink instanceof PathFilterSink);
 		
         HttpHeaders headers = new HttpHeaders();
+        headers.put("Content-Type", Arrays.asList("application/json"));
         HttpEntity<String> entity = new HttpEntity<String>(headers);
 
         String url = "http://localhost:" + randomServerPort + "/api/get";
