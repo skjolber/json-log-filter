@@ -4,7 +4,7 @@ Spring Boot starter configuration for high-performance request-response-logging 
  * per-path JSON filtering
    * filter only requests / responses with sensitive data, pass through the rest
  * reduced workload
-   * awaits framework data-binding so to avoid unnecessary revalidatiion of JSON payloads before logging.
+   * awaits framework data-binding so to avoid unnecessary revalidation of JSON payloads when construction request log statement.
 
 Configuration example:
 
@@ -62,7 +62,7 @@ This implementation uses the built-in REST service data-binding to detect whethe
 It then avoids parsing the data an additional time just for JSON logging, and can also use the much faster
 JSON filters provided within this project. 
 
-__This is a considerable reduction in complexity / cost for request-response logging.__
+__This is a considerable reduction in complexity / cost for request-response logging to JSON.__
 
 Responses produced by our own services are assumed to be well-formed and without line-breaks (i.e. standard JSON).
 
