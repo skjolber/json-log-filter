@@ -1,9 +1,10 @@
 package com.github.skjolberg.jsonfilter.spring.logbook.servlet;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 
 final class ServletInputStreamAdapter extends ServletInputStream {
 

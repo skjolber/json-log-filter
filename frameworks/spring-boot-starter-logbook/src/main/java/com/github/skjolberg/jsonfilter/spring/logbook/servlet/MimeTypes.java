@@ -1,8 +1,9 @@
 package com.github.skjolberg.jsonfilter.spring.logbook.servlet;
 
+import java.util.Optional;
+
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
-import java.util.Optional;
 
 final class MimeTypes {
 

@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.github.skjolber.jsonfilter.spring.logbook.LogbookJsonFilterAutoConfiguration
+com.github.skjolber.jsonfilter.spring.logbook.LogbookRestAutoConfiguration

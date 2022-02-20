@@ -18,13 +18,9 @@ import com.github.skjolber.jsonfilter.path.properties.JsonFiltersProperties;
 public class RequestResponseJsonFilterFactory {
 
 	protected final JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory;
-	protected final boolean validateRequests;
-	protected final boolean validateResponses;
 	
-	public RequestResponseJsonFilterFactory(JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory, boolean validateRequests, boolean validateResponses) {
+	public RequestResponseJsonFilterFactory(JsonFilterPathMatcherFactory jsonFilterPathMatcherFactory) {
 		this.jsonFilterPathMatcherFactory = jsonFilterPathMatcherFactory;
-		this.validateRequests = validateRequests;
-		this.validateResponses = validateResponses;
 	}
 
 	public RequestResponseJsonFilter requestResponseJsonFilter(JsonFiltersProperties properties) {
@@ -35,13 +31,13 @@ public class RequestResponseJsonFilterFactory {
 
 		List<JsonFilterPathProperties> filters = properties.getPaths();
 
-		List<JsonFilterPathMatcher> requestFilters = extract(replacements, filters, (f) -> f.getRequest(), validateRequests);
-		List<JsonFilterPathMatcher> responseFilters = extract(replacements, filters, (f) -> f.getResponse(), validateResponses);
+		List<JsonFilterPathMatcher> requestFilters = extract(replacements, filters, (f) -> f.getRequest());
+		List<JsonFilterPathMatcher> responseFilters = extract(replacements, filters, (f) -> f.getResponse());
 
 		return new RequestResponseJsonFilter(requestFilters, responseFilters);
 	}
 
-	protected List<JsonFilterPathMatcher> extract(JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper, boolean validate) {
+	protected List<JsonFilterPathMatcher> extract(JsonFilterReplacementsProperties replacements, List<JsonFilterPathProperties> filters, Function<JsonFilterPathProperties, JsonFilterProperties> mapper) {
 		List<JsonFilterPathMatcher> requestFilters = new ArrayList<JsonFilterPathMatcher>();
 		for(JsonFilterPathProperties filter : filters) {
 			JsonFilterProperties properties = mapper.apply(filter);

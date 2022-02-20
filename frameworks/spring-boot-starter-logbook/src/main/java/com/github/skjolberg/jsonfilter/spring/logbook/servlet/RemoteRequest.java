@@ -30,10 +30,10 @@ import org.zalando.logbook.servlet.FormRequestMode;
 
 public class RemoteRequest extends HttpServletRequestWrapper implements HttpRequest {
 
-    private final FormRequestMode formRequestMode = FormRequestMode.fromProperties();
+	protected final FormRequestMode formRequestMode = FormRequestMode.fromProperties();
 
-    private byte[] body;
-    private byte[] buffered;
+    protected byte[] body;
+    protected byte[] buffered;
 
     public RemoteRequest(final HttpServletRequest request) {
         super(request);

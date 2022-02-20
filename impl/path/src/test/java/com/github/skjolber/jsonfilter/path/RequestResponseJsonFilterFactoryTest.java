@@ -29,7 +29,7 @@ import com.github.skjolber.jsonfilter.path.properties.JsonFiltersProperties;
 public class RequestResponseJsonFilterFactoryTest {
 
 	private DefaultJsonFilterPathMatcherFactory defaultJsonFilterPathMatcherFactory = new DefaultJsonFilterPathMatcherFactory();
-	private RequestResponseJsonFilterFactory c = new RequestResponseJsonFilterFactory(defaultJsonFilterPathMatcherFactory, false, false);
+	private RequestResponseJsonFilterFactory c = new RequestResponseJsonFilterFactory(defaultJsonFilterPathMatcherFactory);
 
 	@Test
 	public void testAutoconfiguration() {

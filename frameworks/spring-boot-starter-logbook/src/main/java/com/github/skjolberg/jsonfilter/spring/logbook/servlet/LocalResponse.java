@@ -1,14 +1,7 @@
 package com.github.skjolberg.jsonfilter.spring.logbook.servlet;
 
-import org.apache.http.client.protocol.RequestDefaultHeaders;
-import org.zalando.logbook.HttpHeaders;
-import org.zalando.logbook.HttpResponse;
-import org.zalando.logbook.Origin;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,17 +9,22 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.list;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
-final class LocalResponse extends HttpServletResponseWrapper implements HttpResponse {
+import org.zalando.logbook.HttpHeaders;
+import org.zalando.logbook.HttpResponse;
+import org.zalando.logbook.Origin;
+
+public class LocalResponse extends HttpServletResponseWrapper implements HttpResponse {
 
     private final String protocolVersion;
 
@@ -34,7 +32,7 @@ final class LocalResponse extends HttpServletResponseWrapper implements HttpResp
     private Tee buffer;
     private boolean used; // point of no return, once we exposed our stream, we need to buffer
 
-    LocalResponse(final HttpServletResponse response, final String protocolVersion) {
+    public LocalResponse(final HttpServletResponse response, final String protocolVersion) {
         super(response);
         this.protocolVersion = protocolVersion;
     }
@@ -65,7 +63,7 @@ final class LocalResponse extends HttpServletResponseWrapper implements HttpResp
     }
 
     @Override
-    public HttpResponse withBody() throws IOException {
+    public LocalResponse withBody() throws IOException {
         if (body == null) {
             bufferIfNecessary();
             this.body = buffer;
@@ -80,7 +78,7 @@ final class LocalResponse extends HttpServletResponseWrapper implements HttpResp
     }
 
     @Override
-    public HttpResponse withoutBody() {
+    public LocalResponse withoutBody() {
         this.body = null;
         if (!used) {
             this.buffer = null;

@@ -1,0 +1,19 @@
+jsonfilter:
+  logbook:
+    compactRequests: true
+    validateRequests: true
+    paths:
+      - matcher: /**
+        request:
+            maxStringLength: 127 
+            anonymizes:
+              - /content
+        response:
+            maxStringLength: 127 
+            anonymizes:
+              - /name
+
+logging.level.org.zalando.logbook: TRACE
+logbook.format.style: json
+
+logbook.filter.enabled: false

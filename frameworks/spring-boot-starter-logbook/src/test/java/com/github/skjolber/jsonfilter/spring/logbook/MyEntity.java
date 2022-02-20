@@ -9,11 +9,6 @@ public class MyEntity {
     private String name;
 
     public MyEntity() {
-    	try {
-    		throw new RuntimeException();
-    	} catch(Exception e) {
-    		e.printStackTrace();
-    	}
     }
 
     public MyEntity(long id, String content) {

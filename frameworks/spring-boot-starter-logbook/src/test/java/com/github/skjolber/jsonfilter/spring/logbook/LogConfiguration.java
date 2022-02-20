@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.spring.logbook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.zalando.logbook.BodyFilter;
 import org.zalando.logbook.HttpLogFormatter;
 import org.zalando.logbook.Sink;
 import org.zalando.logbook.json.FastJsonHttpLogFormatter;
@@ -22,4 +23,8 @@ public class LogConfiguration {
 		return new LogstashLogbackSink(f);
 	}
 	
+	@Bean
+	public BodyFilter createBodyFilter() {
+		return BodyFilter.none();
+	}
 }

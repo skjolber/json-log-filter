@@ -19,6 +19,7 @@ import org.zalando.logbook.Sink;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PathFilterSink;
 
 public class PathFilterSinkTest {
 
@@ -55,7 +56,7 @@ public class PathFilterSinkTest {
 		when(otherResponse.getContentType()).thenReturn("application/xml");
 
 		pathFilterSink.write(null, matchRequest, otherResponse);
-		verify(sink, times(1)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
+		verify(sink, times(2)).write(any(), any(HttpRequest.class), any(HttpResponse.class));
 
 		HttpRequest missRequest = mock(HttpRequest.class);
 		when(missRequest.getContentType()).thenReturn("application/json");

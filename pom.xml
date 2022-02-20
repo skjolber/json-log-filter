@@ -67,7 +67,9 @@
 		<junit.version>5.8.2</junit.version>
 		<logback.version>1.2.10</logback.version>
 		<slf4j.version>1.7.36</slf4j.version>
-		
+		<servlet.version>4.0.1</servlet.version>
+		<javax.activation.version>1.2.0</javax.activation.version>
+
 		<!-- plugins -->
 		<build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -119,6 +121,11 @@
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
 				<artifactId>path</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.skjolber.json-log-filter</groupId>
+				<artifactId>spring-boot-autoconfigure-logbook</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -248,6 +255,16 @@
 				<artifactId>json-path</artifactId>
 				<version>${json-path.version}</version>
 			</dependency>
+	        <dependency>
+	            <groupId>javax.servlet</groupId>
+	            <artifactId>javax.servlet-api</artifactId>
+	            <version>${servlet.version}</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>com.sun.activation</groupId>
+	            <artifactId>javax.activation</artifactId>
+	            <version>${javax.activation.version}</version>
+	        </dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -452,6 +469,7 @@
 		<module>support/test</module>
 		<module>frameworks/jackson</module>
 		<module>impl/path</module>
+		<module>frameworks/spring-boot-autoconfigure-logbook</module>
 		<module>frameworks/spring-boot-starter-logbook</module>
 	</modules>
 

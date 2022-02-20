@@ -1,11 +1,16 @@
 # spring-boot-starter-logbook
-Spring Boot starter configuration for per-path JSON filtering for request and/or response logging with Logbook. 
+Spring Boot starter configuration for high-performance request-response-logging using Logbook:
+
+ * per-path JSON filtering
+   * filter only requests / responses with sensitive data, pass through the rest
+ * reduced workload
+   * detects framework data-binding so to avoid validating of JSON documents
+
+Configuration example:
 
 ```yaml
 jsonfilter:
   logbook:
-    compactRequests: true
-    validateRequests: true
     paths:
       - matcher: /**
         request:
@@ -21,36 +26,50 @@ jsonfilter:
 
 ```
 
-## Untrusted sources
-When requests or responses come from untrusted sources, add the parameters:
+## Example log configuration for JSON logging
+Add the following configuration:
 
- * `validateRequests`: parse the document to see whether its JSON structure is valid in requests.
- * `compactRequests`: remove all linebreaks in requests
- * `validateResponses`: parse the document to see whether its JSON structure is valid in responses
- * `compactResponses`: remove all linebreaks in responses
+```java
+@Configuration
+public class LogConfiguration {
 
-```yaml
-jsonfilter:
-  logbook:
-    compactRequests: true
-    validateRequests: true
-    paths:
-      - matcher: /**
-        request:
-            maxStringLength: 127 
-            anonymizes:
-              - /key1/key2
-            prunes:
-              - /key3/key4
-        response:
-            maxStringLength: 127 
-            anonymizes:
-              - /name
-
+	@Bean
+	public FastJsonHttpLogFormatter formatter() {
+		return new FastJsonHttpLogFormatter();
+	}
+	
+	@Bean
+	public Sink configure(HttpLogFormatter f) {
+		return new LogstashLogbackSink(f);
+	}
+	
+	// XXX your filter here. The default compacting filter can be omitted.
+	@Bean
+	public BodyFilter createBodyFilter() {
+		return BodyFilter.none(); 
+	}
+}
 ```
 
-If validate is enabled, the output can be safely appended (as raw JSON) to any log output. Invalid JSON payloads are appended as escaped JSON strings.
+## Performance
+In general, incoming requests must be checked for well-formed and compacted before logging. 
+If not, the result could be invalid and/or multi-line log statements when logging to console, 
+which will cause the logging subsystem to treat structured data as raw text.
 
-Note: In the current implementation, validate also means removing linebreaks.
+This implementation uses the built-in REST service databinding to detect whether the incoming requests are well-formed.
+So it avoids parsing the data an additional time just for logging, and can also use the much faster
+JSON filters provided within this project. This is a considerable reduction in complexity / cost for request-response logging.
+
+Responses produced by our own services are assumed to be well-formed and without linebreaks (i.e. standard JSON).
+
+### Streaming
+For request streaming approaches, like
+
+```java
+@PostMapping(path = "/myStreaming", consumes = "application/json", produces = "application/json")
+public MyEntity unprotectedPost(HttpServletRequest request) throws IOException;
+```
+
+the databinding detector will not work, so the request-logging will be on the slow path.
 
 [Logbook]:		https://github.com/zalando/logbook

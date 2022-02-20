@@ -1,7 +1,5 @@
 jsonfilter:
   logbook:
-    compactRequests: true
-    validateRequests: true
     paths:
       - matcher: /**
         request:
