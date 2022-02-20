@@ -12,11 +12,10 @@ import org.zalando.logbook.Logbook.ResponseProcessingStage;
 
 public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandlerMethod {
 	
-	private final Logbook logbook;
+	protected final Logbook logbook;
 
 	public LogbookServletInvocableHandlerMethod(HandlerMethod handlerMethod, Logbook logbook) {
 		super(handlerMethod);
-		
 		this.logbook = logbook;
 	}
 
@@ -27,8 +26,7 @@ public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandle
 	}
 
 	@Nullable
-	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
-			Object... providedArgs) throws Exception {
+	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
 
 		Object nativeRequest = request.getNativeRequest();
 		if(nativeRequest instanceof PreprocessedRemoteRequest) {
@@ -52,7 +50,7 @@ public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandle
 					
 					return doInvoke(args);
 				} catch(Exception e) {
-					// databinding failed
+					// Databinding failed, but
 					// might be valid JSON still 
 					//
 					// slow path
@@ -68,11 +66,5 @@ public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandle
 		} 
 		return doInvoke(getMethodArgumentValues(request, mavContainer, providedArgs));
 	}
-	
-	@Override
-	protected Object[] getMethodArgumentValues(NativeWebRequest request, ModelAndViewContainer mavContainer,
-			Object... providedArgs) throws Exception {
-		return super.getMethodArgumentValues(request, mavContainer, providedArgs);
-	}
-	
+
 }

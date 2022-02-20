@@ -4,7 +4,7 @@ Spring Boot starter configuration for high-performance request-response-logging 
  * per-path JSON filtering
    * filter only requests / responses with sensitive data, pass through the rest
  * reduced workload
-   * detects framework data-binding so to avoid validating of JSON documents
+   * awaits framework data-binding so to avoid unnecessary revalidatiion of JSON payloads before logging.
 
 Configuration example:
 
@@ -52,15 +52,19 @@ public class LogConfiguration {
 ```
 
 ## Performance
-In general, incoming requests must be checked for well-formed and compacted before logging. 
-If not, the result could be invalid and/or multi-line log statements when logging to console, 
-which will cause the logging subsystem to treat structured data as raw text.
+In general, incoming requests should be checked for well-formed and compacted before logging, 
+so that the resulting log statement is valid JSON.
 
-This implementation uses the built-in REST service databinding to detect whether the incoming requests are well-formed.
-So it avoids parsing the data an additional time just for logging, and can also use the much faster
-JSON filters provided within this project. This is a considerable reduction in complexity / cost for request-response logging.
+Invalid log statements which will typically cause the log accumulation tool to treat structured data as raw text.
+So that means indexing the log statement will not work very well, thus various metrics and searches will suffer.
 
-Responses produced by our own services are assumed to be well-formed and without linebreaks (i.e. standard JSON).
+This implementation uses the built-in REST service data-binding to detect whether the incoming requests are well-formed.
+It then avoids parsing the data an additional time just for JSON logging, and can also use the much faster
+JSON filters provided within this project. 
+
+__This is a considerable reduction in complexity / cost for request-response logging.__
+
+Responses produced by our own services are assumed to be well-formed and without line-breaks (i.e. standard JSON).
 
 ### Streaming
 For request streaming approaches, like
@@ -70,6 +74,6 @@ For request streaming approaches, like
 public MyEntity unprotectedPost(HttpServletRequest request) throws IOException;
 ```
 
-the databinding detector will not work, so the request-logging will be on the slow path.
+the request-logging will be on the slow path.
 
 [Logbook]:		https://github.com/zalando/logbook

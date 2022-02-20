@@ -6,12 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 
-/**
- * 
- * Use a sink so that the response can also be filtered by path.
- * 
- */
-
 @AutoConfigureAfter(LogbookAutoConfiguration.class)
 @ConditionalOnProperty(name = { "jsonfilter.logbook.enabled" }, havingValue = "true", matchIfMissing = true)
 public class LogbookRestAutoConfiguration {
