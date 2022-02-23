@@ -1,4 +1,4 @@
-package com.github.skjolberg.jsonfilter.spring.logbook.servlet;
+package com.github.skjolber.jsonfilter.spring.logbook.servlet;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.list;

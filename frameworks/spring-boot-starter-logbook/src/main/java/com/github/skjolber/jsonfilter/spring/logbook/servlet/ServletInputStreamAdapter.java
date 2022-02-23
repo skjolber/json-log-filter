@@ -1,4 +1,4 @@
-package com.github.skjolberg.jsonfilter.spring.logbook.servlet;
+package com.github.skjolber.jsonfilter.spring.logbook.servlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

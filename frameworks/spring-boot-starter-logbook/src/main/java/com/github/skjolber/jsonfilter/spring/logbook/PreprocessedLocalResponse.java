@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PreprocessedHttpResponse;
-import com.github.skjolberg.jsonfilter.spring.logbook.servlet.LocalResponse;
+import com.github.skjolber.jsonfilter.spring.logbook.servlet.LocalResponse;
 
 public class PreprocessedLocalResponse extends LocalResponse implements PreprocessedHttpResponse {
 

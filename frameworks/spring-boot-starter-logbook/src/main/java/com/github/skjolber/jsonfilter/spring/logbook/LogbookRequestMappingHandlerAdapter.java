@@ -12,19 +12,21 @@ import org.zalando.logbook.Logbook.ResponseProcessingStage;
 import org.zalando.logbook.Logbook.ResponseWritingStage;
 
 import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PathFilterSink;
-import com.github.skjolberg.jsonfilter.spring.logbook.servlet.LocalResponse;
+import com.github.skjolber.jsonfilter.spring.logbook.servlet.LocalResponse;
 
 public class LogbookRequestMappingHandlerAdapter extends RequestMappingHandlerAdapter {
 
-	private Logbook logbook;
+	protected final Logbook logbook;
+	protected final MethodArgumentValuesDetector detector;
 
-	public LogbookRequestMappingHandlerAdapter(Logbook logbook) {
+	public LogbookRequestMappingHandlerAdapter(Logbook logbook, MethodArgumentValuesDetector detector) {
 		this.logbook = logbook;
+		this.detector = detector;
 	}
 
 	@Override
 	protected ServletInvocableHandlerMethod createInvocableHandlerMethod(HandlerMethod handlerMethod) {
-		return new LogbookServletInvocableHandlerMethod(handlerMethod, logbook);
+		return new LogbookServletInvocableHandlerMethod(handlerMethod, logbook, detector);
 	}
 
 	@Override

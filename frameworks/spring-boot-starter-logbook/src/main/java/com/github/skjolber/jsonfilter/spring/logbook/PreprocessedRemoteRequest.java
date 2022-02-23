@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PreprocessedHttpRequest;
-import com.github.skjolberg.jsonfilter.spring.logbook.servlet.RemoteRequest;
+import com.github.skjolber.jsonfilter.spring.logbook.servlet.RemoteRequest;
 
 public class PreprocessedRemoteRequest extends RemoteRequest implements PreprocessedHttpRequest {
 
