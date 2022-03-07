@@ -12,7 +12,7 @@ java -jar target/benchmarks.jar <benchmark name or empty> -rf json
 e.g. from the project root directory
 
 ```
-mvn clean install && java -jar target/benchmarks.jar -rf json CveFilterBenchmark
+mvn clean install && java -jar target/benchmarks.jar -rf json AllFilterBenchmark
 ```
 
 for all benchmarks. Display the file `jmh-result` with a visualizer like [JMH Visualizer].

@@ -22,8 +22,10 @@ import org.zalando.logbook.json.JsonPathBodyFilters;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
+import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
+import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
 
 
 @State(Scope.Thread)
@@ -51,13 +53,16 @@ public class CveFilterBenchmark {
 	
 	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
-	
+
+	private JacksonBenchmarkRunner maxSizeJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> maxSizeJsonFilter; 
+
 	private LogbookBenchmarkRunner singlePathLogbookJsonFilter;
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
 
-	private String fileName; 
+	private String fileName;
 	
 	@Setup
 	public void init() throws Exception {
@@ -79,7 +84,11 @@ public class CveFilterBenchmark {
 
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
 		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
+
+		int size = Integer.parseInt(fileName.substring(0,  fileName.length() - 2)) * 1024;
 		
+		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(size));
+		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size));
 	}
 
 	@Benchmark
@@ -121,6 +130,16 @@ public class CveFilterBenchmark {
 	public long anon_single_core() {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}	
+	
+	@Benchmark
+	public long maxSize() {
+		return maxSizeJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long maxSizeJackson() {
+		return maxSizeJacksonJsonFilter.benchmarkBytes();
+	}
 	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()

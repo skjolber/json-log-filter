@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter implements RangesJsonFilter {
 
 	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
+		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage, -1);
 	}
 	
 	public SingleFullPathMaxStringLengthJsonFilter(int maxStringLength,  int maxPathMatches, String expression, FilterType type) {
@@ -24,13 +24,13 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 		int matches = 0;
 
 		final char[][] elementPaths = this.pathChars;
+		
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
 		length += offset;
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
-
 		length += offset;
 
 		try {
@@ -75,7 +75,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.add(offset + maxStringLength - 1, mark, offset - 1 + maxStringLength - mark);
+									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
 								}
 
 								offset = nextOffset;
@@ -102,7 +102,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 									while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 										nextOffset++;
 									}
-									filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 								} else {
 									// special case: anon scalar values
 									if(chars[nextOffset] == '"') {
@@ -214,7 +214,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.add(offset + maxStringLength - 1, mark, offset - 1 + maxStringLength - mark);
+									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
 								}
 
 								offset = nextOffset;
@@ -241,7 +241,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 									while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 										nextOffset++;
 									}
-									filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 								} else {
 									// special case: anon scalar values
 									if(chars[nextOffset] == '"') {

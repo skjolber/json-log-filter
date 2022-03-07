@@ -28,7 +28,7 @@ public class AbstractJsonFilterTest {
 	private class MyAbstractJsonFilter extends AbstractJsonFilter {
 
 		public MyAbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString) {
-			super(maxStringLength, pruneJson, anonymizeJson, truncateJsonString);
+			super(maxStringLength, pruneJson, anonymizeJson, truncateJsonString, -1);
 		}
 
 		@Override
@@ -160,12 +160,12 @@ public class AbstractJsonFilterTest {
 		
 		MyAbstractJsonFilter filter = new MyAbstractJsonFilter(-1, "pruneJson", "anonymizeJson", "truncateJsonString");
 		
-		CharArrayRangesFilter charArrayRangesFilter = filter.getCharArrayRangesFilter();
+		CharArrayRangesFilter charArrayRangesFilter = filter.getCharArrayRangesFilter(Integer.MAX_VALUE);
 		assertSame(charArrayRangesFilter.anonymizeMessage, filter.getAnonymizeJsonValue());
 		assertSame(charArrayRangesFilter.pruneMessage, filter.getPruneJsonValue());
 		assertSame(charArrayRangesFilter.truncateMessage, filter.getTruncateStringValue());
 		
-		ByteArrayRangesFilter byteArrayRangesFilter = filter.getByteArrayRangesFilter();
+		ByteArrayRangesFilter byteArrayRangesFilter = filter.getByteArrayRangesFilter(Integer.MAX_VALUE);
 		assertEquals(new String(byteArrayRangesFilter.anonymizeMessage), new String(filter.getAnonymizeJsonValue()));
 		assertEquals(new String(byteArrayRangesFilter.pruneMessage), new String(filter.getPruneJsonValue()));
 		assertEquals(new String(byteArrayRangesFilter.truncateMessage), new String(filter.getTruncateStringValue()));

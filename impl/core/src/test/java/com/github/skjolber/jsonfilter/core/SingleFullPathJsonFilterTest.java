@@ -97,8 +97,5 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 		
 		String process = filter.process(string);
 		System.out.println(process);
-		
-		
-		
 	}
 }

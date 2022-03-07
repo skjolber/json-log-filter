@@ -21,14 +21,14 @@ import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
+public class MaxStringLengthMaxSizeJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
 
-	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage, -1);
+	public MaxStringLengthMaxSizeJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
 	}
 
-	public MaxStringLengthJsonFilter(int maxStringLength) {
-		this(maxStringLength, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+	public MaxStringLengthMaxSizeJsonFilter(int maxStringLength, int maxSize) {
+		this(maxStringLength, maxSize, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	@Override

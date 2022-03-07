@@ -7,7 +7,8 @@ public enum JsonFilterFactoryProperty {
 	MAX_PATH_MATCHES("com.skjolberg.jsonfilter.maxPathMatches"),
 	PRUNE_MESSAGE("com.skjolberg.jsonfilter.pruneMessage"),
 	ANON_MESSAGE("com.skjolberg.jsonfilter.anonymizeMessage"),
-	TRUNCATE_MESSAGE("com.skjolberg.jsonfilter.truncateMessage")
+	TRUNCATE_MESSAGE("com.skjolberg.jsonfilter.truncateMessage"),
+	MAX_SIZE("com.skjolberg.jsonfilter.maxSize")
 	;
 	
 	private final String name;

@@ -22,6 +22,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected static final int MAX_STRING_LENGTH = Integer.MAX_VALUE - 2;
 
 	protected final int maxStringLength; // not always in use, if so set to max int
+	protected final int maxSize; // not always in use, if so set to max int
 	
 	protected final char[] pruneJsonValue;
 	protected final char[] anonymizeJsonValue;
@@ -31,7 +32,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected final byte[] anonymizeJsonValueAsBytes;
 	protected final byte[] truncateStringValueAsBytes;
 	
-	public AbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString) {
+	public AbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString, int maxSize) {
 		if(maxStringLength < -1 || maxStringLength > MAX_STRING_LENGTH) {
 			throw new IllegalArgumentException("Expected -1 or positive integer lower than Integer.MAX_VALUE - 1");
 		}
@@ -40,6 +41,11 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 			this.maxStringLength = MAX_STRING_LENGTH; // make room for quotes, without overflow
 		} else {
 			this.maxStringLength = maxStringLength;
+		}
+		if(maxSize == -1) {
+			this.maxSize = Integer.MAX_VALUE; // make room for quotes, without overflow
+		} else {
+			this.maxSize = maxSize;
 		}
 		
 		this.pruneJsonValue = pruneJson.toCharArray();
@@ -162,24 +168,20 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return process(chars, 0, chars.length, output);
 	}
 
-	public int getMaxStringLength() {
-		return maxStringLength;
-	}
-	
-	protected CharArrayRangesFilter getCharArrayRangesFilter() {
-		return getCharArrayRangesFilter(-1);
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
+		return getCharArrayRangesFilter(-1, length);
 	}
 
-	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity) {
-		return new CharArrayRangesFilter(capacity, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
+		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
 	
-	protected ByteArrayRangesFilter getByteArrayRangesFilter() {
-		return getByteArrayRangesFilter(-1);
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
+		return getByteArrayRangesFilter(-1, length);
 	}
 	
-	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity) {
-		return new ByteArrayRangesFilter(capacity, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity, int length) {
+		return new ByteArrayRangesFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 	}
 	
 	/**
@@ -266,6 +268,14 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
+	}
+
+	public int getMaxStringLength() {
+		return maxStringLength;
+	}
+
+	protected int getMaxSize() {
+		return maxSize;
 	}
 	
 }

@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
 
 	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		super(maxStringLength, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, -1);
 	}
 	
 	public MultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes) {
@@ -25,12 +25,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 		
 		final int[] elementMatches = new int[elementFilters.length];
 
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
+
 		length += offset;
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
-
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
@@ -73,7 +73,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.add(offset + maxStringLength - 1, mark, offset - 1 + maxStringLength - mark);
+									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
 								}
 
 								offset = nextOffset;
@@ -99,7 +99,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							
 							if(pathMatches != -1) {
 								pathMatches--;
@@ -219,7 +219,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.add(offset + maxStringLength - 1, mark, offset - 1 + maxStringLength - mark);
+									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
 								}
 
 								offset = nextOffset;
@@ -245,7 +245,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							
 							if(pathMatches != -1) {
 								pathMatches--;
