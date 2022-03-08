@@ -32,6 +32,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
 		if(length <= maxSize) {
+			if(chars.length < offset + length) {
+				return false;
+			}
 			buffer.append(chars, offset, length);
 			return true;
 		}
@@ -55,7 +58,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						
 						level++;
 						if(level >= squareBrackets.length) {
-							boolean[] next = new boolean[squareBrackets.length + 3];
+							boolean[] next = new boolean[squareBrackets.length + 32];
 							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
 							squareBrackets = next;
 						}
@@ -69,28 +72,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :					
-						int nextOffset = offset;
 						do {
-							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						nextOffset++;
-						
-						// is this a field name or a value? A field name must be followed by a colon
-						if(chars[nextOffset] != ':') {
-							// skip over whitespace
-
-							// optimization: scan for highest value
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
-						}
-
-						offset = nextOffset;
+							offset++;
+						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						offset++;
 						
 						continue;
 						
@@ -113,13 +98,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			buffer.append(chars, 0, mark);
 			
-			if(level > 0) {
-				for(int i = level - 1; i >= 0; i--) {
-					if(squareBrackets[i]) {
-						buffer.append(']');
-					} else {
-						buffer.append('}');
-					}
+			for(int i = level - 1; i >= 0; i--) {
+				if(squareBrackets[i]) {
+					buffer.append(']');
+				} else {
+					buffer.append('}');
 				}
 			}
 
@@ -133,6 +116,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	@Override
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		if(length <= maxSize) {
+			if(chars.length < offset + length) {
+				return false;
+			}
 			output.write(chars, offset, length);
 			return true;
 		}
@@ -156,7 +142,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						
 						level++;
 						if(level >= squareBrackes.length) {
-							boolean[] next = new boolean[squareBrackes.length + 3];
+							boolean[] next = new boolean[squareBrackes.length + 32];
 							System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
 							squareBrackes = next;
 						}
@@ -170,28 +156,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :					
-						int nextOffset = offset;
 						do {
-							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						nextOffset++;
-						
-						// is this a field name or a value? A field name must be followed by a colon
-						if(chars[nextOffset] != ':') {
-							// skip over whitespace
-
-							// optimization: scan for highest value
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
-						}
-
-						offset = nextOffset;
+							offset++;
+						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						offset++;
 						
 						continue;
 						
@@ -214,13 +182,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			output.write(chars, 0, mark);
 			
-			if(level > 0) {
-				for(int i = level - 1; i >= 0; i--) {
-					if(squareBrackes[i]) {
-						output.write(']');
-					} else {
-						output.write('}');
-					}
+			for(int i = level - 1; i >= 0; i--) {
+				if(squareBrackes[i]) {
+					output.write(']');
+				} else {
+					output.write('}');
 				}
 			}
 

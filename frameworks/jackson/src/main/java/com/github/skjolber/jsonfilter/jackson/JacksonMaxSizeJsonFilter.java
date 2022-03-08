@@ -75,19 +75,44 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-        boolean copyNext = false;
+		
+		final int maxSize = this.maxSize - 5; // account for 4x double quotes and a colon
+
+        String fieldName = null;
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {
 				break;
 			}
 			
-			if(!copyNext && parser.currentLocation().getCharOffset() >= maxSize) {
+			long size = parser.currentLocation().getCharOffset();
+			if(size >= maxSize) {
 				break;
 			}
-
-			copyNext = nextToken == JsonToken.FIELD_NAME;
 			
+			if(nextToken == JsonToken.FIELD_NAME) {
+				fieldName = parser.currentName();
+				if(size + fieldName.length() > maxSize) {
+					break;
+				}
+				continue;
+			} else if(nextToken == JsonToken.VALUE_STRING) {
+				int length = parser.getTextLength();
+				if(fieldName != null) {
+					if(size + fieldName.length() + length > maxSize) {
+						break;
+					}
+				} else {
+					if(length > maxSize) {
+						break;
+					}
+				}
+			}
+			if(fieldName != null) {
+				generator.writeFieldName(fieldName);
+				fieldName = null;
+			}
+
 			generator.copyCurrentEvent(parser);
 		}
 		generator.flush(); // don't close
