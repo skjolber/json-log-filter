@@ -29,11 +29,12 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 ## Obtain
 The project is built with [Maven] and is available on the central Maven repository. 
 
-### Maven
+<details>
+  <summary>Maven coordinates</summary>
 
 Add the property
 ```xml
-<json-log-filter.version>2.1.1</json-log-filter.version>
+<json-log-filter.version>2.1.2</json-log-filter.version>
 ```
 
 then add
@@ -48,6 +49,7 @@ then add
 
 or
 
+
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
@@ -56,12 +58,18 @@ or
 </dependency>
 ```
 
-### Gradle
+</details>
+
+or
+
+<details>
+  <summary>Gradle coordinates</summary>
+
 For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '2.1.1'
+  jsonLogFilterVersion = '2.1.2'
 }
 ```
 
@@ -76,6 +84,7 @@ or
 ```groovy
 api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 ```
+</details>
 
 # Usage
 Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
