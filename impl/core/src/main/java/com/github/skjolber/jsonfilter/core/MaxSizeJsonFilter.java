@@ -16,6 +16,7 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
@@ -39,7 +40,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		length = offset + maxSize;
+		length = offset + maxSize; // i.e. now limit
 
 		int level = 0;
 		
@@ -50,67 +51,70 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		int mark = 0;
 
 		try {
-			while(offset < length) {
-				switch(chars[offset]) {
-					case '{' :
-					case '[' :
-						squareBrackets[level] = chars[offset] == '[';
-						
-						level++;
-						if(level >= squareBrackets.length) {
-							boolean[] next = new boolean[squareBrackets.length + 32];
-							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-							squareBrackets = next;
-						}
-						mark = offset;
-						
-						break;
-					case '}' :
-					case ']' :
-						level--;
-					case ',' :
-						mark = offset;
-						break;
-					case '"' :					
-						do {
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
-						
-						continue;
-						
-					default : // do nothing
-				}
-				offset++;
-				
-			}
-			switch(chars[mark]) {
-			
-				case '{' :
-				case '}' :
-				case '[' :
-				case ']' :
-					mark++;
-	
-					break;
-				default : // do nothing
-			}
-			
-			buffer.append(chars, 0, mark);
-			
-			for(int i = level - 1; i >= 0; i--) {
-				if(squareBrackets[i]) {
-					buffer.append(']');
-				} else {
-					buffer.append('}');
-				}
-			}
-
-			return true;
+			return process(chars, offset, length, level, squareBrackets, mark, buffer);
 		} catch(Exception e) {
 			return false;
 		}
+	}
 
+	protected boolean process(final char[] chars, int offset, int limit, int level, boolean[] squareBrackets, int mark, final StringBuilder buffer) {
+		while(offset < limit) {
+			switch(chars[offset]) {
+				case '{' :
+				case '[' :
+					squareBrackets[level] = chars[offset] == '[';
+					
+					level++;
+					if(level >= squareBrackets.length) {
+						boolean[] next = new boolean[squareBrackets.length + 32];
+						System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+						squareBrackets = next;
+					}
+					mark = offset;
+					
+					break;
+				case '}' :
+				case ']' :
+					level--;
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :					
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					offset++;
+					
+					continue;
+					
+				default : // do nothing
+			}
+			offset++;
+			
+		}
+		switch(chars[mark]) {
+		
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				mark++;
+
+				break;
+			default : // do nothing
+		}
+		
+		buffer.append(chars, 0, mark);
+		
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				buffer.append(']');
+			} else {
+				buffer.append('}');
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -127,7 +131,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		length = offset + maxSize;
+		length = offset + maxSize; // i.e. now limit
 
 		int level = 0;
 		
@@ -138,66 +142,70 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		int mark = 0;
 
 		try {
-			while(offset < length) {
-				switch(chars[offset]) {
-					case '{' :
-					case '[' :
-						squareBrackes[level] = chars[offset] == '[';
-						
-						level++;
-						if(level >= squareBrackes.length) {
-							boolean[] next = new boolean[squareBrackes.length + 32];
-							System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
-							squareBrackes = next;
-						}
-						mark = offset;
-						
-						break;
-					case '}' :
-					case ']' :
-						level--;
-					case ',' :
-						mark = offset;
-						break;
-					case '"' :					
-						do {
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
-						
-						continue;
-						
-					default : // do nothing
-				}
-				offset++;
-				
-			}
-			switch(chars[mark]) {
-			
-				case '{' :
-				case '}' :
-				case '[' :
-				case ']' :
-					mark++;
-	
-					break;
-				default : // do nothing
-			}
-			
-			output.write(chars, 0, mark);
-			
-			for(int i = level - 1; i >= 0; i--) {
-				if(squareBrackes[i]) {
-					output.write(']');
-				} else {
-					output.write('}');
-				}
-			}
-
-			return true;
+			return extracted(chars, offset, length, level, squareBrackes, mark, output);
 		} catch(Exception e) {
 			return false;
 		}
 
+	}
+
+	protected boolean extracted(byte[] chars, int offset, int limit, int level, boolean[] squareBrackes, int mark, OutputStream output) throws IOException {
+		while(offset < limit) {
+			switch(chars[offset]) {
+				case '{' :
+				case '[' :
+					squareBrackes[level] = chars[offset] == '[';
+					
+					level++;
+					if(level >= squareBrackes.length) {
+						boolean[] next = new boolean[squareBrackes.length + 32];
+						System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
+						squareBrackes = next;
+					}
+					mark = offset;
+					
+					break;
+				case '}' :
+				case ']' :
+					level--;
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :					
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					offset++;
+					
+					continue;
+					
+				default : // do nothing
+			}
+			offset++;
+			
+		}
+		switch(chars[mark]) {
+		
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				mark++;
+
+				break;
+			default : // do nothing
+		}
+		
+		output.write(chars, 0, mark);
+		
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackes[i]) {
+				output.write(']');
+			} else {
+				output.write('}');
+			}
+		}
+
+		return true;
 	}
 }
