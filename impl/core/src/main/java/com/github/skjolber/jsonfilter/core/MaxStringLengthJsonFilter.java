@@ -24,7 +24,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage);
+		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
@@ -33,10 +33,9 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayRangesFilter filter = getCharArrayRangesFilter();
+		CharArrayRangesFilter filter = getCharArrayRangesFilter(length);
 
 		try {
 			return ranges(chars, offset, offset + length, maxStringLength, filter);
@@ -47,10 +46,9 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		ByteArrayRangesFilter filter = getByteArrayRangesFilter();
+		ByteArrayRangesFilter filter = getByteArrayRangesFilter(length);
 
 		try {
 			return ranges(chars, offset, offset + length, maxStringLength, filter);
@@ -86,7 +84,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 
 						if(chars[nextOffset] > 0x20) {
 							// was a value
-							filter.add(offset + maxStringLength - 1, nextOffset - 1, offset + maxStringLength - nextOffset);
+							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
 							offset = nextOffset;
 						} else {
 							// fast-forward over whitespace
@@ -103,7 +101,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 								offset = nextOffset + 1;
 							} else {
 								// value
-								filter.add(offset + maxStringLength - 1, end - 1, offset + maxStringLength - end);
+								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
 								offset = nextOffset;
 							}
 						}
@@ -150,7 +148,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 
 						if(chars[nextOffset] > 0x20) {
 							// was a value
-							filter.add(offset + maxStringLength - 1, nextOffset - 1, offset + maxStringLength - nextOffset);
+							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
 							offset = nextOffset;
 						} else {
 							// fast-forward over whitespace
@@ -167,7 +165,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 								offset = nextOffset + 1;
 							} else {
 								// value
-								filter.add(offset + maxStringLength - 1, end - 1, offset + maxStringLength - end);
+								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
 								offset = nextOffset;
 							}
 						}

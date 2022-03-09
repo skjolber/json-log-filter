@@ -9,21 +9,21 @@ public class AbstractRangesFilterTest {
 
 	public class MyAbstractRangesFilter extends AbstractRangesFilter {
 
-		public MyAbstractRangesFilter(int initialCapacity) {
-			super(initialCapacity);
+		public MyAbstractRangesFilter(int initialCapacity, int length) {
+			super(initialCapacity, length);
 		}
 	}
 
 	@Test
 	public void testConstructor() {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			new MyAbstractRangesFilter(0);
+			new MyAbstractRangesFilter(0, 1024);
 		});
 	}
 
 	@Test
 	public void testAdd() {
-		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024);
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
 		filter.addMaxLength(0, 1, 2);
 		filter.addAnon(3, 4);
 		filter.addPrune(5, 6);
@@ -33,13 +33,13 @@ public class AbstractRangesFilterTest {
 	
 	@Test
 	public void testDefaultCapacity() {
-		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(-1);
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(-1, 1024);
 		assertThat(filter.getFilter().length).isEqualTo(AbstractRangesFilter.DEFAULT_INITIAL_ARRAY_SIZE * 3);
 	}
 	
 	@Test
 	public void testExtendsCapacity() {
-		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(2);
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(2, 1024);
 		filter.addMaxLength(0, 1, 2);
 		filter.addAnon(3, 4);
 		filter.addPrune(5, 6);

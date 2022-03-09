@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
 
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(anyElementFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
@@ -24,15 +24,14 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 		int pathMatches = this.maxPathMatches;
 
 		final int[] elementFilterStart = this.elementFilterStart;
-
 		final int[] elementMatches = new int[elementFilters.length];
+
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
 		length += offset;
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
-
 		try {
 			main:
 			while(offset < length) {
@@ -95,7 +94,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 									nextOffset++;
 								}
-								filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
@@ -239,7 +238,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 									nextOffset++;
 								}
-								filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {

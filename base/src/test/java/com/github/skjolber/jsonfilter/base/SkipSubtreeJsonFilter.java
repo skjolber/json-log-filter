@@ -6,7 +6,7 @@ public class SkipSubtreeJsonFilter extends AbstractJsonFilter {
 
 	public SkipSubtreeJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson,
 			String truncateJsonString) {
-		super(maxStringLength, pruneJson, anonymizeJson, truncateJsonString);
+		super(maxStringLength, -1, pruneJson, anonymizeJson, truncateJsonString);
 	}
 
 	@Override

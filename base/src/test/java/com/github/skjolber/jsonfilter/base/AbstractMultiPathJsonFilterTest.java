@@ -18,7 +18,7 @@ public class AbstractMultiPathJsonFilterTest {
 	private static class MyAbstractMultiPathJsonFilter extends AbstractMultiPathJsonFilter {
 
 		public MyAbstractMultiPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-			super(maxStringLength, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+			super(maxStringLength, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		}
 
 		@Override

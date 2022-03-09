@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonFilter implements RangesJsonFilter {
 
 	public SingleAnyPathJsonFilter(int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
+		super(-1, -1, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	
 	public SingleAnyPathJsonFilter(int maxPathMatches, String expression, FilterType type) {
@@ -21,10 +21,8 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 
 		final char[] path = this.pathChars;
 
-		length += offset;
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches);
-		
 		length += offset;
 
 		try {
@@ -67,7 +65,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
 							// special case: anon scalar values
 							if(chars[nextOffset] == '"') {
@@ -168,7 +166,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
 							// special case: anon scalar values
 							if(chars[nextOffset] == '"') {

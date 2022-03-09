@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
 
 	public MultiPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	
 	public MultiPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
@@ -23,12 +23,12 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 
 		final int[] elementMatches = new int[elementFilters.length];
 
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
+
 		length += offset;
 
 		int level = 0;
 		
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches);
-
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
@@ -99,7 +99,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							
 							if(pathMatches != -1) {
 								pathMatches--;
@@ -236,7 +236,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 								nextOffset++;
 							}
-							filter.add(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset), FilterType.PRUNE.getType());
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							
 							if(pathMatches != -1) {
 								pathMatches--;

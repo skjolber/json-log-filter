@@ -18,18 +18,22 @@ public abstract class AbstractRangesFilter {
 
 	protected int[] filter; // start, end, type (if positive) or length (if negative)
 	protected int filterIndex = 0;
+	
+	// calculate the approximate length
+	protected int maxOutputLength;
 
-	public AbstractRangesFilter(int initialCapacity) {
+	public AbstractRangesFilter(int initialCapacity, int length) {
 		if(initialCapacity == -1) {
 			initialCapacity = DEFAULT_INITIAL_ARRAY_SIZE;
 		} else if(initialCapacity == 0) {
 			throw new IllegalArgumentException();
 		}
+		this.maxOutputLength = length;
 		
 		this.filter = new int[Math.min(initialCapacity, MAX_INITIAL_ARRAY_SIZE) * 3];
 	}
 	
-	public void addMaxLength(int start, int end, int length) {
+	protected void addMaxLength(int start, int end, int length) {
 		add(start, end, -length);
 	}
 	
@@ -41,7 +45,7 @@ public abstract class AbstractRangesFilter {
 		add(start, end, FILTER_PRUNE);
 	}
 	
-	public void add(int start, int end, int type) {
+	private void add(int start, int end, int type) {
 		if(filter.length <= filterIndex) {
 			
 			int[] next = new int[filter.length * 2];
@@ -62,5 +66,49 @@ public abstract class AbstractRangesFilter {
 	// for testing
 	protected int[] getFilter() {
 		return filter;
+	}
+	
+	public int getMaxOutputLength() {
+		return maxOutputLength;
+	}
+	
+	protected int lengthToDigits(int number) {
+		if (number < 100000) {
+		    if (number < 100) {
+		        if (number < 10) {
+		            return 1;
+		        } else {
+		            return 2;
+		        }
+		    } else {
+		        if (number < 1000) {
+		            return 3;
+		        } else {
+		            if (number < 10000) {
+		                return 4;
+		            } else {
+		                return 5;
+		            }
+		        }
+		    }
+		} else {
+		    if (number < 10000000) {
+		        if (number < 1000000) {
+		            return 6;
+		        } else {
+		            return 7;
+		        }
+		    } else {
+		        if (number < 100000000) {
+		            return 8;
+		        } else {
+		            if (number < 1000000000) {
+		                return 9;
+		            } else {
+		                return 10;
+		            }
+		        }
+		    }
+		}
 	}
 }

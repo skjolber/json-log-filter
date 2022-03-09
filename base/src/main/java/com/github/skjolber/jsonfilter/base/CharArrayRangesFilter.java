@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.base;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-
 public class CharArrayRangesFilter extends AbstractRangesFilter {
 	
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
@@ -12,25 +10,18 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
 
-	public CharArrayRangesFilter(int initialCapacity) {
-		this(initialCapacity, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
+	public CharArrayRangesFilter(int initialCapacity, int length) {
+		this(initialCapacity, length, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public CharArrayRangesFilter(int initialCapacity, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
-		super(initialCapacity);
+	public CharArrayRangesFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+		super(initialCapacity, length);
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 	}
 	
-	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		
-		// this might be controversial performance-wise; for heavy filtered documents, it might introduce a
-		// bottleneck on memory / cache bandwidth
-		// alternative approaches would be to keep track of the diff, and thus know exactly 
-		// the proper buffer size
-		buffer.ensureCapacity(buffer.length() + length); 
-		
+	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {		
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -42,65 +33,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(pruneMessage);
 			} else {
-				// account for code points and escaping
-				
-				// A high surrogate precedes a low surrogate. Together they make up a codepoint.
-				if(Character.isLowSurrogate(chars[filter[i]])) {
-					filter[i]--;
-					filter[i+2] = -(filter[i+1] - filter[i]);
-				} else {
-					// \ u
-					// \ uX
-					// \ uXX
-					// \ uXXX
-					//
-					// where X is hex
-					
-					char peek = chars[filter[i]];
-					// check for unicode encoding. That means the peek char must be a hex
-					if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
-						int index = filter[i] - 1; // index of last character which is included
-						
-						// absolute minimium is length 8:
-						// ["\ uABCD"] (without the space) so
-						// ["\ u (without the space) is the minimum
-						// so must at least be 2 characters
-						
-						if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
-	
-							filter[i] -= 2;
-							filter[i+2] -= 2;
-	
-						} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
-	
-							filter[i] -= 3;
-							filter[i+2] -= 3;
-	
-						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-	
-							filter[i] -= 4;
-							filter[i+2] -= 4;
-	
-						} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
-	
-							filter[i] -= 5;
-							filter[i+2] -= 5;
-						} else {
-							// not unicode encoded
-						}
-					} else {
-						// not unicode encoded
-					}
-					
-					//  \r \n \\ or start of \\uXXXX
-					// while loop because we could be looking at an arbitrary number of slashes, i.e.
-					// for the usual escaped values, or if one wanted to write an unicode code as text
-					while(chars[filter[i] - 1] == '\\') {
-						filter[i]--;
-						filter[i+2]--;
-					}
-				}
-				
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(truncateMessage);
 				buffer.append(-filter[i+2]);
@@ -258,7 +190,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 						
 						if(chars[nextOffset] > 0x20) {						
 							// was a value
-							filter.add(offset, nextOffset, FilterType.ANON.getType());
+							filter.addAnon(offset, nextOffset);
 							offset = nextOffset;						
 						} else {
 							// fast-forward over whitespace
@@ -279,7 +211,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 								offset = nextOffset + 1;
 							} else {
 								// value
-								filter.add(offset, end, FilterType.ANON.getType());
+								filter.addAnon(offset, end);
 								
 								offset = nextOffset;
 							}
@@ -295,7 +227,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 						nextOffset++;
 					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
 					
-					filter.add(offset, nextOffset, FilterType.ANON.getType());
+					filter.addAnon(offset, nextOffset);
 					
 					offset = nextOffset;
 					
@@ -305,6 +237,91 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			}
 			offset++;
 		}
+	}
+	
+	public void addMaxLength(char[] chars, int start, int end, int length) {
+		// account for code points and escaping
+		
+		// A high surrogate precedes a low surrogate. Together they make up a codepoint.
+		if(Character.isLowSurrogate(chars[start])) {
+			start--;
+			length = end - start;
+		} else {
+			// \ u
+			// \ uX
+			// \ uXX
+			// \ uXXX
+			//
+			// where X is hex
+
+			char peek = chars[start];
+			// check for unicode encoding. That means the peek char must be a hex
+			if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
+				int index = start - 1; // index of last character which is included
+				
+				// absolute minimum is length 8:
+				// ["\ uABCD"] (without the space) so
+				// ["\ u (without the space) is the minimum
+				// so must at least be 2 characters
+				
+				int offset;
+				if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 1
+					offset = 2;
+				} else if(chars[index--] == 'u' && chars[index] == '\\') { // index minimum at 0
+					offset = 3;
+				} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+					offset = 4;
+				} else if(index > 0 && chars[index--] == 'u' && chars[index] == '\\') {
+					offset = 5;
+				} else {
+					// not unicode encoded
+					offset = 0;
+				}
+				if(offset > 0) {
+					int slashCount = 1;
+					// is the unicode encoded with an odd number of slashes?
+					while(chars[index - slashCount] == '\\') {
+						slashCount++;
+					}
+					if(slashCount % 2 == 1) {
+						start -= offset;
+						length += offset;
+					}
+				}
+			} else {
+				// not unicode encoded
+				
+				//  \r \n \\ or start of \\uXXXX
+				// while loop because we could be looking at an arbitrary number of slashes, i.e.
+				// for the usual escaped values, or if one wanted to write an unicode code as text
+				if(chars[start - 1] == '\\') {
+					int slashCount = 2;
+					// is the unicode encoded with an odd number of slashes?
+					while(chars[start - slashCount] == '\\') {
+						slashCount++;
+					}
+					if(slashCount % 2 == 0) {
+						start--;
+						length++;
+					}
+				}
+			}
+		}
+		super.addMaxLength(start, end, length);
+		
+		this.maxOutputLength -= end - start - truncateMessage.length - lengthToDigits(length); // max integer
+	}
+	
+	public void addAnon(int start, int end) {
+		super.addAnon(start, end);
+		
+		this.maxOutputLength -= end - start - anonymizeMessage.length;
+	}
+	
+	public void addPrune(int start, int end) {
+		super.addPrune(start, end);
+		
+		this.maxOutputLength -= end - start - pruneMessage.length;
 	}
 	
 }
