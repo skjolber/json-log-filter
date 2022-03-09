@@ -188,7 +188,8 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	 * Method that will quote text contents using JSON standard quoting,
 	 * and append results to a supplied {@link StringBuilder}.
 	 * Use this variant if you have e.g. a {@link StringBuilder} and want to avoid superfluous copying of it.
-	 *
+	 * @param input source
+	 * @param output destination
 	 * From the Jackson library.
 	 */
 	public static void quoteAsString(CharSequence input, StringBuilder output) {

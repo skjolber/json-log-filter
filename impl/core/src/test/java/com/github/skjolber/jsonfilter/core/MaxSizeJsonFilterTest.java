@@ -1,18 +1,14 @@
 package com.github.skjolber.jsonfilter.core;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -25,7 +21,7 @@ public class MaxSizeJsonFilterTest {
 	private JsonFactory factory = new JsonFactory();
 
 	@Test
-	public void testMaxSizeString() throws IOException {
+	public void testMaxSizeChars() throws IOException {
 		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
 
 		for(int i = 2; i < string.length(); i++) {		
@@ -72,7 +68,7 @@ public class MaxSizeJsonFilterTest {
 	}
 	
 	@Test
-	public void testDeepStructureString() throws IOException {
+	public void testDeepStructureChars() throws IOException {
 		int levels = 100;
 		String string = new String(Generator.generateDeepStructure(levels), StandardCharsets.UTF_8);
 
@@ -122,4 +118,38 @@ public class MaxSizeJsonFilterTest {
 			while(parse.nextToken() != null);
 		}
 	}
+	
+	@Test
+	public void testMaxSizeFilteringNotNecessaryBytes() throws IOException {
+		int levels = 100;
+		byte[] generateDeepStructure = Generator.generateDeepStructure(levels);
+
+		for(int i = 2; i < generateDeepStructure.length; i++) {		
+			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(generateDeepStructure.length);
+		
+			byte[] process = filter.process(generateDeepStructure);
+	
+			assertEquals(process.length, generateDeepStructure.length);
+
+			validate(process);
+		}
+
+	}
+	
+	@Test
+	public void testMaxSizeFilteringNotNecessaryChars() throws IOException {
+		int levels = 100;
+		String string = new String(Generator.generateDeepStructure(levels), StandardCharsets.UTF_8);
+
+		for(int i = 2; i < string.length(); i++) {		
+			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(string.length());
+		
+			String process = filter.process(string);
+	
+			assertEquals(process.length(), string.length());
+
+			validate(process);
+		}
+	}
+
 }
