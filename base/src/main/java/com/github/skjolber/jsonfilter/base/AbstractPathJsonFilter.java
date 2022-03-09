@@ -59,8 +59,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	
 	protected final int maxPathMatches;
 	
-	public AbstractPathJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, int maxSize) {
-		super(maxStringLength, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+	public AbstractPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(maxPathMatches < -1) {
 			throw new IllegalArgumentException();

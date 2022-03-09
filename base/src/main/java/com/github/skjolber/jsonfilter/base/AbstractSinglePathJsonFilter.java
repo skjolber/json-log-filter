@@ -21,8 +21,8 @@ public abstract class AbstractSinglePathJsonFilter extends AbstractPathJsonFilte
 
 	protected final FilterType filterType;
 
-	public AbstractSinglePathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, int maxSize) {
-		super(maxStringLength, maxPathMatches, type == FilterType.ANON ? new String[]{expression} : EMPTY, type == FilterType.PRUNE ? new String[]{expression} : EMPTY, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+	public AbstractSinglePathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, maxPathMatches, type == FilterType.ANON ? new String[]{expression} : EMPTY, type == FilterType.PRUNE ? new String[]{expression} : EMPTY, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		this.filterType = type;
 	}

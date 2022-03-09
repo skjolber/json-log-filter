@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharArrayAnyPathJsonFilter implements RangesJsonFilter {
 
 	public SingleAnyPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage, -1);
+		super(maxStringLength, -1, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	
 	public SingleAnyPathMaxStringLengthJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type) {

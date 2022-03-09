@@ -17,7 +17,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	public DefaultJacksonJsonFilter(JsonFactory jsonFactory) {
-		super(-1, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, -1);
+		super(-1, -1, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 		this.jsonFactory = jsonFactory;
 	}
 

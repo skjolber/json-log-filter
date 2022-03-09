@@ -6,7 +6,7 @@ public class SkipObjectJsonFilter extends AbstractJsonFilter {
 
 	public SkipObjectJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson,
 			String truncateJsonString) {
-		super(maxStringLength, pruneJson, anonymizeJson, truncateJsonString, -1);
+		super(maxStringLength, -1, pruneJson, anonymizeJson, truncateJsonString);
 	}
 
 	@Override

@@ -28,7 +28,7 @@ public class AbstractJsonFilterTest {
 	private class MyAbstractJsonFilter extends AbstractJsonFilter {
 
 		public MyAbstractJsonFilter(int maxStringLength, String pruneJson, String anonymizeJson, String truncateJsonString) {
-			super(maxStringLength, pruneJson, anonymizeJson, truncateJsonString, -1);
+			super(maxStringLength, -1, pruneJson, anonymizeJson, truncateJsonString);
 		}
 
 		@Override

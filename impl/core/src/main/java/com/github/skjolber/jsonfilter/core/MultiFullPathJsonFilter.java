@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
 
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, -1);
+		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(anyElementFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");

@@ -7,8 +7,8 @@ public abstract class AbstractSingleCharArrayAnyPathJsonFilter extends AbstractS
 	protected final char[] pathChars;
 	protected final byte[] pathBytes;
 	
-	public AbstractSingleCharArrayAnyPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, int maxSize) {
-		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+	public AbstractSingleCharArrayAnyPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(!hasAnyPrefix(expression)) {
 			throw new IllegalArgumentException("Full element path expression not supported");

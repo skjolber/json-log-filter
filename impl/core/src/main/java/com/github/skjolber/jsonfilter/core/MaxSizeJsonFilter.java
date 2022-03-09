@@ -23,7 +23,7 @@ import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 	public MaxSizeJsonFilter(String pruneMessage, String anonymizeMessage, String truncateMessage, int maxSize) {
-		super(-1, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+		super(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public MaxSizeJsonFilter(int maxSize) {

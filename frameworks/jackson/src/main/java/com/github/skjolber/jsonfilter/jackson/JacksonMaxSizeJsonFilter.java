@@ -28,7 +28,7 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 
 	public JacksonMaxSizeJsonFilter(int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
-		super(-1, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+		super(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 		this.jsonFactory = jsonFactory;
 	}
 	

@@ -4,8 +4,8 @@ public abstract class AbstractSingleStringFullPathJsonFilter extends AbstractSin
 
 	protected final String[] paths;
 	
-	public AbstractSingleStringFullPathJsonFilter(int maxStringLength, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, int maxSize) {
-		super(maxStringLength, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage, maxSize);
+	public AbstractSingleStringFullPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		if(hasAnyPrefix(expression)) {
 			throw new IllegalArgumentException("Any element expression not supported");
