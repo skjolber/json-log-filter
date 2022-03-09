@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.jmh;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -125,87 +126,87 @@ public class AllFilterBenchmark {
 	}
 
 	@Benchmark
-	public long noop_passthrough() {
+	public long noop_passthrough() throws IOException {
 		return defaultJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long multiAnyPathLogbook() {
+	public long multiAnyPathLogbook() throws IOException {
 		return multiAnyPathLogbookJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonSingleMaxStringLengthJackson() {
+	public long anonSingleMaxStringLengthJackson() throws IOException {
 		return singleFullPathAnonymizeMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long anonMultiMaxStringLengthJackson() {
+	public long anonMultiMaxStringLengthJackson() throws IOException {
 		return multiPathAnonymizeMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonMultiAnyMaxStringLengthJackson() {
+	public long anonMultiAnyMaxStringLengthJackson() throws IOException {
 		return multiAnyPathAnonymizeMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long maxStringLengthJackson() {
+	public long maxStringLengthJackson() throws IOException {
 		return maxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long maxSizeJackson() {
+	public long maxSizeJackson() throws IOException {
 		return maxSizeJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long anonSingleFullPath() {
+	public long anonSingleFullPath() throws IOException {
 		return singleFullPathAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonSingleAnyPath() {
+	public long anonSingleAnyPath() throws IOException {
 		return singleAnyPathAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonSingleAnyPathMaxStringLength() {
+	public long anonSingleAnyPathMaxStringLength() throws IOException {
 		return singleAnyPathAnonymizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long anonSingleFullPathMaxStringLength() {
+	public long anonSingleFullPathMaxStringLength() throws IOException {
 		return singleFullPathMaxStringLengthAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonMultiPathMaxStringLength() {
+	public long anonMultiPathMaxStringLength() throws IOException {
 		return multiPathMaxStringLengthAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonMultiPath() {
+	public long anonMultiPath() throws IOException {
 		return multiPathAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long anonMultiFullPath() {
+	public long anonMultiFullPath() throws IOException {
 		return multiPathAnonymizeFullPathJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long maxStringLength() {
+	public long maxStringLength() throws IOException {
 		return maxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long maxSize() {
+	public long maxSize() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long arakelian_filter() {
+	public long arakelian_filter() throws IOException {
 		return singlePathArakelianJsonFilter.benchmarkBytes();
 	}
 

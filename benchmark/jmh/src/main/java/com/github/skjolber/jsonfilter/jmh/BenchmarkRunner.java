@@ -114,7 +114,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		return sizeSum;
 	}	
 	
-	public long benchmarkBytes() {
+	public long benchmarkBytes() throws IOException {
 
 		// warmup
 		long sizeSum = 0;

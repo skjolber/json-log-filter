@@ -34,7 +34,7 @@ public class ByteArrayRangesFilterTest {
 	}
 
 	@Test
-	public void testSimpleEscapeAlignment() {
+	public void testSimpleEscapeAlignment() throws IOException {
 		byte[] encoded = "abcdef\\nghijkl".getBytes(StandardCharsets.UTF_8);
 		for(int i = 2; i < encoded.length; i++) {
 
@@ -53,7 +53,7 @@ public class ByteArrayRangesFilterTest {
 	}
 	
 	@Test
-	public void testDoubleSlashAlignment() {
+	public void testDoubleSlashAlignment() throws IOException {
 		byte[] encoded = "abcdef\\\\ghijkl".getBytes(StandardCharsets.UTF_8);
 		for(int i = 3; i < encoded.length; i++) {
 
@@ -72,7 +72,7 @@ public class ByteArrayRangesFilterTest {
 	}
 
 	@Test
-	public void testJsonEncodingUnicodeAlignment() {
+	public void testJsonEncodingUnicodeAlignment() throws IOException {
 		String escaped = "\\uF678";
 		byte[] encoded = ("abcdefghi" + escaped + "ghijkl").getBytes(StandardCharsets.UTF_8);
 		
@@ -98,7 +98,7 @@ public class ByteArrayRangesFilterTest {
 	}
 
 	@Test
-	public void testUTF8EncodingAlignment() {
+	public void testUTF8EncodingAlignment() throws IOException {
 		String latinScriptAlphabetCharacter = new String(new byte[]{(byte) 0xc3, (byte) 0xa5}, StandardCharsets.UTF_8); //"å"; - norwegian
 		String basicMultilingualPlaneCharacter = new String(new byte[]{(byte) 0xec, (byte) 0x98, (byte) 0xa4}, StandardCharsets.UTF_8); // "오"; - korean
 		String otherUnicodePlanes = new String(new byte[]{(byte) 0xf0, (byte) 0x9f, (byte) 0x98, (byte) 0x82}, StandardCharsets.UTF_8);  // "😂";  // smilie
@@ -139,7 +139,7 @@ public class ByteArrayRangesFilterTest {
 
 
 	@Test
-	public void testUnicodeAlignmentForBorderCase() {
+	public void testUnicodeAlignmentForBorderCase() throws IOException {
 		String escaped = "\\uF678";
 		byte[] encoded = ("[\"" + escaped + "\"]").getBytes(StandardCharsets.UTF_8);
 		
@@ -164,7 +164,7 @@ public class ByteArrayRangesFilterTest {
 		}
 	}
 	
-	private String splitAt(String string, int i) {
+	private String splitAt(String string, int i) throws IOException {
 		byte[] encoded = string.getBytes(StandardCharsets.UTF_8);
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(encoded.length, encoded.length);
 		filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
@@ -176,7 +176,7 @@ public class ByteArrayRangesFilterTest {
 	}
 	
 	@Test
-	public void testNoUnicodeAlignmentForSingleEscapeCharacters() {
+	public void testNoUnicodeAlignmentForSingleEscapeCharacters() throws IOException {
 		String str = "abcdefghiF678g\\n\\naaa";
 		assertEquals("abcdefghiF678...TRUNCATED BY 8", splitAt(str, 13));
 		assertEquals("abcdefghiF678g...TRUNCATED BY 7", splitAt(str, 14));
@@ -189,7 +189,7 @@ public class ByteArrayRangesFilterTest {
 	}
 	
 	@Test
-	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() {
+	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() throws IOException {
 		String str = "abcdefghiF678ghijkluuuu\\\\uF678xxx";
 		assertEquals("abcdefghiF678ghijkluu...TRUNCATED BY 12", splitAt(str, 21));
 		assertEquals("abcdefghiF678ghijkluuu...TRUNCATED BY 11", splitAt(str, 22));
@@ -207,7 +207,7 @@ public class ByteArrayRangesFilterTest {
 	
 
 	@Test
-	public void testSurrugateAlignment() {
+	public void testSurrugateAlignment() throws IOException {
 		String escaped = "\uF234";
 		byte[] encoded = ("abcdefghi" + escaped + "ghijkl").getBytes(StandardCharsets.UTF_8);
 		

@@ -16,7 +16,7 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
@@ -114,12 +114,16 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
 		if(length <= maxSize) {
 			if(chars.length < offset + length) {
 				return false;
 			}
-			output.write(chars, offset, length);
+			try {
+				output.write(chars, offset, length);
+			} catch(Exception e) {
+				return false;
+			}
 			return true;
 		}
 		

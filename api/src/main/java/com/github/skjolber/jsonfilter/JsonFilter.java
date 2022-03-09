@@ -17,9 +17,9 @@
 
 package com.github.skjolber.jsonfilter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 
 /**
@@ -85,7 +85,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(Reader reader, int length, StringBuilder output) throws IOException;
+	boolean process(Reader reader, int length, StringBuilder output) throws IOException;;
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -115,7 +115,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(byte[] chars, ByteArrayOutputStream output);
+	boolean process(byte[] chars, OutputStream output) throws IOException;
 
 	/**
 	 * Filter JSON characters to an output ByteArrayOutputStream.
@@ -127,7 +127,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
+	boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException;
 
 	/**
 	 * Filter JSON characters to an output ByteArrayOutputStream.
@@ -139,7 +139,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException;
+	boolean process(InputStream input, int length, OutputStream output) throws IOException;
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -150,7 +150,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(InputStream input, ByteArrayOutputStream output) throws IOException;
+	boolean process(InputStream input, OutputStream output) throws IOException;
 
 	/**
 	 * 

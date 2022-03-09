@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
@@ -21,7 +22,7 @@ public interface RangesJsonFilter extends JsonFilter {
 	
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
-	public default boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public default boolean process(final byte[] chars, int offset, int length, final OutputStream buffer) throws IOException {
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;

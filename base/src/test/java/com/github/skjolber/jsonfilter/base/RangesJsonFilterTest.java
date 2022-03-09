@@ -9,13 +9,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.junit.jupiter.api.Test;
 
 public class RangesJsonFilterTest {
 
 	@Test
-	public void testRanges() {
+	public void testRanges() throws IOException {
 		RangesJsonFilter mock = mock(RangesJsonFilter.class);
 		
 		CharArrayRangesFilter charArrayRangesFilter = mock(CharArrayRangesFilter.class);
@@ -24,24 +26,24 @@ public class RangesJsonFilterTest {
 		when(mock.process(any(char[].class), any(int.class), any(int.class), any(StringBuilder.class))).thenCallRealMethod();
 		when(mock.ranges(any(char[].class), any(int.class), any(int.class))).thenReturn(charArrayRangesFilter);
 		
-		when(mock.process(any(byte[].class), any(int.class), any(int.class), any(ByteArrayOutputStream.class))).thenCallRealMethod();
+		when(mock.process(any(byte[].class), any(int.class), any(int.class), any(OutputStream.class))).thenCallRealMethod();
 		when(mock.ranges(any(byte[].class), any(int.class), any(int.class))).thenReturn(byteArrayRangesFilter);
 		
 		assertTrue(mock.process(new char[] {}, 0, 0, new StringBuilder()));
 		assertTrue(mock.process(new byte[] {}, 0, 0, new ByteArrayOutputStream()));
 		
 		verify(charArrayRangesFilter, times(1)).filter(any(char[].class), any(int.class), any(int.class), any(StringBuilder.class));
-		verify(byteArrayRangesFilter, times(1)).filter(any(byte[].class), any(int.class), any(int.class), any(ByteArrayOutputStream.class));
+		verify(byteArrayRangesFilter, times(1)).filter(any(byte[].class), any(int.class), any(int.class), any(OutputStream.class));
 	}
 	
 	@Test
-	public void testNoFiltering() {
+	public void testNoFiltering() throws IOException {
 		RangesJsonFilter mock = mock(RangesJsonFilter.class);
 		
 		when(mock.process(any(char[].class), any(int.class), any(int.class), any(StringBuilder.class))).thenCallRealMethod();
 		when(mock.ranges(any(char[].class), any(int.class), any(int.class))).thenReturn(null);
 		
-		when(mock.process(any(byte[].class), any(int.class), any(int.class), any(ByteArrayOutputStream.class))).thenCallRealMethod();
+		when(mock.process(any(byte[].class), any(int.class), any(int.class), any(OutputStream.class))).thenCallRealMethod();
 		when(mock.ranges(any(byte[].class), any(int.class), any(int.class))).thenReturn(null);
 		
 		assertFalse(mock.process(new char[] {}, 0, 0, new StringBuilder()));

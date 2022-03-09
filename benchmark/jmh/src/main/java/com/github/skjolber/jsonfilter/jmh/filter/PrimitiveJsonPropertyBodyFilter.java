@@ -5,6 +5,7 @@ import static java.util.regex.Pattern.compile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
@@ -134,7 +135,7 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
 		String process = process(new String(chars, offset, length));
 		
 		byte[] bytes = process.getBytes(StandardCharsets.UTF_8);
@@ -143,17 +144,17 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, int length, OutputStream output) throws IOException {
 		throw new RuntimeException("Not implemented");
 	}
 
 	@Override
-	public boolean process(InputStream input, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, OutputStream output) throws IOException {
 		return process(input, -1, output);
 	}
 
 	@Override
-	public boolean process(byte[] chars, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, OutputStream output) throws IOException {
 		return process(chars, 0, chars.length, output);
 	}
 

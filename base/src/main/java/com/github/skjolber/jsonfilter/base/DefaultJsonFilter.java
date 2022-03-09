@@ -1,9 +1,9 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -83,13 +83,13 @@ public class DefaultJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
 		output.write(chars, offset, length);
 		return true;
 	}
 
 	@Override
-	public boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, int length, OutputStream output) throws IOException {
 		if(length == -1) {
 			return process(input, output);
 		}
@@ -112,7 +112,7 @@ public class DefaultJsonFilter implements JsonFilter {
 		return true;
 	}
 
-	public boolean process(InputStream input, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, OutputStream output) throws IOException {
 		byte[] chars = new byte[4 * 1024];
 
 		int read;
@@ -129,7 +129,7 @@ public class DefaultJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, OutputStream output) throws IOException {
 		return process(chars, 0, chars.length, output);
 	}	
 	

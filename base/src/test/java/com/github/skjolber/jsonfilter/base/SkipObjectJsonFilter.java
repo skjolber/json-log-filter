@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class SkipObjectJsonFilter extends AbstractJsonFilter {
 
@@ -19,7 +20,7 @@ public class SkipObjectJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
 		output.write(chars, offset, length);
 		if(chars[offset] != '{') {
 			return true;

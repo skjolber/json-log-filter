@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
@@ -85,7 +86,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.truncateMessage = truncateMessage;
 	}
 	
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public void filter(final byte[] chars, int offset, int length, final OutputStream buffer) throws IOException {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -238,7 +239,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.maxOutputLength -= end - start - pruneMessage.length;
 	}
 	
-	protected final void writeInt(ByteArrayOutputStream out, int v) {
+	protected final void writeInt(OutputStream out, int v) throws IOException {
 		int chars = getChars(v, 11, digit);
 		
 		out.write(digit, chars, 11 - chars);

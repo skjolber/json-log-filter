@@ -5,6 +5,7 @@ import java.io.CharArrayWriter;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
@@ -96,34 +97,40 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 	public boolean process(Reader reader, StringBuilder output) throws IOException {
-		char[] chars = new char[4 * 1024];
+		char[] buffer = new char[4 * 1024];
 
-		CharArrayWriter writer = new CharArrayWriter(chars.length);
+		CharArrayWriter writer = new CharArrayWriter(buffer.length);
 		int read;
 		do {
-			read = reader.read(chars, 0, chars.length);
+			read = reader.read(buffer, 0, buffer.length);
 			if(read == -1) {
 				break;
 			}
 			
-			writer.write(chars, 0, read);
+			writer.write(buffer, 0, read);
 		} while(true);
 
-		return process(writer.toString(), output);
+		char[] chars = writer.toCharArray();
+		
+		return process(chars, 0, chars.length, output);
 	}
 	
 	@Override
 	public byte[] process(byte[] chars) {
 		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
 		
-		if(process(chars, 0, chars.length, output)) {
-			return output.toByteArray();
+		try {
+			if(process(chars, 0, chars.length, output)) {
+				return output.toByteArray();
+			}
+		} catch (IOException e) {
+			// ignore
 		}
 		return null;
 	}
 
 	@Override
-	public boolean process(InputStream input, int length, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, int length, OutputStream output) throws IOException {
 		if(length == -1) {
 			return process(input, output);
 		}
@@ -144,7 +151,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(InputStream input, ByteArrayOutputStream output) throws IOException {
+	public boolean process(InputStream input, OutputStream output) throws IOException {
 		byte[] chars = new byte[4 * 1024];
 
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -164,7 +171,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 	@Override
-	public boolean process(byte[] chars, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, OutputStream output) throws IOException {
 		return process(chars, 0, chars.length, output);
 	}
 

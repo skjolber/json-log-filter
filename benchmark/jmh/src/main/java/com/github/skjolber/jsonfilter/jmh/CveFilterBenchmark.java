@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.jmh;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -92,12 +93,12 @@ public class CveFilterBenchmark {
 	}
 
 	@Benchmark
-	public long all_jackson() {
+	public long all_jackson() throws IOException {
 		return multiPathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long all_core() {
+	public long all_core() throws IOException {
 		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
@@ -107,17 +108,17 @@ public class CveFilterBenchmark {
 	}
 
 	@Benchmark
-	public long maxStringLength_jackson() {
+	public long maxStringLength_jackson() throws IOException {
 		return maxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long maxStringLength_core() {
+	public long maxStringLength_core() throws IOException {
 		return maxStringLengthJsonFilter.benchmarkBytes();
 	}	
 
 	@Benchmark
-	public long anon_single_jackson() {
+	public long anon_single_jackson() throws IOException {
 		return singlePathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 
@@ -127,12 +128,12 @@ public class CveFilterBenchmark {
 	}
 
 	@Benchmark
-	public long anon_single_core() {
+	public long anon_single_core() throws IOException {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}	
 	
 	@Benchmark
-	public long maxSize() {
+	public long maxSize() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
 	}
 

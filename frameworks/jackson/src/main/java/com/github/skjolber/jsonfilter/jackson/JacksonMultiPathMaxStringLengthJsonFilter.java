@@ -1,7 +1,7 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
@@ -208,7 +208,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
 		//output.ensureCapacity(output.length() + length);
 
 		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {

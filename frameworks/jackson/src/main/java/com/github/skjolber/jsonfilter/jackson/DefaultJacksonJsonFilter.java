@@ -1,7 +1,7 @@
 package com.github.skjolber.jsonfilter.jackson;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -62,7 +62,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
 		try (JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			if(parse(parser)) {
 				output.write(chars, offset, length);
