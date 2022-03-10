@@ -32,10 +32,11 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int mark = nextOffset;
+					
 					nextOffset++;
 					
 					// is this a field name or a value? A field name must be followed by a colon
-					int mark = nextOffset - 1;
 					if(chars[nextOffset] != ':') {
 						// skip over whitespace
 						
@@ -133,10 +134,11 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int mark = nextOffset;
+					
 					nextOffset++;
 					
 					// is this a field name or a value? A field name must be followed by a colon
-					int mark = nextOffset - 1;
 					if(chars[nextOffset] != ':') {
 						// skip over whitespace
 						
