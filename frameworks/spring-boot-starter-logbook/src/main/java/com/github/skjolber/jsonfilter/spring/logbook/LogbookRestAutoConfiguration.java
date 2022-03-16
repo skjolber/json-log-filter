@@ -16,7 +16,7 @@ public class LogbookRestAutoConfiguration {
 	public MethodArgumentValuesDetector getDetector() {
 		return new DefaultMethodArgumentValuesDetector();
 	}
-	
+
 	@Bean
 	public LogbookWebMvcRegistrations CustomMvcRegistrations(Logbook logbook, MethodArgumentValuesDetector detector) {
 		return new LogbookWebMvcRegistrations(logbook, detector);

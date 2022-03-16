@@ -15,7 +15,7 @@ public class CompactingJsonProcessor extends JsonProcessor {
 		}
 		return body;
 	}
-	
+
 	@Override
 	public String processBody(String body) throws IOException {
 		if(body != null) {

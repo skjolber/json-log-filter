@@ -10,10 +10,10 @@ import org.zalando.logbook.Origin;
 public abstract class AbstractPreprocessedHttpMessage<B extends HttpMessage> implements PreprocessedHttpMessage {
 
 	protected final B message;
-	
+
 	protected final boolean databindingPerformed;
 	protected final boolean databindingSuccessful; 
-	
+
 	public AbstractPreprocessedHttpMessage(B message, boolean databindingPerformed, boolean databindingSuccessful) {
 		this.message = message;
 		this.databindingPerformed = databindingPerformed;

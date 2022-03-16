@@ -11,7 +11,7 @@ public abstract class AbstractFilterHttpMessage<B extends HttpMessage> {
 
 	protected final B message;
 	protected final JsonProcessor jsonProcessor;
-	
+
 	public AbstractFilterHttpMessage(B request, JsonProcessor jsonProcessor) {
 		this.jsonProcessor = jsonProcessor;
 		this.message = request;

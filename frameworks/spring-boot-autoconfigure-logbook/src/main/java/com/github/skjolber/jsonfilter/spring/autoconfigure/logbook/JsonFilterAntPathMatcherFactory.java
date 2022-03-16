@@ -11,7 +11,7 @@ import org.springframework.util.AntPathMatcher;
 public class JsonFilterAntPathMatcherFactory implements JsonFilterPathMatcherFactory {
 
 	protected AntPathMatcher matcher = new AntPathMatcher();
-	
+
 	@Override
 	public JsonFilterPathMatcher createMatcher(String antMatcher, JsonFilter validatingFilter, JsonFilter nonvalidatingFilter) {
 		JsonFilterPathMatcher m; 

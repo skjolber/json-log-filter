@@ -7,5 +7,5 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 public interface MethodArgumentValuesDetector {
 
 	boolean isDatabindingArguments(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer, Object[] args);
-	
+
 }
