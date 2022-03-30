@@ -55,7 +55,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -76,7 +76,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 								}
 
 								offset = nextOffset;
@@ -87,7 +87,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						
 						if(matches + 1 == level) {
 						
-							if(matchPath(chars, offset + 1, mark, elementPaths[matches])) {
+							if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 								matches++;
 							} else {
 								offset = nextOffset;
@@ -195,7 +195,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -216,7 +216,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 								}
 
 								offset = nextOffset;
@@ -227,7 +227,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						
 						if(matches + 1 == level) {
 						
-							if(matchPath(chars, offset + 1, mark, elementPaths[matches])) {
+							if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 								matches++;
 							} else {
 								offset = nextOffset;

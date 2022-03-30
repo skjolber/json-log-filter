@@ -57,7 +57,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -87,11 +87,11 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						
 						// match again any higher filter
 						if(level < elementFilterStart.length) {
-							type = matchElements(chars, offset + 1, mark, level, elementMatches);
+							type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, mark);
+							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}
 								
 						nextOffset++;
@@ -195,7 +195,7 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -225,11 +225,11 @@ public class MultiPathJsonFilter extends AbstractMultiPathJsonFilter implements 
 						
 						// match again any higher filter
 						if(level < elementFilterStart.length) {
-							type = matchElements(chars, offset + 1, mark, level, elementMatches);
+							type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, mark);
+							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}
 
 						nextOffset++;

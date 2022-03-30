@@ -51,70 +51,52 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		int mark = 0;
 
 		try {
-			return process(chars, offset, length, level, squareBrackets, mark, buffer);
+			while(offset < length) {
+				switch(chars[offset]) {
+					case '{' :
+					case '[' :
+						squareBrackets[level] = chars[offset] == '[';
+						
+						level++;
+						if(level >= squareBrackets.length) {
+							boolean[] next = new boolean[squareBrackets.length + 32];
+							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+							squareBrackets = next;
+						}
+						mark = offset;
+						
+						break;
+					case '}' :
+					case ']' :
+						level--;
+						// fall through
+					case ',' :
+						mark = offset;
+						break;
+					case '"' :					
+						do {
+							offset++;
+						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						offset++;
+						
+						continue;
+						
+					default : // do nothing
+				}
+				offset++;
+				
+			}
+			
+			mark = alignMark(mark, chars);
+			
+			buffer.append(chars, 0, mark);
+			
+			closeStructure(level, squareBrackets, buffer);
+		
+			return true;
 		} catch(Exception e) {
 			return false;
 		}
-	}
-
-	protected boolean process(final char[] chars, int offset, int limit, int level, boolean[] squareBrackets, int mark, final StringBuilder buffer) {
-		while(offset < limit) {
-			switch(chars[offset]) {
-				case '{' :
-				case '[' :
-					squareBrackets[level] = chars[offset] == '[';
-					
-					level++;
-					if(level >= squareBrackets.length) {
-						boolean[] next = new boolean[squareBrackets.length + 32];
-						System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-						squareBrackets = next;
-					}
-					mark = offset;
-					
-					break;
-				case '}' :
-				case ']' :
-					level--;
-				case ',' :
-					mark = offset;
-					break;
-				case '"' :					
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
-					
-					continue;
-					
-				default : // do nothing
-			}
-			offset++;
-			
-		}
-		switch(chars[mark]) {
-		
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				mark++;
-
-				break;
-			default : // do nothing
-		}
-		
-		buffer.append(chars, 0, mark);
-		
-		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackets[i]) {
-				buffer.append(']');
-			} else {
-				buffer.append('}');
-			}
-		}
-
-		return true;
 	}
 
 	@Override
@@ -142,62 +124,92 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		int mark = 0;
 
 		try {
-			return extracted(chars, offset, length, level, squareBrackes, mark, output);
+			while(offset < length) {
+				switch(chars[offset]) {
+					case '{' :
+					case '[' :
+						squareBrackes[level] = chars[offset] == '[';
+						
+						level++;
+						if(level >= squareBrackes.length) {
+							boolean[] next = new boolean[squareBrackes.length + 32];
+							System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
+							squareBrackes = next;
+						}
+						mark = offset;
+						
+						break;
+					case '}' :
+					case ']' :
+						level--;
+						// fall through
+					case ',' :
+						mark = offset;
+						break;
+					case '"' :
+						do {
+							offset++;
+						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						offset++;
+						
+						continue;
+						
+					default : // do nothing
+				}
+				offset++;
+				
+			}
+			mark = alignMark(mark, chars);
+			
+			output.write(chars, 0, mark);
+			
+			closeStructure(level, squareBrackes, output);
+	
+			return true;
 		} catch(Exception e) {
 			return false;
 		}
-
 	}
 
-	protected boolean extracted(byte[] chars, int offset, int limit, int level, boolean[] squareBrackes, int mark, OutputStream output) throws IOException {
-		while(offset < limit) {
-			switch(chars[offset]) {
-				case '{' :
-				case '[' :
-					squareBrackes[level] = chars[offset] == '[';
-					
-					level++;
-					if(level >= squareBrackes.length) {
-						boolean[] next = new boolean[squareBrackes.length + 32];
-						System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
-						squareBrackes = next;
-					}
-					mark = offset;
-					
-					break;
-				case '}' :
-				case ']' :
-					level--;
-				case ',' :
-					mark = offset;
-					break;
-				case '"' :					
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
-					
-					continue;
-					
-				default : // do nothing
+	private void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				buffer.append(']');
+			} else {
+				buffer.append('}');
 			}
-			offset++;
-			
 		}
+	}
+	
+	public int alignMark(int mark, byte[] chars) {
 		switch(chars[mark]) {
-		
+			
 			case '{' :
 			case '}' :
 			case '[' :
 			case ']' :
-				mark++;
-
-				break;
-			default : // do nothing
+				return mark + 1;
+			default : {
+				return mark;
+			}
 		}
-		
-		output.write(chars, 0, mark);
-		
+	}
+	
+	public int alignMark(int mark, char[] chars) {
+		switch(chars[mark]) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				return mark + 1;
+			default : {
+				return mark;
+			}
+		}
+	}
+	
+	private void closeStructure(int level, boolean[] squareBrackes, OutputStream output) throws IOException {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackes[i]) {
 				output.write(']');
@@ -205,7 +217,5 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				output.write('}');
 			}
 		}
-
-		return true;
 	}
 }

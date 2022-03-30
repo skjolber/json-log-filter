@@ -9,7 +9,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	protected final char[] pruneMessage;
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
-
+	
 	public CharArrayRangesFilter(int initialCapacity, int length) {
 		this(initialCapacity, length, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
@@ -32,6 +32,9 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(pruneMessage);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				// do nothing
+				buffer.append(chars, offset, filter[i] - offset);
 			} else {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(truncateMessage);
@@ -72,7 +75,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			}
 			offset++;
 		}
-	}	
+	}
 
 	public static int skipSubtree(char[] chars, int offset) {
 		int level = 0;
@@ -309,19 +312,33 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 		super.addMaxLength(start, end, length);
 		
-		this.maxOutputLength -= end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
 	}
 	
 	public void addAnon(int start, int end) {
 		super.addAnon(start, end);
 		
-		this.maxOutputLength -= end - start - anonymizeMessage.length;
+		this.removedLength += end - start - anonymizeMessage.length;
 	}
 	
 	public void addPrune(int start, int end) {
 		super.addPrune(start, end);
 		
-		this.maxOutputLength -= end - start - pruneMessage.length;
+		this.removedLength += end - start - pruneMessage.length;
+	}
+
+	public void addDelete(int start, int end) {
+		super.addDelete(start, end);
+		
+		this.removedLength += end - start;
 	}
 	
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+
 }

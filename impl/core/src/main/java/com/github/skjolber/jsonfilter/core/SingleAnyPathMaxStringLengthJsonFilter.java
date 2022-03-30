@@ -36,7 +36,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int mark = nextOffset;
+					int quoteIndex = nextOffset;
 					
 					nextOffset++;
 
@@ -57,7 +57,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 						if(chars[nextOffset] != ':') {
 							// was a text value
 							if(nextOffset - offset > maxStringLength) {								
-								filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
 							offset = nextOffset;							
@@ -65,7 +65,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 						}
 					}
 					
-					if(matchPath(chars, offset + 1, mark, path)) {
+					if(matchPath(chars, offset + 1, quoteIndex, path)) {
 
 						nextOffset++;
 						if(filterType == FilterType.PRUNE) {
@@ -144,7 +144,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int mark = nextOffset;
+					int quoteIndex = nextOffset;
 					
 					nextOffset++;
 
@@ -165,7 +165,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 						if(chars[nextOffset] != ':') {
 							// was a text value
 							if(nextOffset - offset > maxStringLength) {								
-								filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
 							offset = nextOffset;							
@@ -173,7 +173,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 						}
 					}
 					
-					if(matchPath(chars, offset + 1, mark, path)) {
+					if(matchPath(chars, offset + 1, quoteIndex, path)) {
 
 						nextOffset++;
 						if(filterType == FilterType.PRUNE) {

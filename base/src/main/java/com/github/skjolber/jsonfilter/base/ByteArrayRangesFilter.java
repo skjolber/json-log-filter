@@ -80,7 +80,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	public ByteArrayRangesFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		super(initialCapacity, length);
-		this.maxOutputLength = length;
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
@@ -224,19 +223,19 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		
 		super.addMaxLength(start, end, length);
 		
-		this.maxOutputLength -= end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
 	}
 
 	public void addAnon(int start, int end) {
 		super.addAnon(start, end);
 		
-		this.maxOutputLength -= end - start - anonymizeMessage.length;
+		this.removedLength += end - start - anonymizeMessage.length;
 	}
 	
 	public void addPrune(int start, int end) {
 		super.addPrune(start, end);
 		
-		this.maxOutputLength -= end - start - pruneMessage.length;
+		this.removedLength += end - start - pruneMessage.length;
 	}
 	
 	protected final void writeInt(OutputStream out, int v) throws IOException {
@@ -274,6 +273,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}	
 
+
+	
 	public static int skipSubtree(byte[] chars, int offset) {
 		int level = 0;
 
@@ -317,6 +318,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
+
 
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');

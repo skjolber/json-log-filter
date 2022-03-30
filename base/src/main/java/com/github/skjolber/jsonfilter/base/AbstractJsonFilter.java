@@ -182,7 +182,11 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
 		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
-	
+
+	protected CharArrayRangesBracketFilter getCharArrayRangesBracketFilter(int capacity, int length) {
+		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
 	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
 		return getByteArrayRangesFilter(-1, length);
 	}

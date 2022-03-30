@@ -32,7 +32,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int mark = nextOffset;
+					int quoteIndex = nextOffset;
 					
 					nextOffset++;
 					
@@ -58,7 +58,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						}
 					}
 					
-					if(matchPath(chars, offset + 1, mark, path)) {
+					if(matchPath(chars, offset + 1, quoteIndex, path)) {
 
 						nextOffset++;
 						if(filterType == FilterType.PRUNE) {
@@ -134,7 +134,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int mark = nextOffset;
+					int quoteIndex = nextOffset;
 					
 					nextOffset++;
 					
@@ -160,7 +160,7 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						}
 					}
 					
-					if(matchPath(chars, offset + 1, mark, path)) {
+					if(matchPath(chars, offset + 1, quoteIndex, path)) {
 
 						nextOffset++;
 						if(filterType == FilterType.PRUNE) {

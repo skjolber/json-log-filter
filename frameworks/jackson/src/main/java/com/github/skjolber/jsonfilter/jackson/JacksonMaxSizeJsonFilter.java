@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,10 +12,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
-public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements JacksonJsonFilter {
+public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implements JacksonJsonFilter {
 
-	protected final JsonFactory jsonFactory;
-	
 	public JacksonMaxSizeJsonFilter(int maxSize) {
 		this(maxSize, new JsonFactory());
 	}
@@ -28,11 +27,13 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 
 	public JacksonMaxSizeJsonFilter(int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
-		super(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
-		this.jsonFactory = jsonFactory;
+		super(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		if(maxSize >= length) {
+			super.process(chars, offset, length, output);
+		}
 		output.ensureCapacity(output.length() + length);
 
 		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
@@ -43,6 +44,9 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
+		if(maxSize >= length) {
+			super.process(bytes, offset, length, output);
+		}
 		output.ensureCapacity(output.length() + length);
 
 		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
@@ -53,12 +57,28 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 	
 	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
-		try (final JsonParser parser = jsonFactory.createParser(in)) {
-			return process(parser, generator);
-		}
+		byte[] chars = new byte[4 * 1024];
+
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		int read;
+		do {
+			read = in.read(chars, 0, chars.length);
+			if(read == -1) {
+				break;
+			}
+			
+			bout.write(chars, 0, read);
+		} while(true);
+
+		byte[] bytes = bout.toByteArray();
+		
+		return process(bytes, 0, bytes.length, generator);
 	}
 
 	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) {
+		if(maxSize >= length) {
+			super.process(bytes, offset, length, generator);
+		}
 		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			return process(parser, generator);
 		} catch(final Exception e) {
@@ -67,6 +87,9 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 	}
 
 	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
+		if(maxSize >= length) {
+			super.process(chars, offset, length, generator);
+		}
 		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			return process(parser, generator);
 		} catch(final Exception e) {
@@ -74,8 +97,7 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 		}
 	}
 
-	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-		
+	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {		
 		final int maxSize = this.maxSize - 5; // account for 4x double quotes and a colon
 
         String fieldName = null;
@@ -97,6 +119,7 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 				}
 				continue;
 			} else if(nextToken == JsonToken.VALUE_STRING) {
+				// preemptive size check for string value
 				int length = parser.getTextLength();
 				if(fieldName != null) {
 					if(size + fieldName.length() + length > maxSize) {
@@ -122,8 +145,9 @@ public class JacksonMaxSizeJsonFilter extends AbstractJsonFilter implements Jack
 
 	@Override
 	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		//output.ensureCapacity(output.length() + length);
-
+		if(maxSize >= length) {
+			return super.process(chars, offset, length, output);
+		}
 		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
 			return process(chars, offset, length, generator);
 		} catch(final Exception e) {

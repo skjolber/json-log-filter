@@ -28,8 +28,12 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	}
 
 	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
-		super(maxStringLength, -1, -1, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
-
+		this(maxStringLength, -1, -1, expression, type, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
+	}
+	
+	protected JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
+		
 		this.jsonFactory = jsonFactory;
 	}
 
@@ -88,6 +92,11 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 			if(nextToken == null) {
 				break;
 			}
+			
+			long size = parser.currentLocation().getCharOffset();
+			if(size >= maxSize) {
+				break;
+			}
 
 			if(nextToken == JsonToken.START_OBJECT) {
 				level++;
@@ -130,27 +139,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 					}
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				String text = parser.getText();
-				
-				// A high surrogate precedes a low surrogate.
-				// check last include character
-
-				builder.append('"');
-
-				int max;
-				if(Character.isLowSurrogate(text.charAt(maxStringLength))) {
-					max = maxStringLength - 1;
-				} else {
-					max = maxStringLength;
-				}
-
-				quoteAsString(text.substring(0, max), builder);
-				builder.append(truncateStringValue);
-				builder.append(text.length() - max);
-				builder.append('"');
-				
-				generator.writeRawValue(builder.toString());
-				builder.setLength(0);
+				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
 				continue;
 			}

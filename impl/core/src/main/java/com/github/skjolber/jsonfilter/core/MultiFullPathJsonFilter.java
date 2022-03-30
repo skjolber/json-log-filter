@@ -59,7 +59,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 
 						nextOffset++;							
 
@@ -87,7 +87,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						nextOffset++;
 
 						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, mark, level, elementMatches);
+						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {
@@ -204,7 +204,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;							
 
@@ -232,7 +232,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						nextOffset++;
 
 						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, mark, level, elementMatches);
+						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {

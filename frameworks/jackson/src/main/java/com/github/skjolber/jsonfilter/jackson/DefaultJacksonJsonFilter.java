@@ -1,11 +1,14 @@
 package com.github.skjolber.jsonfilter.jackson;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
@@ -20,6 +23,12 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 		super(-1, -1, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
 		this.jsonFactory = jsonFactory;
 	}
+	
+	protected DefaultJacksonJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString, JsonFactory jsonFactory) {
+		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
+		
+		this.jsonFactory = jsonFactory;
+	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 		try (JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
@@ -29,6 +38,22 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 				return true;
 			}
 			return false;
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) {
+		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
+			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+
+	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
+		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
 		}
@@ -83,6 +108,20 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 			return false;
 		}
 	}
+	
+	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+		while(true) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				break;
+			}
+			generator.copyCurrentEvent(parser);
+		}
+		generator.flush(); // don't close
+		
+		return true;
+	}
+	
 	
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;

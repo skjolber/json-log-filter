@@ -53,7 +53,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -74,7 +74,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 								}
 
 								offset = nextOffset;
@@ -87,11 +87,11 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 						
 						// match again any higher filter
 						if(level < elementFilterStart.length) {
-							type = matchElements(chars, offset + 1, mark, level, elementMatches);
+							type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, mark);
+							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}					
 								
 						nextOffset++;
@@ -200,7 +200,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;
 						
@@ -221,7 +221,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 							if(chars[nextOffset] != ':') {
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {								
-									filter.addMaxLength(chars, offset + maxStringLength - 1, mark, -(offset - 1 + maxStringLength - mark));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 								}
 
 								offset = nextOffset;
@@ -234,11 +234,11 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 						
 						// match again any higher filter
 						if(level < elementFilterStart.length) {
-							type = matchElements(chars, offset + 1, mark, level, elementMatches);
+							type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, mark);
+							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}					
 								
 						nextOffset++;
