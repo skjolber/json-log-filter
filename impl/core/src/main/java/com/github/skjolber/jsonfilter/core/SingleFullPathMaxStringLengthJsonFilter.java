@@ -30,8 +30,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 		length += offset;
 
 		int level = 0;
-		
-		length += offset;
 
 		try {
 			while(offset < length) {
@@ -85,6 +83,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 							}
 						}
 						
+						// was field name
 						if(matches + 1 == level) {
 						
 							if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
@@ -173,14 +172,14 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 		
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
-		length += offset;
-
 		try {
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
 						level++;
 						
+						// TODO check level vs matches here, go with max string length only for subtree
+
 						break;
 					case '}' :
 						level--;

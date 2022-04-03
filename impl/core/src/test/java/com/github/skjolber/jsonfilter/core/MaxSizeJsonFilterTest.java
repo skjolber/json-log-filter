@@ -64,9 +64,8 @@ public class MaxSizeJsonFilterTest {
 
 			validate(process);
 		}
-
 	}
-	
+
 	@Test
 	public void testDeepStructureChars() throws IOException {
 		int levels = 100;
@@ -82,7 +81,7 @@ public class MaxSizeJsonFilterTest {
 			validate(process);
 		}
 	}
-	
+
 	@Test
 	public void testInvalidInput() throws Exception {
 		String string = new String(Generator.generateDeepStructure(1000), StandardCharsets.UTF_8);
@@ -102,23 +101,8 @@ public class MaxSizeJsonFilterTest {
 		assertFalse(filter.process(new char[]{}, 0, string.length(), new StringBuilder()));
 		
 		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ByteArrayOutputStream()));
-
-	}
-	
-	
-	
-	private void validate(byte[] process) throws IOException, JsonParseException {
-		try (JsonParser parse = factory.createParser(process)) {
-			while(parse.nextToken() != null);
-		}
 	}
 
-	private void validate(String process) throws IOException, JsonParseException {
-		try (JsonParser parse = factory.createParser(process)) {
-			while(parse.nextToken() != null);
-		}
-	}
-	
 	@Test
 	public void testMaxSizeFilteringNotNecessaryBytes() throws IOException {
 		int levels = 100;
@@ -133,9 +117,8 @@ public class MaxSizeJsonFilterTest {
 
 			validate(process);
 		}
-
 	}
-	
+
 	@Test
 	public void testMaxSizeFilteringNotNecessaryChars() throws IOException {
 		int levels = 100;
@@ -149,6 +132,18 @@ public class MaxSizeJsonFilterTest {
 			assertEquals(process.length(), string.length());
 
 			validate(process);
+		}
+	}
+
+	private void validate(byte[] process) throws IOException, JsonParseException {
+		try (JsonParser parse = factory.createParser(process)) {
+			while(parse.nextToken() != null);
+		}
+	}
+
+	private void validate(String process) throws IOException, JsonParseException {
+		try (JsonParser parse = factory.createParser(process)) {
+			while(parse.nextToken() != null);
 		}
 	}
 

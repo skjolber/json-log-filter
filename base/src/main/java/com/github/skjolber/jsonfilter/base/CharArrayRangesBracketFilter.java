@@ -144,6 +144,127 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		return offset;
 	}
 	
+	public static int skipObject(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength, CharArrayRangesBracketFilter filter, BracketStructure bracketStructure) {
+		System.out.println("Enter level " + bracketStructure.getLevel());
+		int levelLimit = bracketStructure.getLevel() - 1;
+		
+		int level = bracketStructure.getLevel();
+		
+		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
+		int mark = bracketStructure.getMark();
+
+		loop:
+		while(offset < maxSizeLimit) {
+
+			switch(chars[offset]) {
+				case '{' :
+				case '[' :
+				{
+					squareBrackets[level] = chars[offset] == '[';
+					
+					level++;
+					if(level >= squareBrackets.length) {
+						squareBrackets = bracketStructure.grow(squareBrackets);
+					}
+					mark = offset;
+					
+					break;
+				}
+				case ']' :
+				case '}' : {
+					level--;
+
+					mark = offset;
+
+					if(level == levelLimit) {
+						System.out.println("Exit on level");
+						offset++;
+						break loop;
+					}
+					break;
+				}
+				case ',' :
+					mark = offset;
+					break;
+				case '"' : {
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+					
+					if(nextOffset - offset > maxStringLength) {
+						// is this a field name or a value? A field name must be followed by a colon
+						
+						// special case: no whitespace
+						if(chars[nextOffset] == ':') {
+							// key
+							offset = nextOffset + 1;
+						} else {
+							// most likely there is now no whitespace, but a comma, end array or end object
+							
+							// legal whitespaces are:
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+							
+							int end = nextOffset - 1;
+							if(chars[nextOffset] <= 0x20) {
+								// fast-forward over whitespace
+								// optimization: scan for highest value
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);
+
+								if(chars[nextOffset] == ':') {
+									// was a key
+									offset = nextOffset + 1;
+									continue;
+								}
+							}
+							
+							if(offset + maxStringLength >= maxSizeLimit) {
+								System.out.println("Exit on max size");
+								
+								offset = nextOffset;
+								
+								break loop;
+							}
+
+							int removedLength = filter.getRemovedLength();
+							filter.addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
+							// increment limit since we removed something
+							maxSizeLimit += filter.getRemovedLength() - removedLength;
+							
+							offset = nextOffset;
+							
+							mark = offset;
+						}
+					} else {
+						offset = nextOffset;
+					}
+					
+					break;
+				}
+				default : // do nothing
+			}
+			offset++;
+		}
+		System.out.println("End " + offset + " " + maxSizeLimit);
+		System.out.println(level + " vs " + levelLimit);
+		System.out.println(new String(chars, 0, offset));
+
+		bracketStructure.setLevel(level);
+		bracketStructure.setMark(mark);
+
+		return offset;
+	}
+	
+	
 	public BracketStructure getBracketStructure() {
 		return bracketStructure;
 	}

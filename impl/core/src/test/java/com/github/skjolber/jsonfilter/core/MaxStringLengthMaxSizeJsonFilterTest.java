@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -14,9 +13,8 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class SingleFullPathMaxSizeJsonFilterTest {
+public class MaxStringLengthMaxSizeJsonFilterTest {
 
 	private JsonFactory factory = new JsonFactory();
 
@@ -25,10 +23,8 @@ public class SingleFullPathMaxSizeJsonFilterTest {
 		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
 
 		for(int i = 2; i < string.length(); i++) {		
-			SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, i, "/CVE_Items/cve/CVE_data_meta/ASSIGNER", FilterType.ANON);
+			MaxStringLengthMaxSizeJsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(128, i);
 		
-			assertEquals(i, filter.getMaxSize());
-			
 			String process = filter.process(string);
 
 			assertNotNull(i + " / " + string.length(), process);
@@ -43,29 +39,6 @@ public class SingleFullPathMaxSizeJsonFilterTest {
 		}
 	}
 	
-	@Test
-	public void testMaxSizeCharsFullPath() throws IOException {
-		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
-
-		for(int i = 2; i < string.length(); i++) {
-			SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, i, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON);
-
-			assertEquals(i, filter.getMaxSize());
-
-			String process = filter.process(string);
-
-			assertNotNull(i + " / " + string.length(), process);
-			assertTrue(process.length() + " vs " + i, process.length() < i + 16);
-
-			try {
-				validate(process);
-			} catch(JsonParseException e) {
-				System.out.println(process);
-				fail();
-			}
-		}
-	}
-
 	private void validate(byte[] process) throws IOException, JsonParseException {
 		try (JsonParser parse = factory.createParser(process)) {
 			while(parse.nextToken() != null);

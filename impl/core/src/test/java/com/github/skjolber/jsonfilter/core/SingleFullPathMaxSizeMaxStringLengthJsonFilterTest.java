@@ -16,7 +16,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class SingleFullPathMaxSizeJsonFilterTest {
+public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest {
 
 	private JsonFactory factory = new JsonFactory();
 
@@ -25,7 +25,7 @@ public class SingleFullPathMaxSizeJsonFilterTest {
 		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
 
 		for(int i = 2; i < string.length(); i++) {		
-			SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, i, "/CVE_Items/cve/CVE_data_meta/ASSIGNER", FilterType.ANON);
+			SingleFullPathMaxSizeMaxStringLengthJsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(128, i, -1, "/CVE_Items/cve/CVE_data_meta/ASSIGNER", FilterType.ANON);
 		
 			assertEquals(i, filter.getMaxSize());
 			
@@ -48,7 +48,7 @@ public class SingleFullPathMaxSizeJsonFilterTest {
 		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
 
 		for(int i = 2; i < string.length(); i++) {
-			SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, i, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON);
+			SingleFullPathMaxSizeMaxStringLengthJsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(128, i, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON);
 
 			assertEquals(i, filter.getMaxSize());
 

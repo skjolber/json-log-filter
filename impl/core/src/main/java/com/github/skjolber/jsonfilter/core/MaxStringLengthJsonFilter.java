@@ -24,11 +24,15 @@ import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
 		this(maxStringLength, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+	}
+	
+	protected MaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
+		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 
 	@Override
@@ -73,6 +77,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 					if(chars[nextOffset] == ':') {
 						// key
 						offset = nextOffset + 1;
+						
+						continue;
 					} else {
 						// most likely there is now no whitespace, but a comma, end array or end object
 						
@@ -85,10 +91,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 						if(chars[nextOffset] > 0x20) {
 							// was a value
 							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
-							offset = nextOffset;
 						} else {
 							// fast-forward over whitespace
-							
 							// optimization: scan for highest value
 
 							int end = nextOffset;
@@ -99,16 +103,16 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 							if(chars[nextOffset] == ':') {
 								// was a key
 								offset = nextOffset + 1;
+								
+								continue;
 							} else {
 								// value
 								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
-								offset = nextOffset;
 							}
 						}
 					}
-				} else {
-					offset = nextOffset;
 				}
+				offset = nextOffset;
 			} else {
 				offset++;
 			}

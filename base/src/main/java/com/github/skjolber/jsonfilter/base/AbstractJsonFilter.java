@@ -187,6 +187,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
 
+	protected ByteArrayRangesBracketFilter getByteArrayRangesBracketFilter(int capacity, int length) {
+		return new ByteArrayRangesBracketFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+
 	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
 		return getByteArrayRangesFilter(-1, length);
 	}
@@ -286,7 +290,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return maxStringLength;
 	}
 
-	protected int getMaxSize() {
+	public int getMaxSize() {
 		return maxSize;
 	}
 	

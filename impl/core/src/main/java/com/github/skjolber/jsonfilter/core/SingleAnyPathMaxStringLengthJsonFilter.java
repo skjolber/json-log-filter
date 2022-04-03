@@ -26,8 +26,6 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 		length += offset;
 
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
-		
-		length += offset;
 
 		try {
 			while(offset < length) {
@@ -134,8 +132,6 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractSingleCharAr
 		length += offset;
 
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
-		
-		length += offset;
 
 		try {
 			while(offset < length) {

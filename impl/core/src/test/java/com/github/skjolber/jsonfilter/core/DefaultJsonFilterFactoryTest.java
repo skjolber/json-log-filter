@@ -34,7 +34,7 @@ public class DefaultJsonFilterFactoryTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.newJsonFilter();
 		});
-	}	
+	}
 
 	@Test
 	public void testMaxStringLength() {
