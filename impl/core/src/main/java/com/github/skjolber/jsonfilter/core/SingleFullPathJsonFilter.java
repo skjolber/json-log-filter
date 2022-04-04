@@ -25,12 +25,9 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		int pathMatches = this.maxPathMatches;
-		final char[][] elementPaths = this.pathChars;
-
-		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
+		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 		try {
-			if(ranges(chars, offset, offset + length, 0, elementPaths, 0, pathMatches, filter)) {
+			if(rangesFullPath(chars, offset, offset + length, 0, pathChars, 0, filterType, maxPathMatches, filter)) {
 				return filter;
 			}
 			return null;
@@ -39,7 +36,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		}
 	}
 
-	protected boolean ranges(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, int pathMatches, final CharArrayRangesFilter filter) {
+	protected static boolean rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
@@ -160,13 +157,13 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 		try {
-			return ranges(chars, offset, offset + length, 0, elementPaths, 0, pathMatches, filter);
+			return rangesFullPath(chars, offset, offset + length, 0, elementPaths, 0, filterType, pathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, int pathMatches, final ByteArrayRangesFilter filter) {
+	protected static ByteArrayRangesFilter rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :

@@ -2,7 +2,9 @@ package com.github.skjolber.jsonfilter.base;
 
 public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
-	protected BracketStructure bracketStructure = new BracketStructure();
+	private boolean[] squareBrackets = new boolean[32];
+	private int mark;
+	private int level;
 
 	public CharArrayRangesBracketFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
 			char[] truncateMessage) {
@@ -13,20 +15,71 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		super(initialCapacity, length);
 	}
 
+	public boolean[] grow(boolean[] squareBrackets) {
+		boolean[] next = new boolean[squareBrackets.length + 32];
+		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+		squareBrackets = next;
+		return next;
+	}
+
+	public boolean[] getSquareBrackets() {
+		return squareBrackets;
+	}
+	
+	public int getLevel() {
+		return level;
+	}
+	
+	public int getMark() {
+		return mark;
+	}
+	
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	public void setMark(int mark) {
+		this.mark = mark;
+	}
+
+	public void closeStructure(final StringBuilder buffer) {
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				buffer.append(']');
+			} else {
+				buffer.append('}');
+			}
+		}
+	}
+
+	public void alignMark(char[] chars) {
+		switch(chars[mark]) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				mark++;
+				break;
+			default : {
+			}
+		}
+	}
+	
 	@Override
 	public void filter(char[] chars, int offset, int length, StringBuilder buffer) {
 		super.filter(chars, offset, length, buffer);
 		
-		bracketStructure.closeStructure(buffer);
+		closeStructure(buffer);
 	}
 
-	public static int skipSubtree(char[] chars, int offset, int limit, BracketStructure bracketStructure) {
-		int levelLimit = bracketStructure.getLevel();
+	public int skipSubtreeMaxSize(char[] chars, int offset, int limit) {
+		int levelLimit = getLevel();
 		
-		int level = bracketStructure.getLevel();
+		int level = getLevel();
 		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < limit) {
@@ -37,7 +90,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -79,21 +132,20 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			offset++;
 		}
 		
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
-		bracketStructure.setSquareBrackets(squareBrackets);
+		setLevel(level);
+		setMark(mark);
 		
 		return offset;
 	}
 	
 	
-	public static int skipObject(char[] chars, int offset, int limit, BracketStructure bracketStructure) {
-		int levelLimit = bracketStructure.getLevel() - 1;
+	public int skipObjectMaxSize(char[] chars, int offset, int limit) {
+		int levelLimit = getLevel() - 1;
 		
-		int level = bracketStructure.getLevel();
+		int level = getLevel();
 		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < limit) {
@@ -106,7 +158,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -138,20 +190,19 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			offset++;
 		}
 
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
+		setLevel(level);
+		setMark(mark);
 
 		return offset;
 	}
 	
-	public static int skipObject(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength, CharArrayRangesBracketFilter filter, BracketStructure bracketStructure) {
-		System.out.println("Enter level " + bracketStructure.getLevel());
-		int levelLimit = bracketStructure.getLevel() - 1;
+	public int skipObjectMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
+		int levelLimit = getLevel() - 1;
 		
-		int level = bracketStructure.getLevel();
+		int level = getLevel();
 		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < maxSizeLimit) {
@@ -164,7 +215,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -235,10 +286,10 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 								break loop;
 							}
 
-							int removedLength = filter.getRemovedLength();
-							filter.addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
+							int removedLength = getRemovedLength();
+							addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
 							// increment limit since we removed something
-							maxSizeLimit += filter.getRemovedLength() - removedLength;
+							maxSizeLimit += getRemovedLength() - removedLength;
 							
 							offset = nextOffset;
 							
@@ -254,28 +305,21 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			}
 			offset++;
 		}
-		System.out.println("End " + offset + " " + maxSizeLimit);
-		System.out.println(level + " vs " + levelLimit);
-		System.out.println(new String(chars, 0, offset));
 
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
+		setLevel(level);
+		setMark(mark);
 
 		return offset;
 	}
-	
-	
-	public BracketStructure getBracketStructure() {
-		return bracketStructure;
-	}
 
-	public static int anonymizeSubtree(char[] chars, int offset, int limit, CharArrayRangesFilter filter, BracketStructure bracketStructure) {
-		int levelLimit = bracketStructure.getLevel();
+
+	public int anonymizeSubtree(char[] chars, int offset, int limit) {
+		int levelLimit = getLevel();
 		
-		int level = bracketStructure.getLevel();
+		int level = getLevel();
 		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < limit) {
@@ -286,7 +330,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -349,10 +393,10 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						
 						if(chars[nextOffset] > 0x20) {						
 							// was a value
-							if(offset + filter.getAnonymizeMessageLength() < limit) {
-								int removedLength = filter.getRemovedLength();
-								filter.addAnon(offset, nextOffset);
-								limit += filter.getRemovedLength() - removedLength;
+							if(offset + getAnonymizeMessageLength() < limit) {
+								int removedLength = getRemovedLength();
+								addAnon(offset, nextOffset);
+								limit += getRemovedLength() - removedLength;
 								
 								mark = nextOffset;
 							}
@@ -377,10 +421,10 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 								offset = nextOffset + 1;
 							} else {
 								// value
-								if(offset + filter.getAnonymizeMessageLength() < limit) {
-									int removedLength = filter.getRemovedLength();
-									filter.addAnon(offset, end);
-									limit += filter.getRemovedLength() - removedLength;
+								if(offset + getAnonymizeMessageLength() < limit) {
+									int removedLength = getRemovedLength();
+									addAnon(offset, end);
+									limit += getRemovedLength() - removedLength;
 	
 									mark = nextOffset;
 								}
@@ -398,10 +442,10 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						nextOffset++;
 					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
 					
-					if(offset + filter.getAnonymizeMessageLength() < limit) {
-						int removedLength = filter.getRemovedLength();
-						filter.addAnon(offset, nextOffset);
-						limit += filter.getRemovedLength() - removedLength;
+					if(offset + getAnonymizeMessageLength() < limit) {
+						int removedLength = getRemovedLength();
+						addAnon(offset, nextOffset);
+						limit += getRemovedLength() - removedLength;
 
 						mark = nextOffset;
 					}
@@ -415,8 +459,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			offset++;
 		}
 		
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
+		setLevel(level);
+		setMark(mark);
 
 		return offset;
 	}

@@ -1,27 +1,80 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
-	protected BracketStructure BracketStructure = new BracketStructure();
+	private boolean[] squareBrackets = new boolean[32];
+	private int mark;
+	private int level;
 	
 	public ByteArrayRangesBracketFilter(int initialCapacity, int length) {
 		super(initialCapacity, length);
 	}
-
 
 	public ByteArrayRangesBracketFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage,
 			byte[] truncateMessage) {
 		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
+	public boolean[] grow(boolean[] squareBrackets) {
+		boolean[] next = new boolean[squareBrackets.length + 32];
+		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+		squareBrackets = next;
+		return next;
+	}
 
-	public static int skipObject(byte[] chars, int offset, int limit, BracketStructure bracketStructure) {
-		int levelLimit = bracketStructure.getLevel() - 1;
+	public boolean[] getSquareBrackets() {
+		return squareBrackets;
+	}
+	
+	public int getLevel() {
+		return level;
+	}
+	
+	public int getMark() {
+		return mark;
+	}
+	
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	public void setMark(int mark) {
+		this.mark = mark;
+	}
+	
+	public void alignMark(byte[] chars) {
+		switch(chars[mark]) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				mark++;
+				break;
+			default : {
+			}
+		}
+	}
+	
+	public void closeStructure(int level, OutputStream output) throws IOException {
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				output.write(']');
+			} else {
+				output.write('}');
+			}
+		}
+	}	
+
+	public int skipObjectMaxSize(byte[] chars, int offset, int limit) {
+		int levelLimit = getLevel() - 1;
 		
-		int level = bracketStructure.getLevel();
-		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		int level = getLevel();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < limit) {
@@ -34,7 +87,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -64,22 +117,21 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 			offset++;
 		}
 
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
-		bracketStructure.setSquareBrackets(squareBrackets);
+		setLevel(level);
+		setMark(mark);
+		setSquareBrackets(squareBrackets);
 
 		return offset;
 	}	
 	
 
-	public static int skipSubtree(char[] chars, int offset, int limit, BracketStructure bracketStructure) {
+	public int skipSubtreeMaxSize(char[] chars, int offset, int limit) {
 		
-		int levelLimit = bracketStructure.getLevel();
+		int levelLimit = getLevel();
 		
-		int level = bracketStructure.getLevel();
-		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int mark = bracketStructure.getMark();
+		int level = getLevel();
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
 
 		loop:
 		while(offset < limit) {
@@ -90,7 +142,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 					
 					level++;
 					if(level >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -132,11 +184,14 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 			offset++;
 		}
 		
-		bracketStructure.setLevel(level);
-		bracketStructure.setMark(mark);
-		bracketStructure.setSquareBrackets(squareBrackets);
+		setLevel(level);
+		setMark(mark);
+		setSquareBrackets(squareBrackets);
 		
 		return offset;
 	}
-	
+
+	public void setSquareBrackets(boolean[] squareBrackets) {
+		this.squareBrackets = squareBrackets;
+	}
 }

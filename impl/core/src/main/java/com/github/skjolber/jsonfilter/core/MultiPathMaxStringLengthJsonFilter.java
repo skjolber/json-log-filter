@@ -33,13 +33,13 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
+			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
 		} catch(Exception e) {
 			return null;
 		}		
 	}
 
-	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final CharArrayRangesFilter filter) {
+	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 
@@ -180,13 +180,13 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFil
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
+			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
 		} catch(Exception e) {
 			return null;
 		}		
 	}
 
-	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final ByteArrayRangesFilter filter) {
+	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 

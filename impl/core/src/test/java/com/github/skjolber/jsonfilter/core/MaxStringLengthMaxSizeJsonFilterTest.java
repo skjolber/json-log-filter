@@ -28,7 +28,10 @@ public class MaxStringLengthMaxSizeJsonFilterTest {
 			String process = filter.process(string);
 
 			assertNotNull(i + " / " + string.length(), process);
-			assertTrue(process.length() + " vs " + i, process.length() < i + 16);
+			if(process.length() >= i + 16) {
+				System.out.println(process);
+				fail(process.length() + " vs " + i);
+			}
 
 			try {
 				validate(process);

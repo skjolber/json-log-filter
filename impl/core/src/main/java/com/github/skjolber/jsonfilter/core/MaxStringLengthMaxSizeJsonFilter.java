@@ -16,7 +16,6 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.BracketStructure;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesBracketFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesBracketFilter;
@@ -67,11 +66,9 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 	}
 	
 	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
-		BracketStructure bracketStructure = filter.getBracketStructure(); 
-		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int bracketLevel = bracketStructure.getLevel();
-		int mark = bracketStructure.getMark();
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		int bracketLevel = filter.getLevel();
+		int mark = filter.getMark();
 		
 		try {
 			loop:
@@ -82,7 +79,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						bracketLevel++;
 						
 						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = bracketStructure.grow(squareBrackets);
+							squareBrackets = filter.grow(squareBrackets);
 						}
 
 						mark = offset;
@@ -98,7 +95,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						bracketLevel++;
 
 						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = bracketStructure.grow(squareBrackets);
+							squareBrackets = filter.grow(squareBrackets);
 						}
 						mark = offset;
 
@@ -152,7 +149,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 									}
 								}
 								
-								if(offset + maxStringLength >= maxSizeLimit) {
+								if(nextOffset + maxStringLength >= maxSizeLimit) {
 									break loop;
 								}
 								
@@ -165,13 +162,13 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								
 								if(maxSizeLimit >= limit) {
 									// filter only for max string length
-									bracketStructure.setLevel(0);
+									filter.setLevel(0);
 									
 									return ranges(chars, nextOffset, limit, maxStringLength, filter); 
 								}
 								mark = nextOffset;
 							}
-						}					
+						}
 						offset = nextOffset;
 						continue;
 						
@@ -183,21 +180,20 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 				return null;
 			} else if(offset < limit) {
 				// max size reached before end of document
-				bracketStructure.setLevel(bracketLevel);
-				bracketStructure.setMark(mark);
-				bracketStructure.setSquareBrackets(squareBrackets);
+				filter.setLevel(bracketLevel);
+				filter.setMark(mark);
 
-				bracketStructure.alignMark(chars);
+				filter.alignMark(chars);
 				
 				// filter rest of document
-				filter.addDelete(bracketStructure.getMark(), limit);
+				filter.addDelete(filter.getMark(), limit);
 			} else {
 				// was able to fit the end of the document
 				if(bracketLevel != 0) {
 					return null;
 				}
 				
-				bracketStructure.setLevel(0);
+				filter.setLevel(0);
 			}
 			
 			return filter;

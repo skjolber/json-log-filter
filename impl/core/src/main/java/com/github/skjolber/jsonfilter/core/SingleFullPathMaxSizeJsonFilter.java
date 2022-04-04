@@ -1,6 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.BracketStructure;
+import com.github.skjolber.jsonfilter.base.ByteArrayRangesBracketFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesBracketFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
@@ -21,44 +21,43 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 	}
 
 	
-	
-	
-	
-	
-	
-	// må ta imot CharArrayRangesBracketFilter
-	
-	
-	
-	
-	
-	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		if(length <= maxSize) {
 			return super.ranges(chars, offset, length);
 		}
 
-		int pathMatches = this.maxPathMatches;
+		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
-		int matches = 0;
+		try {
+			return rangesFullPathMaxSize(chars, offset, offset + length, offset + maxSize, 0, pathChars, 0, filterType, maxPathMatches, filter);
+		} catch(Exception e) {
+			return null;
+		}
+	}
 
-		final char[][] elementPaths = this.pathChars;
-
-		final CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
-
-		length += offset; // i.e. max limit
+	@Override
+	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+		if(length <= maxSize) {
+			return super.ranges(chars, offset, length);
+		}
 		
-		int maxSizeLimit = offset + maxSize;
+		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		
+		try {
+			//return ranges(chars, offset, offset + length, offset + maxSize, maxStringLength, 0,  filter);
+			throw new RuntimeException();
+		} catch(Exception e) {
+			return null;
+		}
+	}
+	
+	public static CharArrayRangesBracketFilter rangesFullPathMaxSize(final char[] chars, int offset, int limit, int maxSizeLimit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, CharArrayRangesBracketFilter filter) {
 
-		int level = 0;
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		int bracketLevel = filter.getLevel();
+		int mark = filter.getMark();
 		
-		BracketStructure bracketStructure = filter.getBracketStructure(); 
-		
-		int mark = 0;
-		
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
-		int bracketLevel = 0;
 		try {
 			loop:
 			while(offset < maxSizeLimit) {
@@ -70,21 +69,21 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 						bracketLevel++;
 						
 						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = bracketStructure.grow(squareBrackets);
+							squareBrackets = filter.grow(squareBrackets);
 						}
 
 						mark = offset;
 
 						if(level > matches + 1) {
 							// so always level < elementPaths.length
-							bracketStructure.setLevel(bracketLevel);
-							bracketStructure.setMark(mark);
+							filter.setLevel(bracketLevel);
+							filter.setMark(mark);
 							
-							offset = CharArrayRangesBracketFilter.skipObject(chars, offset + 1, maxSizeLimit, bracketStructure);
+							offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
 
-							squareBrackets = bracketStructure.getSquareBrackets();
-							mark = bracketStructure.getMark();
-							bracketLevel = bracketStructure.getLevel();
+							squareBrackets = filter.getSquareBrackets();
+							mark = filter.getMark();
+							bracketLevel = filter.getLevel();
 
 							// counted offset bracket twice
 							level--;
@@ -107,7 +106,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 						bracketLevel++;
 
 						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = bracketStructure.grow(squareBrackets);
+							squareBrackets = filter.grow(squareBrackets);
 						}
 						mark = offset;
 
@@ -215,14 +214,14 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
 								} else {
 									// filter as tree
-									bracketStructure.setLevel(bracketLevel);
-									bracketStructure.setMark(mark);
+									filter.setLevel(bracketLevel);
+									filter.setMark(mark);
 									
-									offset = CharArrayRangesBracketFilter.anonymizeSubtree(chars, nextOffset, maxSizeLimit, filter, bracketStructure);
+									offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
 
-									squareBrackets = bracketStructure.getSquareBrackets();
-									mark = bracketStructure.getMark();
-									bracketLevel = bracketStructure.getLevel();
+									squareBrackets = filter.getSquareBrackets();
+									mark = filter.getMark();
+									bracketLevel = filter.getLevel();
 
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -238,24 +237,27 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 							if(pathMatches != -1) {
 								pathMatches--;
 								if(pathMatches == 0) {
-									if(maxSizeLimit >= length) {
+									if(maxSizeLimit >= limit) {
 										// filtering finished, i.e. keep the rest of the document
-										bracketStructure.setLevel(0);
+										filter.setLevel(0);
 										return filter;
 									}
 									
 									// filtering only for max size
-									return ranges(chars, nextOffset, maxSizeLimit, bracketLevel, mark, filter, bracketStructure);
-								}
+									filter.setMark(mark);
+									filter.setLevel(bracketLevel);
+									
+									return rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
+								}							
 							}
 
 							matches--;
 
-							if(maxSizeLimit >= length) {
+							if(maxSizeLimit >= limit) {
 								// filtering only for full path, i.e. keep the rest of the document
-								bracketStructure.setLevel(0);
+								filter.setLevel(0);
 								
-								if(ranges(chars, offset, length, level, elementPaths, matches, pathMatches, filter)) {
+								if(rangesFullPath(chars, offset, limit, level, elementPaths, matches, filterType, pathMatches, filter)) {
 									return filter;
 								}
 								return null;
@@ -269,38 +271,38 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 				offset++;
 			}
 
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 				return null;
-			} else if(offset < length) {
+			} else if(offset < limit) {
 				// max size reached before end of document
-				bracketStructure.setLevel(bracketLevel);
-				bracketStructure.setMark(mark);
-				bracketStructure.setSquareBrackets(squareBrackets);
+				filter.setLevel(bracketLevel);
+				filter.setMark(mark);
 
-				bracketStructure.alignMark(chars);
+				filter.alignMark(chars);
 				
 				// filter rest of document
-				filter.addDelete(bracketStructure.getMark(), length);
+				filter.addDelete(filter.getMark(), limit);
 			} else {
 				// was able to fit the end of the document
 				if(bracketLevel != 0) {
 					return null;
 				}
 				
-				bracketStructure.setLevel(0);
+				filter.setLevel(0);
 			}
 			
 			return filter;
 		} catch(Exception e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
 
-	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int bracketLevel, int mark, CharArrayRangesFilter filter, BracketStructure bracketStructure) {
-		boolean[] squareBrackets = bracketStructure.getSquareBrackets();
+	protected static CharArrayRangesBracketFilter rangesMaxSize(final char[] chars, int offset, int maxSizeLimit, CharArrayRangesBracketFilter filter) {
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		int bracketLevel = filter.getLevel();
+		int mark = filter.getMark();
 		
-		while(offset < limit) {
+		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '{' :
 				case '[' :
@@ -308,7 +310,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 					
 					bracketLevel++;
 					if(bracketLevel >= squareBrackets.length) {
-						squareBrackets = bracketStructure.grow(squareBrackets);
+						squareBrackets = filter.grow(squareBrackets);
 					}
 					mark = offset;
 					
@@ -333,34 +335,27 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 			offset++;			
 		}
 		
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+		if(offset > maxSizeLimit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else if(offset < limit) {
+		} else if(offset < maxSizeLimit) {
 			// max size reached before end of document
-			bracketStructure.setLevel(bracketLevel);
-			bracketStructure.setMark(mark);
-			bracketStructure.setSquareBrackets(squareBrackets);
+			filter.setLevel(bracketLevel);
+			filter.setMark(mark);
 
-			bracketStructure.alignMark(chars);
+			filter.alignMark(chars);
 			
 			// remove rest of document
-			filter.addDelete(bracketStructure.getMark(), limit);
+			filter.addDelete(filter.getMark(), maxSizeLimit);
 		} else {
 			// was able to fit the end of the document, so should be level 0
 			if(bracketLevel != 0) {
 				return null;
 			}
 			
-			bracketStructure.setLevel(0);
+			filter.setLevel(0);
 		}
 		
 		return filter;
-	}
-
-	
-	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		throw new RuntimeException();
 	}
 
 	protected char[] getPruneJsonValue() {
