@@ -16,7 +16,7 @@
 
 	<properties>
 		<jmh.version>1.34</jmh.version>
-		<arakelian.jsonfilter.version>3.9.1</arakelian.jsonfilter.version>
+		<arakelian.jsonfilter.version>3.10.0</arakelian.jsonfilter.version>
 		<uberjar.name>benchmarks</uberjar.name>
 		<sonar.skip>true</sonar.skip>
 	</properties>
