@@ -24,7 +24,7 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFil
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

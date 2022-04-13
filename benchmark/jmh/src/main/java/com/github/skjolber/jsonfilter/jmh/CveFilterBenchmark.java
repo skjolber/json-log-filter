@@ -26,7 +26,6 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter2;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;

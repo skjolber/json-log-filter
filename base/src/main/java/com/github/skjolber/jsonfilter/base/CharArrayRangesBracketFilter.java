@@ -197,16 +197,14 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 	}
 	
 	public int skipObjectMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
-		int levelLimit = getLevel() - 1;
-		
 		int level = getLevel();
+		int levelLimit = level - 1;
 		
 		boolean[] squareBrackets = getSquareBrackets();
 		int mark = getMark();
 
 		loop:
 		while(offset < maxSizeLimit) {
-
 			switch(chars[offset]) {
 				case '{' :
 				case '[' :
@@ -228,7 +226,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					mark = offset;
 
 					if(level == levelLimit) {
-						System.out.println("Exit on level");
 						offset++;
 						break loop;
 					}
@@ -238,80 +235,90 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					mark = offset;
 					break;
 				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					
 					int nextOffset = offset;
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 					nextOffset++;
-					
-					if(nextOffset - offset > maxStringLength) {
-						// is this a field name or a value? A field name must be followed by a colon
-						
-						// special case: no whitespace
-						if(chars[nextOffset] == ':') {
-							// key
-							offset = nextOffset + 1;
-						} else {
-							// most likely there is now no whitespace, but a comma, end array or end object
-							
-							// legal whitespaces are:
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-							
-							int end = nextOffset - 1;
-							if(chars[nextOffset] <= 0x20) {
-								// fast-forward over whitespace
-								// optimization: scan for highest value
-								do {
-									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);
 
-								if(chars[nextOffset] == ':') {
-									// was a key
-									offset = nextOffset + 1;
-									continue;
-								}
-							}
-							
-							if(offset + maxStringLength >= maxSizeLimit) {
-								System.out.println("Exit on max size");
-								
-								offset = nextOffset;
-								
-								break loop;
-							}
-
-							int removedLength = getRemovedLength();
-							addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
-							// increment limit since we removed something
-							maxSizeLimit += getRemovedLength() - removedLength;
-							
-							offset = nextOffset;
-							
-							mark = offset;
-						}
-					} else {
+					if(nextOffset - offset <= maxStringLength) {
 						offset = nextOffset;
+						
+						continue;
+					}
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+						
+						continue;
+					} else {
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
+						// space: 0x20
+						// tab: 0x09
+						// carriage return: 0x0D
+						// newline: 0x0A
+						
+						int end = nextOffset - 1;
+						if(chars[nextOffset] <= 0x20) {
+							// fast-forward over whitespace
+							// optimization: scan for highest value
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
+
+							if(chars[nextOffset] == ':') {
+								// was a key
+								offset = nextOffset + 1;
+								continue;
+							}
+						}
+						
+						if(offset + maxStringLength >= maxSizeLimit) {
+							offset = maxSizeLimit;
+							
+							break loop;
+						}
+
+						int removedLength = getRemovedLength();
+						addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
+						// increment limit since we removed something
+						maxSizeLimit += getRemovedLength() - removedLength;
+
+						if(maxSizeLimit > limit) {
+							maxSizeLimit = limit;
+						}
+						
+						if(nextOffset >= maxSizeLimit) {
+							removeLastFilter();
+							
+							offset = maxSizeLimit;
+							
+							break loop;
+						}
+						
+						offset = nextOffset;
+						
+						mark = offset;
 					}
 					
-					break;
+					continue;
 				}
 				default : // do nothing
 			}
 			offset++;
 		}
-
+		
 		setLevel(level);
 		setMark(mark);
 
 		return offset;
 	}
-
 
 	public int anonymizeSubtree(char[] chars, int offset, int limit) {
 		int levelLimit = getLevel();
@@ -394,11 +401,17 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						if(chars[nextOffset] > 0x20) {						
 							// was a value
 							if(offset + getAnonymizeMessageLength() < limit) {
+								
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
 								limit += getRemovedLength() - removedLength;
 								
 								mark = nextOffset;
+							} else {
+								// make sure to stop scanning here
+								offset = limit;
+
+								break loop;
 							}
 
 							offset = nextOffset;
@@ -422,11 +435,17 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 							} else {
 								// value
 								if(offset + getAnonymizeMessageLength() < limit) {
+									
 									int removedLength = getRemovedLength();
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
 									mark = nextOffset;
+								} else {
+									// make sure to stop scanning here
+									offset = limit;
+
+									break loop;
 								}
 								offset = nextOffset;
 							}
@@ -441,30 +460,33 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
-					
+
 					if(offset + getAnonymizeMessageLength() < limit) {
+						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
 						limit += getRemovedLength() - removedLength;
 
 						mark = nextOffset;
+					} else {
+						// make sure to stop scanning here
+						offset = limit;
+
+						break loop;
 					}
 
 					offset = nextOffset;
-
+					
 					continue;
-							
 				}
 			}
 			offset++;
 		}
-		
+
 		setLevel(level);
 		setMark(mark);
 
 		return offset;
 	}
-	
-
 	
 }

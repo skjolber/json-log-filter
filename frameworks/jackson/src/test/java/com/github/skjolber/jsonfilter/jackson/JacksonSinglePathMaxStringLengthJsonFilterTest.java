@@ -50,7 +50,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilterTest extends AbstractJack
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new JacksonSinglePathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new JacksonSinglePathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

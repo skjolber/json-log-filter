@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.test;
 
+import java.util.function.Function;
+
 import com.github.skjolber.jsonfilter.JsonFilter;
 
 /**
@@ -21,5 +23,12 @@ public abstract class AbstractJsonFilterTest {
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
+	
+	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
+		JsonFilterResult process = runner.process(maxSize, infiniteSize);
+			
+		return JsonFilterResultSubject.assertThat(process);
+	}
+
 
 }

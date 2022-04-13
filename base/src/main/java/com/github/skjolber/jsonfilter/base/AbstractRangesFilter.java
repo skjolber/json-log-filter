@@ -69,6 +69,10 @@ public abstract class AbstractRangesFilter {
 		return filterIndex;
 	}
 
+	public void removeLastFilter() {
+		filterIndex -= 3;
+	}
+	
 	// for testing
 	protected int[] getFilter() {
 		return filter;

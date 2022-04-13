@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -14,9 +15,14 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 
-public class MaxSizeJsonFilterTest {
+public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
+
+	public MaxSizeJsonFilterTest() throws Exception {
+		super();
+	}
 
 	private JsonFactory factory = new JsonFactory();
 
@@ -147,4 +153,28 @@ public class MaxSizeJsonFilterTest {
 		}
 	}
 
+	@Test
+	public void passthrough_success() throws Exception {
+		assertThat(new MaxSizeJsonFilter(-1)).hasPassthrough();
+	}
+
+	@Test
+	public void exception_returns_false() throws Exception {
+		assertFalse(new MaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(new MaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+	}
+
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
+		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
+	public void maxSize() throws Exception {
+		assertThat(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
+	}
+	
+	
+	
 }

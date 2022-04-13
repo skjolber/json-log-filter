@@ -51,23 +51,23 @@ public class SingleAnyPathMaxStringLengthJsonFilterTest extends DefaultJsonFilte
 
 	@Test
 	public void anonymizeAnyMaxStringLength() throws Exception {
-		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
 	}
 
 	@Test
 	public void anonymizeAnyMaxStringLengthMaxPathMatches() throws Exception {
-		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
 		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(4, 1, "//child1", FilterType.ANON)).hasAnonymized("//child1");
 		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(4, 2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
 	}
 
 	@Test
 	public void pruneAnyMaxStringLength() throws Exception {
-		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
 	}		
 	
 	@Test
 	public void pruneAnyMaxStringLengthMaxPathMatches() throws Exception {
-		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+		assertThat(new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
 	}
 }

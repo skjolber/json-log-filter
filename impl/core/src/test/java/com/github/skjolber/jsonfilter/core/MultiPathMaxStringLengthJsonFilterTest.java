@@ -98,13 +98,13 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, null, null)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, null, null)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
 	public void maxStringLengthAnonymizePrune() throws Exception {
-		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 2, new String[]{"/key1"}, new String[]{"/key3"}))
-			.hasMaxStringLength(DEFAULT_MAX_LENGTH)
+		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 2, new String[]{"/key1"}, new String[]{"/key3"}))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
 			.hasMaxPathMatches(2)
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");

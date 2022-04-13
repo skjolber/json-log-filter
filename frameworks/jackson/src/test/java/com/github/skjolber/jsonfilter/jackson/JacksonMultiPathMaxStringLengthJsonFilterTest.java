@@ -62,13 +62,13 @@ public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractJacks
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, null, null)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, null, null)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
 	public void maxStringLengthAnonymizePrune() throws Exception {
-		assertThat(new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, new String[]{"/key1"}, new String[]{"/key3"}))
-			.hasMaxStringLength(DEFAULT_MAX_LENGTH)
+		assertThat(new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, new String[]{"/key1"}, new String[]{"/key3"}))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
 	}

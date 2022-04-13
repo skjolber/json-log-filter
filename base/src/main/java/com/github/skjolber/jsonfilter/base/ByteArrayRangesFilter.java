@@ -440,5 +440,12 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-	
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
 }

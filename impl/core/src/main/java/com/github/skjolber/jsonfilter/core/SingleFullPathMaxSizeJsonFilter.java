@@ -20,10 +20,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(length <= maxSize) {
+		if(!mustConstrainMaxLength(length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -38,15 +37,14 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(length <= maxSize) {
+		if(!mustConstrainMaxLength(length)) {
 			return super.ranges(chars, offset, length);
 		}
 		
 		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
-			//return ranges(chars, offset, offset + length, offset + maxSize, maxStringLength, 0,  filter);
-			throw new RuntimeException();
+			return rangesFullPathMaxSize(chars, offset, offset + length, offset + maxSize, 0, pathBytes, 0, filterType, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
@@ -58,243 +56,236 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
 		
-		try {
-			loop:
-			while(offset < maxSizeLimit) {
-				switch(chars[offset]) {
-					case '{' :
-						level++;
+		loop:
+		while(offset < maxSizeLimit) {
+			switch(chars[offset]) {
+				case '{' :
+					level++;
 
-						squareBrackets[bracketLevel] = false;
-						bracketLevel++;
-						
-						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = filter.grow(squareBrackets);
-						}
-
-						mark = offset;
-
-						if(level > matches + 1) {
-							// so always level < elementPaths.length
-							filter.setLevel(bracketLevel);
-							filter.setMark(mark);
-							
-							offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
-
-							squareBrackets = filter.getSquareBrackets();
-							mark = filter.getMark();
-							bracketLevel = filter.getLevel();
-
-							// counted offset bracket twice
-							level--;
-							
-							continue;
-						}
-						break;
-					case '}' :
-						level--;
-						bracketLevel--;
-
-						mark = offset;
-
-						// always skips start object if not on a matching level, so must always constrain here
-						matches = level;
-						
-						break;
-					case '[' : {
-						squareBrackets[bracketLevel] = true;
-						bracketLevel++;
-
-						if(bracketLevel >= squareBrackets.length) {
-							squareBrackets = filter.grow(squareBrackets);
-						}
-						mark = offset;
-
-						break;
+					squareBrackets[bracketLevel] = false;
+					bracketLevel++;
+					
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
 					}
-					case ']' :
-						bracketLevel--;
-						
-						mark = offset;
 
-						break;
-					case ',' :
-						mark = offset;
-						break;
-					case '"' :					
-						int nextOffset = offset;
-						do {
+					mark = offset;
+
+					if(level > matches + 1) {
+						// so always level < elementPaths.length
+						filter.setLevel(bracketLevel);
+						filter.setMark(mark);
+						
+						offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
+
+						squareBrackets = filter.getSquareBrackets();
+						mark = filter.getMark();
+						bracketLevel = filter.getLevel();
+
+						// counted offset bracket twice
+						level--;
+						
+						continue;
+					}
+					break;
+				case '}' :
+					level--;
+					bracketLevel--;
+
+					mark = offset;
+
+					// always skips start object if not on a matching level, so must always constrain here
+					matches = level;
+					
+					break;
+				case '[' : {
+					squareBrackets[bracketLevel] = true;
+					bracketLevel++;
+
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
+					}
+					mark = offset;
+
+					break;
+				}
+				case ']' :
+					bracketLevel--;
+					
+					mark = offset;
+
+					break;
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :					
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int quoteIndex = nextOffset;
+					
+					nextOffset++;							
+					
+					// is this a field name or a value? A field name must be followed by a colon
+					if(chars[nextOffset] != ':') {
+						// skip over whitespace
+
+						// optimization: scan for highest value
+						// space: 0x20
+						// tab: 0x09
+						// carriage return: 0x0D
+						// newline: 0x0A
+
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int quoteIndex = nextOffset;
-						
-						nextOffset++;							
-						
-						// is this a field name or a value? A field name must be followed by a colon
-						if(chars[nextOffset] != ':') {
-							// skip over whitespace
-
-							// optimization: scan for highest value
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
-							
-							if(chars[nextOffset] != ':') {
-								// was a text value
-								offset = nextOffset;
-								
-								continue;
-							}
 						}
 						
-						// was a field name
-						if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-							matches++;
-						} else {
+						if(chars[nextOffset] != ':') {
+							// was a text value
 							offset = nextOffset;
 							
 							continue;
 						}
+					}
+					
+					// was a field name
+					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+						matches++;
+					} else {
+						offset = nextOffset;
 						
-						if(matches == elementPaths.length) {
-							nextOffset++;
+						continue;
+					}
+					
+					if(matches == elementPaths.length) {
+						nextOffset++;
 
-							if(nextOffset >= maxSizeLimit) {
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
+
+						int removedLength = filter.getRemovedLength();
+						
+						if(filterType == FilterType.PRUNE) {
+							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
+							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+								nextOffset++;
+							}
+							
+							// is there space within max size?
+							if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
 								break loop;
 							}
+							offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
 
-							int removedLength = filter.getRemovedLength();
+							filter.addPrune(nextOffset, offset);
 							
-							if(filterType == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
-								
-								// is there space within max size?
-								if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+							// increment limit since we removed something
+							maxSizeLimit += filter.getRemovedLength() - removedLength;
+						} else {
+							// special case: anon scalar values
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
 									break loop;
 								}
-								offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
 
-								filter.addPrune(nextOffset, offset);
+								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+
+								filter.addAnon(nextOffset, offset);
+								
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
+								// scalar value
+								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									break loop;
+								}
+								
+								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+
+								filter.addAnon(nextOffset, offset);
 								
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
-										break loop;
-									}
-
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
-										break loop;
-									}
-									
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-								} else {
-									// filter as tree
-									filter.setLevel(bracketLevel);
-									filter.setMark(mark);
-									
-									offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
-
-									squareBrackets = filter.getSquareBrackets();
-									mark = filter.getMark();
-									bracketLevel = filter.getLevel();
-
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-									if(offset >= maxSizeLimit) {
-										// filtering completed
-										break loop;
-									}
-								}
-							}
-							mark = offset;
-
-							if(pathMatches != -1) {
-								pathMatches--;
-								if(pathMatches == 0) {
-									if(maxSizeLimit >= limit) {
-										// filtering finished, i.e. keep the rest of the document
-										filter.setLevel(0);
-										return filter;
-									}
-									
-									// filtering only for max size
-									filter.setMark(mark);
-									filter.setLevel(bracketLevel);
-									
-									return rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
-								}							
-							}
-
-							matches--;
-
-							if(maxSizeLimit >= limit) {
-								// filtering only for full path, i.e. keep the rest of the document
-								filter.setLevel(0);
+								// filter as tree
+								filter.setLevel(bracketLevel);
+								filter.setMark(mark);
 								
-								if(rangesFullPath(chars, offset, limit, level, elementPaths, matches, filterType, pathMatches, filter)) {
-									return filter;
+								offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
+
+								squareBrackets = filter.getSquareBrackets();
+								mark = filter.getMark();
+								bracketLevel = filter.getLevel();
+
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+
+								if(offset >= maxSizeLimit) {
+									// filtering completed
+									break loop;
 								}
-								return null;
 							}
 						}
-						
-						continue;
-						
-					default :
-				}
-				offset++;
+						mark = offset;
+
+						if(pathMatches != -1) {
+							pathMatches--;
+							if(pathMatches == 0) {
+								if(maxSizeLimit >= limit) {
+									// filtering finished, i.e. keep the rest of the document
+									filter.setLevel(0);
+									return filter;
+								}
+								
+								// filtering only for max size
+								filter.setMark(mark);
+								filter.setLevel(bracketLevel);
+								
+								return rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
+							}							
+						}
+
+						matches--;
+
+						if(maxSizeLimit >= limit) {
+							// filtering only for full path, i.e. keep the rest of the document
+							filter.setLevel(0);
+							
+							return rangesFullPath(chars, offset, limit, level, elementPaths, matches, filterType, pathMatches, filter);
+						}
+					}
+					
+					continue;
+					
+				default :
 			}
+			offset++;
+		}
 
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+			return null;
+		} else if(offset < limit) {
+			// max size reached before end of document
+			filter.setLevel(bracketLevel);
+			filter.setMark(mark);
+
+			filter.alignMark(chars);
+			
+			// filter rest of document
+			filter.addDelete(filter.getMark(), limit);
+		} else {
+			// was able to fit the end of the document
+			if(bracketLevel != 0) {
 				return null;
-			} else if(offset < limit) {
-				// max size reached before end of document
-				filter.setLevel(bracketLevel);
-				filter.setMark(mark);
-
-				filter.alignMark(chars);
-				
-				// filter rest of document
-				filter.addDelete(filter.getMark(), limit);
-			} else {
-				// was able to fit the end of the document
-				if(bracketLevel != 0) {
-					return null;
-				}
-				
-				filter.setLevel(0);
 			}
 			
-			return filter;
-		} catch(Exception e) {
-			return null;
+			filter.setLevel(0);
 		}
+		
+		return filter;
 	}
 
 	protected static CharArrayRangesBracketFilter rangesMaxSize(final char[] chars, int offset, int maxSizeLimit, CharArrayRangesBracketFilter filter) {
@@ -357,6 +348,306 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter im
 		
 		return filter;
 	}
+	
+	public static ByteArrayRangesBracketFilter rangesFullPathMaxSize(final byte[] chars, int offset, int limit, int maxSizeLimit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayRangesBracketFilter filter) {
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		int bracketLevel = filter.getLevel();
+		int mark = filter.getMark();
+		
+		loop:
+		while(offset < maxSizeLimit) {
+			switch(chars[offset]) {
+				case '{' :
+					level++;
+
+					squareBrackets[bracketLevel] = false;
+					bracketLevel++;
+					
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
+					}
+
+					mark = offset;
+
+					if(level > matches + 1) {
+						// so always level < elementPaths.length
+						filter.setLevel(bracketLevel);
+						filter.setMark(mark);
+						
+						offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
+
+						squareBrackets = filter.getSquareBrackets();
+						mark = filter.getMark();
+						bracketLevel = filter.getLevel();
+
+						// counted offset bracket twice
+						level--;
+						
+						continue;
+					}
+					break;
+				case '}' :
+					level--;
+					bracketLevel--;
+
+					mark = offset;
+
+					// always skips start object if not on a matching level, so must always constrain here
+					matches = level;
+					
+					break;
+				case '[' : {
+					squareBrackets[bracketLevel] = true;
+					bracketLevel++;
+
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
+					}
+					mark = offset;
+
+					break;
+				}
+				case ']' :
+					bracketLevel--;
+					
+					mark = offset;
+
+					break;
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :					
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int quoteIndex = nextOffset;
+					
+					nextOffset++;							
+					
+					// is this a field name or a value? A field name must be followed by a colon
+					if(chars[nextOffset] != ':') {
+						// skip over whitespace
+
+						// optimization: scan for highest value
+						// space: 0x20
+						// tab: 0x09
+						// carriage return: 0x0D
+						// newline: 0x0A
+
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
+						}
+						
+						if(chars[nextOffset] != ':') {
+							// was a text value
+							offset = nextOffset;
+							
+							continue;
+						}
+					}
+					
+					// was a field name
+					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+						matches++;
+					} else {
+						offset = nextOffset;
+						
+						continue;
+					}
+					
+					if(matches == elementPaths.length) {
+						nextOffset++;
+
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
+
+						int removedLength = filter.getRemovedLength();
+						
+						if(filterType == FilterType.PRUNE) {
+							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
+							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+								nextOffset++;
+							}
+							
+							// is there space within max size?
+							if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+								break loop;
+							}
+							offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset);
+
+							filter.addPrune(nextOffset, offset);
+							
+							// increment limit since we removed something
+							maxSizeLimit += filter.getRemovedLength() - removedLength;
+						} else {
+							// special case: anon scalar values
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									break loop;
+								}
+
+								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+
+								filter.addAnon(nextOffset, offset);
+								
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
+								// scalar value
+								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									break loop;
+								}
+								
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+
+								filter.addAnon(nextOffset, offset);
+								
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+							} else {
+								// filter as tree
+								filter.setLevel(bracketLevel);
+								filter.setMark(mark);
+								
+								offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
+
+								squareBrackets = filter.getSquareBrackets();
+								mark = filter.getMark();
+								bracketLevel = filter.getLevel();
+
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+
+								if(offset >= maxSizeLimit) {
+									// filtering completed
+									break loop;
+								}
+							}
+						}
+						mark = offset;
+
+						if(pathMatches != -1) {
+							pathMatches--;
+							if(pathMatches == 0) {
+								if(maxSizeLimit >= limit) {
+									// filtering finished, i.e. keep the rest of the document
+									filter.setLevel(0);
+									return filter;
+								}
+								
+								// filtering only for max size
+								filter.setMark(mark);
+								filter.setLevel(bracketLevel);
+								
+								return rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
+							}							
+						}
+
+						matches--;
+
+						if(maxSizeLimit >= limit) {
+							// filtering only for full path, i.e. keep the rest of the document
+							filter.setLevel(0);
+							
+							return rangesFullPath(chars, offset, limit, level, elementPaths, matches, filterType, pathMatches, filter);
+						}
+					}
+					
+					continue;
+					
+				default :
+			}
+			offset++;
+		}
+
+		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+			return null;
+		} else if(offset < limit) {
+			// max size reached before end of document
+			filter.setLevel(bracketLevel);
+			filter.setMark(mark);
+
+			filter.alignMark(chars);
+			
+			// filter rest of document
+			filter.addDelete(filter.getMark(), limit);
+		} else {
+			// was able to fit the end of the document
+			if(bracketLevel != 0) {
+				return null;
+			}
+			
+			filter.setLevel(0);
+		}
+		
+		return filter;
+	}
+	
+
+	protected static ByteArrayRangesBracketFilter rangesMaxSize(final byte[] chars, int offset, int maxSizeLimit, ByteArrayRangesBracketFilter filter) {
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		int bracketLevel = filter.getLevel();
+		int mark = filter.getMark();
+		
+		while(offset < maxSizeLimit) {
+			switch(chars[offset]) {
+				case '{' :
+				case '[' :
+					squareBrackets[bracketLevel] = chars[offset] == '[';
+					
+					bracketLevel++;
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
+					}
+					mark = offset;
+					
+					break;
+				case '}' :
+				case ']' :
+					bracketLevel--;
+					// fall through
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :					
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					offset++;
+					
+					continue;
+					
+				default : // do nothing
+			}
+			offset++;			
+		}
+		
+		if(offset > maxSizeLimit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+			return null;
+		} else if(offset < maxSizeLimit) {
+			// max size reached before end of document
+			filter.setLevel(bracketLevel);
+			filter.setMark(mark);
+
+			filter.alignMark(chars);
+			
+			// remove rest of document
+			filter.addDelete(filter.getMark(), maxSizeLimit);
+		} else {
+			// was able to fit the end of the document, so should be level 0
+			if(bracketLevel != 0) {
+				return null;
+			}
+			
+			filter.setLevel(0);
+		}
+		
+		return filter;
+	}
+
 
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;

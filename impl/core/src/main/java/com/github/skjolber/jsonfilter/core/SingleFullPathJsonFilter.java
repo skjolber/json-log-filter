@@ -27,16 +27,13 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 		try {
-			if(rangesFullPath(chars, offset, offset + length, 0, pathChars, 0, filterType, maxPathMatches, filter)) {
-				return filter;
-			}
-			return null;
+			return rangesFullPath(chars, offset, offset + length, 0, pathChars, 0, filterType, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	protected static boolean rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
+	protected static <T extends CharArrayRangesFilter> T rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
@@ -87,6 +84,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 							continue;
 						}
 					}
+					
+					// was field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
@@ -121,11 +120,10 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 								offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
 							}
 						}
-						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								return true; // done filtering
+								return filter; // done filtering
 							}							
 						}
 						
@@ -140,14 +138,14 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		}
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return false;
+			return null;
 		}
 		
 		if(level != 0) {
-			return false;
+			return null;
 		}
 		
-		return true;
+		return filter;
 	}
 
 	@Override
@@ -163,7 +161,7 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		}
 	}
 
-	protected static ByteArrayRangesFilter rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final ByteArrayRangesFilter filter) {
+	protected static <T extends ByteArrayRangesFilter> T rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :

@@ -32,7 +32,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		if(length <= maxSize) {
+		if(!mustConstrainMaxLength(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -40,18 +40,18 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		length = offset + maxSize; // i.e. now limit
+		length += offset;
+		
+		int limit = offset + maxSize; // i.e. now limit
 
 		int level = 0;
 		
 		boolean[] squareBrackets = new boolean[32];
 
-		length += offset;
-		
 		int mark = 0;
 
 		try {
-			while(offset < length) {
+			while(offset < limit) {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
@@ -73,7 +73,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 					case ',' :
 						mark = offset;
 						break;
-					case '"' :					
+					case '"' :
 						do {
 							offset++;
 						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
@@ -84,7 +84,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 					default : // do nothing
 				}
 				offset++;
-				
+			}
+			
+			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return false;
 			}
 			
 			mark = alignMark(mark, chars);
@@ -101,7 +104,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 	@Override
 	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		if(length <= maxSize) {
+		if(!mustConstrainMaxLength(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -113,18 +116,18 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		length = offset + maxSize; // i.e. now limit
+		length += offset;
+		
+		int limit = offset + maxSize; // i.e. now limit
 
 		int level = 0;
 		
 		boolean[] squareBrackes = new boolean[32];
 
-		length += offset;
-		
 		int mark = 0;
 
 		try {
-			while(offset < length) {
+			while(offset < limit) {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
@@ -159,6 +162,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 				
 			}
+			
+			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return false;
+			}
+
 			mark = alignMark(mark, chars);
 			
 			output.write(chars, 0, mark);

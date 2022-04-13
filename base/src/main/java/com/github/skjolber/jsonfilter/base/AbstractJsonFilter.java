@@ -58,6 +58,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		this.truncateStringValueAsBytes = truncateJsonString.getBytes(StandardCharsets.UTF_8);
 	}
 
+	protected boolean mustConstrainMaxLength(int length) {
+		return length > maxSize;
+	}
+	
 	public boolean process(String jsonString, StringBuilder output) {
 		char[] chars = jsonString.toCharArray();
 		

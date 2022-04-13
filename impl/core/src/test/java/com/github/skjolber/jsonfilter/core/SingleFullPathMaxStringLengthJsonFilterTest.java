@@ -21,7 +21,7 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 	public void passthrough_success() throws Exception {
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();
 	}
-	
+
 	@Test
 	public void exception_returns_false() throws Exception {
 		SingleFullPathMaxStringLengthJsonFilter filter = new SingleFullPathMaxStringLengthJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.ANON);
@@ -45,7 +45,7 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
-	
+
 	@Test
 	public void anonymize() throws Exception {
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
@@ -76,7 +76,7 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, 1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, 2, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
 	}
-	
+
 	@Test
 	public void pruneWildcard() throws Exception {
 		assertThat(new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
@@ -84,12 +84,12 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 
 	@Test
 	public void maxStringLengthMaxStringLength() throws Exception {
-		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
+		assertThat(new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
 	}
 
 }

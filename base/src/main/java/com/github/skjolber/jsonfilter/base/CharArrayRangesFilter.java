@@ -76,6 +76,83 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
+	
+	public static int skipObjectMaxStringLength(char[] chars, int offset, int maxStringLength, CharArrayRangesFilter filter) {
+		int level = 0;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '{' : {
+					level++;
+					break;
+				}
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+					
+					if(nextOffset - offset > maxStringLength) {
+						// is this a field name or a value? A field name must be followed by a colon
+						
+						// special case: no whitespace
+						if(chars[nextOffset] == ':') {
+							// key
+							offset = nextOffset + 1;
+							
+							continue;
+						} else {
+							// most likely there is now no whitespace, but a comma, end array or end object
+							
+							// legal whitespaces are:
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+
+							if(chars[nextOffset] > 0x20) {
+								// was a value
+								filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+							} else {
+								// fast-forward over whitespace
+								// optimization: scan for highest value
+
+								int end = nextOffset;
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);
+
+								if(chars[nextOffset] == ':') {
+									// was a key
+									offset = nextOffset + 1;
+									
+									continue;
+								} else {
+									// value
+									filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+								}
+							}
+						}
+					}
+					offset = nextOffset;
+					
+					continue;
+				}
+				default :
+			}
+			offset++;
+		}
+	}
+
 
 	public static int skipSubtree(char[] chars, int offset) {
 		int level = 0;
