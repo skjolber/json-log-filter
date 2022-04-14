@@ -152,8 +152,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-
-
+	
 	public static int skipSubtree(char[] chars, int offset) {
 		int level = 0;
 

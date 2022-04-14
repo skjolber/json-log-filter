@@ -188,7 +188,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 		} catch(Exception e) {
 			return null;
 		}
-
 	}
 
 	public static ByteArrayRangesFilter rangesFullPathMaxStringLength(final byte[] chars, int offset, int length,
@@ -199,7 +198,14 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 				case '{' :
 					level++;
 					
-					// TODO check level vs matches here, go with max string length only for subtree
+					if(level > matches + 1) {
+						// so always level < elementPaths.length
+						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+						
+						level--;
+						
+						continue;
+					}
 
 					break;
 				case '}' :

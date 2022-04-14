@@ -33,7 +33,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxLength(length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -42,7 +42,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
-			return ranges(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
+			return rangesMaxSizeMaxStringLength(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
 		} catch(Exception e) {
 			return null;
 		}
@@ -50,7 +50,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxLength(length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 		
@@ -59,13 +59,13 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
 
 		try {
-			return ranges(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
+			return rangesMaxSizeMaxStringLength(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
 		} catch(Exception e) {
 			return null;
 		}
 	}
 	
-	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
+	public static CharArrayRangesBracketFilter rangesMaxSizeMaxStringLength(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -175,7 +175,6 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								
 								return ranges(chars, nextOffset, limit, maxStringLength, filter); 
 							}
-							mark = nextOffset;
 						}
 					}
 					offset = nextOffset;
@@ -207,7 +206,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		return filter;
 	}
 
-	public static ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
+	public static ByteArrayRangesBracketFilter rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -317,7 +316,6 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								
 								return ranges(chars, nextOffset, limit, maxStringLength, filter); 
 							}
-							mark = nextOffset;
 						}
 					}
 					offset = nextOffset;
@@ -346,20 +344,9 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			filter.setLevel(0);
 		}
-		
 		return filter;
 	}
 	
-	protected char[] getPruneJsonValue() {
-		return pruneJsonValue;
-	}
-	
-	protected char[] getAnonymizeJsonValue() {
-		return anonymizeJsonValue;
-	}
-	
-	protected char[] getTruncateStringValue() {
-		return truncateStringValue;
-	}	
+
 
 }

@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -27,33 +26,8 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	private JsonFactory factory = new JsonFactory();
 
 	@Test
-	public void testMaxSizeChars() throws IOException {
-		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
-
-		for(int i = 2; i < string.length(); i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(i);
-		
-			String process = filter.process(string);
-	
-			assertTrue(process.length() < i + 16);
-
-			validate(process);
-		}
-	}
-
-	@Test
-	public void testMaxSizeBytes() throws IOException {
-		byte[] string = IOUtils.toByteArray(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"));
-
-		for(int i = 2; i < string.length; i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(i);
-		
-			byte[] process = filter.process(string);
-	
-			assertTrue(process.length < i + 16);
-
-			validate(process);
-		}
+	public void testMaxSize() throws IOException {
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxSizeJsonFilter(size));
 	}
 
 	@Test
@@ -138,18 +112,6 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 			assertEquals(process.length(), string.length());
 
 			validate(process);
-		}
-	}
-
-	private void validate(byte[] process) throws IOException, JsonParseException {
-		try (JsonParser parse = factory.createParser(process)) {
-			while(parse.nextToken() != null);
-		}
-	}
-
-	private void validate(String process) throws IOException, JsonParseException {
-		try (JsonParser parse = factory.createParser(process)) {
-			while(parse.nextToken() != null);
 		}
 	}
 

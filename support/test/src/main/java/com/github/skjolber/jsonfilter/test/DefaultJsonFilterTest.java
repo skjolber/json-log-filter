@@ -32,6 +32,7 @@ public class DefaultJsonFilterTest extends AbstractJsonFilterTest implements Jso
 		}
 		
 		return builder.toString();
-		
 	}
+	
+	
 }

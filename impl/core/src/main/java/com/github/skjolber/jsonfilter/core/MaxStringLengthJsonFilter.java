@@ -61,7 +61,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		}
 	}
 	
-	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
+	public static <T extends CharArrayRangesFilter> T ranges(final char[] chars, int offset, int limit, int maxStringLength, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
@@ -125,7 +125,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		return filter;
 	}
 	
-	public static ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
+	public static <T extends ByteArrayRangesFilter> T ranges(final byte[] chars, int offset, int limit, int maxStringLength, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;

@@ -18,10 +18,12 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxLength(length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 
+		int maxStringLength = this.maxStringLength + 2; // account for quotes
+		
 		int pathMatches = this.maxPathMatches;
 
 		int matches = 0;
@@ -161,7 +163,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
 							
-									if(nextOffset > maxSizeLimit) {
+									if(nextOffset >= maxSizeLimit) {
 										filter.removeLastFilter();
 										
 										offset = nextOffset;
@@ -175,7 +177,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 										
 										return SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 									}
-									mark = nextOffset;
 								}
 								offset = nextOffset;
 								
@@ -274,16 +275,16 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								pathMatches--;
 								if(pathMatches == 0) {
 									if(maxSizeLimit >= length) {
-										// filtering finished, i.e. keep the rest of the document
+										// filter only of max string length
 										filter.setLevel(0);
-										return filter;
+										return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
 									}
 									
-									// filtering only for max size
+									// filtering only for max size and max string size
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
 									
-									return SingleFullPathMaxSizeJsonFilter.rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
+									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, nextOffset, length, maxSizeLimit, maxStringLength, filter);
 								}
 							}
 
@@ -332,10 +333,12 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 	
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxLength(length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 
+		int maxStringLength = this.maxStringLength + 2; // account for quotes
+		
 		int pathMatches = this.maxPathMatches;
 
 		int matches = 0;
@@ -475,7 +478,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
 							
-									if(nextOffset > maxSizeLimit) {
+									if(nextOffset >= maxSizeLimit) {
 										filter.removeLastFilter();
 										
 										offset = nextOffset;
@@ -489,7 +492,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 										
 										return SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 									}
-									mark = nextOffset;
 								}
 								offset = nextOffset;
 								
@@ -588,16 +590,16 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								pathMatches--;
 								if(pathMatches == 0) {
 									if(maxSizeLimit >= length) {
-										// filtering finished, i.e. keep the rest of the document
+										// filter only of max string length
 										filter.setLevel(0);
-										return filter;
+										return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
 									}
 									
-									// filtering only for max size
+									// filtering only for max size and max string size
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
 									
-									return SingleFullPathMaxSizeJsonFilter.rangesMaxSize(chars, nextOffset, maxSizeLimit, filter);
+									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, nextOffset, length, maxSizeLimit, maxStringLength, filter);
 								}
 							}
 
@@ -644,16 +646,4 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 		}
 	}
 
-	protected char[] getPruneJsonValue() {
-		return pruneJsonValue;
-	}
-	
-	protected char[] getAnonymizeJsonValue() {
-		return anonymizeJsonValue;
-	}
-	
-	protected char[] getTruncateStringValue() {
-		return truncateStringValue;
-	}
-	
 }

@@ -33,6 +33,19 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		}
 	}
 
+	@Override
+	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+		int pathMatches = this.maxPathMatches;
+		final byte[][] elementPaths = this.pathBytes;
+		
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
+		try {
+			return rangesFullPath(chars, offset, offset + length, 0, elementPaths, 0, filterType, pathMatches, filter);
+		} catch(Exception e) {
+			return null;
+		}
+	}
+
 	protected static <T extends CharArrayRangesFilter> T rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
@@ -146,19 +159,6 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 		}
 		
 		return filter;
-	}
-
-	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		int pathMatches = this.maxPathMatches;
-		final byte[][] elementPaths = this.pathBytes;
-		
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
-		try {
-			return rangesFullPath(chars, offset, offset + length, 0, elementPaths, 0, filterType, pathMatches, filter);
-		} catch(Exception e) {
-			return null;
-		}
 	}
 
 	protected static <T extends ByteArrayRangesFilter> T rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {

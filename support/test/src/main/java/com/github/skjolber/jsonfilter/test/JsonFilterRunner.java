@@ -225,6 +225,34 @@ public class JsonFilterRunner {
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
+		
+		// remove brackets from the end of the document and expect the same result
+		
+		int length = infiniteOutput.length();
+		while(infiniteOutput.charAt(length - 1) == ']' || infiniteOutput.charAt(length - 1) == '}') {
+			length--;
+		}
+		
+		length++;
+		
+		if(length < from.length()) {
+			JsonFilter maxSizeTruncated = maxSizeFunction.apply(length);
+
+			StringBuilder maxSizeOutput2 = new StringBuilder(from.length() * 2);
+			if(!maxSizeTruncated.process(from, maxSizeOutput2)) {
+				System.out.println(sourceFile);
+				System.out.println(from);
+				throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + filter);
+			}
+			
+			String result2 = maxSizeOutput2.toString();
+			
+			if(!new String(expected).equals(result2)) {
+				printDiff(filter, properties, filteredFile, sourceFile, from, result2, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + length + " / " + infiniteOutput.length());
+			}
+
+		}
 	}
 
 	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
@@ -356,7 +384,7 @@ public class JsonFilterRunner {
 		// because it is bytes vs chars
 		boolean surrogates = isSurrogates(from);
 
-		String result = infiniteOutput.toString();
+		String result = maxSizeOutput.toString();
 
 		String expected = cache.getFile(filteredFile);
 
@@ -380,6 +408,45 @@ public class JsonFilterRunner {
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
+		
+		// remove brackets from the end of the document and expect the same result
+		
+		byte[] byteArray = infiniteOutput.toByteArray();
+		
+		int length = byteArray.length;
+		while(byteArray[length - 1] == ']' || byteArray[length - 1] == '}') {
+			length--;
+		}
+		
+		length++;
+		
+		if(length < from.length()) {
+			JsonFilter maxSizeTruncated = maxSizeFunction.apply(length);
+
+			ByteArrayOutputStream maxSizeOutput2 = new ByteArrayOutputStream();
+
+			try {
+				if(!maxSizeTruncated.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), maxSizeOutput2)) {
+					System.out.println("Unable to process max size " + sourceFile);
+					System.out.println(from);
+
+					filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), maxSizeOutput2);
+
+					throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + maxSize);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			
+			String result2 = maxSizeOutput2.toString();
+			
+			if(!new String(expected).equals(result2)) {
+				printDiff(filter, properties, filteredFile, sourceFile, from, result2, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + length + " / " + infiniteOutput.size());
+			}
+
+		}
+
 	}
 
 	public static String filterSurrogates(String result) {

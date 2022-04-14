@@ -1,16 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
@@ -19,6 +14,11 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 		super();
 	}
 
+	@Test
+	public void testMaxSize() throws IOException {
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
+	}
+	
 	@Test
 	public void passthrough_success() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, null, null);

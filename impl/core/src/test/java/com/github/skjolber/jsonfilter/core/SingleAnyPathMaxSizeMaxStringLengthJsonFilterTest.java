@@ -1,0 +1,76 @@
+package com.github.skjolber.jsonfilter.core;
+
+import java.io.IOException;
+import java.util.function.Function;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+
+public class SingleAnyPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
+
+	public SingleAnyPathMaxSizeMaxStringLengthJsonFilterTest() throws Exception {
+		super();
+	}
+	
+	@Test
+	public void testMaxSize() throws IOException {
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//CVE_data_meta", FilterType.ANON));
+	}
+
+	@Test
+	public void passthrough_success() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE);
+
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(-1, -1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE)).hasPassthrough();
+	}
+
+	@Test
+	public void anonymizeAny() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_ANY_PATH, FilterType.ANON);
+		
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH);
+	}
+
+	@Test
+	public void pruneAny() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_ANY_PATH, FilterType.PRUNE);
+		
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH);
+	}	
+
+	@Test
+	public void anonymizeAnyMaxStringLength() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, "//key1", FilterType.ANON);
+		
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+	}
+
+	@Test
+	public void anonymizeAnyMaxStringLengthMaxPathMatches() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 1, "//key1", FilterType.ANON);
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		
+		maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(4, size, 1, "//child1", FilterType.ANON);
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(4, 1, "//child1", FilterType.ANON)).hasAnonymized("//child1");
+		
+		maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(4, size, 2, "//child1", FilterType.ANON);
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(4, 2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
+	}
+
+	@Test
+	public void pruneAnyMaxStringLength() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, "//key3", FilterType.PRUNE);
+		
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+	}		
+	
+	@Test
+	public void pruneAnyMaxStringLengthMaxPathMatches() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 1, "//key3", FilterType.PRUNE);
+		
+		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+	}
+}
