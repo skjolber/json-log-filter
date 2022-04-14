@@ -5,16 +5,19 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 
 /**
  * 
@@ -93,7 +96,32 @@ public abstract class AbstractJsonFilterTest {
 				fail(result.length() + " vs " + i);
 			}
 		}
+	}
+	
+	public void validateDeepStructure(Function<Integer, JsonFilter> filter) throws IOException {
+		int levels = 100;
+		byte[] generateDeepStructure = Generator.generateDeepStructure(levels);
 
+		for(int i = 2; i < generateDeepStructure.length; i++) {		
+			JsonFilter apply = filter.apply(i);
+		
+			byte[] process = apply.process(generateDeepStructure);
+	
+			assertTrue(process.length <= i + levels);
+
+			validate(process);
+		}
+
+		String string = new String(generateDeepStructure, StandardCharsets.UTF_8);
+		for(int i = 2; i < string.length(); i++) {		
+			JsonFilter apply = filter.apply(i);
+		
+			String process = apply.process(string);
+	
+			assertTrue(process.length() <= i + levels);
+
+			validate(process);
+		}
 	}
 
 	protected void validate(byte[] process) throws IOException, JsonParseException {

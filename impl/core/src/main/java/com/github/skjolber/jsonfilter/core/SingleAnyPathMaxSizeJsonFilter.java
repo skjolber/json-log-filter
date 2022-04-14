@@ -220,7 +220,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter impl
 						}
 
 						if(maxSizeLimit >= limit) {
-							// filtering only for full path, i.e. keep the rest of the document
+							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
 							return rangesAnyPath(chars, offset, limit, pathMatches, elementPaths, filterType, filter);
@@ -321,6 +321,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter impl
 	}
 	
 	public static ByteArrayRangesBracketFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int limit, int maxSizeLimit, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesBracketFilter filter) {
+
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -492,7 +493,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter impl
 						}
 
 						if(maxSizeLimit >= limit) {
-							// filtering only for full path, i.e. keep the rest of the document
+							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
 							return rangesAnyPath(chars, offset, limit, pathMatches, elementPaths, filterType, filter);

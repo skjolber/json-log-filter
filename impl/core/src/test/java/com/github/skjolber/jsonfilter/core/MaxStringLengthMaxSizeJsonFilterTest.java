@@ -24,6 +24,11 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	}
 
 	@Test
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new MaxStringLengthMaxSizeJsonFilter(128, size));
+	}
+
+	@Test
 	public void passthrough_success() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(-1, size);
 

@@ -21,6 +21,11 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new SingleAnyPathMaxSizeJsonFilter(-1, size,"//CVE_data_meta", FilterType.ANON));
+	}
+
+	@Test
 	public void anonymizeAny() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(-1, size, DEFAULT_ANY_PATH, FilterType.ANON);
 

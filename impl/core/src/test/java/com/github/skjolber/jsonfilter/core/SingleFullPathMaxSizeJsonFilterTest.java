@@ -24,6 +24,11 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 	
 	@Test
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON));
+	}
+	
+	@Test
 	public void passthrough_success() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, PASSTHROUGH_XPATH, FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();

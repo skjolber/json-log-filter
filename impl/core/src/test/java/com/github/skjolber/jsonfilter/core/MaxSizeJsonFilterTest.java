@@ -23,43 +23,15 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		super();
 	}
 
-	private JsonFactory factory = new JsonFactory();
-
 	@Test
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxSizeJsonFilter(size));
+		validateDeepStructure( (size) -> new MaxSizeJsonFilter(size));
 	}
 
 	@Test
-	public void testDeepStructureBytes() throws IOException {
-		int levels = 100;
-		byte[] generateDeepStructure = Generator.generateDeepStructure(levels);
-
-		for(int i = 2; i < generateDeepStructure.length; i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(i);
-		
-			byte[] process = filter.process(generateDeepStructure);
-	
-			assertTrue(process.length <= i + levels);
-
-			validate(process);
-		}
-	}
-
-	@Test
-	public void testDeepStructureChars() throws IOException {
-		int levels = 100;
-		String string = new String(Generator.generateDeepStructure(levels), StandardCharsets.UTF_8);
-
-		for(int i = 2; i < string.length(); i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(i);
-		
-			String process = filter.process(string);
-	
-			assertTrue(process.length() <= i + levels);
-
-			validate(process);
-		}
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new MaxSizeJsonFilter(size));
 	}
 
 	@Test

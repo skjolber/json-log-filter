@@ -21,7 +21,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 	public boolean[] grow(boolean[] squareBrackets) {
 		boolean[] next = new boolean[squareBrackets.length + 32];
 		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-		squareBrackets = next;
+		this.squareBrackets = next;
 		return next;
 	}
 

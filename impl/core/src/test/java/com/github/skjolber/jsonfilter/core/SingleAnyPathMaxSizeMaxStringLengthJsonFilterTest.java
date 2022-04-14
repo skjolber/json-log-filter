@@ -19,6 +19,11 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJs
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//CVE_data_meta", FilterType.ANON));
 	}
+	
+	@Test
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//CVE_data_meta", FilterType.ANON));
+	}
 
 	@Test
 	public void passthrough_success() throws Exception {

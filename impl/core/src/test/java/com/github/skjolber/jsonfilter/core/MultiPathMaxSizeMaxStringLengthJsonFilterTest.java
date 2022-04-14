@@ -20,6 +20,11 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	}
 	
 	@Test
+	public void testDeepStructure() throws IOException {
+		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
+	}
+	
+	@Test
 	public void passthrough_success() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, null, null);
 		assertThatMaxSize(maxSize, new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null)).hasPassthrough();
