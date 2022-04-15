@@ -1,8 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.ByteArrayOutputStream;
@@ -11,9 +9,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 
@@ -26,7 +21,6 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxSizeJsonFilter(size));
-		validateDeepStructure( (size) -> new MaxSizeJsonFilter(size));
 	}
 
 	@Test
@@ -36,7 +30,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testInvalidInput() throws Exception {
-		String string = new String(Generator.generateDeepStructure(1000), StandardCharsets.UTF_8);
+		String string = new String(Generator.generateDeepObjectStructure(1000), StandardCharsets.UTF_8);
 
 		String broken = string.substring(0, string.length() / 2);
 		
@@ -53,38 +47,6 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(new char[]{}, 0, string.length(), new StringBuilder()));
 		
 		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ByteArrayOutputStream()));
-	}
-
-	@Test
-	public void testMaxSizeFilteringNotNecessaryBytes() throws IOException {
-		int levels = 100;
-		byte[] generateDeepStructure = Generator.generateDeepStructure(levels);
-
-		for(int i = 2; i < generateDeepStructure.length; i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(generateDeepStructure.length);
-		
-			byte[] process = filter.process(generateDeepStructure);
-	
-			assertEquals(process.length, generateDeepStructure.length);
-
-			validate(process);
-		}
-	}
-
-	@Test
-	public void testMaxSizeFilteringNotNecessaryChars() throws IOException {
-		int levels = 100;
-		String string = new String(Generator.generateDeepStructure(levels), StandardCharsets.UTF_8);
-
-		for(int i = 2; i < string.length(); i++) {		
-			MaxSizeJsonFilter filter = new MaxSizeJsonFilter(string.length());
-		
-			String process = filter.process(string);
-	
-			assertEquals(process.length(), string.length());
-
-			validate(process);
-		}
 	}
 
 	@Test
@@ -108,7 +70,5 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void maxSize() throws Exception {
 		assertThat(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
 	}
-	
-	
 	
 }

@@ -118,7 +118,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {
 									
-									if(offset + maxStringLength >= maxSizeLimit) {
+									if(offset + maxStringLength > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -163,15 +163,16 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}					
 								
 						nextOffset++;
+						
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						if(type != null) {
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
-								
 								// is there space within max size?
-								if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
 								int removedLength = filter.getRemovedLength();
@@ -186,7 +187,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -202,7 +203,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 									mark = offset;
 								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -235,6 +236,9 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								
 							} else if(type == FilterType.DELETE) {
 								// TODO
+								offset = nextOffset;
+							} else {
+								offset = nextOffset;
 							}
 							
 							if(offset >= maxSizeLimit) {
@@ -404,7 +408,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								// was a text value
 								if(nextOffset - offset > maxStringLength) {
 									
-									if(offset + maxStringLength >= maxSizeLimit) {
+									if(offset + maxStringLength > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -449,15 +453,16 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}					
 								
 						nextOffset++;
+						
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						if(type != null) {
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
-								
 								// is there space within max size?
-								if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
 								int removedLength = filter.getRemovedLength();
@@ -472,7 +477,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -488,7 +493,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 									mark = offset;
 								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -521,6 +526,9 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								
 							} else if(type == FilterType.DELETE) {
 								// TODO
+								offset = nextOffset;
+							} else {
+								offset = nextOffset;
 							}
 							
 							if(offset >= maxSizeLimit) {

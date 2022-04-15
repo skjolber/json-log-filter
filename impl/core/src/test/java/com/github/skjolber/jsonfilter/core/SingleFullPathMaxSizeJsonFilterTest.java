@@ -1,5 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -88,15 +92,46 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertThatMaxSize(maxSize, new SingleFullPathJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
 	}
 	
-	public static void main(String[] args) throws IOException {
-		SingleFullPathJsonFilter filter = new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.ANON);
+	@Test
+	public void exception_returns_false() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+	}	
+	
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeJsonFilter(FULL.length - 4, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertNull(filter.process(TRUNCATED));
+		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		
-		File file = new File("../../support/test/src/main/resources/json/text/single/object1xKeyDeepEscaped.json");
+		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
+	}
+	
+	@Test
+	public void exception_incorrect_level() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeJsonFilter(FULL.length - 4, 127, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
+		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		SingleFullPathJsonFilter infiniteFilter = new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.ANON);
+		
+		File file = new File("./../../support/test/src/main/resources/json/text/single/object1xKeyLongEscapedUnicode.json");
 		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
 		
-		System.out.println(string);
+		String expected = infiniteFilter.process(string);
 		
-		String process = filter.process(string);
+		System.out.println(string);
+		System.out.println(expected);
+
+		System.out.println("Max size is " + expected.length() + ", input size is " + string.length());
+		SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(expected.length(), 1, DEFAULT_PATH, FilterType.ANON);
+
+		String process = filter.process(string + " ");
 		System.out.println(process);
 	}
 }

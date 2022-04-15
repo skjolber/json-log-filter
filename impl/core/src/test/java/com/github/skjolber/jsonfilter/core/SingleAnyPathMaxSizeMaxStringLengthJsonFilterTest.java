@@ -1,6 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -78,4 +83,22 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJs
 		
 		assertThatMaxSize(maxSize, new SingleAnyPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
 	}
+	
+	@Test
+	public void exception_returns_false() throws Exception {
+		JsonFilter filter = new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(-1, -1, -1, DEFAULT_ANY_PATH, FilterType.PRUNE);
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+	}	
+	
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		JsonFilter filter = new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, -1, DEFAULT_ANY_PATH, FilterType.PRUNE);
+		assertNull(filter.process(TRUNCATED));
+		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+		
+		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
+	}
+
 }

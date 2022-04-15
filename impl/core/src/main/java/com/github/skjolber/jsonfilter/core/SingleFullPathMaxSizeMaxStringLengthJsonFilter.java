@@ -151,7 +151,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(quoteIndex - offset - 1 > maxStringLength) {
 									// text length too long
 									
-									if(offset + maxStringLength >= maxSizeLimit) {
+									if(offset + maxStringLength > maxSizeLimit) {
 										// done filtering
 										break loop;
 									}
@@ -192,14 +192,14 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							
 							continue;
 						}
+
+						nextOffset++;
+						
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
 						
 						if(matches == elementPaths.length) {
-							nextOffset++;
-							
-							if(nextOffset >= maxSizeLimit) {
-								break loop;
-							}
-
 							int removedLength = filter.getRemovedLength();
 							
 							if(filterType == FilterType.PRUNE) {
@@ -209,7 +209,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								}
 								
 								// is there space within max size?
-								if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
 								offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
@@ -224,7 +224,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 
@@ -238,7 +238,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									mark = offset;
 								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -296,6 +296,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								
 								return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 							}
+						} else {
+							offset = nextOffset;
 						}
 						
 						continue;
@@ -466,7 +468,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(quoteIndex - offset - 1 > maxStringLength) {
 									// text length too long
 									
-									if(offset + maxStringLength >= maxSizeLimit) {
+									if(offset + maxStringLength > maxSizeLimit) {
 										// done filtering
 										break loop;
 									}
@@ -507,14 +509,14 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							
 							continue;
 						}
+
+						nextOffset++;
+						
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
 						
 						if(matches == elementPaths.length) {
-							nextOffset++;
-							
-							if(nextOffset >= maxSizeLimit) {
-								break loop;
-							}
-
 							int removedLength = filter.getRemovedLength();
 							
 							if(filterType == FilterType.PRUNE) {
@@ -524,7 +526,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								}
 								
 								// is there space within max size?
-								if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
 								offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset);
@@ -539,7 +541,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								// special case: anon scalar values
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 
@@ -553,7 +555,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									mark = offset;
 								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 										break loop;
 									}
 									
@@ -611,6 +613,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								
 								return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 							}
+						} else {
+							offset = nextOffset;
 						}
 						
 						continue;

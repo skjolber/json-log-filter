@@ -465,6 +465,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
+						
 						limit += getRemovedLength() - removedLength;
 
 						mark = nextOffset;

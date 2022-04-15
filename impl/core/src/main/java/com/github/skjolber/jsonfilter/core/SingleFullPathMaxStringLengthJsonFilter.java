@@ -111,15 +111,16 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						
 						continue;
 					}
+
+					nextOffset++;
+					
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
 					
 					if(matches == elementPaths.length) {
-						nextOffset++;
-						
 						if(filterType == FilterType.PRUNE) {
-							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
 							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
 							// special case: anon scalar values
@@ -147,6 +148,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						}
 						
 						matches--;
+					} else {
+						offset = nextOffset;
 					}
 					
 					continue;
@@ -251,52 +254,50 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractSingleCharA
 						}
 					}
 					
-					if(matches + 1 == level) {
+					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+						matches++;
+					} else {
+						offset = nextOffset;
+						
+						continue;
+					}
+
+					nextOffset++;
 					
-						if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-							matches++;
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
+					
+					if(matches == elementPaths.length) {
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
-							offset = nextOffset;
-							
-							continue;
+							// special case: anon scalar values
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								
+								filter.addAnon(nextOffset, offset);
+							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
+								// scalar value
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+
+								filter.addAnon(nextOffset, offset);
+							} else {
+								// filter as tree
+								offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+							}
+						}
+						if(pathMatches != -1) {
+							pathMatches--;
+							if(pathMatches == 0) {
+								// speed up filtering by looking only at max string length
+								return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+							}
 						}
 						
-						if(matches == elementPaths.length) {
-							nextOffset++;
-							
-							if(filterType == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
-								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-									
-									filter.addAnon(nextOffset, offset);
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-								} else {
-									// filter as tree
-									offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
-								}
-							}
-							if(pathMatches != -1) {
-								pathMatches--;
-								if(pathMatches == 0) {
-									// speed up filtering by looking only at max string length
-									return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
-								}
-							}
-							
-							matches--;
-						}
+						matches--;
 					} else {
 						offset = nextOffset;
 					}

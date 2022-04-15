@@ -33,7 +33,7 @@ public class SingleFullPathMaxStringLengthJsonFilterTest extends DefaultJsonFilt
 	public void exception_offset_if_not_exceeded() throws Exception {
 		SingleFullPathMaxStringLengthJsonFilter filter = new SingleFullPathMaxStringLengthJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.ANON);
 		assertNull(filter.process(TRUNCATED));
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		
 		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
 		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));

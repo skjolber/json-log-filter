@@ -5,7 +5,6 @@ import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesBracketFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPathMaxStringLengthJsonFilter implements RangesJsonFilter {
 	
@@ -123,8 +122,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							if(quoteIndex - offset - 1 > maxStringLength) {
 								// text length too long
 								
-								if(offset + maxStringLength >= maxSizeLimit) {
+								if(offset + maxStringLength > maxSizeLimit) {
 									// done filtering
+									offset = maxSizeLimit;
+									
 									break loop;
 								}
 								
@@ -155,11 +156,16 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							continue;
 						}
 					}
+
+					nextOffset++;
+
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
 					
 					// was a field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
-						nextOffset++;
-
 						if(nextOffset >= maxSizeLimit) {
 							break loop;
 						}
@@ -167,13 +173,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						int removedLength = filter.getRemovedLength();
 						
 						if(filterType == FilterType.PRUNE) {
-							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
-							
 							// is there space within max size?
-							if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+							if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
+								offset = maxSizeLimit;
 								break loop;
 							}
 							offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
@@ -188,7 +190,8 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							// special case: anon scalar values
 							if(chars[nextOffset] == '"') {
 								// quoted value
-								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+									offset = maxSizeLimit;
 									break loop;
 								}
 
@@ -202,7 +205,8 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								mark = offset;
 							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 								// scalar value
-								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+									offset = maxSizeLimit;
 									break loop;
 								}
 								
@@ -365,8 +369,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							if(quoteIndex - offset - 1 > maxStringLength) {
 								// text length too long
 								
-								if(offset + maxStringLength >= maxSizeLimit) {
+								if(offset + maxStringLength > maxSizeLimit) {
 									// done filtering
+									offset = maxSizeLimit;
+									
 									break loop;
 								}
 								
@@ -397,11 +403,16 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							continue;
 						}
 					}
+
+					nextOffset++;
+
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
 					
 					// was a field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
-						nextOffset++;
-
 						if(nextOffset >= maxSizeLimit) {
 							break loop;
 						}
@@ -409,13 +420,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						int removedLength = filter.getRemovedLength();
 						
 						if(filterType == FilterType.PRUNE) {
-							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
-							
 							// is there space within max size?
-							if(nextOffset + filter.getPruneMessageLength() >= maxSizeLimit) {
+							if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
+								offset = maxSizeLimit;
+										
 								break loop;
 							}
 							offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset);
@@ -430,7 +438,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							// special case: anon scalar values
 							if(chars[nextOffset] == '"') {
 								// quoted value
-								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+									offset = maxSizeLimit;
+									
 									break loop;
 								}
 
@@ -444,7 +454,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								mark = offset;
 							} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
 								// scalar value
-								if(nextOffset + filter.getAnonymizeMessageLength() >= maxSizeLimit) {
+								if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+									offset = maxSizeLimit;
+									
 									break loop;
 								}
 								

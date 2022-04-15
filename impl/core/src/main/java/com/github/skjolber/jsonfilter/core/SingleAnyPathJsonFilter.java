@@ -4,7 +4,6 @@ import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayAnyPathJsonFil
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonFilter implements RangesJsonFilter {
 
@@ -73,10 +72,15 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						continue;
 					}
 				}
+
+				nextOffset++;
+				
+				// skip whitespace
+				while(chars[nextOffset] <= 0x20) {
+					nextOffset++;
+				}
 				
 				if(matchPath(chars, offset + 1, quoteIndex, path)) {
-
-					nextOffset++;
 					if(filterType == FilterType.PRUNE) {
 						// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
 						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
@@ -113,9 +117,8 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					}					
 				} else {
 					offset = nextOffset;
-					
-					continue;
 				}
+				continue;
 			}
 			offset++;
 		}
@@ -159,10 +162,15 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 						continue;
 					}
 				}
+
+				nextOffset++;
+				
+				// skip whitespace
+				while(chars[nextOffset] <= 0x20) {
+					nextOffset++;
+				}
 				
 				if(matchPath(chars, offset + 1, quoteIndex, path)) {
-
-					nextOffset++;
 					if(filterType == FilterType.PRUNE) {
 						// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
 						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
@@ -199,9 +207,8 @@ public class SingleAnyPathJsonFilter extends AbstractSingleCharArrayAnyPathJsonF
 					}					
 				} else {
 					offset = nextOffset;
-					
-					continue;
 				}
+				continue;
 			}
 			offset++;
 		}

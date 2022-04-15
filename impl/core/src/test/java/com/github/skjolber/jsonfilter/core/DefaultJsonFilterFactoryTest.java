@@ -44,12 +44,30 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testMaxSizeMaxStringLength() {
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractJsonFilter filter = (AbstractJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
+	@Test
 	public void testAnonFullPath() {
 		factory.setAnonymizeFilters("/abc");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 	}
-	
+
+	@Test
+	public void testAnonFullPathMaxSize() {
+		factory.setAnonymizeFilters("/abc");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
 	@Test
 	public void testMultipleAnonFullPath() {
 		factory.setAnonymizeFilters("/abc", "/def");
@@ -72,12 +90,32 @@ public class DefaultJsonFilterFactoryTest {
 	}	
 
 	@Test
+	public void testAnonAnyPathMaxSize() {
+		factory.setAnonymizeFilters("//abc");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"//abc"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}	
+	
+	@Test
 	public void testAnonFullPathMaxLength() {
 		factory.setAnonymizeFilters("/abc");
 		factory.setMaxStringLength(123);
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+	}
+
+	@Test
+	public void testAnonFullPathMaxLengthMaxSize() {
+		factory.setAnonymizeFilters("/abc");
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
 
 	@Test
@@ -90,10 +128,30 @@ public class DefaultJsonFilterFactoryTest {
 	}	
 
 	@Test
+	public void testAnonAnyPathMaxLengthMaxSize() {
+		factory.setAnonymizeFilters("//abc");
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"//abc"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}	
+
+	@Test
 	public void testAnons() {
 		factory.setAnonymizeFilters("/abc", "/def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
+	}
+	
+	@Test
+	public void testAnonsMaxSize() {
+		factory.setAnonymizeFilters("/abc", "/def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}	
 
 	@Test
@@ -104,12 +162,32 @@ public class DefaultJsonFilterFactoryTest {
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
 	}	
+	
+	@Test
+	public void testAnonsMaxLengthMaxSize() {
+		factory.setAnonymizeFilters("/abc", "/def");
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}	
 
 	@Test
 	public void testPruneFullPath() {
 		factory.setPruneFilters("/def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+	}
+	
+	@Test
+	public void testPruneFullPathMaxSize() {
+		factory.setPruneFilters("/def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
 
 	@Test
@@ -120,12 +198,33 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testPruneAnyPathMaxSize() {
+		factory.setPruneFilters("//def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
+	@Test
 	public void testPruneFullPathMaxLength() {
 		factory.setPruneFilters("/def");
 		factory.setMaxStringLength(123);
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+	}
+
+
+	@Test
+	public void testPruneFullPathMaxLengthMaxSize() {
+		factory.setPruneFilters("/def");
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
 
 	@Test
@@ -138,12 +237,32 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testPruneAnyPathMaxLengthMaxSize() {
+		factory.setMaxStringLength(123);
+		factory.setPruneFilters("//def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
+	@Test
 	public void testPrunes() {
 		factory.setPruneFilters("/abc", "/def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
 	}
-	
+
+	@Test
+	public void testPrunesMaxSize() {
+		factory.setPruneFilters("/abc", "/def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
 	@Test
 	public void testMultiplePrunes() {
 		factory.setPruneFilters("/abc", "/def");
@@ -152,12 +271,30 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testMultiplePrunesMaxSize() {
+		factory.setPruneFilters("/abc", "/def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+	
+	@Test
 	public void testMultiplePruneMixedPath() {
 		factory.setPruneFilters("/abc", "//def");
 		MultiPathJsonFilter filter = (MultiPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
 	}
-	
+
+	@Test
+	public void testMultiplePruneMixedPathMaxSize() {
+		factory.setPruneFilters("/abc", "//def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+
 	@Test
 	public void testPrunesMaxLength() {
 		factory.setPruneFilters("/abc", "/def");
@@ -168,12 +305,34 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
+	public void testPrunesMaxLengthMaxSize() {
+		factory.setPruneFilters("/abc", "/def");
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+	}
+	
+	@Test
 	public void testAnonPrunes() {
 		factory.setAnonymizeFilters("//def");
 		factory.setPruneFilters("/abc", "//def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"//def"});
+	}		
+
+	@Test
+	public void testAnonPrunesMaxSize() {
+		factory.setAnonymizeFilters("//def");
+		factory.setPruneFilters("/abc", "//def");
+		factory.setMaxSize(1024);
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}		
 
 	@Test
@@ -185,6 +344,7 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setPruneStringValue("prune");
 		factory.setAnonymizeStringValue("anon");
 		factory.setTruncateStringValue("truncate");
+		factory.setMaxSize(1024);
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -192,6 +352,7 @@ public class DefaultJsonFilterFactoryTest {
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
 		assertThat(filter.getMaxPathMatches()).isEqualTo(13);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
 
 	@Test
@@ -203,6 +364,7 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactoryProperty.PRUNE_MESSAGE.getPropertyName(), "prune");
 		factory.setProperty(JsonFilterFactoryProperty.ANON_MESSAGE.getPropertyName(), "anon");
 		factory.setProperty(JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
+		factory.setProperty(JsonFilterFactoryProperty.MAX_SIZE.getPropertyName(), 1024);
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -210,6 +372,7 @@ public class DefaultJsonFilterFactoryTest {
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
 		assertThat(filter.getMaxPathMatches()).isEqualTo(13);
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
 
 	@Test
@@ -218,6 +381,7 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactoryProperty.PRUNE.getPropertyName(), Arrays.asList("//def"));
 		factory.setProperty(JsonFilterFactoryProperty.MAX_STRING_LENGTH.getPropertyName(), "123");
 		factory.setProperty(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), "13");
+		factory.setProperty(JsonFilterFactoryProperty.MAX_SIZE.getPropertyName(), "1024");
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 
@@ -249,6 +413,9 @@ public class DefaultJsonFilterFactoryTest {
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.setProperty(JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), new Object());
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			factory.setProperty(JsonFilterFactoryProperty.MAX_SIZE.getPropertyName(), new Object());
 		});
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			factory.setProperty("", new Object());

@@ -148,8 +148,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								}
 							}
 							
-							if(offset + maxStringLength >= maxSizeLimit) {
-								offset = nextOffset;
+							if(offset + maxStringLength > maxSizeLimit) {
+								offset = maxSizeLimit;
 								
 								break loop;
 							}
@@ -289,8 +289,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								}
 							}
 							
-							if(offset + maxStringLength >= maxSizeLimit) {
-								offset = nextOffset;
+							if(offset + maxStringLength > maxSizeLimit) {
+								offset = maxSizeLimit;
 								
 								break loop;
 							}

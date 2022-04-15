@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 
 /**
  * 
@@ -100,8 +99,19 @@ public abstract class AbstractJsonFilterTest {
 	
 	public void validateDeepStructure(Function<Integer, JsonFilter> filter) throws IOException {
 		int levels = 100;
-		byte[] generateDeepStructure = Generator.generateDeepStructure(levels);
+		byte[] generateDeepStructure = Generator.generateDeepObjectStructure(levels);
+		validate(filter, levels, generateDeepStructure);
+		
+		generateDeepStructure = Generator.generateDeepArrayStructure(levels);
+		validate(filter, levels, generateDeepStructure);
 
+		generateDeepStructure = Generator.generateDeepMixedStructure(levels);
+		validate(filter, levels, generateDeepStructure);
+
+	}
+
+	private void validate(Function<Integer, JsonFilter> filter, int levels, byte[] generateDeepStructure)
+			throws IOException, JsonParseException {
 		for(int i = 2; i < generateDeepStructure.length; i++) {		
 			JsonFilter apply = filter.apply(i);
 		

@@ -33,7 +33,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 		int level = 0;
 		
 		try {
-			main:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -86,15 +85,16 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						}
 						nextOffset++;
 
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						// match again any higher filter
 						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
 								// special case: anon scalar values
@@ -125,11 +125,9 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 							}
 							
 							constrainMatches(elementMatches, level - 1);
-							
-							continue main;
+						} else {
+							offset = nextOffset;
 						}
-						
-						offset = nextOffset;
 						
 						continue;
 					}
@@ -168,7 +166,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
 		try {
-			main:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -231,15 +228,16 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						}
 						nextOffset++;
 
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						// match again any higher filter
 						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
 								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
 								// special case: anon scalar values
@@ -271,11 +269,9 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 							}
 							
 							constrainMatches(elementMatches, level - 1);
-							
-							continue main;
+						} else {
+							offset = nextOffset;
 						}
-						
-						offset = nextOffset;
 						
 						continue;
 					}

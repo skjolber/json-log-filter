@@ -106,15 +106,16 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						
 						continue;
 					}
+
+					nextOffset++;
+
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
 					
 					if(matches == elementPaths.length) {
-						nextOffset++;
-						
 						if(filterType == FilterType.PRUNE) {
-							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
 							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
 							// special case: anon scalar values
@@ -141,6 +142,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						}
 						
 						matches--;
+					} else {
+						offset = nextOffset;
 					}
 					
 					continue;
@@ -221,15 +224,16 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						
 						continue;
 					}
+
+					nextOffset++;
+
+					// skip whitespace
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
 					
 					if(matches == elementPaths.length) {
-						nextOffset++;
-						
 						if(filterType == FilterType.PRUNE) {
-							// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
 							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 						} else {
 							// special case: anon scalar values
@@ -257,6 +261,8 @@ public class SingleFullPathJsonFilter extends AbstractSingleCharArrayFullPathJso
 						}
 						
 						matches--;
+					} else {
+						offset = nextOffset;
 					}
 					
 					continue;

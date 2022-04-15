@@ -1,5 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -102,7 +106,29 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
 	}
 
+	@Test
+	public void exception_returns_false() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, -1, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+	}	
 	
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertNull(filter.process(TRUNCATED));
+		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+		
+		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
+	}
+	
+	@Test
+	public void exception_incorrect_level() throws Exception {
+		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, 127, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
+		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
 	
 	public static void main(String[] args) throws IOException {
 		
