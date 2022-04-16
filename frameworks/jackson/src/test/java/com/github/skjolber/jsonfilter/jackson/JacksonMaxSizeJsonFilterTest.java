@@ -22,7 +22,7 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest 
 	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new StringBuilder()));
 	}
 
 	@Test

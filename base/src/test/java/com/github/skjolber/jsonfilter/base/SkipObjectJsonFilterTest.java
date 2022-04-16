@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
-public class SkipObjectJsonFilterTest  extends DefaultJsonFilterTest {
+public class SkipObjectJsonFilterTest extends DefaultJsonFilterTest {
 
 	public SkipObjectJsonFilterTest() throws Exception {
 		super(true, 1);

@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 
 public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
@@ -59,7 +58,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		}
 	}
 	
-	public void closeStructure(OutputStream output) throws IOException {
+	public void closeStructure(ByteArrayOutputStream output) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
 				output.write(']');
@@ -74,7 +73,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 	}
 
 	@Override
-	public void filter(final byte[] chars, int offset, int length, final OutputStream buffer) throws IOException {
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		super.filter(chars, offset, length, buffer);
 		
 		closeStructure(buffer);

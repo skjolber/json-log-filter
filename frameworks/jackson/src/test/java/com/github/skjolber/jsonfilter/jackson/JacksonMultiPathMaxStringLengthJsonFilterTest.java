@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
@@ -81,17 +82,17 @@ public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractJacks
 		
 		testConvenienceMethods(
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					return true;
 				}
 			}, 
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					throw new RuntimeException();
 				}
 			}			

@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.jackson;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
@@ -36,17 +37,17 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFil
 		
 		testConvenienceMethods(
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					return true;
 				}
 			}, 
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMaxStringLengthJsonFilter(-1, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
 					throw new RuntimeException();
 				}
 			}

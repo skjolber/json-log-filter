@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
@@ -11,27 +9,27 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.base.AbstractSingleStringFullPathJsonFilter;
 
-public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleStringFullPathJsonFilter implements JacksonJsonFilter {
+public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSingleStringFullPathJsonFilter implements JacksonJsonFilter {
 
 	protected final JsonFactory jsonFactory;
 
-	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type) {
+	public JacksonSingleFullPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type) {
 		this(maxStringLength, expression, type, new JsonFactory());
 	}
 
-	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, JsonFactory jsonFactory) {
+	public JacksonSingleFullPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, JsonFactory jsonFactory) {
 		this(maxStringLength, expression, type, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, jsonFactory);
 	}
 
-	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public JacksonSingleFullPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(maxStringLength, expression, type,  pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
 	}
 
-	public JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+	public JacksonSingleFullPathMaxStringLengthJsonFilter(int maxStringLength, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		this(maxStringLength, -1, -1, expression, type, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 	
-	protected JacksonSinglePathMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+	protected JacksonSingleFullPathMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		this.jsonFactory = jsonFactory;
@@ -40,39 +38,23 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(chars, offset, length, generator);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
-
+	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(bytes, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
-		try (final JsonParser parser = jsonFactory.createParser(in)) {
-			return process(parser, generator);
-		}
-	}
-
-	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) {
-		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
-			return process(parser, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
-		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
 			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
@@ -169,19 +151,7 @@ public class JacksonSinglePathMaxStringLengthJsonFilter extends AbstractSingleSt
 
 			generator.copyCurrentEvent(parser);
 		}  				
-
 	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		//output.ensureCapacity(output.length() + length);
-
-		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
-			return process(chars, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}	
 	
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;

@@ -1,8 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class SkipSubtreeJsonFilter extends AbstractJsonFilter {
 
@@ -18,7 +16,7 @@ public class SkipSubtreeJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		output.write(chars, offset, length);
 		return ByteArrayRangesFilter.skipSubtree(chars, offset) == offset + length;
 	}

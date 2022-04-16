@@ -1,9 +1,6 @@
 package com.github.skjolber.jsonfilter.jackson;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -33,12 +30,30 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 		if(maxSize >= length) {
-			super.process(chars, offset, length, output);
+			return super.process(chars, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(chars, offset, length, generator);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getCharOffset());
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		if(maxSize >= length) {
+			return super.process(bytes, offset, length, output);
+		}
+
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset());
 		} catch(final Exception e) {
 			return false;
 		}
@@ -46,60 +61,26 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
 		if(maxSize >= length) {
-			super.process(bytes, offset, length, output);
+			output.append(new String(bytes, offset, length));
+			return true;
 		}
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(bytes, offset, length, generator);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset());
 		} catch(final Exception e) {
 			return false;
 		}
 	}
-	
-	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
-		byte[] chars = new byte[4 * 1024];
 
-		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		int read;
-		do {
-			read = in.read(chars, 0, chars.length);
-			if(read == -1) {
-				break;
-			}
-			
-			bout.write(chars, 0, read);
-		} while(true);
-
-		byte[] bytes = bout.toByteArray();
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
+		// measure size only based on input source offset 
+		// the implementation in inaccurate to the size of an number field + max level of depth.
 		
-		return process(bytes, 0, bytes.length, generator);
-	}
-
-	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator) {
-		if(maxSize >= length) {
-			super.process(bytes, offset, length, generator);
-		}
-		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
-			return process(parser, generator, () -> parser.getCurrentLocation().getByteOffset());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
-		if(maxSize >= length) {
-			super.process(chars, offset, length, generator);
-		}
-		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
-			return process(parser, generator, () -> parser.getCurrentLocation().getCharOffset());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {		
-		final int maxSize = this.maxSize; // account for 4x double quotes and a colon
+		final int maxSize = this.maxSize;
 
         String fieldName = null;
 		while(true) {
@@ -108,6 +89,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 				break;
 			}
 
+			// size includes field name
 			long size = offsetSupplier.getAsLong();
 			if(size >= maxSize) {
 				break;
@@ -115,23 +97,15 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 			
 			if(nextToken == JsonToken.FIELD_NAME) {
 				fieldName = parser.currentName();
-				if(size > maxSize) {
-					break;
-				}
 				continue;
 			} else if(nextToken == JsonToken.VALUE_STRING) {
 				// preemptive size check for string value
 				int length = parser.getTextLength();
-				if(fieldName != null) {
-					if(size + fieldName.length() + length + 5 > maxSize) {
-						break;
-					}
-				} else {
-					if(size + 3 + length > maxSize) {
-						break;
-					}
+				if(size + 3 + length > maxSize) {
+					break;
 				}
-			}
+			}				
+
 			if(fieldName != null) {
 				generator.writeFieldName(fieldName);
 				fieldName = null;
@@ -143,18 +117,6 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 
 		return true;
 	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		if(maxSize >= length) {
-			return super.process(chars, offset, length, output);
-		}
-		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
-			return process(chars, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}	
 
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;

@@ -16,12 +16,10 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
+public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
@@ -35,8 +33,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 
-	@Override
-	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
+	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		CharArrayRangesFilter filter = getCharArrayRangesFilter(length);
@@ -48,8 +45,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 		}
 	}
 
-	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		ByteArrayRangesFilter filter = getByteArrayRangesFilter(length);
@@ -199,6 +195,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
-	}	
+	}
+
+
 
 }

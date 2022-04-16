@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
@@ -36,39 +34,23 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(chars, offset, length, generator);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
-
+	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(bytes, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
-		try (final JsonParser parser = jsonFactory.createParser(in)) {
-			return process(parser, generator);
-		}
-	}
-
-	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator){
-		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
-			return process(parser, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
-		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
 			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
@@ -187,16 +169,5 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			generator.copyCurrentEvent(parser);
 		}
 	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		//output.ensureCapacity(output.length() + length);
-
-		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
-			return process(chars, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}	
 
 }

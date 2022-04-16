@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -96,7 +95,7 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		JsonFilter filter = new SingleFullPathMaxSizeJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
 	
 	@Test
@@ -106,7 +105,7 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		
 		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
+		assertNull(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3));
 	}
 	
 	@Test

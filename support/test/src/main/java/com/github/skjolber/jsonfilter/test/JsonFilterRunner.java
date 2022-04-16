@@ -295,25 +295,19 @@ public class JsonFilterRunner {
 	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
 		String from = cache.getFile(sourceFile);
 
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		try {
-			if(!filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output)) {
-				System.out.println("Unable to process " + sourceFile);
-				System.out.println(from);
+		byte[] process = filter.process(from.getBytes(StandardCharsets.UTF_8));
+		if(process == null) {
+			System.out.println("Unable to process " + sourceFile);
+			System.out.println(from);
 
-				filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), output);
-
-				throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 
 		// this will break "truncated by XX"
 		// because it is bytes vs chars
 		boolean surrogates = isSurrogates(from);
 
-		String result = output.toString();
+		String result = new String(process);
 
 		String expected = cache.getFile(filteredFile);
 
@@ -343,42 +337,30 @@ public class JsonFilterRunner {
 	protected void compareBytes(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
 		
 		String from = cache.getFile(sourceFile);
+		
+		byte[] infiniteOutput = filter.process(from.getBytes(StandardCharsets.UTF_8));
+		if(infiniteOutput == null) {
+			System.out.println("Unable to process " + sourceFile);
+			System.out.println(from);
 
-		ByteArrayOutputStream infiniteOutput = new ByteArrayOutputStream();
-		try {
-			if(!filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), infiniteOutput)) {
-				System.out.println("Unable to process " + sourceFile);
-				System.out.println(from);
-
-				filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), infiniteOutput);
-
-				throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 
-		JsonFilter maxSize = maxSizeFunction.apply(infiniteOutput.size());
+		JsonFilter maxSize = maxSizeFunction.apply(infiniteOutput.length);
 
-		ByteArrayOutputStream maxSizeOutput = new ByteArrayOutputStream();
-		try {
-			if(!maxSize.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), maxSizeOutput)) {
-				System.out.println("Unable to process max size " + sourceFile);
-				System.out.println(from);
+		byte[] maxSizeOutput = maxSize.process(from.getBytes(StandardCharsets.UTF_8));
+		if(maxSizeOutput == null) {
+			System.out.println("Unable to process max size " + sourceFile);
+			System.out.println(from);
 
-				filter.process(new ByteArrayInputStream(from.getBytes(StandardCharsets.UTF_8)), maxSizeOutput);
-
-				throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + maxSize);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + maxSize);
 		}
 		
 		// this will break "truncated by XX"
 		// because it is bytes vs chars
 		boolean surrogates = isSurrogates(from);
 
-		String result = maxSizeOutput.toString();
+		String result = new String(maxSizeOutput);
 
 		String expected = cache.getFile(filteredFile);
 
@@ -407,25 +389,20 @@ public class JsonFilterRunner {
 			
 			String fromWithWhitespace = from + " ";
 			
-			ByteArrayOutputStream maxSizeOutputWithWhitespace = new ByteArrayOutputStream(from.length() * 2);
-			try {
-				if(!maxSize.process(fromWithWhitespace.getBytes(StandardCharsets.UTF_8), maxSizeOutputWithWhitespace)) {
-					System.out.println(sourceFile);
-					System.out.println(from);
-					throw new IllegalArgumentException("Unable to process whitespace max size " + sourceFile + " using " + filter + " for expected size " + expected.length());
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			byte[] maxSizeOutputWithWhitespace = maxSize.process(fromWithWhitespace.getBytes(StandardCharsets.UTF_8));
+			if(maxSizeOutputWithWhitespace == null) {
+				System.out.println(sourceFile);
+				System.out.println(from);
+				throw new IllegalArgumentException("Unable to process whitespace max size " + sourceFile + " using " + maxSize + " for expected size " + expected.length());
 			}
-	
-			String resultWithWhitespace = maxSizeOutputWithWhitespace.toString();
+
+			String resultWithWhitespace = new String(maxSizeOutputWithWhitespace);
 			String filteredResultWithWhitespace = surrogates ? filterSurrogates(resultWithWhitespace) : resultWithWhitespace;
 	
 			if(!new String(expected).equals(filteredResultWithWhitespace)) {
 				printDiff(filter, properties, filteredFile, sourceFile, from, filteredResultWithWhitespace, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " while " + filteredResultWithWhitespace.length() + " vs " + infiniteOutput.size());
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " while " + filteredResultWithWhitespace.length() + " vs " + infiniteOutput.length);
 			}
-			
 		}
 	}
 

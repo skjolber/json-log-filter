@@ -69,11 +69,11 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 			// check for single prune/anon filter
 			if(isSinglePruneFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(pruneFilters[0])) {
-					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 			} else if(isSingleAnonymizeFilter()) {
 				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters[0])) {				
-					return new JacksonSinglePathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 			}
 			if(!isFullPrefix(anonymizeFilters) && !isFullPrefix(pruneFilters)) {

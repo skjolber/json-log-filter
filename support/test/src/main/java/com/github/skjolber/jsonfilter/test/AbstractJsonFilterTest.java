@@ -59,10 +59,7 @@ public abstract class AbstractJsonFilterTest {
 		for(int i = 2; i < bs.length; i++) {
 			JsonFilter apply = filter.apply(i);
 
-			ByteArrayOutputStream bout = new ByteArrayOutputStream(i);
-			apply.process(bs, 0, bs.length, bout);
-			
-			byte[] byteArray = bout.toByteArray();
+			byte[] byteArray = apply.process(bs, 0, bs.length);
 			
 			try {
 				validate(byteArray);

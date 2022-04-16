@@ -32,7 +32,7 @@ public class JacksonJsonLogFilterBuilderTest {
 	
 	@Test
 	public void testAnonymizeMessage() {
-		JacksonSinglePathMaxStringLengthJsonFilter filter = (JacksonSinglePathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
+		JacksonSingleFullPathMaxStringLengthJsonFilter filter = (JacksonSingleFullPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
 				.withMaxStringLength(127)
 				.withAnonymize("/customer/email") // inserts ***** for values
 				.withAnonymizeStringValue("x\nxxxx")
@@ -45,7 +45,7 @@ public class JacksonJsonLogFilterBuilderTest {
 	
 	@Test
 	public void testPruneMessage() {
-		JacksonSinglePathMaxStringLengthJsonFilter filter = (JacksonSinglePathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
+		JacksonSingleFullPathMaxStringLengthJsonFilter filter = (JacksonSingleFullPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
 				.withMaxStringLength(127)
 				.withPrune("/customer/email") // inserts ***** for values
 				.withPruneStringValue("x\nxxxx")
