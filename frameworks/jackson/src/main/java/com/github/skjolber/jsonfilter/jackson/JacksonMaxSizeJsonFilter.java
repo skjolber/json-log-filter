@@ -29,6 +29,9 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	}
 	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		if(chars.length <= offset + length) {
+			return false;
+		}
 		if(maxSize >= length) {
 			return super.process(chars, offset, length, output);
 		}
@@ -45,6 +48,9 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	}
 	
 	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		if(bytes.length <= offset + length) {
+			return false;
+		}
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output);
 		}
@@ -60,6 +66,10 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
+		if(bytes.length <= offset + length) {
+			return false;
+		}
+
 		if(maxSize >= length) {
 			output.append(new String(bytes, offset, length));
 			return true;

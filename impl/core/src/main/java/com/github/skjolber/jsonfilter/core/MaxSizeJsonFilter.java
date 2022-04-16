@@ -33,6 +33,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
+		if(chars.length < offset + length) {
+			return false;
+		}
+		
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -104,6 +108,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 	
 	protected boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		if(chars.length < offset + length) {
+			return false;
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
