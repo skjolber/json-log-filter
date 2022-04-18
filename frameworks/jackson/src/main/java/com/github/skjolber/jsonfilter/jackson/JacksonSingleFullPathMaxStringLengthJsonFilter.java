@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -60,6 +61,17 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			return false;
 		}
 	}
+	
+	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
@@ -72,11 +84,6 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {
-				break;
-			}
-			
-			long size = parser.currentLocation().getCharOffset();
-			if(size >= maxSize) {
 				break;
 			}
 

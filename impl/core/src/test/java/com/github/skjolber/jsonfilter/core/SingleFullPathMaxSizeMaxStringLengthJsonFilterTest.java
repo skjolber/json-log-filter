@@ -129,21 +129,4 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
 	
-	public static void main(String[] args) throws IOException {
-		
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
-
-		
-		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 30, -1, PASSTHROUGH_XPATH, FilterType.ANON);
-		
-		File file = new File("./../../support/test/src/main/resources/json/text/single/object1xKeyLongEscapedUnicode.json");
-		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
-		
-		System.out.println(string);
-		
-		String process = filter.process(string);
-		System.out.println(process);
-		System.out.println(process.length() + " size");
-	}
 }

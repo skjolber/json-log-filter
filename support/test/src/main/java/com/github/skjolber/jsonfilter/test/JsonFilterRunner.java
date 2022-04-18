@@ -230,7 +230,6 @@ public class JsonFilterRunner {
 		}
 
 		if(expected.length() < from.length()) {
-
 			String fromWithWhitespace = from + " ";
 			
 			StringBuilder maxSizeOutputWithWhitespace = new StringBuilder(from.length() * 2);
@@ -242,11 +241,18 @@ public class JsonFilterRunner {
 	
 			String resultWithWhitespace = maxSizeOutput.toString();
 			
-			if(!new String(expected).equals(resultWithWhitespace)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+			if(literal) {
+				if(!new String(expected).equals(resultWithWhitespace)) {
+					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
+					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+				}
+			} else {
+				// compare events
+				if(!parseCompare(new String(expected), resultWithWhitespace)) {
+					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
+					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+				}				
 			}
-			
 		}
 	}
 
@@ -399,9 +405,17 @@ public class JsonFilterRunner {
 			String resultWithWhitespace = new String(maxSizeOutputWithWhitespace);
 			String filteredResultWithWhitespace = surrogates ? filterSurrogates(resultWithWhitespace) : resultWithWhitespace;
 	
-			if(!new String(expected).equals(filteredResultWithWhitespace)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, filteredResultWithWhitespace, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " while " + filteredResultWithWhitespace.length() + " vs " + infiniteOutput.length);
+			if(literal) {
+				if(!new String(expected).equals(resultWithWhitespace)) {
+					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
+					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+				}
+			} else {
+				// compare events
+				if(!parseCompare(new String(expected), resultWithWhitespace)) {
+					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
+					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+				}				
 			}
 		}
 	}

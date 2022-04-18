@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,6 +63,9 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		if(chars.length < offset + length) {
+			return false;
+		}
 		output.ensureCapacity(output.length() + length);
 
 		try (
@@ -75,6 +79,9 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
+		if(bytes.length < offset + length) {
+			return false;
+		}
 		output.ensureCapacity(output.length() + length);
 
 		try (
@@ -87,6 +94,20 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}
 
+	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		if(bytes.length < offset + length) {
+			return false;
+		}
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 
@@ -117,5 +138,6 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
-	}		
+	}
+
 }

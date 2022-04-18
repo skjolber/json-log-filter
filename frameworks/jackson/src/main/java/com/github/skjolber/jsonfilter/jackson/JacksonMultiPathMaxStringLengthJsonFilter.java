@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -26,7 +27,13 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
-		super(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
+	}
+	
+	protected JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches,
+			String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		this.jsonFactory = jsonFactory;
 	}
@@ -49,6 +56,17 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+
+	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			return process(parser, generator);

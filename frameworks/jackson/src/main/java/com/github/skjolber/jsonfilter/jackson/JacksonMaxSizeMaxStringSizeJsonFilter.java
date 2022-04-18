@@ -41,7 +41,7 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getCharOffset());
+			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> output.length());
 		} catch(final Exception e) {
 			return false;
 		}
@@ -57,19 +57,19 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset());
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> output.length());
 		} catch(final Exception e) {
 			return false;
 		}
 	}
 
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier) throws IOException {
-		// measure size only based on input source offset 
-		// the implementation in inaccurate to the size of an number field + max level of depth.
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
+		// estimate output size based on input size
+		// if size limit is reached, do a more accurate output measurement
 
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 
-		int maxSize = this.maxSize;
+		long maxOffset = this.maxSize;
 
         String fieldName = null;
 		while(true) {
@@ -77,23 +77,40 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			if(nextToken == null) {
 				break;
 			}
-			
-			// size includes field name
-			long size = offsetSupplier.getAsLong();
-			if(size >= maxSize) {
-				break;
-			}
-			
+
 			if(nextToken == JsonToken.FIELD_NAME) {
 				fieldName = parser.currentName();
+				
+				// offset includes field name, but output does not
+				long offset = offsetSupplier.getAsLong();
+				if(offset >= maxOffset) {
+					maxOffset = getMaxOffset(generator, offsetSupplier, outputSizeSupplier) - 5 - fieldName.length();
+					if(offset >= maxOffset) {
+						break;
+					}
+				}
+				
 				continue;
 			} else if(nextToken == JsonToken.VALUE_STRING) {
-				// preemptive size check for string value
 				int length = Math.min(maxStringLength, parser.getTextLength());
-				if(size + 3 + length > maxSize) {
-					break;
+
+				long offset = offsetSupplier.getAsLong();
+				if(offset + 2 + length >= maxOffset) {
+					maxOffset = getMaxOffset(generator, offsetSupplier, outputSizeSupplier);
+					if(offset + 3 + length >= maxOffset) {
+						break;
+					}
+				}
+			} else {
+				long offset = offsetSupplier.getAsLong();
+				if(offset >= maxOffset) {
+					maxOffset = getMaxOffset(generator, offsetSupplier, outputSizeSupplier) - JacksonMaxSizeJsonFilter.getTokenSize(parser, nextToken);
+					if(offset >= maxOffset) {
+						break;
+					}
 				}
 			}
+
 			if(fieldName != null) {
 				generator.writeFieldName(fieldName);
 				fieldName = null;
@@ -102,7 +119,7 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
-				maxSize += parser.getTextLength() - maxStringLength - truncateStringValue.length;
+				maxOffset += parser.getTextLength() - maxStringLength - truncateStringValue.length;
 				
 				continue;
 			}
@@ -113,16 +130,14 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 
 		return true;
 	}
+	
+	protected long getMaxOffset(JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
+		generator.flush(); // don't close
 
-	protected char[] getPruneJsonValue() {
-		return pruneJsonValue;
+		long outputSize = outputSizeSupplier.getAsLong();
+		
+		long left = this.maxSize - outputSize;
+
+		return offsetSupplier.getAsLong() + left;
 	}
-	
-	protected char[] getAnonymizeJsonValue() {
-		return anonymizeJsonValue;
-	}
-	
-	protected char[] getTruncateStringValue() {
-		return truncateStringValue;
-	}		
 }

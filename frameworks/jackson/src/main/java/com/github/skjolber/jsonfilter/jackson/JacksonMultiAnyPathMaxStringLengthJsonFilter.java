@@ -1,4 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -80,6 +81,17 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			return process(parser, generator);
