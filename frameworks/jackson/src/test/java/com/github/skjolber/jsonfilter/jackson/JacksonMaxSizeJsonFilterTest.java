@@ -52,7 +52,7 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest 
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
 
-		File file = new File("/home/skjolber/git/json-log-filter/frameworks/jackson/src/test/resources/test.json");
+		File file = new File("/home/skjolber/git/json-log-filter-github/frameworks/jackson/src/test/resources/test.json");
 		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
 		System.out.println(string);
 

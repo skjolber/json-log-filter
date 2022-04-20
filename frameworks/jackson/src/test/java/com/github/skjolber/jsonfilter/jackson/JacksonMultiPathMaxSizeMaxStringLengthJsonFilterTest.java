@@ -31,8 +31,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 	}
 
 	@Test
-	public void passthrough_success() throws Exception {
-		
+	public void passthrough_success() throws Exception {		
 		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null)).hasPassthrough();
 		
@@ -134,7 +133,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
 
-		File file = new File("./../../support/test/src/main/resources/json/text/single/object3xKeyMiddleLong.json");
+		File file = new File("./../../support/test/src/main/resources/json/array/1d/anyArray.json");
 		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
 		System.out.println(string);
 
@@ -146,7 +145,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 		
 		int size = infinite.length();
 		
-		string = string + " ";
+		string = string + "  ";
 		
 		JacksonMultiPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH}, null);
 

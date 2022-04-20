@@ -197,8 +197,12 @@ public class JsonFilterRunner {
 			System.out.println(from);
 			throw new IllegalArgumentException("Unable to process infinite size " + sourceFile + " using " + filter);
 		}
+
+		String expected = cache.getFile(filteredFile);
+
+		int constraint = Math.max(expected.length(), infiniteOutput.length());
 		
-		JsonFilter maxSize = maxSizeFunction.apply(infiniteOutput.length());
+		JsonFilter maxSize = maxSizeFunction.apply(constraint);
 
 		StringBuilder maxSizeOutput = new StringBuilder(from.length() * 2);
 		if(!maxSize.process(from, maxSizeOutput)) {
@@ -208,8 +212,6 @@ public class JsonFilterRunner {
 		}
 
 		String result = maxSizeOutput.toString();
-
-		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
 			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
@@ -225,7 +227,7 @@ public class JsonFilterRunner {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
 				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " size " + infiniteOutput.length());
 			}
 		}
 
@@ -352,7 +354,11 @@ public class JsonFilterRunner {
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 
-		JsonFilter maxSize = maxSizeFunction.apply(infiniteOutput.length);
+		String expected = cache.getFile(filteredFile);
+
+		int constraint = Math.max(expected.length(), infiniteOutput.length);
+		
+		JsonFilter maxSize = maxSizeFunction.apply(constraint);
 
 		byte[] maxSizeOutput = maxSize.process(from.getBytes(StandardCharsets.UTF_8));
 		if(maxSizeOutput == null) {
@@ -367,8 +373,6 @@ public class JsonFilterRunner {
 		boolean surrogates = isSurrogates(from);
 
 		String result = new String(maxSizeOutput);
-
-		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
 			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
