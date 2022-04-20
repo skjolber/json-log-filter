@@ -13,9 +13,6 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		if(chars.length < offset + length) {
-			return false;
-		}
 		CharArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
@@ -31,9 +28,6 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
 	protected boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
-		if(chars.length < offset + length) {
-			return false;
-		}
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;

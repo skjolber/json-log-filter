@@ -17,7 +17,7 @@ public class Generator {
 		try (JsonGenerator generator = factory.createGenerator(bout)) {
 			generator.writeStartObject();
 			for(int i = 0; i < levels; i++) {
-				generator.writeFieldName("field" + i);
+				generator.writeFieldName("f" + i);
 				generator.writeStartObject();
 			}
 
@@ -40,7 +40,7 @@ public class Generator {
 		try (JsonGenerator generator = factory.createGenerator(bout)) {
 			generator.writeStartArray();
 			for(int i = 0; i < levels; i++) {
-				generator.writeString("array " + i);
+				generator.writeString("a" + i);
 				generator.writeStartArray();
 			}
 			
@@ -64,7 +64,7 @@ public class Generator {
 				if(i % 2 == 0) {
 					generator.writeStartObject();
 				} else {
-					generator.writeFieldName("field" + i);
+					generator.writeFieldName("f" + i);
 					generator.writeStartArray();
 				}
 			}

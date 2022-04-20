@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -20,6 +21,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	}
 
 	@Test
+	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
 	}

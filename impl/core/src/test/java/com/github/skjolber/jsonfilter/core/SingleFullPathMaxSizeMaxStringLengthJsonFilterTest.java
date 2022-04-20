@@ -3,12 +3,10 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -28,7 +26,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 	
 	@Test
 	public void testDeepStructure() throws IOException {
-		validateDeepStructure( (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"/CVE_Items/cve/CVE_data_meta", FilterType.ANON));
+		validateDeepStructure( (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,DEEP_PATH, FilterType.ANON));
 	}
 	
 	

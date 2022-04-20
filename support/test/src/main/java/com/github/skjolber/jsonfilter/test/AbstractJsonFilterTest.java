@@ -25,6 +25,8 @@ import com.github.skjolber.jsonfilter.JsonFilter;
  */
 
 public abstract class AbstractJsonFilterTest {
+	
+	protected String DEEP_PATH = "/f0/f1/f2/f3/f4/f5/f6/f7/f8/f9/f10/f11/f12/f13/f14/f15/f16/f17/f18/f19/f20/f21/f22/f23/f24/f25/f26/f27/f28/f29/f30/f31/f32/f33";
 
 	protected JsonFactory factory = new JsonFactory();
 
@@ -56,7 +58,9 @@ public abstract class AbstractJsonFilterTest {
 			maps.put(resource,  bs);
 		}
 		
-		for(int i = 2; i < bs.length; i++) {
+		int factor = 3;
+		
+		for(int i = 2; i < bs.length / factor; i++) {
 			JsonFilter apply = filter.apply(i);
 
 			byte[] byteArray = apply.process(bs, 0, bs.length);
@@ -71,16 +75,24 @@ public abstract class AbstractJsonFilterTest {
 				System.out.println(new String(byteArray));
 				fail(byteArray.length + " vs " + i);
 			}
+			
+			if(i % 10000 == 0) {
+				System.out.println("Bytes " + i);
+			}
+
 		}
 		
-		char[] charArray = new String(bs).toCharArray();		
-		for(int i = 2; i < charArray.length; i++) {
+		char[] charArray = new String(bs).toCharArray();
+
+		StringBuilder bout = new StringBuilder(charArray.length);
+
+		for(int i = 2; i < bs.length / factor; i++) {
 			JsonFilter apply = filter.apply(i);
 
-			StringBuilder bout = new StringBuilder(i);
 			apply.process(charArray, 0, charArray.length, bout);
 			
 			String result = bout.toString();
+			bout.setLength(0);
 			try {
 				validate(result);
 			} catch(JsonParseException e) {
@@ -91,7 +103,13 @@ public abstract class AbstractJsonFilterTest {
 				System.out.println(result);
 				fail(result.length() + " vs " + i);
 			}
+			
+			if(i % 10000 == 0) {
+				System.out.println("Chars " + i);
+			}
+
 		}
+		
 	}
 	
 	public void validateDeepStructure(Function<Integer, JsonFilter> filter) throws IOException {

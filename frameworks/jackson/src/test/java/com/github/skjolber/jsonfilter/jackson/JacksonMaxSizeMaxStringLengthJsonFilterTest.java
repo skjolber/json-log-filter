@@ -67,26 +67,5 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJackson
 			}
 		);
 	}
-	
-	
-	
-	public static void main(String[] args) throws IOException {
-		
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
-
-		File file = new File("./../../support/test/src/main/resources/json/text/single/object1xKeyLongEscapedUnicode.json");
-		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
-		System.out.println(string);
-
-		JacksonMaxSizeMaxStringSizeJsonFilter infiniteFilter = new JacksonMaxSizeMaxStringSizeJsonFilter(5, 33);
-
-		String infinite = infiniteFilter.process(string + " ");
-		
-		System.out.println(infinite);
-		
-	
-	}
-	
 
 }

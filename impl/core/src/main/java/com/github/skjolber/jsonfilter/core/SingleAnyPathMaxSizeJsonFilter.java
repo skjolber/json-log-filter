@@ -243,7 +243,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else if(offset < limit) {
+		} else {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			
@@ -253,13 +253,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			
 			// filter rest of document
 			filter.addDelete(filter.getMark(), limit);
-		} else {
-			// was able to fit the end of the document
-			if(bracketLevel != 0) {
-				return null;
-			}
-			
-			filter.setLevel(0);
 		}
 		
 		return filter;
@@ -305,7 +298,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		
 		if(offset > maxSizeLimit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else if(offset < limit) {
+		} else {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
@@ -314,13 +307,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			
 			// remove rest of document
 			filter.addDelete(filter.getMark(), limit);
-		} else {
-			// was able to fit the end of the document, so should be level 0
-			if(bracketLevel != 0) {
-				return null;
-			}
-			
-			filter.setLevel(0);
 		}
 		
 		return filter;
@@ -523,7 +509,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else if(offset < limit) {
+		} else {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
@@ -532,13 +518,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			
 			// filter rest of document
 			filter.addDelete(filter.getMark(), limit);
-		} else {
-			// was able to fit the end of the document
-			if(bracketLevel != 0) {
-				return null;
-			}
-			
-			filter.setLevel(0);
 		}
 		
 		return filter;
@@ -584,7 +563,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		
 		if(offset > maxSizeLimit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else if(offset < limit) {
+		} else {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
@@ -593,13 +572,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			
 			// remove rest of document
 			filter.addDelete(filter.getMark(), limit);
-		} else {
-			// was able to fit the end of the document, so should be level 0
-			if(bracketLevel != 0) {
-				return null;
-			}
-			
-			filter.setLevel(0);
 		}
 		
 		return filter;

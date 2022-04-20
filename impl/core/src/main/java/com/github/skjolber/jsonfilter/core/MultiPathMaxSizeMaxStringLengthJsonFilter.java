@@ -281,7 +281,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 				return null;
-			} else if(offset < length) {
+			} else {
 				// max size reached before end of document
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
@@ -290,13 +290,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 				
 				// filter rest of document
 				filter.addDelete(filter.getMark(), length);
-			} else {
-				// was able to fit the end of the document
-				if(bracketLevel != 0) {
-					return null;
-				}
-				
-				filter.setLevel(0);
 			}
 			
 			return filter;
@@ -571,7 +564,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 				return null;
-			} else if(offset < length) {
+			} else {
 				// max size reached before end of document
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
@@ -580,13 +573,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 				
 				// filter rest of document
 				filter.addDelete(filter.getMark(), length);
-			} else {
-				// was able to fit the end of the document
-				if(bracketLevel != 0) {
-					return null;
-				}
-				
-				filter.setLevel(0);
 			}
 			
 			return filter;

@@ -3,13 +3,12 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
@@ -22,13 +21,14 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON));
 	}
 	
 	@Test
 	public void testDeepStructure() throws IOException {
-		validateDeepStructure( (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON));
+		validateDeepStructure( (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, DEEP_PATH, FilterType.ANON));
 	}
 	
 	@Test
@@ -114,23 +114,5 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
-	
-	public static void main(String[] args) throws IOException {
-		
-		SingleFullPathJsonFilter infiniteFilter = new SingleFullPathJsonFilter(1, DEFAULT_PATH, FilterType.ANON);
-		
-		File file = new File("./../../support/test/src/main/resources/json/text/single/object1xKeyLongEscapedUnicode.json");
-		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
-		
-		String expected = infiniteFilter.process(string);
-		
-		System.out.println(string);
-		System.out.println(expected);
 
-		System.out.println("Max size is " + expected.length() + ", input size is " + string.length());
-		SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(expected.length(), 1, DEFAULT_PATH, FilterType.ANON);
-
-		String process = filter.process(string + " ");
-		System.out.println(process);
-	}
 }
