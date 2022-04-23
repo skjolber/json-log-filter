@@ -25,7 +25,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
-			
 			if(filter[i+2] == FILTER_ANON) {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(anonymizeMessage);

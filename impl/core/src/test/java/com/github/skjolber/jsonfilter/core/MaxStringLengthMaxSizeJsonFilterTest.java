@@ -39,7 +39,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	public void maxStringLength() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
-		assertThatMaxSize( maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThatMaxSize(maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

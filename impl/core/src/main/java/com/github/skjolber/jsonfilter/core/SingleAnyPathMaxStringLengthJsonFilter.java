@@ -86,24 +86,18 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					if(filterType == FilterType.PRUNE) {
 						filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 					} else {
-						// special case: anon scalar values
-						if(chars[nextOffset] == '"') {
-							// quoted value
-							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-							
-							filter.addAnon(nextOffset, offset);
-						} else if(chars[nextOffset] == 't' 
-								|| chars[nextOffset] == 'f' 
-								|| (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') 
-								|| chars[nextOffset] == '-'
-								) {
-							// scalar value
-							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-							filter.addAnon(nextOffset, offset);
-						} else {
+						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							// filter as tree
 							offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+						} else {
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+							} else {
+								// scalar value
+								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
+							filter.addAnon(nextOffset, offset);
 						}
 					}
 					
@@ -198,20 +192,18 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					if(filterType == FilterType.PRUNE) {
 						filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 					} else {
-						// special case: anon scalar values
-						if(chars[nextOffset] == '"') {
-							// quoted value
-							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-							
-							filter.addAnon(nextOffset, offset);
-						} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-							// scalar value
-							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-							filter.addAnon(nextOffset, offset);
-						} else {
+						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							// filter as tree
 							offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+						} else {
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+							} else {
+								// scalar value
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
+							filter.addAnon(nextOffset, offset);
 						}
 					}
 					

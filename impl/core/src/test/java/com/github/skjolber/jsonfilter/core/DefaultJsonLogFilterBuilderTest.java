@@ -19,6 +19,7 @@ public class DefaultJsonLogFilterBuilderTest {
 				.withAnonymizeStringValue("pruneMessage")
 				.withTruncateStringValue("truncateMessage")
 				.withMaxPathMatches(10)
+				.withMaxSize(32 * 1024)
 				.build();
 		assertNotNull(filter);
 		
@@ -26,6 +27,7 @@ public class DefaultJsonLogFilterBuilderTest {
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/customer/email"});
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/customer/account"});
 		assertThat(filter.getMaxPathMatches()).isEqualTo(10);
+		assertThat(filter.getMaxSize()).isEqualTo(32 * 1024);
 	}
 	
 	@Test

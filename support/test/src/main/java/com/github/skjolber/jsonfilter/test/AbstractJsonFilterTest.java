@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -37,15 +38,23 @@ public abstract class AbstractJsonFilterTest {
 	public AbstractJsonFilterTest(JsonFilterRunner runner) {
 		this.runner = runner;
 	}
-	
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
-		JsonFilterResult process = runner.process(filter);
+		return assertThat(filter, (s) -> true);
+	}
+	
+	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
+		
+		JsonFilterResult process = runner.process(filter, predicate);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
-	
+
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		JsonFilterResult process = runner.process(maxSize, infiniteSize);
+		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true);
+	}
+
+	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter) throws Exception {
+		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}

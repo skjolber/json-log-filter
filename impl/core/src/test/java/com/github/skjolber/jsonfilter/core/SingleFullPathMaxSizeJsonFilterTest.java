@@ -3,10 +3,12 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
@@ -24,8 +26,18 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, "/CVE_Items/cve/CVE_data_meta", FilterType.PRUNE));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/severity", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/severity", FilterType.PRUNE));
+
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/impactScore", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/impactScore", FilterType.PRUNE));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1,"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege", FilterType.PRUNE));
 	}
-	
+
 	@Test
 	public void testDeepStructure() throws IOException {
 		validateDeepStructure( (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, DEEP_PATH, FilterType.ANON));
@@ -42,7 +54,7 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, DEFAULT_PATH, FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		
-		maxSize = (size) -> new SingleFullPathMaxSizeJsonFilter(-1, size, DEEP_PATH1, FilterType.ANON);
+		maxSize = (size) -> new SingleFullPathMaxSizeJsonFilter(size, -1, DEEP_PATH1, FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
 	}
 	
@@ -115,4 +127,23 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
 
+	public static void main(String[] args) throws IOException {
+		
+		SingleFullPathJsonFilter infiniteFilter = new SingleFullPathJsonFilter(-1, "/grandparent/parent/child1", FilterType.ANON);
+		
+		File file = new File("./../../support/test/src/main/resources/json/object/object1ws.json");
+		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
+		
+		String expected = infiniteFilter.process(string);
+		
+		System.out.println(string);
+		System.out.println(expected);
+
+		System.out.println("Max size is " + expected.length() + ", input size is " + string.length());
+		SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(122, -1, "/grandparent/parent/child1", FilterType.ANON);
+
+		String process = filter.process(string + "  ");
+		System.out.println(process);
+		System.out.println("Size " + process.length());
+	}
 }

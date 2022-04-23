@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +23,18 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public class JsonFilterRunner {
 
+	private static final String[] SPACES;
+	
+	static {
+		SPACES = new String[128];
+		
+		StringBuilder b = new StringBuilder();
+		for(int i = 0; i < SPACES.length; i++) {
+			SPACES[i] = b.toString();
+			b.append(' ');
+		}
+	}
+	
 	private JsonFileCache cache;
 	private JsonFilterPropertiesFactory jsonFilterPropertiesFactory;
 	private JsonFilterOutputDirectoriesFactory jsonOutputDirectoriesFactory;
@@ -49,7 +62,7 @@ public class JsonFilterRunner {
 		this.outputDirectories = jsonOutputDirectoriesFactory.create(directory);
 	}
 
-	public JsonFilterResult process(JsonFilter filter) throws Exception {
+	public JsonFilterResult process(JsonFilter filter, Predicate<String> predicate) throws Exception {
 		JsonFilterResult result = new JsonFilterResult();
 
 		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(filter);
@@ -57,7 +70,7 @@ public class JsonFilterRunner {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
 				if(inputDirectory.matches(properties)) {
-					processInputOutput(inputDirectory, outputDirectory, filter);
+					processInputOutput(inputDirectory, outputDirectory, filter, predicate);
 
 					result.addFiltered(outputDirectory);
 				}
@@ -66,10 +79,10 @@ public class JsonFilterRunner {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
 
-				processInput(inputDirectory, filter);
+				processInput(inputDirectory, filter, predicate);
 
 				Map<String, File> files = outputDirectory.getFiles();
-				processInputOutput(filter, files, files, properties.getProperties());
+				processInputOutput(filter, files, files, properties.getProperties(), predicate);
 
 				result.addPassthrough(outputDirectory);
 			}
@@ -79,6 +92,10 @@ public class JsonFilterRunner {
 	}
 
 	public JsonFilterResult process(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
+		return process(maxSize, infiniteSize, (p) -> true);
+	}
+
+	public JsonFilterResult process(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> predicate) throws Exception {
 		JsonFilterResult result = new JsonFilterResult();
 
 		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(infiniteSize);
@@ -87,7 +104,7 @@ public class JsonFilterRunner {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
 				if(inputDirectory.matches(properties)) {
-					processInputOutput(inputDirectory, outputDirectory, maxSize, infiniteSize);
+					processInputOutput(inputDirectory, outputDirectory, maxSize, infiniteSize, predicate);
 
 					result.addFiltered(outputDirectory);
 				}
@@ -96,10 +113,10 @@ public class JsonFilterRunner {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
 
-				processInput(inputDirectory, maxSize, infiniteSize);
+				processInput(inputDirectory, maxSize, infiniteSize, predicate);
 
 				Map<String, File> files = outputDirectory.getFiles();
-				processInputOutput(maxSize, infiniteSize, files, files, properties.getProperties());
+				processInputOutput(maxSize, infiniteSize, files, files, properties.getProperties(), predicate);
 
 				result.addPassthrough(outputDirectory);
 			}
@@ -109,60 +126,60 @@ public class JsonFilterRunner {
 	}
 
 	
-	private void processInput(JsonFilterInputDirectory inputDirectory, JsonFilter filter) {
+	private void processInput(JsonFilterInputDirectory inputDirectory, JsonFilter filter, Predicate<String> predicate) {
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
 
 		Properties properties = inputDirectory.getProperties();
 
-		processInputOutput(filter, sourceFiles, sourceFiles, properties);
+		processInputOutput(filter, sourceFiles, sourceFiles, properties, predicate);
 	}
 	
-	private void processInput(JsonFilterInputDirectory inputDirectory, Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) {
+	private void processInput(JsonFilterInputDirectory inputDirectory, Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> predicate) {
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
 
 		Properties properties = inputDirectory.getProperties();
 
-		processInputOutput(maxSize, infiniteSize, sourceFiles, sourceFiles, properties);
+		processInputOutput(maxSize, infiniteSize, sourceFiles, sourceFiles, properties, predicate);
 	}
 
 
-	protected void processInputOutput(JsonFilterInputDirectory inputDirectory, JsonFilterOutputDirectory outputDirectory, JsonFilter filter) {
+	protected void processInputOutput(JsonFilterInputDirectory inputDirectory, JsonFilterOutputDirectory outputDirectory, JsonFilter filter, Predicate<String> predicate) {
 		Map<String, File> filteredFiles = outputDirectory.getFiles();
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
 
 		Properties properties = inputDirectory.getProperties();
 
-		processInputOutput(filter, filteredFiles, sourceFiles, properties);
+		processInputOutput(filter, filteredFiles, sourceFiles, properties, predicate);
 	}
 
-	protected void processInputOutput(JsonFilterInputDirectory inputDirectory, JsonFilterOutputDirectory outputDirectory, Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) {
+	protected void processInputOutput(JsonFilterInputDirectory inputDirectory, JsonFilterOutputDirectory outputDirectory, Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> predicate) {
 		Map<String, File> filteredFiles = outputDirectory.getFiles();
 		Map<String, File> sourceFiles = inputDirectory.getFiles();
 
 		Properties properties = inputDirectory.getProperties();
 
-		processInputOutput(maxSize, infiniteSize, filteredFiles, sourceFiles, properties);
+		processInputOutput(maxSize, infiniteSize, filteredFiles, sourceFiles, properties, predicate);
 	}
 
 	
-	private void processInputOutput(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Map<String, File> filteredFiles, Map<String, File> sourceFiles, Properties properties) {
+	private void processInputOutput(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Map<String, File> filteredFiles, Map<String, File> sourceFiles, Properties properties, Predicate<String> predicate) {
 
 		for (Entry<String, File> entry : sourceFiles.entrySet()) {
 			File sourceFile = entry.getValue();
 
 			File filteredFile = filteredFiles.get(entry.getKey());
 
-//			System.out.println(sourceFile + " -> " + filteredFile);
+			//System.out.println(sourceFile + " -> " + filteredFile);
 			
 			if(filteredFile == null) {
 				// no filtered file, so expect passthrough
-				compareChars(maxSize, infiniteSize, sourceFile, sourceFile, properties);
+				compareChars(maxSize, infiniteSize, sourceFile, sourceFile, properties, predicate);
 				
-				compareBytes(maxSize, infiniteSize, sourceFile, sourceFile, properties);
+				compareBytes(maxSize, infiniteSize, sourceFile, sourceFile, properties, predicate);
 			} else {
-				compareChars(maxSize, infiniteSize, sourceFile, filteredFile, properties);
+				compareChars(maxSize, infiniteSize, sourceFile, filteredFile, properties, predicate);
 				
-				compareBytes(maxSize, infiniteSize, sourceFile, filteredFile, properties);
+				compareBytes(maxSize, infiniteSize, sourceFile, filteredFile, properties, predicate);
 			}
 		}
 		
@@ -170,7 +187,7 @@ public class JsonFilterRunner {
 
 	
 	private void processInputOutput(JsonFilter filter, Map<String, File> filteredFiles, Map<String, File> sourceFiles,
-			Properties properties) {
+			Properties properties, Predicate<String> predicate) {
 		for (Entry<String, File> entry : sourceFiles.entrySet()) {
 			File sourceFile = entry.getValue();
 
@@ -178,88 +195,91 @@ public class JsonFilterRunner {
 
 			if(filteredFile == null) {
 				// no filtered file, so expect passthrough
-				compareChars(filter, sourceFile, sourceFile, properties);
-				compareBytes(filter, sourceFile, sourceFile, properties);
+				compareChars(filter, sourceFile, sourceFile, properties, predicate);
+				compareBytes(filter, sourceFile, sourceFile, properties, predicate);
 			} else {
-				compareChars(filter, sourceFile, filteredFile, properties);
-				compareBytes(filter, sourceFile, filteredFile, properties);
+				compareChars(filter, sourceFile, filteredFile, properties, predicate);
+				compareBytes(filter, sourceFile, filteredFile, properties, predicate);
 			}
 		}
 	}
 
-	protected void compareChars(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+	protected void compareChars(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate) {
 		
 		String from = cache.getFile(sourceFile);
-
-		StringBuilder infiniteOutput = new StringBuilder(from.length() * 2);
-		if(!filter.process(from, infiniteOutput)) {
-			System.out.println(sourceFile);
-			System.out.println(from);
-			throw new IllegalArgumentException("Unable to process infinite size " + sourceFile + " using " + filter);
+		if(!predicate.test(from)) {
+			return;
 		}
-
 		String expected = cache.getFile(filteredFile);
 
-		int constraint = Math.max(expected.length(), infiniteOutput.length());
-		
-		JsonFilter maxSize = maxSizeFunction.apply(constraint);
-
-		StringBuilder maxSizeOutput = new StringBuilder(from.length() * 2);
-		if(!maxSize.process(from, maxSizeOutput)) {
-			System.out.println(sourceFile);
-			System.out.println(from);
-			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + filter);
+		String input;
+		if(expected.length() < from.length()) {
+			input = from;
+		} else {
+			input = from + spaces(expected.length() - from.length() + 1);
 		}
 
+		JsonFilter maxSize = maxSizeFunction.apply(expected.length());
+
+		StringBuilder maxSizeOutput = new StringBuilder(from.length() * 2);
+		if(!maxSize.process(input, maxSizeOutput)) {
+			System.out.println(sourceFile);
+			System.out.println(input);
+			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + filter);
+		}
+		
 		String result = maxSizeOutput.toString();
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		if(literal) {
 			if(!new String(expected).equals(result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + infiniteOutput.length());
+				printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + expected.length());
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
-				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " size " + infiniteOutput.length());
-			}
-		}
-
-		if(expected.length() < from.length()) {
-			String fromWithWhitespace = from + " ";
-			
-			StringBuilder maxSizeOutputWithWhitespace = new StringBuilder(from.length() * 2);
-			if(!maxSize.process(fromWithWhitespace, maxSizeOutputWithWhitespace)) {
-				System.out.println(sourceFile);
-				System.out.println(from);
-				throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + filter + " for expected size " + expected.length());
-			}
-	
-			String resultWithWhitespace = maxSizeOutput.toString();
-			
-			if(literal) {
-				if(!new String(expected).equals(resultWithWhitespace)) {
-					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
-					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
-				}
-			} else {
-				// compare events
-				if(!parseCompare(new String(expected), resultWithWhitespace)) {
-					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
-					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
-				}				
+				printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
+				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " size " + expected.length());
 			}
 		}
 	}
 
-	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+	private byte[] spaces(byte[] content, int length) {
+		byte[] c = new byte[content.length + length];
+		
+		System.arraycopy(content, 0, c, 0, content.length);
+		for(int i = 0; i < length; i++) {
+			c[content.length + i] = ' ';
+		}
+		
+		return c;
+	}
+
+	private String spaces(int length) {
+		if(length < SPACES.length) {
+			return SPACES[length];
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		
+		for(int i = 0; i < length; i++) {
+			builder.append(' ');
+		}
+		
+		return builder.toString();
+	}
+
+	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate) {
 		String from = cache.getFile(sourceFile);
+		
+		if(!predicate.test(from)) {
+			return;
+		}
 
 		StringBuilder output = new StringBuilder(from.length() * 2);
 		if(!filter.process(from, output)) {
@@ -300,9 +320,12 @@ public class JsonFilterRunner {
 		return false;
 	}
 	
-	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate) {
 		String from = cache.getFile(sourceFile);
-
+		if(!predicate.test(from)) {
+			return;
+		}
+		
 		byte[] process = filter.process(from.getBytes(StandardCharsets.UTF_8));
 		if(process == null) {
 			System.out.println("Unable to process " + sourceFile);
@@ -342,84 +365,57 @@ public class JsonFilterRunner {
 	}
 
 
-	protected void compareBytes(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties) {
+	protected void compareBytes(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate) {
 		
-		String from = cache.getFile(sourceFile);
-		
-		byte[] infiniteOutput = filter.process(from.getBytes(StandardCharsets.UTF_8));
-		if(infiniteOutput == null) {
-			System.out.println("Unable to process " + sourceFile);
-			System.out.println(from);
+		String chars = cache.getFile(sourceFile);
+		if(!predicate.test(chars)) {
+			return;
+		}
+		byte[] from = chars.getBytes(StandardCharsets.UTF_8);
 
-			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
+		byte[] expected = cache.getFile(filteredFile).getBytes(StandardCharsets.UTF_8);
+
+		byte[] input;
+		if(expected.length < from.length) {
+			input = from;
+		} else {
+			input = spaces(from, expected.length - from.length + 1);
 		}
 
-		String expected = cache.getFile(filteredFile);
+		JsonFilter maxSize = maxSizeFunction.apply(expected.length);		
 
-		int constraint = Math.max(expected.length(), infiniteOutput.length);
-		
-		JsonFilter maxSize = maxSizeFunction.apply(constraint);
-
-		byte[] maxSizeOutput = maxSize.process(from.getBytes(StandardCharsets.UTF_8));
+		byte[] maxSizeOutput = maxSize.process(input);
 		if(maxSizeOutput == null) {
 			System.out.println("Unable to process max size " + sourceFile);
 			System.out.println(from);
-
 			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + maxSize);
 		}
-		
+
 		// this will break "truncated by XX"
 		// because it is bytes vs chars
-		boolean surrogates = isSurrogates(from);
+		boolean surrogates = isSurrogates(chars);
 
 		String result = new String(maxSizeOutput);
-
-		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+		String expectedChars = new String(expected);
+		
+		if(isWellformed(result, jsonFactory) != isWellformed(expectedChars, jsonFactory)) {
+			printDiff(filter, properties, filteredFile, sourceFile, chars, result, expectedChars);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		String filteredResult = surrogates ? filterSurrogates(result) : result;
-		String filteredExpected = surrogates ? filterSurrogates(expected) : expected;
+		String filteredExpected = surrogates ? filterSurrogates(expectedChars) : expectedChars;
 
 		if(literal) {
 			if(!new String(filteredExpected).equals(filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, filteredResult, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(filteredExpected), filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, filteredResult, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
-			}
-		}
-		
-		if(expected.length() < from.length()) {
-			
-			String fromWithWhitespace = from + " ";
-			
-			byte[] maxSizeOutputWithWhitespace = maxSize.process(fromWithWhitespace.getBytes(StandardCharsets.UTF_8));
-			if(maxSizeOutputWithWhitespace == null) {
-				System.out.println(sourceFile);
-				System.out.println(from);
-				throw new IllegalArgumentException("Unable to process whitespace max size " + sourceFile + " using " + maxSize + " for expected size " + expected.length());
-			}
-
-			String resultWithWhitespace = new String(maxSizeOutputWithWhitespace);
-			String filteredResultWithWhitespace = surrogates ? filterSurrogates(resultWithWhitespace) : resultWithWhitespace;
-	
-			if(literal) {
-				if(!new String(expected).equals(resultWithWhitespace)) {
-					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
-					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
-				}
-			} else {
-				// compare events
-				if(!parseCompare(new String(expected), resultWithWhitespace)) {
-					printDiff(filter, properties, filteredFile, sourceFile, from, resultWithWhitespace, expected);
-					throw new IllegalArgumentException("Unexpected result for " + sourceFile);
-				}				
 			}
 		}
 	}
@@ -469,8 +465,8 @@ public class JsonFilterRunner {
 		if(expectedFile.equals(original)) {
 			System.out.println("File input/output: " + original);
 		} else {
-			System.out.println("File input: " + original);
-			System.out.println("File expected output: " + expectedFile);
+			System.out.println("File input: " + original + " size " + original.length());
+			System.out.println("File expected output: " + expectedFile + " size " + expectedFile.length());
 		}
 		System.out.println("From: \n" + from);
 		System.out.println("Expected:\n" + expected);

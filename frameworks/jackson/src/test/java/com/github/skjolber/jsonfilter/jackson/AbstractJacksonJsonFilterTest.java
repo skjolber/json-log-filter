@@ -7,11 +7,15 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
+import java.util.function.Predicate;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTest {
 
+	// max size and max string length does not work for unicode
+	protected static final Predicate<String> UNICODE_FILTER =  (json) -> !json.contains("\\u1234");
+	
 	public AbstractJacksonJsonFilterTest() throws Exception {
 		super(false);
 	}

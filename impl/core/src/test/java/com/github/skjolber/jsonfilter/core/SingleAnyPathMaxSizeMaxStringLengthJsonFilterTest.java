@@ -24,6 +24,13 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJs
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//CVE_data_meta", FilterType.ANON));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//description", FilterType.PRUNE));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//CVE_data_meta", FilterType.ANON));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//cpe_match", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//impactScore", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,"//ASSIGNER", FilterType.ANON));
 	}
 	
 	@Test

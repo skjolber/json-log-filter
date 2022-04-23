@@ -61,7 +61,7 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 		}
 	}
 	
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output);
 		}
@@ -132,7 +132,9 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-				
+
+				offset = nextOffset;
+
 				continue;
 			}
 			

@@ -17,6 +17,8 @@
 
 package com.github.skjolber.jsonfilter;
 
+import java.io.ByteArrayOutputStream;
+
 /**
  * Interface for filtering JSON. <br>
  *  
@@ -89,6 +91,8 @@ public interface JsonFilter {
 	 */
 
 	byte[] process(byte[] chars, int offset, int length);
+
+	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
 
 	/**
 	 * 

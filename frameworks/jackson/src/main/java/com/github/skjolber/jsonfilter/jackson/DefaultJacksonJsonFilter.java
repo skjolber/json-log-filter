@@ -38,7 +38,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		try (JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			if(parse(parser)) {
 				output.write(bytes, offset, length);

@@ -21,7 +21,12 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testMaxSize() throws IOException {
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//CVE_data_meta", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//description", FilterType.PRUNE));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//description", FilterType.ANON));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//cpe_match", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//impactScore", FilterType.ANON));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1,"//ASSIGNER", FilterType.ANON));
 	}
 
 	@Test
@@ -57,13 +62,20 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		
 		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 2,  "//child1", FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
+		
+		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.ANON);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH);
 	}
-
+	
 	@Test
 	public void pruneAnyMaxPathMatches() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, "//key3", FilterType.PRUNE);
 		
 		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+		
+		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.PRUNE);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH);
+
 	}
 	
 	@Test
@@ -83,4 +95,5 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertNull(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3));
 	}
 
+	
 }

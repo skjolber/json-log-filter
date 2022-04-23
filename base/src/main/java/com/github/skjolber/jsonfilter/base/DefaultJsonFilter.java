@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import java.io.ByteArrayOutputStream;
+
 import com.github.skjolber.jsonfilter.JsonFilter;
 
 /**
@@ -40,6 +42,12 @@ public class DefaultJsonFilter implements JsonFilter {
 		byte[] output = new byte[length];
 		System.arraycopy(chars, offset, output, 0, length);
 		return output;
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		output.write(chars, offset, length);
+		return false;
 	}
 
 }

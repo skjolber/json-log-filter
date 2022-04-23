@@ -32,11 +32,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		this(FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, maxSize);
 	}
 
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		if(chars.length < offset + length) {
-			return false;
-		}
-		
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -107,20 +103,13 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	protected boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
-		if(chars.length < offset + length) {
-			return false;
-		}
-
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
-			try {
-				output.write(chars, offset, length);
-			} catch(Exception e) {
-				return false;
-			}
+			output.write(chars, offset, length);
+			
 			return true;
 		}
 		

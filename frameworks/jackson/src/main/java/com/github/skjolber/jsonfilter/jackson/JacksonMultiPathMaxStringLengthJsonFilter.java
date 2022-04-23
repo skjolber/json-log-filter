@@ -64,7 +64,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}
 
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)

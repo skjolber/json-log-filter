@@ -66,7 +66,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends A
 	@Test
 	public void maxStringLength() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, PASSTHROUGH_XPATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

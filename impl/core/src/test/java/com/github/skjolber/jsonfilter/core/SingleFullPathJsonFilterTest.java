@@ -22,7 +22,6 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	public void passthrough_success() throws Exception {
 		assertThat(new SingleFullPathJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();
 	}
-	
 
 	@Test
 	public void exception_constructor() throws Exception {

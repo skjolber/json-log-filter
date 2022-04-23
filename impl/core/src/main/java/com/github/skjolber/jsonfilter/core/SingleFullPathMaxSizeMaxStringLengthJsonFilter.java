@@ -147,17 +147,16 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							
 							if(chars[nextOffset] != ':') {
 								// was a text value
-								if(quoteIndex - offset - 1 > maxStringLength) {
+								if(quoteIndex - offset + 1 > maxStringLength) {
 									// text length too long
 									
 									if(offset + maxStringLength > maxSizeLimit) {
 										// done filtering
 										break loop;
 									}
-									
 									int removedLength = filter.getRemovedLength();
 
-									filter.addMaxLength(chars, offset + maxStringLength + 1, quoteIndex, -(offset + 1 + maxStringLength - quoteIndex));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -200,13 +199,13 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						
 						if(matches == elementPaths.length) {
 							int removedLength = filter.getRemovedLength();
-							
+
+							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+								nextOffset++;
+							}
+
 							if(filterType == FilterType.PRUNE) {
 								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
-								
 								// is there space within max size?
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
@@ -218,42 +217,17 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								mark = offset;
-							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
-									mark = offset;
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
+								if(offset < maxSizeLimit) {
 									mark = offset;
 								} else {
+									filter.removeLastFilter();
+								}
+							} else {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
-
+									
 									offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
 
 									squareBrackets = filter.getSquareBrackets();
@@ -262,6 +236,29 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
+								} else {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+										offset = maxSizeLimit;
+										break loop;
+									}
+
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									
+									filter.addAnon(nextOffset, offset);
+									
+									// increment limit since we removed something
+									maxSizeLimit += filter.getRemovedLength() - removedLength;
+									
+									if(offset < maxSizeLimit) {
+										mark = offset;
+									} else {
+										filter.removeLastFilter();
+									}									
 								}
 							}
 
@@ -282,8 +279,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									// filtering only for max size and max string size
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
-									
-									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, nextOffset, length, maxSizeLimit, maxStringLength, filter);
+									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
 								}
 							}
 
@@ -457,7 +453,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							
 							if(chars[nextOffset] != ':') {
 								// was a text value
-								if(quoteIndex - offset - 1 > maxStringLength) {
+								if(quoteIndex - offset + 1 > maxStringLength) {
 									// text length too long
 									
 									if(offset + maxStringLength > maxSizeLimit) {
@@ -467,7 +463,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									
 									int removedLength = filter.getRemovedLength();
 
-									filter.addMaxLength(chars, offset + maxStringLength + 1, quoteIndex, -(offset + 1 + maxStringLength - quoteIndex));
+									filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -510,12 +506,13 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						
 						if(matches == elementPaths.length) {
 							int removedLength = filter.getRemovedLength();
-							
+
+							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+								nextOffset++;
+							}
+
 							if(filterType == FilterType.PRUNE) {
 								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
 								
 								// is there space within max size?
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
@@ -528,42 +525,17 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								mark = offset;
-							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
-									mark = offset;
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
+								if(offset < maxSizeLimit) {
 									mark = offset;
 								} else {
+									filter.removeLastFilter();
+								}
+							} else {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
-
+									
 									offset = filter.anonymizeSubtree(chars, nextOffset, maxSizeLimit);
 
 									squareBrackets = filter.getSquareBrackets();
@@ -572,6 +544,29 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
+								} else {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+										offset = maxSizeLimit;
+										break loop;
+									}
+
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									
+									filter.addAnon(nextOffset, offset);
+									
+									// increment limit since we removed something
+									maxSizeLimit += filter.getRemovedLength() - removedLength;
+									
+									if(offset < maxSizeLimit) {
+										mark = offset;
+									} else {
+										filter.removeLastFilter();
+									}									
 								}
 							}
 
@@ -593,7 +588,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
 									
-									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, nextOffset, length, maxSizeLimit, maxStringLength, filter);
+									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
 								}
 							}
 

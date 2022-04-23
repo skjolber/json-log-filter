@@ -62,7 +62,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 		}
 	}
 	
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
@@ -92,8 +92,8 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			} else if(nextToken == JsonToken.END_OBJECT) {
 				level--;
 
-				if(matches >= level - 1) {
-					matches = level - 1;
+				if(matches >= level) {
+					matches = level;
 				}
 			} else if(nextToken == JsonToken.FIELD_NAME) {
 				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {

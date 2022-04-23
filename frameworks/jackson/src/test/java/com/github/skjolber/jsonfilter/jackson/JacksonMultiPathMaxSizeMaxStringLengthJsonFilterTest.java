@@ -90,7 +90,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 	@Test
 	public void maxStringLength() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, null, null);
-		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, null, null)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, null, null), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
@@ -133,26 +133,27 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
 
-		File file = new File("./../../support/test/src/main/resources/json/array/1d/anyArray.json");
+		File file = new File("./../../support/test/src/main/resources/json/array/2d/arrayArray.json");
 		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
 		System.out.println(string);
 
-		JacksonMultiPathMaxStringLengthJsonFilter infiniteFilter = new JacksonMultiPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_PATH}, null);
+		string = string + spaces(176);
 
-		String infinite = infiniteFilter.process(string);
-		
-		System.out.println(infinite);
-		
-		int size = infinite.length();
-		
-		string = string + "  ";
-		
-		JacksonMultiPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH}, null);
+		JacksonMultiPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 176, null, null);
 
 		String process = filter.process(string);
 		System.out.println(process);
-		System.out.println(process.length() + " size for max " + size);
+		System.out.println(process.length() + " siz");
 	}
 	
+	private static String spaces(int length) {
+		StringBuilder builder = new StringBuilder();
+		
+		for(int i = 0; i < length; i++) {
+			builder.append(' ');
+		}
+		
+		return builder.toString();
+	}
 
 }

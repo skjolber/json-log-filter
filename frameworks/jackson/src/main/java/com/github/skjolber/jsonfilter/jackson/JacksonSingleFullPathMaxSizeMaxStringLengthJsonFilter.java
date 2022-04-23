@@ -64,7 +64,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 		}
 	}
 	
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output);
 		}
@@ -131,7 +131,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 							message = pruneJsonValue;
 						}
 						
-						if(currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong() >= maxSize) {
+						if(level + currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong() >= maxSize) {
 							break;
 						}
 						
@@ -146,7 +146,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 								break;
 							}
 						} else {
-							if(currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong() >= maxSize) {
+							if(level + currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong() >= maxSize) {
 								break;
 							}
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
@@ -184,7 +184,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			
 			long outputSize = outputSizeSupplier.getAsLong();
 			
-			if(outputSize + size >= maxSize) {
+			if(outputSize + size + level > maxSize) {
 				break;
 			}
 
@@ -196,6 +196,8 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
+				offset = nextOffset;
+
 				continue;
 			}
 			
@@ -239,7 +241,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			}
 			
 			long size = outputSizeSupplier.getAsLong();
-			if(outputSize + size >= maxSize) {
+			if(outputSize + size + level >= maxSize) {
 				return false;
 			}
 

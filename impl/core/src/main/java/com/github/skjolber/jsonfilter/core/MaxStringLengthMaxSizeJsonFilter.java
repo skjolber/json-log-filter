@@ -141,7 +141,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								} while(chars[nextOffset] <= 0x20);
 
 								if(chars[nextOffset] == ':') {
-									// was a key
+									// was a field name
 									offset = nextOffset + 1;
 									continue;
 								}
@@ -159,7 +159,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
-
+							
 							if(nextOffset >= maxSizeLimit) {
 								filter.removeLastFilter();
 								
@@ -275,7 +275,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								} while(chars[nextOffset] <= 0x20);
 
 								if(chars[nextOffset] == ':') {
-									// was a key
+									// was a field name
 									offset = nextOffset + 1;
 									continue;
 								}

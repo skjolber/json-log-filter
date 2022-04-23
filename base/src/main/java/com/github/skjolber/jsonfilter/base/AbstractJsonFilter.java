@@ -86,8 +86,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return null;
 	}
 	
-	protected abstract boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
-
 	public String process(String jsonString) {
 		return process(jsonString.toCharArray());
 	}

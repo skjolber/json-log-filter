@@ -95,23 +95,17 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							if(type == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									
-									// quoted value
-									offset = nextOffset;
-									while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-									offset++;
-									
-									filter.addAnon(nextOffset, offset);
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-								} else {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									filter.addAnon(nextOffset, offset);
 								}
 							}
 							
@@ -238,25 +232,19 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							if(type == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									
-									// quoted value
-									offset = nextOffset;
-									while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-									offset++;
-									
-									filter.addAnon(nextOffset, offset);
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-								} else {
+								
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									filter.addAnon(nextOffset, offset);
 								}
-								
 							}
 							
 							if(pathMatches != -1) {

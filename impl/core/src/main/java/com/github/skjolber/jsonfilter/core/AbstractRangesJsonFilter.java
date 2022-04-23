@@ -27,7 +27,7 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
-	protected boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;

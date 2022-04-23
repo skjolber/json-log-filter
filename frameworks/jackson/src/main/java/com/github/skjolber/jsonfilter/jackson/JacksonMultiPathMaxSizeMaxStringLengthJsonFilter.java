@@ -60,7 +60,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		}
 	}
 	
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output);
 		}
@@ -84,7 +84,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		final int[] elementFilterStart = this.elementFilterStart;
 		final int[] elementMatches = new int[elementFilters.length];
 
-		long maxSize = this.maxSize;
+		final long maxSize = this.maxSize;
 
 		int level = 0;
 
@@ -209,7 +209,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 			
 			long outputSize = outputSizeSupplier.getAsLong();
 			
-			if(outputSize + size >= maxSize) {
+			if(outputSize + size + level > maxSize) {
 				break;
 			}
 
@@ -220,7 +220,9 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-				
+
+				offset = nextOffset;
+
 				continue;
 			}
 			

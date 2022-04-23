@@ -24,6 +24,16 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, null, new String[] {"/CVE_Items/cve/CVE_data_meta"}));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/severity"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/severity"}));
+
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}));
+		
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}));
 	}
 	
 	@Test

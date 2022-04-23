@@ -47,7 +47,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 		}
 	}
 	
-	protected boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
 		if(bytes.length < offset + length) {
 			return false;
 		}
@@ -114,7 +114,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 			
 			long size;
 			if(nextToken == JsonToken.VALUE_STRING) {
-				size = 2 + parser.getTextLength();
+				size = parser.getTextLength() + 2;
 				if(fieldName != null) {
 					size += fieldName.length() + 2;
 				}

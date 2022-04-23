@@ -169,56 +169,25 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}
 
 						if(type != null) {
+							int removedLength = filter.getRemovedLength();
 							if(type == FilterType.PRUNE) {
 								// is there space within max size?
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
-								int removedLength = filter.getRemovedLength();
 	
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 								
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								mark = offset;
-							} else if(type == FilterType.ANON) {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									int removedLength = filter.getRemovedLength();
-	
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-									
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
-									mark = offset;
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-	
-									int removedLength = filter.getRemovedLength();
-	
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
+								if(offset < maxSizeLimit) {
 									mark = offset;
 								} else {
-									int removedLength = filter.getRemovedLength();
-									
+									filter.removeLastFilter();
+								}
+							} else if(type == FilterType.ANON) {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
@@ -231,8 +200,29 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 	
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
+								} else {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+										break loop;
+									}
+
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									
+									filter.addAnon(nextOffset, offset);
+									
+									// increment limit since we removed something
+									maxSizeLimit += filter.getRemovedLength() - removedLength;
+									
+									if(offset < maxSizeLimit) {
+										mark = offset;
+									} else {
+										filter.removeLastFilter();
+									}									
 								}
-								
 							} else if(type == FilterType.DELETE) {
 								// TODO
 								offset = nextOffset;
@@ -452,56 +442,24 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}
 
 						if(type != null) {
+							int removedLength = filter.getRemovedLength();
 							if(type == FilterType.PRUNE) {
 								// is there space within max size?
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
-								int removedLength = filter.getRemovedLength();
-	
 								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 								
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								mark = offset;
-							} else if(type == FilterType.ANON) {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									int removedLength = filter.getRemovedLength();
-	
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-									
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
-									mark = offset;
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
-										break loop;
-									}
-									
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-	
-									int removedLength = filter.getRemovedLength();
-	
-									filter.addAnon(nextOffset, offset);
-									
-									// increment limit since we removed something
-									maxSizeLimit += filter.getRemovedLength() - removedLength;
-									
+								if(offset < maxSizeLimit) {
 									mark = offset;
 								} else {
-									int removedLength = filter.getRemovedLength();
-									
+									filter.removeLastFilter();
+								}
+							} else if(type == FilterType.ANON) {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
@@ -514,8 +472,29 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 	
 									// increment limit since we removed something
 									maxSizeLimit += filter.getRemovedLength() - removedLength;
+								} else {
+									if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
+										break loop;
+									}
+									
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									
+									filter.addAnon(nextOffset, offset);
+									
+									// increment limit since we removed something
+									maxSizeLimit += filter.getRemovedLength() - removedLength;
+									
+									if(offset < maxSizeLimit) {
+										mark = offset;
+									} else {
+										filter.removeLastFilter();
+									}									
 								}
-								
 							} else if(type == FilterType.DELETE) {
 								// TODO
 								offset = nextOffset;
