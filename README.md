@@ -96,7 +96,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withAnonymize("$.customer.email") // inserts ***** for values
                        .withPrune("$.customer.account") // removes whole subtree
                        .withMaxPathMatches(16) // halt anon/prune after a number of hits
-                       .withMaxSize(32*1024)
+                       .withMaxSize(128*1024)
                        .build();
                        
 String json = ...; // obtain JSON
