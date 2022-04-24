@@ -3,10 +3,6 @@ package com.github.skjolber.jsonfilter.jmh.filter;
 import static java.util.regex.Pattern.compile;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;

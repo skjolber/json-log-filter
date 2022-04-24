@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -142,7 +140,7 @@ public abstract class AbstractJsonFilterTest {
 			byte[] process = apply.process(generateDeepStructure);
 	
 			assertTrue(process.length <= i + levels);
-
+			
 			validate(process);
 		}
 

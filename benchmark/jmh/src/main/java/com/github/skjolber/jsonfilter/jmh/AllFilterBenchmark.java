@@ -26,6 +26,7 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
+import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleAnyPathMaxStringLengthJsonFilter;
@@ -37,11 +38,11 @@ import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.filter.PrimitiveJsonPropertyBodyFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.ArakelianJsonFilterJsonFilter;
-import com.github.skjolber.jsonfilter.jmh.utils.LogbookBodyFilter;
 
 
 @State(Scope.Thread)
@@ -56,6 +57,7 @@ public class AllFilterBenchmark {
 	public static final String DEFAULT_XPATH = "/address";
 	public static final String DEFAULT_ANY_XPATH = "//address";
 
+	private JacksonBenchmarkRunner jacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singleFullPathAnonymizeMaxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> singlePathArakelianJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
@@ -82,6 +84,8 @@ public class AllFilterBenchmark {
 	private BenchmarkRunner<JsonFilter> singleAnyPathAnonymizeJsonFilter;
 	private BenchmarkRunner<JsonFilter> singleAnyPathAnonymizeMaxStringLengthJsonFilter;
 
+	private BenchmarkRunner<JsonFilter> multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter;
+	
 	@Setup
 	public void init() throws Exception {
 		File file = new File("./src/test/resources/benchmark/simple");
@@ -94,12 +98,12 @@ public class AllFilterBenchmark {
 
 		// generic filters
 		// jackson
+		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, new String[] {xpath}, null));
 		singleFullPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxStringLengthJsonFilter(20, xpath, FilterType.ANON));
 		multiPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(20, new String[] {xpath}, null));
 		multiAnyPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(20, new String[] {DEFAULT_ANY_XPATH}, null));
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(20));
 		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(128));
-		
 		
 		// jsonpath
 		singlePathLogbookJsonPathJsonFilter = new LogbookBenchmarkRunner(file, true, JsonPathBodyFilters.jsonPath("$.address").replace("*****"));
@@ -119,6 +123,11 @@ public class AllFilterBenchmark {
 		multiPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathJsonFilter(-1, new String[]{xpath}, null));
 		multiPathMaxStringLengthAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxStringLengthJsonFilter(20, -1, new String[]{xpath}, null));
 		multiPathAnonymizeFullPathJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiFullPathJsonFilter(-1, new String[]{xpath}, null));
+
+		// max size
+		multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null));
+
+		
 		// other
 		singlePathArakelianJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new ArakelianJsonFilterJsonFilter(DEFAULT_XPATH));
 
@@ -143,6 +152,11 @@ public class AllFilterBenchmark {
 	@Benchmark
 	public long anonMultiMaxStringLengthJackson() throws IOException {
 		return multiPathAnonymizeMaxStringLengthJacksonJsonFilter.benchmarkBytes();
+	}
+	
+	@Benchmark
+	public long jacksonMultiPathMaxSizeMaxStringLengthJsonFilter() throws IOException {
+		return jacksonMultiPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
@@ -183,6 +197,11 @@ public class AllFilterBenchmark {
 	@Benchmark
 	public long anonMultiPathMaxStringLength() throws IOException {
 		return multiPathMaxStringLengthAnonymizeJsonFilter.benchmarkBytes();
+	}
+	
+	@Benchmark
+	public long multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter() throws IOException {
+		return multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark

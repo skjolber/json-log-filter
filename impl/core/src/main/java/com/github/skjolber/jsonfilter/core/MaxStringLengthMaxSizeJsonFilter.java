@@ -40,8 +40,21 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
+		int limit = offset + length;
+
 		try {
-			return rangesMaxSizeMaxStringLength(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
+			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
+			
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			} else if(offset < limit){
+				// max size reached before end of document
+				filter.alignMark(chars);
+				
+				// filter rest of document
+				filter.addDelete(filter.getMark(), limit);
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
@@ -57,14 +70,27 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
 
+		int limit = offset + length;
+		
 		try {
-			return rangesMaxSizeMaxStringLength(chars, offset, offset + length, offset + maxSize, maxStringLength, filter);
+			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
+			
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			} else if(offset < limit){
+				// max size reached before end of document
+				filter.alignMark(chars);
+				
+				// filter rest of document
+				filter.addDelete(filter.getMark(), limit);
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
 	}
-	
-	public static CharArrayRangesBracketFilter rangesMaxSizeMaxStringLength(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
+
+	public static int rangesMaxSizeMaxStringLength(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -159,7 +185,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
-							
+
 							if(nextOffset >= maxSizeLimit) {
 								filter.removeLastFilter();
 								
@@ -172,7 +198,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								// filter only for max string length
 								filter.setLevel(0);
 								
-								return ranges(chars, nextOffset, limit, maxStringLength, filter); 
+								return ranges(chars, nextOffset, limit, maxStringLength, filter);
 							}
 						}
 					}
@@ -183,22 +209,14 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			}
 			offset++;
 		}
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		} else {
-			// max size reached before end of document
-			filter.setLevel(bracketLevel);
-			filter.setMark(mark);
 
-			filter.alignMark(chars);
-			
-			// filter rest of document
-			filter.addDelete(filter.getMark(), limit);
-		}
-		return filter;
+		filter.setLevel(bracketLevel);
+		filter.setMark(mark);
+
+		return offset;
 	}
-
-	public static ByteArrayRangesBracketFilter rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
+	
+	public static int rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -306,7 +324,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								// filter only for max string length
 								filter.setLevel(0);
 								
-								return ranges(chars, nextOffset, limit, maxStringLength, filter); 
+								return ranges(chars, nextOffset, limit, maxStringLength, filter);
 							}
 						}
 					}
@@ -317,19 +335,11 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			}
 			offset++;
 		}
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		} else {
-			// max size reached before end of document
-			filter.setLevel(bracketLevel);
-			filter.setMark(mark);
-
-			filter.alignMark(chars);
-			
-			// filter rest of document
-			filter.addDelete(filter.getMark(), limit);
-		}
-		return filter;
+		
+		filter.setLevel(bracketLevel);
+		filter.setMark(mark);
+		
+		return offset;
 	}
 	
 

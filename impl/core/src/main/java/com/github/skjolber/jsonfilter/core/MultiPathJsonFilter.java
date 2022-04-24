@@ -178,6 +178,14 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' : 
 						level++;
 						
+						if(anyElementFilters == null && level >= elementFilterStart.length) {
+							offset = ByteArrayRangesFilter.skipObject(chars, offset);
+
+							level--;
+							
+							continue;
+						}
+						
 						break;
 					case '}' :
 						level--;

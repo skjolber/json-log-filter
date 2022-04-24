@@ -105,7 +105,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 						pathMatches--;
 						if(pathMatches == 0) {
 							// speed up filtering by looking only at max string length
-							return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+							offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+							break ;
 						}
 					}
 				} else {
@@ -211,7 +212,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 						pathMatches--;
 						if(pathMatches == 0) {
 							// speed up filtering by looking only at max string length
-							return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+							offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+							break;
 						}
 					}
 				} else {

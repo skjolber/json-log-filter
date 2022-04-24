@@ -47,7 +47,7 @@ public class DefaultJsonFilter implements JsonFilter {
 	@Override
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		output.write(chars, offset, length);
-		return false;
+		return true;
 	}
 
 }

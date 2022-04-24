@@ -38,12 +38,19 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 	}
 
 	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final CharArrayRangesFilter filter) {
+		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 
 					level++;
 					
-					// TODO check level vs matches here, go with max string length only for subtree
+					if(anyElementFilters == null && level >= elementFilterStart.length) {
+						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+
+						level--;
+						
+						continue;
+					}
 					
 					break;
 				case '}' :
@@ -107,36 +114,33 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						nextOffset++;
 					}
 
-					if(type == FilterType.PRUNE) {
-						filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
-						
-						if(pathMatches != -1) {
-							pathMatches--;
-							if(pathMatches <= 0) {
-								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
-							}
-						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
-					} else if(type == FilterType.ANON) {
-						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							// filter as tree
-							offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
-						} else {
-							if(chars[nextOffset] == '"') {
-								// quoted value
-								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+					if(type != null) {
+						if(type == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
+						} else if(type == FilterType.ANON) {
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								// filter as tree
+								offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
 							} else {
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+								filter.addAnon(nextOffset, offset);
 							}
-							filter.addAnon(nextOffset, offset);
+						} else {
+							offset = nextOffset;
 						}
+						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches <= 0) {
 								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+								level = 0;
+								offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+								break loop;
 							}
 						}
 						
@@ -183,6 +187,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 	}
 
 	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final ByteArrayRangesFilter filter) {
+		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 
@@ -249,42 +254,38 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					while(chars[nextOffset] <= 0x20) {
 						nextOffset++;
 					}
-
-					if(type == FilterType.PRUNE) {
-						filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-						
-						if(pathMatches != -1) {
-							pathMatches--;
-							if(pathMatches <= 0) {
-								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
-							}
-						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
-					} else if(type == FilterType.ANON) {
-						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							// filter as tree
-							offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
-						} else {
-							if(chars[nextOffset] == '"') {
-								// quoted value
-								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+					if(type != null) {
+						if(type == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
+						} else if(type == FilterType.ANON) {
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								// filter as tree
+								offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
 							} else {
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+								filter.addAnon(nextOffset, offset);
 							}
-							filter.addAnon(nextOffset, offset);
+						} else {
+							offset = nextOffset;
 						}
 						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches <= 0) {
 								// speed up filtering by looking only at max string length
-								return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+								level = 0;
+								offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+								break loop;
 							}
 						}
 						
 						constrainMatchesCheckLevel(elementMatches, level - 1);
+
 					} else {
 						offset = nextOffset;
 					}

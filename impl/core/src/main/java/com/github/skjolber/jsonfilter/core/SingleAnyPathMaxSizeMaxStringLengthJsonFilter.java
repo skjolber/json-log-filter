@@ -240,16 +240,23 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							if(pathMatches == 0) {
 								if(maxSizeLimit >= limit) {
 									// filter only for max string length
-									filter.setLevel(0);
+									bracketLevel = 0;
 									
-									return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+									offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+
+									break loop;
 								}
 								
 								// filtering only for max size and max string length
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, limit, maxSizeLimit, maxStringLength, filter);
+								offset = MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, limit, maxSizeLimit, maxStringLength, filter);
+								
+								bracketLevel = filter.getLevel();
+								mark = filter.getMark();
+
+								break loop;
 							}							
 						}
 
@@ -272,7 +279,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else {
+		} else if(offset < limit) {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
@@ -478,16 +485,21 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							if(pathMatches == 0) {
 								if(maxSizeLimit >= limit) {
 									// filter only for max string length
-									filter.setLevel(0);
-									
-									return MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+									bracketLevel = 0;
+									offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
+									break loop;
 								}
 								
 								// filtering only for max size and max string length
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, limit, maxSizeLimit, maxStringLength, filter);
+								offset = MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, limit, maxSizeLimit, maxStringLength, filter);
+								
+								bracketLevel = filter.getLevel();
+								mark = filter.getMark();
+								
+								break loop;
 							}							
 						}
 
@@ -510,7 +522,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else {
+		} else if(offset < limit) {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);

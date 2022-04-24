@@ -37,9 +37,14 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		CharArrayRangesFilter filter = getCharArrayRangesFilter(length);
-
+		
+		int limit = offset + length;
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, filter);
+			offset = ranges(chars, offset, limit, maxStringLength, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;			
 		} catch(Exception e) {
 			return null;
 		}
@@ -50,14 +55,19 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 		
 		ByteArrayRangesFilter filter = getByteArrayRangesFilter(length);
 
+		int limit = offset + length;
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, filter);
+			offset = ranges(chars, offset, limit, maxStringLength, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;			
 		} catch(Exception e) {
 			return null;
 		}
 	}
 	
-	public static <T extends CharArrayRangesFilter> T ranges(final char[] chars, int offset, int limit, int maxStringLength, T filter) {
+	public static int ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
@@ -113,15 +123,10 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 				offset++;
 			}
 		}				
-
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
-		return filter;
+		return offset;
 	}
 	
-	public static <T extends ByteArrayRangesFilter> T ranges(final byte[] chars, int offset, int limit, int maxStringLength, T filter) {
+	public static int ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
@@ -178,11 +183,7 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			}
 		}				
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
-		return filter;
+		return offset;
 	}
 
 	protected char[] getPruneJsonValue() {

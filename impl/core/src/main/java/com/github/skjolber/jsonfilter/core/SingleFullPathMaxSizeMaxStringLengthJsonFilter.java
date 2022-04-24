@@ -272,14 +272,23 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(pathMatches == 0) {
 									if(maxSizeLimit >= length) {
 										// filter only of max string length
-										filter.setLevel(0);
-										return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+										bracketLevel = 0;
+
+										offset = MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+										
+										break loop;
 									}
 									
 									// filtering only for max size and max string size
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
-									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
+									
+									offset = MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
+									
+									bracketLevel = filter.getLevel();
+									mark = filter.getMark();
+									
+									break loop;
 								}
 							}
 
@@ -304,7 +313,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 				return null;
-			} else {
+			} else if(offset < length){
 				// max size reached before end of document
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
@@ -580,15 +589,21 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(pathMatches == 0) {
 									if(maxSizeLimit >= length) {
 										// filter only of max string length
-										filter.setLevel(0);
-										return MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+										bracketLevel = 0;
+										offset = MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+										break loop;
 									}
 									
 									// filtering only for max size and max string size
 									filter.setLevel(bracketLevel);
 									filter.setMark(mark);
 									
-									return MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
+									offset = MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, offset, length, maxSizeLimit, maxStringLength, filter);
+									
+									bracketLevel = filter.getLevel();
+									mark = filter.getMark();
+									
+									break loop;
 								}
 							}
 
@@ -613,7 +628,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 				return null;
-			} else {
+			} else if(offset < length) {
 				// max size reached before end of document
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
