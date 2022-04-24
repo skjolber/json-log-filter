@@ -9,7 +9,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	protected final char[] pruneMessage;
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
-
+	
 	public CharArrayRangesFilter(int initialCapacity, int length) {
 		this(initialCapacity, length, DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
@@ -25,13 +25,15 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
-			
 			if(filter[i+2] == FILTER_ANON) {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(anonymizeMessage);
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(pruneMessage);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				// do nothing
+				buffer.append(chars, offset, filter[i] - offset);
 			} else {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(truncateMessage);
@@ -72,8 +74,84 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			}
 			offset++;
 		}
-	}	
+	}
+	
+	public static int skipObjectMaxStringLength(char[] chars, int offset, int maxStringLength, CharArrayRangesFilter filter) {
+		int level = 0;
 
+		while(true) {
+			switch(chars[offset]) {
+				case '{' : {
+					level++;
+					break;
+				}
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+					
+					if(nextOffset - offset > maxStringLength) {
+						// is this a field name or a value? A field name must be followed by a colon
+						
+						// special case: no whitespace
+						if(chars[nextOffset] == ':') {
+							// key
+							offset = nextOffset + 1;
+							
+							continue;
+						} else {
+							// most likely there is now no whitespace, but a comma, end array or end object
+							
+							// legal whitespaces are:
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+
+							if(chars[nextOffset] > 0x20) {
+								// was a value
+								filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+							} else {
+								// fast-forward over whitespace
+								// optimization: scan for highest value
+
+								int end = nextOffset;
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);
+
+								if(chars[nextOffset] == ':') {
+									// was a key
+									offset = nextOffset + 1;
+									
+									continue;
+								} else {
+									// value
+									filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+								}
+							}
+						}
+					}
+					offset = nextOffset;
+					
+					continue;
+				}
+				default :
+			}
+			offset++;
+		}
+	}
+	
 	public static int skipSubtree(char[] chars, int offset) {
 		int level = 0;
 
@@ -309,19 +387,33 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 		super.addMaxLength(start, end, length);
 		
-		this.maxOutputLength -= end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
 	}
 	
 	public void addAnon(int start, int end) {
 		super.addAnon(start, end);
 		
-		this.maxOutputLength -= end - start - anonymizeMessage.length;
+		this.removedLength += end - start - anonymizeMessage.length;
 	}
 	
 	public void addPrune(int start, int end) {
 		super.addPrune(start, end);
 		
-		this.maxOutputLength -= end - start - pruneMessage.length;
+		this.removedLength += end - start - pruneMessage.length;
+	}
+
+	public void addDelete(int start, int end) {
+		super.addDelete(start, end);
+		
+		this.removedLength += end - start;
 	}
 	
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+
 }

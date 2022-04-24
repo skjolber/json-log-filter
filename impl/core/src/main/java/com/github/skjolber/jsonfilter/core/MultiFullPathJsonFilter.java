@@ -1,11 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter implements RangesJsonFilter {
+public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
@@ -33,7 +31,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 		int level = 0;
 		
 		try {
-			main:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -59,7 +56,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 
 						nextOffset++;							
 
@@ -86,34 +83,29 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						}
 						nextOffset++;
 
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, mark, level, elementMatches);
+						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									
-									// quoted value
-									offset = nextOffset;
-									while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-									offset++;
-									
-									filter.addAnon(nextOffset, offset);
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-								} else {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									filter.addAnon(nextOffset, offset);
 								}
 							}
 							
@@ -125,11 +117,9 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 							}
 							
 							constrainMatches(elementMatches, level - 1);
-							
-							continue main;
+						} else {
+							offset = nextOffset;
 						}
-						
-						offset = nextOffset;
 						
 						continue;
 					}
@@ -168,7 +158,6 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
 		try {
-			main:
 			while(offset < length) {
 				switch(chars[offset]) {
 					case '{' :
@@ -204,7 +193,7 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-						int mark = nextOffset;
+						int quoteIndex = nextOffset;
 						
 						nextOffset++;							
 
@@ -231,36 +220,31 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 						}
 						nextOffset++;
 
+						// skip whitespace
+						while(chars[nextOffset] <= 0x20) {
+							nextOffset++;
+						}
+
 						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, mark, level, elementMatches);
+						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
 							if(type == FilterType.PRUNE) {
-								// skip whitespace. Strictly not necessary, but produces expected results for pretty-printed documents
-								while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-									nextOffset++;
-								}
 								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
 							} else {
-								// special case: anon scalar values
-								if(chars[nextOffset] == '"') {
-									
-									// quoted value
-									offset = nextOffset;
-									while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-									offset++;
-									
-									filter.addAnon(nextOffset, offset);
-								} else if(chars[nextOffset] == 't' || chars[nextOffset] == 'f' || (chars[nextOffset] >= '0' && chars[nextOffset] <= '9') || chars[nextOffset] == '-') {
-									// scalar value
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-
-									filter.addAnon(nextOffset, offset);
-								} else {
+								
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 									// filter as tree
 									offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									filter.addAnon(nextOffset, offset);
 								}
-								
 							}
 							
 							if(pathMatches != -1) {
@@ -271,11 +255,9 @@ public class MultiFullPathJsonFilter extends AbstractMultiPathJsonFilter impleme
 							}
 							
 							constrainMatches(elementMatches, level - 1);
-							
-							continue main;
+						} else {
+							offset = nextOffset;
 						}
-						
-						offset = nextOffset;
 						
 						continue;
 					}

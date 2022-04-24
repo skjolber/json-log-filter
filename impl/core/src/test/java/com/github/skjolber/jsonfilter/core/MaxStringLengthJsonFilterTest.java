@@ -29,8 +29,9 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 
 	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
-		assertNull(new MaxStringLengthJsonFilter(-1).process(TRUNCATED));
-		assertFalse(new MaxStringLengthJsonFilter(-1).process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		MaxStringLengthJsonFilter maxStringLengthJsonFilter = new MaxStringLengthJsonFilter(-1);
+		assertNull(maxStringLengthJsonFilter.process(TRUNCATED));
+		assertNull(maxStringLengthJsonFilter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		
 		assertNull(new MaxStringLengthJsonFilter(-1).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		assertFalse(new MaxStringLengthJsonFilter(-1).process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
@@ -39,7 +40,7 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 	
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new MaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 }

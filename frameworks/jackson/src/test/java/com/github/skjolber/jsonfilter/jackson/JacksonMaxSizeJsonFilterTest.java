@@ -1,7 +1,9 @@
 package com.github.skjolber.jsonfilter.jackson;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -9,32 +11,40 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
-public class JacksonMaxSizeJsonFilterTest {
+public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
-	private JsonFactory factory = new JsonFactory();
+	public JacksonMaxSizeJsonFilterTest() throws Exception {
+		super();
+	}
 
 	@Test
 	public void testMaxSize() throws IOException {
-		String string = IOUtils.toString(getClass().getResourceAsStream("/json/maxSize/cve2006.json.gz.json"), StandardCharsets.UTF_8);
-
-		for(int i = 2; i < string.length(); i++) {		
-			JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(i);
-
-			String process = filter.process(string);
-	
-			assertTrue(process.length() < i + 32);
-
-			validate(process);
-		}
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new JacksonMaxSizeJsonFilter(size));
 	}
 
-	private void validate(String process) throws IOException, JsonParseException {
-		try (JsonParser parse = factory.createParser(process)) {
-			while(parse.nextToken() != null);
-		}
+	@Test
+	public void passthrough_success() throws Exception {
+		assertThat(new JacksonMaxSizeJsonFilter(-1)).hasPassthrough();
+	}
+
+	@Test
+	public void exception_returns_false() throws Exception {
+		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new StringBuilder()));
+	}
+
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		assertNull(new JacksonMaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
+		assertNull(new JacksonMaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
+	public void maxSize() throws Exception {
+		assertThat(new JacksonMaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
 	}
 	
 }

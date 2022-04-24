@@ -33,7 +33,7 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 	public void exception_offset_if_not_exceeded() throws Exception {
 		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxStringLengthJsonFilter(-1, -1, null, null);
 		assertNull(filter.process(TRUNCATED));
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
+		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 		
 		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
 		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
@@ -98,13 +98,13 @@ public class MultiPathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTes
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, -1, null, null)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, null, null)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
 	public void maxStringLengthAnonymizePrune() throws Exception {
-		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, 2, new String[]{"/key1"}, new String[]{"/key3"}))
-			.hasMaxStringLength(DEFAULT_MAX_LENGTH)
+		assertThat(new MultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 2, new String[]{"/key1"}, new String[]{"/key3"}))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
 			.hasMaxPathMatches(2)
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");

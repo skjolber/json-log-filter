@@ -17,10 +17,7 @@
 
 package com.github.skjolber.jsonfilter;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Interface for filtering JSON. <br>
@@ -76,29 +73,6 @@ public interface JsonFilter {
 	boolean process(char[] chars, int offset, int length, StringBuilder output);
 
 	/**
-	 * Filter JSON characters to an output StringBuilder.
-	 * 
-	 * @param reader reader containing JSON characters to be filtered
-	 * @param length the number of characters within the reader
-	 * @param output the buffer to which filtered JSON is appended
-	 * @throws IOException from reader
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
-	 */
-
-	boolean process(Reader reader, int length, StringBuilder output) throws IOException;;
-
-	/**
-	 * Filter JSON characters to an output StringBuilder.
-	 * 
-	 * @param reader reader containing JSON characters to be filtered
-	 * @param output the buffer to which filtered JSON is appended
-	 * @throws IOException from reader
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
-	 */
-
-	boolean process(Reader reader, StringBuilder output) throws IOException;
-
-	/**
 	 * Filter JSON characters.
 	 * 
 	 * @param chars characters containing JSON to be filtered
@@ -108,49 +82,17 @@ public interface JsonFilter {
 	byte[] process(byte[] chars);
 
 	/**
-	 * Filter JSON characters to an output ByteArrayOutputStream.
-	 * 
-	 * @param chars characters containing JSON to be filtered
-	 * @param output the stream to which filtered JSON is appended
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
-	 */
-
-	boolean process(byte[] chars, OutputStream output) throws IOException;
-
-	/**
-	 * Filter JSON characters to an output ByteArrayOutputStream.
+	 * Filter JSON characters to an output StringBuilder.
 	 * 
 	 * @param chars characters containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
-	 * @param output the stream to which filtered JSON is appended
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
+	 * @return a byte array instance if filtering was successful, null otherwise.
 	 */
 
-	boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException;
+	byte[] process(byte[] chars, int offset, int length);
 
-	/**
-	 * Filter JSON characters to an output ByteArrayOutputStream.
-	 * 
-	 * @param input input containing JSON characters to be filtered
-	 * @param length the number of characters within the reader
-	 * @param output the buffer to which filtered JSON is appended
-	 * @throws IOException from input
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
-	 */
-
-	boolean process(InputStream input, int length, OutputStream output) throws IOException;
-
-	/**
-	 * Filter JSON characters to an output StringBuilder.
-	 * 
-	 * @param input input containing JSON characters to be filtered
-	 * @param output the buffer to which filtered JSON is appended
-	 * @throws IOException from input
-	 * @return true if filtering was successful. If false, the output buffer is unaffected.
-	 */
-
-	boolean process(InputStream input, OutputStream output) throws IOException;
+	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
 
 	/**
 	 * 

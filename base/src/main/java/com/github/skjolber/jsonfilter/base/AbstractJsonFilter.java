@@ -1,12 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -58,6 +52,10 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		this.truncateStringValueAsBytes = truncateJsonString.getBytes(StandardCharsets.UTF_8);
 	}
 
+	protected boolean mustConstrainMaxSize(int length) {
+		return length > maxSize;
+	}
+	
 	public boolean process(String jsonString, StringBuilder output) {
 		char[] chars = jsonString.toCharArray();
 		
@@ -72,107 +70,24 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		}
 		return null;
 	}
-	
-	public String process(String jsonString) {
-		return process(jsonString.toCharArray());
-	}
-	
-	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
-		if(length == -1) {
-			return process(reader, output);
-		}
-		char[] chars = new char[length];
 
-		int offset = 0;
-		while(offset < length) {
-			int read = reader.read(chars, offset, length - offset);
-			if(read == -1) {
-				throw new EOFException("Expected reader with " + length + " characters");
-			}
-
-			offset += read;
-		}
-
-		return process(chars, 0, chars.length, output);
-	}
-	
-	public boolean process(Reader reader, StringBuilder output) throws IOException {
-		char[] buffer = new char[4 * 1024];
-
-		CharArrayWriter writer = new CharArrayWriter(buffer.length);
-		int read;
-		do {
-			read = reader.read(buffer, 0, buffer.length);
-			if(read == -1) {
-				break;
-			}
-			
-			writer.write(buffer, 0, read);
-		} while(true);
-
-		char[] chars = writer.toCharArray();
-		
-		return process(chars, 0, chars.length, output);
+	@Override
+	public byte[] process(byte[] chars) {
+		return process(chars, 0, chars.length);
 	}
 	
 	@Override
-	public byte[] process(byte[] chars) {
+	public byte[] process(byte[] chars, int offset, int length) {
 		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
 		
-		try {
-			if(process(chars, 0, chars.length, output)) {
-				return output.toByteArray();
-			}
-		} catch (IOException e) {
-			// ignore
+		if(process(chars, offset, length, output)) {
+			return output.toByteArray();
 		}
 		return null;
 	}
-
-	@Override
-	public boolean process(InputStream input, int length, OutputStream output) throws IOException {
-		if(length == -1) {
-			return process(input, output);
-		}
-		byte[] chars = new byte[length];
-
-		int offset = 0;
-		
-		while(offset < length) {
-			int read = input.read(chars, offset, length - offset);
-			if(read == -1) {
-				throw new EOFException("Expected stream with " + length + " characters");
-			}
-
-			offset += read;
-		}
-
-		return process(chars, 0, chars.length, output);
-	}
-
-	@Override
-	public boolean process(InputStream input, OutputStream output) throws IOException {
-		byte[] chars = new byte[4 * 1024];
-
-		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		int read;
-		do {
-			read = input.read(chars, 0, chars.length);
-			if(read == -1) {
-				break;
-			}
-			
-			bout.write(chars, 0, read);
-		} while(true);
-
-		byte[] bytes = bout.toByteArray();
-		
-		return process(bytes, 0, bytes.length, output);
-	}
 	
-	@Override
-	public boolean process(byte[] chars, OutputStream output) throws IOException {
-		return process(chars, 0, chars.length, output);
+	public String process(String jsonString) {
+		return process(jsonString.toCharArray());
 	}
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
@@ -182,7 +97,15 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
 		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
-	
+
+	protected CharArrayRangesBracketFilter getCharArrayRangesBracketFilter(int capacity, int length) {
+		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
+	protected ByteArrayRangesBracketFilter getByteArrayRangesBracketFilter(int capacity, int length) {
+		return new ByteArrayRangesBracketFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+
 	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
 		return getByteArrayRangesFilter(-1, length);
 	}
@@ -282,7 +205,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return maxStringLength;
 	}
 
-	protected int getMaxSize() {
+	public int getMaxSize() {
 		return maxSize;
 	}
 	

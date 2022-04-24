@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.base;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,8 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterFactoryProperty;
-
-import net.bytebuddy.ByteBuddy;
 
 public class AbstractJsonFilterFactoryTest {
 

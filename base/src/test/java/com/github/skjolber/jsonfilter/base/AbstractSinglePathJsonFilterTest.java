@@ -5,8 +5,6 @@ import static com.github.skjolber.jsonfilter.test.JsonFilterConstants.PASSTHROUG
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,7 +31,7 @@ public class AbstractSinglePathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 			if(JsonFilterRunner.isWellformed(new String(chars, offset, length))) {
 				output.write(chars, offset, length);
 				

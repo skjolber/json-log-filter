@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.path;
 
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,9 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
-import com.github.skjolber.jsonfilter.core.DefaultJsonFilterFactory;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilterFactory;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.path.matcher.AllJsonFilterPathMatcher;
 import com.github.skjolber.jsonfilter.path.matcher.DefaultJsonFilterPathMatcherFactory;

@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.spring.logbook;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletInputStream;

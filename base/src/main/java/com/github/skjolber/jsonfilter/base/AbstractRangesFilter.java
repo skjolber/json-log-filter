@@ -7,7 +7,8 @@ public abstract class AbstractRangesFilter {
 
 	protected static final int FILTER_PRUNE = 0;
 	protected static final int FILTER_ANON = 1;
-	protected static final int FILTER_MAX_LENGTH = 2;
+	protected static final int FILTER_DELETE = 2;
+	protected static final int FILTER_MAX_LENGTH = 3;
 	
 	protected static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
 	protected static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
@@ -20,7 +21,8 @@ public abstract class AbstractRangesFilter {
 	protected int filterIndex = 0;
 	
 	// calculate the approximate length
-	protected int maxOutputLength;
+	protected final int maxLength;
+	protected int removedLength;
 
 	public AbstractRangesFilter(int initialCapacity, int length) {
 		if(initialCapacity == -1) {
@@ -28,7 +30,7 @@ public abstract class AbstractRangesFilter {
 		} else if(initialCapacity == 0) {
 			throw new IllegalArgumentException();
 		}
-		this.maxOutputLength = length;
+		this.maxLength = length;
 		
 		this.filter = new int[Math.min(initialCapacity, MAX_INITIAL_ARRAY_SIZE) * 3];
 	}
@@ -43,6 +45,10 @@ public abstract class AbstractRangesFilter {
 	
 	public void addPrune(int start, int end) {
 		add(start, end, FILTER_PRUNE);
+	}
+	
+	public void addDelete(int start, int end) {
+		add(start, end, FILTER_DELETE);
 	}
 	
 	private void add(int start, int end, int type) {
@@ -63,13 +69,17 @@ public abstract class AbstractRangesFilter {
 		return filterIndex;
 	}
 
+	public void removeLastFilter() {
+		filterIndex -= 3;
+	}
+	
 	// for testing
 	protected int[] getFilter() {
 		return filter;
 	}
 	
 	public int getMaxOutputLength() {
-		return maxOutputLength;
+		return maxLength - removedLength;
 	}
 	
 	protected int lengthToDigits(int number) {
@@ -110,5 +120,9 @@ public abstract class AbstractRangesFilter {
 		        }
 		    }
 		}
+	}
+	
+	public int getRemovedLength() {
+		return removedLength;
 	}
 }

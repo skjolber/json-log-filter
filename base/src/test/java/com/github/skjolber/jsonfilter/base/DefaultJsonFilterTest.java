@@ -1,13 +1,8 @@
 package com.github.skjolber.jsonfilter.base;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
@@ -34,33 +29,8 @@ public class DefaultJsonFilterTest {
 		filter.process(JSON, builder);
 		assertThat(builder.toString()).isEqualTo(JSON);
 
-		builder.setLength(0);
-		filter.process(new StringReader(JSON), 2, builder);
-		assertThat(builder.toString()).isEqualTo(JSON);
-
-		builder.setLength(0);
-		filter.process(new StringReader(JSON), -1, builder);
-		assertThat(builder.toString()).isEqualTo(JSON);
-
 		// byte-array
 		assertThat(filter.process(getBytes())).isEqualTo(getBytes());
-
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		filter.process(getBytes(), 0, 2, outputStream);
-		assertThat(outputStream.toString()).isEqualTo(JSON);
-
-		outputStream.reset();
-		filter.process(getBytes(), outputStream);
-		assertThat(outputStream.toString()).isEqualTo(JSON);
-
-		outputStream.reset();
-		filter.process(new ByteArrayInputStream(getBytes()), 2, outputStream);
-		assertThat(outputStream.toString()).isEqualTo(JSON);
-
-		outputStream.reset();
-		filter.process(new ByteArrayInputStream(getBytes()), -1, outputStream);
-		assertThat(outputStream.toString()).isEqualTo(JSON);
-		
 	}
 
 	@Test
@@ -74,20 +44,6 @@ public class DefaultJsonFilterTest {
 		assertThat(builder.toString()).isEqualTo(JSON);
 
 		builder.setLength(0);
-		
-		assertThrows(EOFException.class,
-				() -> filter.process(new StringReader(JSON), 4, builder));
-		
-		// byte-array
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		filter.process(getBytes(), outputStream);
-		assertThat(outputStream.toString()).isEqualTo(JSON);
-
-		outputStream.reset();
-		
-		assertThrows(EOFException.class,
-				() -> filter.process(new ByteArrayInputStream(getBytes()), 4, outputStream));
-		
 	}	
 	
 	private byte[] getBytes() {

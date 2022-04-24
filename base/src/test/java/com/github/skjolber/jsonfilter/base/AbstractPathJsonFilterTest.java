@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -30,7 +29,7 @@ public class AbstractPathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, OutputStream output) {
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 			return false;
 		}
 

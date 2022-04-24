@@ -25,6 +25,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
 	protected int maxStringLength = -1;
 	protected int maxPathMatches = -1;
+	protected int maxSize = -1;
 	
 	protected String[] anonymizeFilters;
 	protected String[] pruneFilters;
@@ -54,6 +55,10 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected boolean isActiveMaxStringLength() {
 		return maxStringLength != -1;
 	}
+	
+	protected boolean isActiveMaxSize() {
+		return maxSize != -1;
+	}
 
 	protected boolean isActivePathFilters() {
 		return 
@@ -74,6 +79,11 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	public void setMaxStringLength(int length) {
 		this.maxStringLength = length;
 	}
+	
+	public void setMaxSize(int length) {
+		this.maxSize = length;
+	}
+	
 	
 	public int getMaxStringLength() {
 		return maxStringLength;
@@ -173,6 +183,16 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 			}
 			break;
 		}
+		case MAX_SIZE: {
+			if(value instanceof Integer) {
+				setMaxSize((Integer) value);
+			} else if(value instanceof String) {
+				setMaxSize(Integer.parseInt((String) value));
+			} else {
+				throw new IllegalArgumentException("Cannot set max size, unexpected value type");
+			}
+			break;
+		}		
 		case PRUNE : {
 			if(value instanceof String[]) {
 				setPruneFilters((String[]) value);

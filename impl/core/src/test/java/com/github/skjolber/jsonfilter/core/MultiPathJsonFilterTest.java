@@ -106,8 +106,7 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 		assertThat(new MultiPathJsonFilter(-1, new String[]{"/key1"}, new String[]{"/key3"}))
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
-		
-		
+				
 		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEEP_PATH1}, new String[]{DEEP_PATH3}))
 		.hasPruned(DEEP_PATH3)
 		.hasAnonymized(DEEP_PATH1);		

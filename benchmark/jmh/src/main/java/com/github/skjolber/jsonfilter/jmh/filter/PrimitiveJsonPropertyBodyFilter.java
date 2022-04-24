@@ -3,10 +3,6 @@ package com.github.skjolber.jsonfilter.jmh.filter;
 import static java.util.regex.Pattern.compile;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -120,43 +116,26 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(Reader reader, int length, StringBuilder output) throws IOException {
-		throw new RuntimeException("Not implemented");
-	}
-
-	@Override
-	public boolean process(Reader reader, StringBuilder output) throws IOException {
-		return process(reader, -1, output);
-	}
-
-	@Override
 	public byte[] process(byte[] chars) {
 		return process(new String(chars)).getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) throws IOException {
+	public byte[] process(byte[] chars, int offset, int length) {
 		String process = process(new String(chars, offset, length));
 		
-		byte[] bytes = process.getBytes(StandardCharsets.UTF_8);
-		output.write(bytes, 0, bytes.length);
-		return true;
+		return process.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
-	public boolean process(InputStream input, int length, OutputStream output) throws IOException {
-		throw new RuntimeException("Not implemented");
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		byte[] process = process(chars, offset, length);
+		if(process != null) {
+			output.write(process, 0, process.length);
+			return true;
+		}
+		return false;
 	}
-
-	@Override
-	public boolean process(InputStream input, OutputStream output) throws IOException {
-		return process(input, -1, output);
-	}
-
-	@Override
-	public boolean process(byte[] chars, OutputStream output) throws IOException {
-		return process(chars, 0, chars.length, output);
-	}
-
+	
 
 }

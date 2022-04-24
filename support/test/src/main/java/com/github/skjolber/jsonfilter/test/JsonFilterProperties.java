@@ -59,5 +59,10 @@ public class JsonFilterProperties {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "JsonFilterProperties [properties=" + properties + ", filter=" + filter + "]";
+	}
 	
 }

@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
@@ -80,13 +79,12 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	public ByteArrayRangesFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		super(initialCapacity, length);
-		this.maxOutputLength = length;
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 	}
 	
-	public void filter(final byte[] chars, int offset, int length, final OutputStream buffer) throws IOException {
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -97,6 +95,9 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(pruneMessage, 0, pruneMessage.length);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				// do nothing
+				buffer.write(chars, offset, filter[i] - offset);
 			} else {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(truncateMessage, 0, truncateMessage.length);
@@ -224,22 +225,22 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		
 		super.addMaxLength(start, end, length);
 		
-		this.maxOutputLength -= end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
 	}
 
 	public void addAnon(int start, int end) {
 		super.addAnon(start, end);
 		
-		this.maxOutputLength -= end - start - anonymizeMessage.length;
+		this.removedLength += end - start - anonymizeMessage.length;
 	}
 	
 	public void addPrune(int start, int end) {
 		super.addPrune(start, end);
 		
-		this.maxOutputLength -= end - start - pruneMessage.length;
+		this.removedLength += end - start - pruneMessage.length;
 	}
 	
-	protected final void writeInt(OutputStream out, int v) throws IOException {
+	protected final void writeInt(ByteArrayOutputStream out, int v) {
 		int chars = getChars(v, 11, digit);
 		
 		out.write(digit, chars, 11 - chars);
@@ -274,6 +275,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}	
 
+
+	
 	public static int skipSubtree(byte[] chars, int offset) {
 		int level = 0;
 
@@ -317,6 +320,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
+
 
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
@@ -439,4 +443,88 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
+	public static int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayRangesFilter filter) {
+		int level = 0;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '{' : {
+					level++;
+					break;
+				}
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+					
+					if(nextOffset - offset > maxStringLength) {
+						// is this a field name or a value? A field name must be followed by a colon
+						
+						// special case: no whitespace
+						if(chars[nextOffset] == ':') {
+							// key
+							offset = nextOffset + 1;
+							
+							continue;
+						} else {
+							// most likely there is now no whitespace, but a comma, end array or end object
+							
+							// legal whitespaces are:
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+
+							if(chars[nextOffset] > 0x20) {
+								// was a value
+								filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+							} else {
+								// fast-forward over whitespace
+								// optimization: scan for highest value
+
+								int end = nextOffset;
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);
+
+								if(chars[nextOffset] == ':') {
+									// was a key
+									offset = nextOffset + 1;
+									
+									continue;
+								} else {
+									// value
+									filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+								}
+							}
+						}
+					}
+					offset = nextOffset;
+					
+					continue;
+				}
+				default :
+			}
+			offset++;
+		}
+	}
+
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
 }

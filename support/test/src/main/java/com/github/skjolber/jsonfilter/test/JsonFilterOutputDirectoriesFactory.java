@@ -41,7 +41,7 @@ public class JsonFilterOutputDirectoriesFactory extends AbstractJsonFilterProper
 			
 			JsonFilterInputDirectory jsonFilterInputDirectory = new JsonFilterInputDirectory(new ArrayList<>(parents), sourceProperties);
 			
-			results.add(new JsonFilterOutputDirectory(filterDirectoryParents, jsonFilterInputDirectory));
+			results.add(new JsonFilterOutputDirectory(directory, filterDirectoryParents, jsonFilterInputDirectory));
 		} else {
 			parents.add(directory);
 		}

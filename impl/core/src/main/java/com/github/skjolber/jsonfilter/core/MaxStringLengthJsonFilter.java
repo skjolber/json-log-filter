@@ -16,48 +16,58 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.RangesJsonFilter;
 
-public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements RangesJsonFilter {
+public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 
 	public MaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public MaxStringLengthJsonFilter(int maxStringLength) {
 		this(maxStringLength, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
+	
+	protected MaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
+		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
+	}
 
-	@Override
-	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
+	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		CharArrayRangesFilter filter = getCharArrayRangesFilter(length);
-
+		
+		int limit = offset + length;
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, filter);
+			offset = ranges(chars, offset, limit, maxStringLength, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;			
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		ByteArrayRangesFilter filter = getByteArrayRangesFilter(length);
 
+		int limit = offset + length;
 		try {
-			return ranges(chars, offset, offset + length, maxStringLength, filter);
+			offset = ranges(chars, offset, limit, maxStringLength, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;			
 		} catch(Exception e) {
 			return null;
 		}
 	}
 	
-	public static CharArrayRangesFilter ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
+	public static int ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
@@ -73,6 +83,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 					if(chars[nextOffset] == ':') {
 						// key
 						offset = nextOffset + 1;
+						
+						continue;
 					} else {
 						// most likely there is now no whitespace, but a comma, end array or end object
 						
@@ -85,10 +97,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 						if(chars[nextOffset] > 0x20) {
 							// was a value
 							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
-							offset = nextOffset;
 						} else {
 							// fast-forward over whitespace
-							
 							// optimization: scan for highest value
 
 							int end = nextOffset;
@@ -99,29 +109,24 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 							if(chars[nextOffset] == ':') {
 								// was a key
 								offset = nextOffset + 1;
+								
+								continue;
 							} else {
 								// value
 								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
-								offset = nextOffset;
 							}
 						}
 					}
-				} else {
-					offset = nextOffset;
 				}
+				offset = nextOffset;
 			} else {
 				offset++;
 			}
 		}				
-
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
-		return filter;
+		return offset;
 	}
 	
-	public static ByteArrayRangesFilter ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
+	public static int ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
@@ -178,11 +183,7 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 			}
 		}				
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
-		return filter;
+		return offset;
 	}
 
 	protected char[] getPruneJsonValue() {
@@ -195,6 +196,8 @@ public class MaxStringLengthJsonFilter extends AbstractJsonFilter implements Ran
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
-	}	
+	}
+
+
 
 }

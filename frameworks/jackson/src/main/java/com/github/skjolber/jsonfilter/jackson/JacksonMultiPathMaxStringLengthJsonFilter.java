@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
@@ -28,7 +27,13 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
-		super(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
+	}
+	
+	protected JacksonMultiPathMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches,
+			String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		this.jsonFactory = jsonFactory;
 	}
@@ -36,39 +41,34 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(chars, offset, length, generator);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
-
+	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
 		output.ensureCapacity(output.length() + length);
 
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			return process(bytes, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(InputStream in, JsonGenerator generator) throws IOException {
-		try (final JsonParser parser = jsonFactory.createParser(in)) {
-			return process(parser, generator);
-		}
-	}
-
-	public boolean process(byte[] bytes, int offset, int length, JsonGenerator generator){
-		try (final JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
 			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
 
-	public boolean process(char[] chars, int offset, int length, JsonGenerator generator) {
-		try (final JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
 			return process(parser, generator);
 		} catch(final Exception e) {
 			return false;
@@ -156,33 +156,13 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 					continue;
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				String text = parser.getText();
-				
-				// A high surrogate precedes a low surrogate.
-				// check last include character
-				builder.append('"');
-
-				int max;
-				if(Character.isLowSurrogate(text.charAt(maxStringLength))) {
-					max = maxStringLength - 1;
-				} else {
-					max = maxStringLength;
-				}
-
-				quoteAsString(text.substring(0, max), builder);
-				builder.append(truncateStringValue);
-				builder.append(text.length() - max);
-				builder.append('"');
-				
-				generator.writeRawValue(builder.toString());
-				builder.setLength(0);
+				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
 				continue;
 			}
 			
 			generator.copyCurrentEvent(parser);
 		}
-		generator.flush(); // don't close
 
 		return true;
 	}	
@@ -206,16 +186,5 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			generator.copyCurrentEvent(parser);
 		}
 	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, OutputStream output) {
-		//output.ensureCapacity(output.length() + length);
-
-		try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
-			return process(chars, offset, length, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}	
 
 }

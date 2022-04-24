@@ -31,6 +31,7 @@ public class DefaultJsonLogFilterBuilder {
 	
 	protected int maxStringLength = -1;
 	protected int maxPathMatches = -1;
+	protected int maxSize = -1;
 	
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
@@ -55,8 +56,15 @@ public class DefaultJsonLogFilterBuilder {
 		factory.setPruneJsonValue(pruneJsonValue);
 		factory.setAnonymizeJsonValue(anonymizeJsonValue);
 		factory.setTruncateJsonStringValue(truncateStringValue);
-		
+
+		factory.setMaxSize(maxSize);
+
 		return factory.newJsonFilter();
+	}
+	
+	public DefaultJsonLogFilterBuilder withMaxSize(int maxSize) {
+		this.maxSize = maxSize;
+		return this;
 	}
 	
 	public DefaultJsonLogFilterBuilder withMaxStringLength(int length) {

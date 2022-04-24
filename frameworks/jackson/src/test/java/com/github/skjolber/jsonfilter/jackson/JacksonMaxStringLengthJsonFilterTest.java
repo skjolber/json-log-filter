@@ -1,5 +1,9 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -9,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import static org.mockito.Mockito.*;
 
 public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -24,7 +27,7 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFil
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH)).hasMaxStringLength(DEFAULT_MAX_LENGTH);
+		assertThat(new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
@@ -36,17 +39,17 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFil
 		
 		testConvenienceMethods(
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator) {
 					return true;
 				}
 			}, 
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator) {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMaxStringLengthJsonFilter(-1, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator) {
 					throw new RuntimeException();
 				}
 			}

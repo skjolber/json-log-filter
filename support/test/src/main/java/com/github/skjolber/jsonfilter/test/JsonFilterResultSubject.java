@@ -102,6 +102,15 @@ public class JsonFilterResultSubject extends Subject {
 		return this;
 	}
 	
+	
+	public final JsonFilterResultSubject hasMaxSize(int size) {
+		if (!actual.hasPropertyKeyValue("maxSize", Integer.toString(size))) {
+			failWithoutActual(simpleFact("expected maxSize " + size));
+		}
+		return this;
+	}
+
+
 	public final JsonFilterResultSubject hasPruned(String ... paths) {
 		Object value;
 		if(paths.length == 1) {
@@ -114,6 +123,7 @@ public class JsonFilterResultSubject extends Subject {
 		}
 		return this;
 	}
+
 
 	public final JsonFilterResultSubject hasNotPruned() {
 		if (actual.hasPropertyKeyValue("pruneFilters", null)) {
