@@ -32,34 +32,34 @@ public class LogbookRequestMappingHandlerAdapter extends RequestMappingHandlerAd
 	@Override
 	protected ModelAndView invokeHandlerMethod(HttpServletRequest request, HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 		if(PathFilterSink.isJson(request.getContentType())) {
-			
+
 			ResponseProcessingStage previousProcessing = (ResponseProcessingStage) request.getAttribute(LogbookWebMvcRegistrations.responseProcessingStageName);
 			if(previousProcessing != null) {
 				// log response only, request already logged
-		        LocalResponse localResponse = new LocalResponse(response, request.getProtocol()).withBody();
+				LocalResponse localResponse = new LocalResponse(response, request.getProtocol()).withBody();
 				ModelAndView invokeHandlerMethod = super.invokeHandlerMethod(request, localResponse, handlerMethod);
-				
-		        ResponseWritingStage writing = previousProcessing.process(localResponse);
-	            response.flushBuffer();
-	            writing.write();
-				
+
+				ResponseWritingStage writing = previousProcessing.process(localResponse);
+				response.flushBuffer();
+				writing.write();
+
 				return invokeHandlerMethod;
 			} else {
 				// log request and response
-		        LocalResponse localResponse = new LocalResponse(response, request.getProtocol()).withBody();
+				LocalResponse localResponse = new LocalResponse(response, request.getProtocol()).withBody();
 				PreprocessedRemoteRequest remoteRequest = new PreprocessedRemoteRequest(request).withBody();
 				ModelAndView invokeHandlerMethod = super.invokeHandlerMethod(remoteRequest, localResponse, handlerMethod);
 				ResponseProcessingStage processing = (ResponseProcessingStage) remoteRequest.getAttribute(LogbookWebMvcRegistrations.responseProcessingStageName);
-				
-		        ResponseWritingStage writing = processing.process(localResponse);
-	            response.flushBuffer();
-	            writing.write();
-				
+
+				ResponseWritingStage writing = processing.process(localResponse);
+				response.flushBuffer();
+				writing.write();
+
 				return invokeHandlerMethod;
 			}
 		}
 		return super.invokeHandlerMethod(request, response, handlerMethod);
 	}
-	
+
 
 }

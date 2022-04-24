@@ -49,16 +49,16 @@ public class LogbookJsonFilterAutoConfiguration {
 	}
 
 	@ConditionalOnMissingBean(Sink.class)
-    @Bean
-    public Sink defaultSink(
-    		RequestResponseJsonFilter filter,
-    		HttpLogFormatter formatter,
-            HttpLogWriter writer, LogbookJsonFiltersProperties properties) {
-    	Sink sink = new DefaultSink(formatter, writer);
+	@Bean
+	public Sink defaultSink(
+			RequestResponseJsonFilter filter,
+			HttpLogFormatter formatter,
+			HttpLogWriter writer, LogbookJsonFiltersProperties properties) {
+		Sink sink = new DefaultSink(formatter, writer);
 		JsonFactory jsonFactory = new JsonFactory();
 		ProcessingProperties requests = properties.getRequests();
 		ProcessingProperties responses = properties.getResponses();
 		return new PathFilterSink(sink, filter, requests.isValidate(), responses.isValidate(), requests.isCompact(), responses.isCompact(), jsonFactory);
-    }
-	
+	}
+
 }

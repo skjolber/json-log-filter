@@ -15,7 +15,7 @@ public class PreprocessedRemoteRequest extends RemoteRequest implements Preproce
 	public PreprocessedRemoteRequest(HttpServletRequest request) {
 		super(request);
 	}
-	
+
 	@Override
 	public boolean isDatabindingPerformed() {
 		return databindingPerformed;
@@ -25,15 +25,15 @@ public class PreprocessedRemoteRequest extends RemoteRequest implements Preproce
 	public boolean wasDatabindingSuccessful() {
 		return databindingSuccessful;
 	}
-	
+
 	public void setDatabindingPerformed(boolean databindingPerformed) {
 		this.databindingPerformed = databindingPerformed;
 	}
-	
+
 	public void setDatabindingSuccessful(boolean databindingSuccessful) {
 		this.databindingSuccessful = databindingSuccessful;
 	}
-	
+
 	@Override
 	public PreprocessedRemoteRequest withBody() throws IOException {
 		return (PreprocessedRemoteRequest) super.withBody();

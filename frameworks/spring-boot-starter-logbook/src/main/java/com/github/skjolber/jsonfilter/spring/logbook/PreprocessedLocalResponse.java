@@ -15,7 +15,7 @@ public class PreprocessedLocalResponse extends LocalResponse implements Preproce
 	public PreprocessedLocalResponse(HttpServletResponse response, final String protocolVersion) {
 		super(response, protocolVersion);
 	}
-	
+
 	@Override
 	public boolean isDatabindingPerformed() {
 		return databindingPerformed;
@@ -25,18 +25,18 @@ public class PreprocessedLocalResponse extends LocalResponse implements Preproce
 	public boolean wasDatabindingSuccessful() {
 		return databindingSuccessful;
 	}
-	
+
 	public void setDatabindingPerformed(boolean databindingPerformed) {
 		this.databindingPerformed = databindingPerformed;
 	}
-	
+
 	public void setDatabindingSuccessful(boolean databindingSuccessful) {
 		this.databindingSuccessful = databindingSuccessful;
 	}
-	
+
 	@Override
 	public PreprocessedLocalResponse withBody() throws IOException {
 		return (PreprocessedLocalResponse)super.withBody();
 	}
-	
+
 }

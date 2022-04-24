@@ -11,7 +11,7 @@ import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Logbook.ResponseProcessingStage;
 
 public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandlerMethod {
-	
+
 	protected final Logbook logbook;
 	protected final MethodArgumentValuesDetector detector;
 
@@ -36,20 +36,20 @@ public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandle
 			if(!remoteRequest.isDatabindingPerformed()) {
 				try {
 					Object[] args = getMethodArgumentValues(new DispatcherServletWebRequest(remoteRequest), mavContainer, providedArgs);
-	
+
 					// detect whether databinding was performed
 					// typically this will not be the case for streaming approaches
 					boolean successful = detector.isDatabindingArguments(request, mavContainer, args);
 
 					remoteRequest.setDatabindingPerformed(true);
 					remoteRequest.setDatabindingSuccessful(successful);
-					
+
 					// if not streaming, we can assume valid JSON, so
 					// we can use the fastest filtering and in addition 
 					// can append the raw content to JSON logger after compacting
 					ResponseProcessingStage processing = logbook.process(remoteRequest).write();
 					remoteRequest.setAttribute(LogbookWebMvcRegistrations.responseProcessingStageName, processing);
-					
+
 					return doInvoke(args);
 				} catch(Exception e) {
 					// Databinding failed, but
@@ -58,10 +58,10 @@ public class LogbookServletInvocableHandlerMethod extends ServletInvocableHandle
 					// slow path
 					remoteRequest.setDatabindingPerformed(true);
 					remoteRequest.setDatabindingSuccessful(false);
-					
+
 					ResponseProcessingStage processing = logbook.process(remoteRequest).write();
 					remoteRequest.setAttribute(LogbookWebMvcRegistrations.responseProcessingStageName, processing);
-	
+
 					throw e;
 				}
 			}

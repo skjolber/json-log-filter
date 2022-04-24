@@ -9,16 +9,16 @@ public class AntJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 
 	private final AntPathMatcher matcher;
 	private final String pattern;
-	
+
 	public AntJsonFilterPathMatcher(AntPathMatcher matcher, String pattern, JsonFilter validatingFilter, JsonFilter nonvalidatingFilter) {
 		super(validatingFilter, nonvalidatingFilter);
 		this.matcher = matcher;
 		this.pattern = pattern;
 	}
-	
+
 	@Override
 	public boolean matches(String path) {
 		return matcher.match(pattern, path);
 	}
-	
+
 }

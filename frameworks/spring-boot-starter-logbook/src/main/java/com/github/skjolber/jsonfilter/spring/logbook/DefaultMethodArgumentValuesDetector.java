@@ -7,13 +7,13 @@ public class DefaultMethodArgumentValuesDetector implements MethodArgumentValues
 
 	@Override
 	public boolean isDatabindingArguments(NativeWebRequest request, ModelAndViewContainer mavContainer, Object[] args) {
-		
+
 		for(Object arg : args) {
 			if(arg instanceof PreprocessedRemoteRequest) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 

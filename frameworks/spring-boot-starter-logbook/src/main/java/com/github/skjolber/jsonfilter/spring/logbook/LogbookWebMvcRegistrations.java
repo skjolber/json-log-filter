@@ -9,7 +9,7 @@ import org.zalando.logbook.Logbook.ResponseProcessingStage;
 
 public class LogbookWebMvcRegistrations implements WebMvcRegistrations {
 
-    public static final String responseProcessingStageName = ResponseProcessingStage.class.getName() + "-" + UUID.randomUUID();
+	public static final String responseProcessingStageName = ResponseProcessingStage.class.getName() + "-" + UUID.randomUUID();
 
 	protected final Logbook logbook;
 	protected final MethodArgumentValuesDetector detector;
@@ -18,7 +18,7 @@ public class LogbookWebMvcRegistrations implements WebMvcRegistrations {
 		this.logbook = logbook;
 		this.detector = detector;
 	}
-	
+
 	@Override
 	public RequestMappingHandlerAdapter getRequestMappingHandlerAdapter() {
 		return new LogbookRequestMappingHandlerAdapter(logbook, detector);
