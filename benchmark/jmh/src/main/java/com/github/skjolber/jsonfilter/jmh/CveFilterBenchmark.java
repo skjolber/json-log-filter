@@ -112,22 +112,22 @@ public class CveFilterBenchmark {
 	}
 	
 	@Benchmark
-	public long all_jackson() throws IOException {
+	public long all_maxsize_jackson() throws IOException {
 		return jacksonMultiPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long all_core() throws IOException {
+	public long all_maxsize_core() throws IOException {
 		return multiPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
-	public long all_infinite_jackson() throws IOException {
+	public long all_jackson() throws IOException {
 		return multiPathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long all_infinite_core() throws IOException {
+	public long all_core() throws IOException {
 		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 

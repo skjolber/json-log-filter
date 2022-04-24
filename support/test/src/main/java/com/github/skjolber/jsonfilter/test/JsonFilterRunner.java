@@ -62,6 +62,7 @@ public class JsonFilterRunner {
 		JsonFilterResult result = new JsonFilterResult();
 
 		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(filter);
+
 		if(!properties.isNoop()) {
 			for(JsonFilterOutputDirectory outputDirectory : outputDirectories) {
 				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
@@ -165,8 +166,6 @@ public class JsonFilterRunner {
 
 			File filteredFile = filteredFiles.get(entry.getKey());
 
-			//System.out.println(sourceFile + " -> " + filteredFile);
-			
 			if(filteredFile == null) {
 				// no filtered file, so expect passthrough
 				compareChars(maxSize, infiniteSize, sourceFile, sourceFile, properties, predicate);
@@ -446,6 +445,42 @@ public class JsonFilterRunner {
 				if(!expectedToken.equals(resultToken)) {
 					return false;
 				}
+				
+				
+				switch(expectedToken)  {
+					case FIELD_NAME: {
+						if(!expectedParser.getCurrentName().equals(resultParser.getCurrentName())) {
+							return false;
+						}
+						break;
+					}
+					case VALUE_FALSE:
+					case VALUE_TRUE: {
+						if(expectedParser.getBooleanValue() != resultParser.getBooleanValue()) {
+							return false;
+						}
+						break;
+					}
+					case VALUE_STRING: {
+						if(!expectedParser.getText().equals(resultParser.getText())) {
+							return false;
+						}
+						break;
+					}
+					case VALUE_NUMBER_INT: {
+						if(expectedParser.getIntValue() != resultParser.getIntValue()) {
+							return false;
+						}
+						break;
+					}
+					case VALUE_NUMBER_FLOAT: {
+						if(expectedParser.getFloatValue() != resultParser.getFloatValue()) {
+							return false;
+						}
+						break;
+					}
+				}
+				
 
 			}
 		} catch(Exception e) {

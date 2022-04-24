@@ -50,7 +50,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilterTest extends Abstract
 
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThat(new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
@@ -76,22 +76,19 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilterTest extends Abstract
 				}
 			}
 		);
-		
-	}	
+	}
 	
-	/*
 	@Test
 	public void maxStringLengthAnonymize() throws Exception {
-		assertThat(new JacksonSinglePathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, DEFAULT_XPATH, FilterType.ANON))
-			.hasMaxStringLength(DEFAULT_MAX_LENGTH)
-			.hasAnonymized(DEFAULT_XPATH);
+		assertThat(new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, DEFAULT_PATH, FilterType.ANON))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
+			.hasAnonymized(DEFAULT_PATH);
 	}
 
 	@Test
 	public void maxStringLengthPrune() throws Exception {
-		assertThat(new JacksonSinglePathMaxStringLengthJsonFilter(DEFAULT_MAX_LENGTH, DEFAULT_XPATH, FilterType.PRUNE))
-			.hasMaxStringLength(DEFAULT_MAX_LENGTH)
-			.hasPruned(DEFAULT_XPATH);
+		assertThat(new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, DEFAULT_PATH, FilterType.PRUNE))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
+			.hasPruned(DEFAULT_PATH);
 	}
-*/
 }

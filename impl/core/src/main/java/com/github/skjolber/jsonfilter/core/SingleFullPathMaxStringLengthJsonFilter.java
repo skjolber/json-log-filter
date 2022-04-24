@@ -29,18 +29,24 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
-		length += offset;
+		int limit = length + offset;
 
 		int level = 0;
 
 		try {
-			return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+			offset = rangesFullPathMaxStringLength(chars, offset, limit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+			
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;
+
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	public static CharArrayRangesFilter rangesFullPathMaxStringLength(final char[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final char[][] elementPaths, int matches, FilterType filterType, final CharArrayRangesFilter filter) {
+	public static int rangesFullPathMaxStringLength(final char[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final char[][] elementPaths, int matches, FilterType filterType, final CharArrayRangesFilter filter) {
 		loop:
 		while(offset < length) {
 			switch(chars[offset]) {
@@ -156,15 +162,10 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 			offset++;
 		}
 
-		if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
 		if(level != 0) {
-			return null;
+			throw new IllegalStateException();
 		}
-
-		return filter;
+		return offset;
 	}
 	
 	@Override
@@ -177,20 +178,23 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 
 		final byte[][] elementPaths = this.pathBytes;
 
-		length += offset;
-
 		int level = 0;
 		
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
+		int limit = length + offset;
 		try {
-			return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+			offset = rangesFullPathMaxStringLength(chars, offset, limit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	public static ByteArrayRangesFilter rangesFullPathMaxStringLength(final byte[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final byte[][] elementPaths, int matches, FilterType filterType, final ByteArrayRangesFilter filter) {
+	public static int rangesFullPathMaxStringLength(final byte[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final byte[][] elementPaths, int matches, FilterType filterType, final ByteArrayRangesFilter filter) {
 		loop:
 		while(offset < length) {
 			switch(chars[offset]) {
@@ -303,16 +307,12 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 			}
 			offset++;
 		}
-
-		if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
+		
 		if(level != 0) {
-			return null;
+			throw new IllegalStateException();
 		}
-
-		return filter;
+		
+		return offset;
 	}
 
 }

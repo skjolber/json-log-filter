@@ -47,46 +47,4 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest 
 		assertThat(new JacksonMaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
 	}
 	
-	public static void main(String[] args) throws Exception {
-		
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
-		//assertThat(new SingleFullPathMaxSizeMaxStringLengthJsonFilter2(-1, -1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
-
-		File file = new File("/home/skjolber/git/json-log-filter-github/frameworks/jackson/src/test/resources/test.json");
-		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
-		System.out.println(string);
-
-		JsonFactory jsonFactory = new JsonFactory();
-
-		JsonParser parser = jsonFactory.createParser(string.toCharArray(), 0, string.length());
-
-		char[] offsets = new char[string.length()];
-		for(int i = 0; i < offsets.length; i++) {
-			offsets[i] = ' ';
-		}
-		
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-
-			System.out.println(nextToken + " " + parser.currentLocation().getCharOffset());
-			
-			offsets[ (int)parser.currentLocation().getCharOffset()] = '^';
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
-				parser.getTextLength();
-			} else if(nextToken == JsonToken.VALUE_NUMBER_INT) {
-				parser.getNumberValue();
-			}
-			System.out.println(nextToken + " " + parser.currentLocation().getCharOffset());
-			offsets[ (int)parser.currentLocation().getCharOffset()] = '|';
-			
-		}
-	
-		System.out.println(string);
-		System.out.println(new String(offsets));
-	}
-
 }

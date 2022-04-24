@@ -172,8 +172,10 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									if(maxSizeLimit >= length) {
 										// filtering only for full path and max string length, i.e. keep the rest of the document
 										filter.setLevel(0);
+										bracketLevel = 0;
+										offset = SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 										
-										return SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+										break loop;
 									}
 								}
 								offset = nextOffset;
@@ -296,9 +298,11 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 							if(maxSizeLimit >= length) {
 								// filtering only for full path, i.e. keep the rest of the document
+								bracketLevel = 0;
 								filter.setLevel(0);
+								offset = rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
 								
-								return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+								break loop;
 							}
 						} else {
 							offset = nextOffset;
@@ -488,8 +492,11 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									if(maxSizeLimit >= length) {
 										// filtering only for full path and max string length, i.e. keep the rest of the document
 										filter.setLevel(0);
+										bracketLevel = 0;
 										
-										return SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+										offset = SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+										
+										break loop;
 									}
 								}
 								offset = nextOffset;
@@ -612,8 +619,11 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							if(maxSizeLimit >= length) {
 								// filtering only for full path, i.e. keep the rest of the document
 								filter.setLevel(0);
+								bracketLevel = 0;
 								
-								return rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+								offset = rangesFullPathMaxStringLength(chars, offset, length, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+								
+								break loop;
 							}
 						} else {
 							offset = nextOffset;

@@ -4,16 +4,19 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 public class JsonFilterOutputDirectory {
 
 	protected final JsonFilterInputDirectory input;
 	protected final List<File> outputs;
+	protected final File directory;
 	
-	public JsonFilterOutputDirectory(List<File> outputs, JsonFilterInputDirectory input) {
+	public JsonFilterOutputDirectory(File directory, List<File> outputs, JsonFilterInputDirectory input) {
 		this.outputs = outputs;
 		this.input = input;
+		this.directory = directory;
 	}
 
 	public JsonFilterInputDirectory getInputDirectories() {
@@ -37,14 +40,14 @@ public class JsonFilterOutputDirectory {
 	public Properties getProperties() {
 		return input.getProperties();
 	}
+	
+	public File getDirectory() {
+		return directory;
+	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((input == null) ? 0 : input.hashCode());
-		result = prime * result + ((outputs == null) ? 0 : outputs.hashCode());
-		return result;
+		return Objects.hash(directory, input, outputs);
 	}
 
 	@Override
@@ -56,20 +59,10 @@ public class JsonFilterOutputDirectory {
 		if (getClass() != obj.getClass())
 			return false;
 		JsonFilterOutputDirectory other = (JsonFilterOutputDirectory) obj;
-		if (input == null) {
-			if (other.input != null)
-				return false;
-		} else if (!input.equals(other.input))
-			return false;
-		if (outputs == null) {
-			if (other.outputs != null)
-				return false;
-		} else if (!outputs.equals(other.outputs))
-			return false;
-		return true;
+		return Objects.equals(directory, other.directory) && Objects.equals(input, other.input)
+				&& Objects.equals(outputs, other.outputs);
 	}
-
-
+	
 	
 	
 }

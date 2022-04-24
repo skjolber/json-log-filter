@@ -3,10 +3,12 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
@@ -139,4 +141,21 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
 	
+	@Test
+	public void maxStringLengthAnonymize() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.ANON);
+
+		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
+			.hasAnonymized(DEFAULT_PATH);
+	}
+
+	@Test
+	public void maxStringLengthPrune() throws Exception {
+		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.PRUNE);
+		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.PRUNE))
+			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
+			.hasPruned(DEFAULT_PATH);
+	}
+
 }

@@ -127,23 +127,4 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	public static void main(String[] args) throws IOException {
-		
-		SingleFullPathJsonFilter infiniteFilter = new SingleFullPathJsonFilter(-1, "/grandparent/parent/child1", FilterType.ANON);
-		
-		File file = new File("./../../support/test/src/main/resources/json/object/object1ws.json");
-		String string = IOUtils.toString(file.toURI(), StandardCharsets.UTF_8);
-		
-		String expected = infiniteFilter.process(string);
-		
-		System.out.println(string);
-		System.out.println(expected);
-
-		System.out.println("Max size is " + expected.length() + ", input size is " + string.length());
-		SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(122, -1, "/grandparent/parent/child1", FilterType.ANON);
-
-		String process = filter.process(string + "  ");
-		System.out.println(process);
-		System.out.println("Size " + process.length());
-	}
 }

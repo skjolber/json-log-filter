@@ -24,27 +24,35 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
+		int limit = offset + length;
 		try {
-			return rangesFullPath(chars, offset, offset + length, 0, pathChars, 0, filterType, maxPathMatches, filter);
+			offset = rangesFullPath(chars, offset, limit, 0, pathChars, 0, filterType, maxPathMatches, filter);
+
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
 	}
-
+	
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		int pathMatches = this.maxPathMatches;
-		final byte[][] elementPaths = this.pathBytes;
-		
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches, length);
+		int limit = offset + length;
 		try {
-			return rangesFullPath(chars, offset, offset + length, 0, elementPaths, 0, filterType, pathMatches, filter);
+			offset = rangesFullPath(chars, offset, offset + length, 0, pathBytes, 0, filterType, maxPathMatches, filter);
+			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+				return null;
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	protected static <T extends CharArrayRangesFilter> T rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {
+	protected static int rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
@@ -133,7 +141,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								return filter; // done filtering
+								return limit; // done filtering
 							}							
 						}
 						
@@ -149,18 +157,14 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-		
 		if(level != 0) {
-			return null;
+			throw new IllegalStateException();
 		}
 		
-		return filter;
+		return offset;
 	}
 
-	protected static <T extends ByteArrayRangesFilter> T rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final T filter) {
+	protected static int rangesFullPath(final byte[] chars, int offset, int limit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, final ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
@@ -249,7 +253,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								return filter; // done filtering
+								return limit; // done filtering
 							}							
 						}
 						
@@ -265,15 +269,12 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
 		if(level != 0) {
-			return null;
+			throw new IllegalStateException();
 		}
 
-		return filter;
+
+		return offset;
 	}
 
 	protected char[] getPruneJsonValue() {
