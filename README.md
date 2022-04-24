@@ -20,6 +20,7 @@ Features:
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
+ * Truncate large documents
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -34,7 +35,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>2.1.2</json-log-filter.version>
+<json-log-filter.version>3.0.0</json-log-filter.version>
 ```
 
 then add
@@ -95,6 +96,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withAnonymize("$.customer.email") // inserts ***** for values
                        .withPrune("$.customer.account") // removes whole subtree
                        .withMaxPathMatches(16) // halt anon/prune after a number of hits
+                       .withMaxSize(32*1024)
                        .build();
                        
 String json = ...; // obtain JSON
@@ -155,6 +157,9 @@ or a simple any-level element search
     //myFieldName
 
 The filters within this library support using multiple expressions at once.
+
+### Max size
+Configure max size to limit the size of the resulting document. This reduces the size of the document by (silently) deleting the JSON content after the limit is reached.
 
 ## Post-processing
 Depending on your service stack and architecture, performing two additional operations might be necessary:
