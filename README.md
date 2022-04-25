@@ -27,7 +27,7 @@ The library contains multiple filter implementations as to accommodate combinati
 In addition, the library contains a Logbook module for efficient request-/response-logging. __By leveraging the databinding as input to the request-logging,__
 
  * the fast log filters can be used whenever databinding is successful, and
- * the request JSON payload can be appended as raw content to structured logging output.
+ * the request JSON payload can safely be appended as raw content to structured logging output.
 
 This means __instead of parsing the input document two or three times using Jackson, parsing once + a fast filtering is usually sufficient.__ Request logging still happens before the REST controller is invoked.
 
