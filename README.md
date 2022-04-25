@@ -24,7 +24,7 @@ Features:
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
 
-In addition, the library contains a Logbook module for efficient request-/response-logging. __By leveraging the databinding as input to the request-logging,__
+In addition, the library contains a Logbook module for efficient request-/response-logging. __By leveraging the databinding result as input to the request-logging,__
 
  * the fast log filters can be used whenever databinding is successful, and
  * the request JSON payload can safely be appended as raw content to structured logging output.
