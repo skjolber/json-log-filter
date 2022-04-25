@@ -192,7 +192,7 @@ The library contains multiple implementations which
 
 Performance summary:
 
- * `core` is between 5x as fast as `Jackson` processors, where
+ * `core` is something like 5x as fast as `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
