@@ -1,5 +1,5 @@
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~5x). Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -13,14 +13,23 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
     * keep within max log-statement size
        * GCP: [256 KB](https://cloud.google.com/logging/quotas)
        * Azure: 32 KB 
-       
+
 Features:
 
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
- * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
  * Truncate large documents
+ * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
+
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
+
+In addition, the library contains a Logbook module for efficient request-/response-logging. __By leveraging the databinding as input to the request-logging,__
+
+ * the fast log filters can be used whenever databinding is successful, and
+ * the request JSON payload can be appended as raw content to structured logging output.
+
+This means __instead of parsing the input document two or three times using Jackson, parsing once + a fast filtering is usually sufficient.__ Request logging still happens before the REST controller is invoked.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -174,18 +183,20 @@ For a typical REST service, the above operations might be necessary for the (unt
 Note that 
   
  * the `Jackson`-based processors in this project do both of these automatically, and 
- * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON. See the Logbook module further down for an example.
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON. __See the Logbook module further down.__
 
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance. 
 
+The library contains multiple implementations which 
+
 Performance summary:
 
- * `core` is between 2x to 6x as fast as `Jackson` processors, where
+ * `core` is between 5x as fast as `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
-Note that both processors can parse __at least one thousand 100KB documents per second__. For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
+For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
 Memory use will be at 2x-8x the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
 
@@ -203,9 +214,6 @@ See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) mo
  * invalid JSON payloads are added as text
  * optimal performance
    * detects whether databinding was successful to avoid revalidating the JSON structure before logging
-
-## Background
-The project is intended as a complimentary tool for use alongside JSON frameworks, such as JSON-based REST stacks. Its primary use-case is processing to-be logged JSON. The project relies on the fact that such frameworks have very good error handling, like schema validation and databinding, to apply a simplified view of the JSON syntax, basically handling only the happy-case of a well-formed document. The frameworks themselves detect invalid documents and handle them as raw content. 
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.

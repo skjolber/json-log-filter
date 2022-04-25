@@ -148,7 +148,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			elementFilterEnd = new int[]{};
 			elementFilters = new AbsolutePathFilter[]{};
 		}
-
 	}
 	
 	protected static void constrain(int[] filter, int[] matches, int level) {

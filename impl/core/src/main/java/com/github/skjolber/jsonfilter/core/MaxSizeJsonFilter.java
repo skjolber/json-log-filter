@@ -43,7 +43,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		length += offset;
 		
-		int limit = offset + maxSize; // i.e. now limit
+		int limit = offset + maxSize;
 
 		int level = 0;
 		
@@ -115,7 +115,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		length += offset;
 		
-		int limit = offset + maxSize; // i.e. now limit
+		int limit = offset + maxSize;
 
 		int level = 0;
 		

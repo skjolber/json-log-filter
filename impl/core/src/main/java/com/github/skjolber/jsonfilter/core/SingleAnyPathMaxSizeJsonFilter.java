@@ -236,12 +236,10 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 
 		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else {
+		} else if(offset < limit) {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
-			
 			filter.setMark(mark);
-
 			filter.alignMark(chars);
 			
 			// filter rest of document
@@ -289,13 +287,12 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			offset++;			
 		}
 		
-		if(offset > maxSizeLimit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
+		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
 			return null;
-		} else {
+		} else if(offset < limit) {
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
-
 			filter.alignMark(chars);
 			
 			// remove rest of document

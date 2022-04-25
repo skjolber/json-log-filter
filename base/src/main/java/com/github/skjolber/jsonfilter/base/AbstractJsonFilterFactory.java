@@ -171,6 +171,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		setProperty(p, value);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setProperty(JsonFilterFactoryProperty p, Object value) {
 		switch (p) {
 		case MAX_STRING_LENGTH: {

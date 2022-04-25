@@ -273,7 +273,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 			throw new IllegalStateException();
 		}
 
-
 		return offset;
 	}
 

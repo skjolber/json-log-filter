@@ -142,7 +142,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						if(chars[nextOffset] != ':') {
 							// was a text value
 							offset = nextOffset;
-							
 							continue;
 						}
 					}
@@ -152,7 +151,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						matches++;
 					} else {
 						offset = nextOffset;
-						
 						continue;
 					}
 
@@ -380,7 +378,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						if(chars[nextOffset] != ':') {
 							// was a text value
 							offset = nextOffset;
-							
 							continue;
 						}
 					}
@@ -390,7 +387,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						matches++;
 					} else {
 						offset = nextOffset;
-						
 						continue;
 					}
 

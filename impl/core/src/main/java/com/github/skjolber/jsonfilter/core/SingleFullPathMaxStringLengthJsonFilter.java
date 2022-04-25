@@ -46,9 +46,9 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		}
 	}
 
-	public static int rangesFullPathMaxStringLength(final char[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final char[][] elementPaths, int matches, FilterType filterType, final CharArrayRangesFilter filter) {
+	public static int rangesFullPathMaxStringLength(final char[] chars, int offset, int limit, int pathMatches, int maxStringLength, int level, final char[][] elementPaths, int matches, FilterType filterType, final CharArrayRangesFilter filter) {
 		loop:
-		while(offset < length) {
+		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
 					level++;
@@ -100,7 +100,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							}
 
 							offset = nextOffset;
-							
 							continue;
 						}
 					}
@@ -110,7 +109,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						matches++;
 					} else {
 						offset = nextOffset;
-						
 						continue;
 					}
 
@@ -144,7 +142,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 								// speed up filtering by looking only at max string length
 								level = 0;
 								
-								offset = MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+								offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
 								
 								break loop;
 							}
@@ -194,9 +192,9 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		}
 	}
 
-	public static int rangesFullPathMaxStringLength(final byte[] chars, int offset, int length, int pathMatches, int maxStringLength, int level, final byte[][] elementPaths, int matches, FilterType filterType, final ByteArrayRangesFilter filter) {
+	public static int rangesFullPathMaxStringLength(final byte[] chars, int offset, int limit, int pathMatches, int maxStringLength, int level, final byte[][] elementPaths, int matches, FilterType filterType, final ByteArrayRangesFilter filter) {
 		loop:
-		while(offset < length) {
+		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
 					level++;
@@ -249,7 +247,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							}
 
 							offset = nextOffset;
-							
 							continue;
 						}
 					}
@@ -258,7 +255,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						matches++;
 					} else {
 						offset = nextOffset;
-						
 						continue;
 					}
 
@@ -291,7 +287,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							if(pathMatches == 0) {
 								// speed up filtering by looking only at max string length
 								level = 0;
-								offset = MaxStringLengthJsonFilter.ranges(chars, offset, length, maxStringLength, filter);
+								offset = MaxStringLengthJsonFilter.ranges(chars, offset, limit, maxStringLength, filter);
 								break loop;
 							}
 						}
