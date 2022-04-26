@@ -1,5 +1,5 @@
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~5x). Typical use-cases:
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3-5x). Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -192,7 +192,7 @@ The library contains multiple implementations which
 
 Performance summary:
 
- * `core` is something like 5x as fast as `Jackson` processors, where
+ * `core` is something like 3-5x as fast as `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
