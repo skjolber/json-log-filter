@@ -40,3 +40,5 @@ rebel.xml
 target
 
 .attach_pid*
+
+dependency-reduced-pom.xml

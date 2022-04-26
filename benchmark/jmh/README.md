@@ -19,6 +19,14 @@ for all benchmarks. Display the file `jmh-result` with a visualizer like [JMH Vi
 
 # Benchmark results
 
+## 3.0.1:
+
+ * AMD Ryzen 5950
+ * Fedora Linux 5.16.19-200
+
+ * [1.8.0_322](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk8.json&topBar=off)
+ * [11.0.14.1](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk11.json&topBar=off)
+
 ## 1.0.17:
 
  * AMD Ryzen 3700
