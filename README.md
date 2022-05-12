@@ -188,8 +188,6 @@ Note that
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance. 
 
-The library contains multiple implementations which 
-
 Performance summary:
 
  * `core` is something like 3-5x as fast as `Jackson` processors, where
