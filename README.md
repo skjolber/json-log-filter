@@ -1,5 +1,5 @@
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3-5x). Typical use-cases:
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3x-5x). Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -190,13 +190,13 @@ The `core` processors within this project are faster than the `Jackson`-based pr
 
 Performance summary:
 
- * `core` is something like 3-5x as fast as `Jackson` processors, where
+ * `core` is something like 3x-5x as fast as `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
 
 For a typical, light-weight web service, the overall performance improvement for using the `core` filters over the `Jackson`-based filters, will most likely be in the order of a few percent.
 
-Memory use will be at 2x-8x the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
+Memory use will be at 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
 
 See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
