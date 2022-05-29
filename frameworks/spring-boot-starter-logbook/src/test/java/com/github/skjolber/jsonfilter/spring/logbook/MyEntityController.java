@@ -25,14 +25,14 @@ public class MyEntityController {
 
     @GetMapping("/get")
     public MyEntity unprotected() {
-        log.info("GET");
+        log.info("GET CONTROLLER");
 
         return new MyEntity(counter.incrementAndGet(), "Hello get", "Magnus");
     }
 
     @PostMapping(path = "/post", consumes = "application/json", produces = "application/json")
     public MyEntity unprotectedPost(@RequestBody MyEntity greeting) {
-        log.info("POST");
+        log.info("POST CONTROLLER");
         return new MyEntity(counter.incrementAndGet(), "Hello post", "Thomas");
     }
 
@@ -41,7 +41,7 @@ public class MyEntityController {
     public MyEntity unprotectedPost(HttpServletRequest request) throws IOException {
     	ServletInputStream inputStream = request.getInputStream();
     	IOUtils.toByteArray(inputStream);
-        log.info("POST");
+        log.info("POST CONTROLLER");
         return new MyEntity(counter.incrementAndGet(), "Hello post", "Thomas");
     }
 }
