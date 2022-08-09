@@ -120,7 +120,18 @@ public interface JsonFilter {
 	 * @return true if the processing returns a compacted value
 	 */
 
-	default boolean isCompacting() {
+	default boolean isRemovingLinebreaks() {
+		return false;
+	}
+
+	/**
+	 * 
+	 * Check if compacting, as in not containing any linebreaks.
+	 * 
+	 * @return true if the processing returns a compacted value
+	 */
+
+	default boolean isRemovingIndent() {
 		return false;
 	}
 

@@ -25,7 +25,7 @@ public class ValidatingJsonFilterProcessor extends ValidatingJsonProcessor {
 				} catch (Exception e) {
 					// fall through to escape as string
 				}
-			} else if(compacting && !filter.isCompacting()) {
+			} else if(compacting && !filter.isRemovingLinebreaks()) {
 				return compact(filtered);
 			} else {
 				return filtered;
@@ -46,7 +46,7 @@ public class ValidatingJsonFilterProcessor extends ValidatingJsonProcessor {
 				} catch (Exception e) {
 					// fall through to escape as string
 				}
-			} else if(compacting && !filter.isCompacting()) {
+			} else if(compacting && !filter.isRemovingLinebreaks()) {
 				return compact(filtered);
 			} else {
 				return filtered;

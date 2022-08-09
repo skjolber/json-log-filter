@@ -10,11 +10,15 @@ public interface JacksonJsonFilter extends JsonFilter {
 
 	boolean process(byte[] bytes, int offset, int length, StringBuilder output);
 	
-	public default boolean isCompacting() {
+	public default boolean isValidating() {
 		return true;
 	}
-
-	public default boolean isValidating() {
+	
+	default boolean isRemovingIndent() {
+		return false;
+	}
+	
+	public default boolean isRemovingLinebreaks() {
 		return true;
 	}
 }
