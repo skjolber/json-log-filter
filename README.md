@@ -19,7 +19,7 @@ Features:
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
- * Truncate large documents
+ * Truncate large documents (max total output size)
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
