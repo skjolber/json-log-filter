@@ -119,7 +119,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 		int level = 0;
 		
-		boolean[] squareBrackes = new boolean[32];
+		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
 
@@ -128,13 +128,13 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
-						squareBrackes[level] = chars[offset] == '[';
+						squareBrackets[level] = chars[offset] == '[';
 						
 						level++;
-						if(level >= squareBrackes.length) {
-							boolean[] next = new boolean[squareBrackes.length + 32];
-							System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
-							squareBrackes = next;
+						if(level >= squareBrackets.length) {
+							boolean[] next = new boolean[squareBrackets.length + 32];
+							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+							squareBrackets = next;
 						}
 						mark = offset;
 						
@@ -168,7 +168,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			output.write(chars, 0, mark);
 			
-			closeStructure(level, squareBrackes, output);
+			closeStructure(level, squareBrackets, output);
 	
 			return true;
 		} catch(Exception e) {
@@ -176,7 +176,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 
-	private void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
+	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
 				buffer.append(']');
@@ -186,7 +186,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public int alignMark(int mark, byte[] chars) {
+	public static int alignMark(int mark, byte[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
@@ -200,7 +200,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public int alignMark(int mark, char[] chars) {
+	public static int alignMark(int mark, char[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
@@ -214,9 +214,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	private void closeStructure(int level, boolean[] squareBrackes, OutputStream output) throws IOException {
+	public static void closeStructure(int level, boolean[] squareBrackets, OutputStream output) throws IOException {
 		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackes[i]) {
+			if(squareBrackets[i]) {
 				output.write(']');
 			} else {
 				output.write('}');

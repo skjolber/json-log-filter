@@ -320,10 +320,48 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	public void addMaxLength(char[] chars, int start, int end, int length) {
 		// account for code points and escaping
 		
+		int alignedStart = getStringAlignment(chars, start);
+		
+		length += start - alignedStart;
+		
+		super.addMaxLength(alignedStart, end, length);
+		
+		this.removedLength += end - alignedStart - truncateMessage.length - lengthToDigits(length); // max integer
+	}
+	
+	public void addAnon(int start, int end) {
+		super.addAnon(start, end);
+		
+		this.removedLength += end - start - anonymizeMessage.length;
+	}
+	
+	public void addPrune(int start, int end) {
+		super.addPrune(start, end);
+		
+		this.removedLength += end - start - pruneMessage.length;
+	}
+
+	public void addDelete(int start, int end) {
+		super.addDelete(start, end);
+		
+		this.removedLength += end - start;
+	}
+	
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+	
+	
+	public static int getStringAlignment(char[] chars, int start) {
+		// account for code points and escaping
+		
 		// A high surrogate precedes a low surrogate. Together they make up a codepoint.
 		if(Character.isLowSurrogate(chars[start])) {
 			start--;
-			length = end - start;
 		} else {
 			// \ u
 			// \ uX
@@ -363,7 +401,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					}
 					if(slashCount % 2 == 1) {
 						start -= offset;
-						length += offset;
 					}
 				}
 			} else {
@@ -380,40 +417,12 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					}
 					if(slashCount % 2 == 0) {
 						start--;
-						length++;
 					}
 				}
 			}
 		}
-		super.addMaxLength(start, end, length);
-		
-		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
-	}
-	
-	public void addAnon(int start, int end) {
-		super.addAnon(start, end);
-		
-		this.removedLength += end - start - anonymizeMessage.length;
-	}
-	
-	public void addPrune(int start, int end) {
-		super.addPrune(start, end);
-		
-		this.removedLength += end - start - pruneMessage.length;
+		return start;
 	}
 
-	public void addDelete(int start, int end) {
-		super.addDelete(start, end);
-		
-		this.removedLength += end - start;
-	}
-	
-	public int getPruneMessageLength() {
-		return pruneMessage.length;
-	}
-
-	public int getAnonymizeMessageLength() {
-		return anonymizeMessage.length;
-	}
 
 }

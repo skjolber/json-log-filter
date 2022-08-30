@@ -168,5 +168,9 @@ public abstract class AbstractJsonFilterTest {
 		}
 	}
 	
+	public String readResource(String path) throws IOException {
+		return IOUtils.toString(getClass().getResourceAsStream(path), StandardCharsets.UTF_8);
+	}
+	
 
 }

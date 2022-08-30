@@ -52,21 +52,42 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * @param buf   target buffer, Latin1-encoded
 	 * @return index of the most significant digit or minus sign, if present
 	 */
-	static int getChars(int i, int charPos, byte[] buf) {
-		i = -i;
+    static int getChars(int i, int index, byte[] buf) {
+        int q, r;
+        int charPos = index;
 
-		// We know there are at most two digits left at this point.
-		int q = i / 10;
-		int r = (q * 10) - i;
-		buf[--charPos] = (byte)('0' + r);
+        boolean negative = i < 0;
+        if (!negative) {
+            i = -i;
+        }
 
-		// Whatever left is the remaining digit.
-		if (q < 0) {
-			buf[--charPos] = (byte)('0' - q);
-		}
+        // Generate two digits per iteration
+        while (i <= -100) {
+            q = i / 100;
+            r = (q * 100) - i;
+            i = q;
+            buf[--charPos] = DigitOnes[r];
+            buf[--charPos] = DigitTens[r];
+        }
 
-		return charPos;
-	}
+        // We know there are at most two digits left at this point.
+        q = i / 10;
+        r = (q * 10) - i;
+        buf[--charPos] = (byte)('0' + r);
+
+        // Whatever left is the remaining digit.
+        if (q < 0) {
+            buf[--charPos] = (byte)('0' - q);
+        }
+
+        if (negative) {
+            buf[--charPos] = (byte)'-';
+        }
+        return charPos;
+    }
+
+	
+	
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
 	protected final byte[] truncateMessage;
@@ -112,9 +133,23 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public void addMaxLength(byte[] chars, int start, int end, int length) {
+		// account for code points and escaping
 		if(length < 0) {
 			throw new IllegalArgumentException();
 		}
+		
+		int alignedStart = getStringAlignment(chars, start);
+		
+		length += start - alignedStart;
+		
+		super.addMaxLength(alignedStart, end, length);
+		
+		this.removedLength += end - alignedStart - truncateMessage.length - lengthToDigits(length); // max integer
+	}
+
+	
+	
+	public static int getStringAlignment(byte[] chars, int start) {
 
 		// account for 1-4 bytes UTF-8 encoding
 		// i.e. backwards sync
@@ -159,7 +194,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				// remove it
 				int difference = start - index;
 				start -= difference;
-				length += difference;
 			}
 		}
 		
@@ -201,7 +235,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				}
 				if(slashCount % 2 == 1) {
 					start -= offset;
-					length += offset;
 				}
 			}
 		} else {
@@ -218,14 +251,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				}
 				if(slashCount % 2 == 0) {
 					start--;
-					length++;
 				}
 			}
 		}
 		
-		super.addMaxLength(start, end, length);
-		
-		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		return start;
 	}
 
 	public void addAnon(int start, int end) {
@@ -240,7 +270,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.removedLength += end - start - pruneMessage.length;
 	}
 	
-	protected final void writeInt(ByteArrayOutputStream out, int v) {
+	public final void writeInt(ByteArrayOutputStream out, int v) {
+		writeInt(out, v, digit);
+	}
+	
+	public static final void writeInt(ByteArrayOutputStream out, int v, byte[] digit) {
 		int chars = getChars(v, 11, digit);
 		
 		out.write(digit, chars, 11 - chars);
