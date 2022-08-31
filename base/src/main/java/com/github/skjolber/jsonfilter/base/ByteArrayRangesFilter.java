@@ -52,21 +52,42 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * @param buf   target buffer, Latin1-encoded
 	 * @return index of the most significant digit or minus sign, if present
 	 */
-	static int getChars(int i, int charPos, byte[] buf) {
-		i = -i;
+    static int getChars(int i, int index, byte[] buf) {
+        int q, r;
+        int charPos = index;
 
-		// We know there are at most two digits left at this point.
-		int q = i / 10;
-		int r = (q * 10) - i;
-		buf[--charPos] = (byte)('0' + r);
+        boolean negative = i < 0;
+        if (!negative) {
+            i = -i;
+        }
 
-		// Whatever left is the remaining digit.
-		if (q < 0) {
-			buf[--charPos] = (byte)('0' - q);
-		}
+        // Generate two digits per iteration
+        while (i <= -100) {
+            q = i / 100;
+            r = (q * 100) - i;
+            i = q;
+            buf[--charPos] = DigitOnes[r];
+            buf[--charPos] = DigitTens[r];
+        }
 
-		return charPos;
-	}
+        // We know there are at most two digits left at this point.
+        q = i / 10;
+        r = (q * 10) - i;
+        buf[--charPos] = (byte)('0' + r);
+
+        // Whatever left is the remaining digit.
+        if (q < 0) {
+            buf[--charPos] = (byte)('0' - q);
+        }
+
+        if (negative) {
+            buf[--charPos] = (byte)'-';
+        }
+        return charPos;
+    }
+
+	
+	
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
 	protected final byte[] truncateMessage;
