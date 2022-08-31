@@ -63,7 +63,7 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<commons-codec.version>1.15</commons-codec.version>
 		
-		<mockito.version>4.6.1</mockito.version>
+		<mockito.version>4.7.0</mockito.version>
 		<junit.version>5.9.0</junit.version>
 		<logback.version>1.2.11</logback.version>
 		<slf4j.version>1.7.36</slf4j.version>
@@ -76,7 +76,7 @@
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-		<maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
@@ -85,7 +85,7 @@
 
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
-		<spring-boot.version>2.7.2</spring-boot.version>
+		<spring-boot.version>2.7.3</spring-boot.version>
 		<logbook.version>2.14.0</logbook.version>
 		<!-- module descriptors -->
 		<java.module.version>11</java.module.version>
