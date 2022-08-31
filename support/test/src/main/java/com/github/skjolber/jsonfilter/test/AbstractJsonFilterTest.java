@@ -41,18 +41,21 @@ public abstract class AbstractJsonFilterTest {
 	}
 	
 	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
-		
 		JsonFilterResult process = runner.process(filter, predicate);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true);
+		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true, Function.identity());
 	}
 
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter) throws Exception {
-		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter);
+		return assertThatMaxSize(maxSize, infiniteSize, filter, Function.identity());
+	}
+
+	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter, Function<String, String> transformer) throws Exception {
+		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter, transformer);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
@@ -121,19 +124,29 @@ public abstract class AbstractJsonFilterTest {
 	
 	public void validateDeepStructure(Function<Integer, JsonFilter> filter) throws IOException {
 		int levels = 100;
-		byte[] generateDeepStructure = Generator.generateDeepObjectStructure(levels);
+		
+		byte[] generateDeepStructure = Generator.generateDeepObjectStructure(levels, false);
 		validate(filter, levels, generateDeepStructure);
 		
-		generateDeepStructure = Generator.generateDeepArrayStructure(levels);
+		generateDeepStructure = Generator.generateDeepArrayStructure(levels, false);
 		validate(filter, levels, generateDeepStructure);
 
-		generateDeepStructure = Generator.generateDeepMixedStructure(levels);
+		generateDeepStructure = Generator.generateDeepMixedStructure(levels, false);
+		validate(filter, levels, generateDeepStructure);
+		
+		generateDeepStructure = Generator.generateDeepObjectStructure(levels, true);
+		validate(filter, levels, generateDeepStructure);
+		
+		generateDeepStructure = Generator.generateDeepArrayStructure(levels, true);
 		validate(filter, levels, generateDeepStructure);
 
+		generateDeepStructure = Generator.generateDeepMixedStructure(levels, true);
+		validate(filter, levels, generateDeepStructure);
 	}
 
 	private void validate(Function<Integer, JsonFilter> filter, int levels, byte[] generateDeepStructure)
 			throws IOException, JsonParseException {
+		
 		for(int i = 2; i < generateDeepStructure.length; i++) {		
 			JsonFilter apply = filter.apply(i);
 		
@@ -141,7 +154,15 @@ public abstract class AbstractJsonFilterTest {
 	
 			assertTrue(process.length <= i + levels);
 			
-			validate(process);
+			try {
+				validate(process);
+			} catch(Exception e) {
+				System.out.println(new String(generateDeepStructure));
+				System.out.println("Processed " + process.length + " for max size " + i);
+				System.out.println(new String(process));
+				
+				throw e;
+			}				
 		}
 
 		String string = new String(generateDeepStructure, StandardCharsets.UTF_8);
@@ -152,7 +173,15 @@ public abstract class AbstractJsonFilterTest {
 	
 			assertTrue(process.length() <= i + levels);
 
-			validate(process);
+			try {
+				validate(process);
+			} catch(Exception e) {
+				System.out.println(new String(generateDeepStructure));
+				System.out.println("Processed " + process.length() + " for max size " + i);
+				System.out.println(process);
+				
+				throw e;
+			}				
 		}
 	}
 

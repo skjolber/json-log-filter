@@ -32,7 +32,7 @@ public class MaxSizePrettyPrintJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testInvalidInput() throws Exception {
-		String string = new String(Generator.generateDeepObjectStructure(1000), StandardCharsets.UTF_8);
+		String string = new String(Generator.generateDeepObjectStructure(1000, true), StandardCharsets.UTF_8);
 
 		String broken = string.substring(0, string.length() / 2);
 		
