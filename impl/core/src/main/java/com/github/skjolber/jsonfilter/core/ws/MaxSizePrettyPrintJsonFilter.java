@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 
 public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
@@ -50,6 +51,7 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
+		int writtenMark = 0;
 
 		try {
 			int start = offset;
@@ -96,12 +98,23 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 
 						if(chars[nextOffset] == ':') {
 							// was a key
+							if(start <= mark) {
+								writtenMark = buffer.length() + mark - start; 
+							}
 							buffer.append(chars, start, end - start);
 
 							// removed whitespace, increment limit correspondingly
 							limit += nextOffset - end;
+							
+							if(limit >= length) {
+								limit = length;
+							}
 						} else {
 							// was a value
+							if(start <= mark) {
+								writtenMark = buffer.length() + mark - start; 
+							}
+							
 							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 							buffer.append(chars, start, aligned - start);
 							buffer.append(truncateStringValue);
@@ -109,6 +122,10 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 							buffer.append('"');
 
 							limit += nextOffset - aligned - truncateStringValue.length;
+							
+							if(limit >= length) {
+								limit = length;
+							}
 						}
 
 						start = nextOffset;
@@ -120,12 +137,18 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 				default : {
 					if(chars[offset] <= 0x20) {
 						// skip this char and any other whitespace
+						if(start <= mark) {
+							writtenMark = buffer.length() + mark - start; 
+						}
 						buffer.append(chars, start, offset - start);
 						do {
 							offset++;
 							limit++;
 						} while(chars[offset] <= 0x20);
 
+						if(limit >= length) {
+							limit = length;
+						}
 						start = offset;
 
 						continue;
@@ -134,11 +157,20 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 				}
 				offset++;
 			}
-			mark = MaxSizeJsonFilter.alignMark(mark, chars);
+			
+			if(level == 0) {
+				buffer.append(chars, start, offset - start);
+			} else {
+				int deltaMark = deltaMark(mark, chars[mark]);
 
-			buffer.append(chars, start, mark);
-
-			MaxSizeJsonFilter.closeStructure(level, squareBrackets, buffer);
+				if(mark + deltaMark > start) {
+					buffer.append(chars, start, mark - start + deltaMark);
+				} else {
+					buffer.setLength(writtenMark + deltaMark(writtenMark, buffer.charAt(writtenMark)));
+				}
+				
+				MaxSizeJsonFilter.closeStructure(level, squareBrackets, buffer);
+			}
 
 			return true;
 		} catch(Exception e) {
@@ -151,6 +183,8 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 			return super.process(chars, offset, length, output);
 		}
 
+		FlexibleOutputStream stream = new FlexibleOutputStream();
+		
 		length += offset;
 
 		int limit = offset + maxSize;
@@ -160,6 +194,7 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
+		int writtenMark = 0;
 
 		byte[] digit = new byte[11];
 
@@ -215,27 +250,40 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 							}
 							
 							// was a key
-							output.write(chars, start, end - start);
+							if(start <= mark) {
+								writtenMark = stream.size() + mark - start; 
+							}
+							stream.write(chars, start, end - start);
 
 							// removed whitespace, increment limit correspondingly
 							limit += nextOffset - end;
+							
+							if(limit >= length) {
+								limit = length;
+							}
 						} else {
 							// was a value
 							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							
 							
 							if(offset + aligned - start > limit) {
 								// too much 
 								break loop;
 							}
+							if(start <= mark) {
+								writtenMark = stream.size() + mark - start; 
+							}
 							
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, end - aligned - 1, digit);
-							output.write('"');
+							stream.write(chars, start, aligned - start);
+							stream.write(truncateStringValueAsBytes);
+							ByteArrayRangesFilter.writeInt(stream, end - aligned - 1, digit);
+							stream.write('"');
 
 							// removed whitespace + part of string, increment limit correspondingly
 							limit += nextOffset - aligned - truncateStringValueAsBytes.length;
+							
+							if(limit >= length) {
+								limit = length;
+							}
 						}
 
 						start = nextOffset;
@@ -247,11 +295,18 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 				default : {
 					if(chars[offset] <= 0x20) {
 						// skip this char and any other whitespace
-						output.write(chars, start, offset - start);
+						if(start <= mark) {
+							writtenMark = stream.size() + mark - start; 
+						}
+						stream.write(chars, start, offset - start);
 						do {
 							offset++;
 							limit++;
 						} while(chars[offset] <= 0x20);
+
+						if(limit >= length) {
+							limit = length;
+						}
 
 						start = offset;
 
@@ -262,16 +317,56 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 				offset++;
 			}
 
-			mark = MaxSizeJsonFilter.alignMark(mark, chars);
+			if(level == 0) {
+				stream.write(chars, start, offset - start);
+				stream.writeTo(output);
+			} else {
+				int deltaMark = deltaMark(mark, chars[mark]);
 
-			output.write(chars, start, mark);
+				if(mark + deltaMark > start) {
+					stream.write(chars, start, mark - start + deltaMark);
+				} else {
+					stream.setCount(writtenMark + deltaMark(writtenMark, stream.getByte(writtenMark)));
+				}
+				
+				MaxSizeJsonFilter.closeStructure(level, squareBrackets, stream);
 
-			MaxSizeJsonFilter.closeStructure(level, squareBrackets, output);
+				stream.writeTo(output);
+			}
 
 			return true;
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 
+	}
+	
+	public static int deltaMark(int mark, char c) {
+		switch(c) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				return 1;
+			default : {
+				return 0;
+			}
+		}
+	}
+	
+	public static int deltaMark(int mark, byte c) {
+		switch(c) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				return 1;
+			default : {
+				return 0;
+			}
+		}
 	}
 }
