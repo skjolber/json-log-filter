@@ -10,10 +10,14 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.core.pp.Indent;
+import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 
 public class MaxSizePrettyPrintJsonFilterTest extends DefaultJsonFilterTest {
+
+	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxSizePrettyPrintJsonFilterTest() throws Exception {
 		super(false);
@@ -53,7 +57,7 @@ public class MaxSizePrettyPrintJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new MaxSizePrettyPrintJsonFilter(-1)).hasPassthrough();
+		assertThat(new MaxSizePrettyPrintJsonFilter(-1), pp).hasPassthrough();
 	}
 
 	@Test
@@ -70,7 +74,7 @@ public class MaxSizePrettyPrintJsonFilterTest extends DefaultJsonFilterTest {
 	
 	@Test
 	public void maxSize() throws Exception {
-		assertThat(new MaxSizePrettyPrintJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
+		assertThat(new MaxSizePrettyPrintJsonFilter(DEFAULT_MAX_SIZE), pp).hasMaxSize(DEFAULT_MAX_SIZE);
 	}
 	
 }

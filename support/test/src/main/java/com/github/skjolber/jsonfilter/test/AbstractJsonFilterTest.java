@@ -40,6 +40,12 @@ public abstract class AbstractJsonFilterTest {
 		return assertThat(filter, (s) -> true);
 	}
 	
+	protected JsonFilterResultSubject assertThat(JsonFilter filter, JsonFilter transformer) throws Exception {
+		JsonFilterResult process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
+		
+		return JsonFilterResultSubject.assertThat(process);
+	}
+	
 	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
 		JsonFilterResult process = runner.process(filter, predicate);
 			

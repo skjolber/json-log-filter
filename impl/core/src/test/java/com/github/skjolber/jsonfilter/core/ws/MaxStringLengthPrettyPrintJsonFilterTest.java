@@ -8,9 +8,13 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.core.pp.Indent;
+import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MaxStringLengthPrettyPrintJsonFilterTest  extends DefaultJsonFilterTest {
+
+	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxStringLengthPrettyPrintJsonFilterTest() throws Exception {
 		super(false);
@@ -18,7 +22,7 @@ public class MaxStringLengthPrettyPrintJsonFilterTest  extends DefaultJsonFilter
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new MaxStringLengthPrettyPrintJsonFilter(-1)).hasPassthrough();
+		assertThat(new MaxStringLengthPrettyPrintJsonFilter(-1), pp).hasPassthrough();
 	}
 
 	@Test
@@ -38,7 +42,7 @@ public class MaxStringLengthPrettyPrintJsonFilterTest  extends DefaultJsonFilter
 	
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new MaxStringLengthPrettyPrintJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThat(new MaxStringLengthPrettyPrintJsonFilter(DEFAULT_MAX_STRING_LENGTH), pp).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 }

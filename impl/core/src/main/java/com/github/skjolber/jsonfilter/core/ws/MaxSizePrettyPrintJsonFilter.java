@@ -29,8 +29,8 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 		this(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public MaxSizePrettyPrintJsonFilter(int maxStringLength) {
-		this(maxStringLength, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+	public MaxSizePrettyPrintJsonFilter(int maxSize) {
+		this(maxSize, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	protected MaxSizePrettyPrintJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
@@ -79,59 +79,11 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 					mark = offset;
 					break;				
 				case '"': {
-					int nextOffset = offset;
 					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
-						// key or value, might be whitespace
-						int end = nextOffset;
-
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-
-						if(chars[nextOffset] == ':') {
-							// was a key
-							if(start <= mark) {
-								writtenMark = buffer.length() + mark - start; 
-							}
-							buffer.append(chars, start, end - start);
-
-							// removed whitespace, increment limit correspondingly
-							limit += nextOffset - end;
-							
-							if(limit >= length) {
-								limit = length;
-							}
-						} else {
-							// was a value
-							if(start <= mark) {
-								writtenMark = buffer.length() + mark - start; 
-							}
-							
-							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							buffer.append(chars, start, aligned - start);
-							buffer.append(truncateStringValue);
-							buffer.append(end - aligned - 1);
-							buffer.append('"');
-
-							limit += nextOffset - aligned - truncateStringValue.length;
-							
-							if(limit >= length) {
-								limit = length;
-							}
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
-
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					offset++;
+					
 					continue;
 				}
 				default : {
@@ -183,7 +135,7 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 			return super.process(chars, offset, length, output);
 		}
 
-		FlexibleOutputStream stream = new FlexibleOutputStream();
+		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
 		
 		length += offset;
 
@@ -196,12 +148,9 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 		int mark = 0;
 		int writtenMark = 0;
 
-		byte[] digit = new byte[11];
-
 		try {
 			int start = offset;
 
-			loop:
 			while(offset < limit) {
 				switch(chars[offset]) {
 				case '{' :
@@ -225,70 +174,10 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 					mark = offset;
 					break;
 				case '"': {
-					int nextOffset = offset;
 					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
-						// key or value, might be whitespace
-						int end = nextOffset;
-
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-
-						if(chars[nextOffset] == ':') {
-							
-							if(offset + end - start > limit) {
-								// too much 
-								break loop;
-							}
-							
-							// was a key
-							if(start <= mark) {
-								writtenMark = stream.size() + mark - start; 
-							}
-							stream.write(chars, start, end - start);
-
-							// removed whitespace, increment limit correspondingly
-							limit += nextOffset - end;
-							
-							if(limit >= length) {
-								limit = length;
-							}
-						} else {
-							// was a value
-							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							
-							if(offset + aligned - start > limit) {
-								// too much 
-								break loop;
-							}
-							if(start <= mark) {
-								writtenMark = stream.size() + mark - start; 
-							}
-							
-							stream.write(chars, start, aligned - start);
-							stream.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(stream, end - aligned - 1, digit);
-							stream.write('"');
-
-							// removed whitespace + part of string, increment limit correspondingly
-							limit += nextOffset - aligned - truncateStringValueAsBytes.length;
-							
-							if(limit >= length) {
-								limit = length;
-							}
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					offset++;
 
 					continue;
 				}
@@ -336,7 +225,6 @@ public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
 
 			return true;
 		} catch(Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 

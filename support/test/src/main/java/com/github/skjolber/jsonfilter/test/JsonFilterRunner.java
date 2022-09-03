@@ -208,8 +208,9 @@ public class JsonFilterRunner {
 	}
 
 	protected void compareChars(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer) {
+		String original = cache.getFile(sourceFile);
 		
-		String from = transformer.apply(cache.getFile(sourceFile));
+		String from = transformer.apply(original);
 		if(!predicate.test(from)) {
 			return;
 		}
@@ -234,19 +235,19 @@ public class JsonFilterRunner {
 		String result = maxSizeOutput.toString();
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		if(literal) {
 			if(!new String(expected).equals(result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + expected.length());
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, input, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " size " + expected.length());
 			}
 		}
@@ -278,7 +279,9 @@ public class JsonFilterRunner {
 	}
 
 	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer) {
-		String from = transformer.apply(cache.getFile(sourceFile));
+		String original = cache.getFile(sourceFile);
+		
+		String from = transformer.apply(original);
 		
 		if(!predicate.test(from)) {
 			return;
@@ -296,19 +299,19 @@ public class JsonFilterRunner {
 		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		if(literal) {
 			if(!new String(expected).equals(result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -324,7 +327,9 @@ public class JsonFilterRunner {
 	}
 	
 	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer) {
-		String from = transformer.apply(cache.getFile(sourceFile));
+		String original = cache.getFile(sourceFile);
+		
+		String from = transformer.apply(original);
 		if(!predicate.test(from)) {
 			return;
 		}
@@ -346,7 +351,7 @@ public class JsonFilterRunner {
 		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
@@ -355,13 +360,13 @@ public class JsonFilterRunner {
 
 		if(literal) {
 			if(!new String(filteredExpected).equals(filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(filteredExpected), filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -369,8 +374,9 @@ public class JsonFilterRunner {
 
 
 	protected void compareBytes(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer) {
+		String original = cache.getFile(sourceFile);
 		
-		String chars = transformer.apply(cache.getFile(sourceFile));
+		String chars = transformer.apply(original);
 		if(!predicate.test(chars)) {
 			return;
 		}
@@ -402,7 +408,7 @@ public class JsonFilterRunner {
 		String expectedChars = new String(expected);
 		
 		if(isWellformed(result, jsonFactory) != isWellformed(expectedChars, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, chars, result, expectedChars);
+			printDiff(filter, properties, filteredFile, sourceFile, chars, original, result, expectedChars);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
@@ -411,13 +417,13 @@ public class JsonFilterRunner {
 
 		if(literal) {
 			if(!new String(filteredExpected).equals(filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, filteredResult, expectedChars);
+				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, original, filteredResult, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(filteredExpected), filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, filteredResult, expectedChars);
+				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, original, filteredResult, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -498,7 +504,7 @@ public class JsonFilterRunner {
 		return true;
 	}
 
-	protected void printDiff(JsonFilter filter, Properties properties, File expectedFile, File original, String from, String to, String expected) {
+	protected void printDiff(JsonFilter filter, Properties properties, File expectedFile, File original, String from, String fromTransformed, String to, String expected) {
 		System.out.println("Processing using: " + filter);
 		System.out.println("Properties: " + properties);
 		if(expectedFile.equals(original)) {
@@ -508,6 +514,9 @@ public class JsonFilterRunner {
 			System.out.println("File expected output: " + expectedFile + " size " + expectedFile.length());
 		}
 		System.out.println("From: \n" + from);
+		if(!from.equals(fromTransformed)) {
+			System.out.println("Transformed: \n" + fromTransformed);
+		}
 		System.out.println("Expected:\n" + expected);
 		System.out.println("Actual:\n" + to);
 		System.out.println("(size " + expected.length() + " vs " + to.length() + ")");
