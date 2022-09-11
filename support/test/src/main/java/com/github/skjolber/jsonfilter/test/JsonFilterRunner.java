@@ -294,7 +294,7 @@ public class JsonFilterRunner {
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 		
-		if(!filter.process(from, output, new DefaultJsonFilterMetrics())) {
+		if(!filter.process(from, new StringBuilder(from.length() * 2), new DefaultJsonFilterMetrics())) {
 			throw new IllegalArgumentException("Unable to process using metrics");
 		}
 
