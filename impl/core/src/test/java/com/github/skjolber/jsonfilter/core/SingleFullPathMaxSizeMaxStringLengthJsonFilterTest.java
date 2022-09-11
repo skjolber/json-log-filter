@@ -120,17 +120,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
-	
-	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertNull(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3));
-	}
-	
+
 	@Test
 	public void exception_incorrect_level() throws Exception {
 		JsonFilter filter = new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, 127, PASSTHROUGH_XPATH, FilterType.PRUNE);

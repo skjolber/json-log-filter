@@ -30,16 +30,6 @@ public class SingleAnyPathJsonFilterTest extends DefaultJsonFilterTest {
 	}	
 
 	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		SingleAnyPathJsonFilter filter = new SingleAnyPathJsonFilter(-1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
-	}
-	
-	@Test
 	public void anonymizeAny() throws Exception {
 		assertThat(new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH);
 	}

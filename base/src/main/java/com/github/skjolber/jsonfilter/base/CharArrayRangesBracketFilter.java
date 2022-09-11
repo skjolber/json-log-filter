@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
 	private boolean[] squareBrackets = new boolean[32];
@@ -64,6 +66,13 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			default : {
 			}
 		}
+	}
+	
+	@Override
+	public void filter(char[] chars, int offset, int length, StringBuilder buffer, JsonFilterMetrics metrics) {
+		super.filter(chars, offset, length, buffer, metrics);
+		
+		closeStructure(buffer);
 	}
 	
 	@Override
@@ -349,11 +358,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					level--;
 
 					mark = offset;
-
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					}
 					
 					if(level == levelLimit) {
 						offset++;
@@ -440,7 +444,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = nextOffset;
+									mark = end;
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -482,6 +486,21 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				}
 			}
 			offset++;
+		}
+		
+		if(offset == mark) {
+			switch(chars[mark]) {
+				case '{' :
+				case '[' :
+					level++;
+					break;
+				case '}' :
+				case ']' :
+					level--;
+					break;
+				default : {
+				}
+			}
 		}
 
 		setLevel(level);

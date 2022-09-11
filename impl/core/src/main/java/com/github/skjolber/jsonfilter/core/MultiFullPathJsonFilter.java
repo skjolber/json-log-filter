@@ -18,7 +18,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	}
 
 	@Override
-	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
+	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
 		final int[] elementFilterStart = this.elementFilterStart;
@@ -128,10 +128,6 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				offset++;
 			}
 
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
-
 			if(level != 0) {
 				return null;
 			}
@@ -144,7 +140,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	
 
 	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
 		final int[] elementFilterStart = this.elementFilterStart;
@@ -264,10 +260,6 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					default : 
 				}
 				offset++;
-			}
-
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
 			}
 
 			if(level != 0) {

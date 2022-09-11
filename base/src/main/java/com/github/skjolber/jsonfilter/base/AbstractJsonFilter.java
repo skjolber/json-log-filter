@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public abstract class AbstractJsonFilter implements JsonFilter {
 
@@ -88,6 +89,50 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	public String process(String jsonString) {
 		return process(jsonString.toCharArray());
+	}
+	
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	public boolean process(String jsonString, StringBuilder output, JsonFilterMetrics metrics) {
+		char[] chars = jsonString.toCharArray();
+		
+		return process(chars, 0, chars.length, output, metrics);
+	}
+	
+	public String process(char[] chars, JsonFilterMetrics metrics) {
+		StringBuilder output = new StringBuilder(chars.length);
+		
+		if(process(chars, 0, chars.length, output, metrics)) {
+			return output.toString();
+		}
+		return null;
+	}
+
+	@Override
+	public byte[] process(byte[] chars, JsonFilterMetrics metrics) {
+		return process(chars, 0, chars.length, metrics);
+	}
+	
+	@Override
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
+		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
+		
+		if(process(chars, offset, length, output, metrics)) {
+			return output.toByteArray();
+		}
+		return null;
+	}
+	
+	public String process(String jsonString, JsonFilterMetrics metrics) {
+		return process(jsonString.toCharArray(), metrics);
 	}
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends JacksonSingleFullPathMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
@@ -259,5 +260,59 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 
 		return true;
 	}
+	
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
+		int level = 1;
+		
+        String fieldName = null;
+		while(level > 0) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				return false;
+			}
+			
+			if(nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
+				level++;
+			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
+				level--;
+			} else if(nextToken == JsonToken.FIELD_NAME) {
+				fieldName = parser.currentName();
+				
+				continue;
+			}
+
+			long outputSize;
+			if(nextToken.isScalarValue()) {
+				outputSize = anonymizeJsonValue.length;
+			} else {
+				outputSize = 1;
+			}
+			if(fieldName != null) {
+				outputSize += fieldName.length() + 3;
+			}
+			
+			long size = outputSizeSupplier.getAsLong();
+			if(outputSize + size + level >= maxSize) {
+				metrics.onMaxSize(-1);
+				return false;
+			}
+
+			if(fieldName != null) {
+				generator.writeFieldName(fieldName);
+				fieldName = null;
+			}
+
+			if(nextToken.isScalarValue()) {
+				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+				
+				metrics.onAnonymize(1);
+			} else {
+				generator.copyCurrentEvent(parser);
+			}
+		}
+
+		return true;
+	}
+
 
 }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
@@ -40,6 +41,12 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	public void testDeepStructure() throws IOException {
 		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
 	}
+	
+	@Test
+	public void testDeepStructure2() throws IOException {
+		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {DEEP_PATH}, null));
+	}
+	
 	
 	@Test
 	public void passthrough_success() throws Exception {
@@ -145,23 +152,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, -1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
-	}	
-	
-	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, -1, null, null);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
-	}
-	
-	@Test
-	public void exception_incorrect_level() throws Exception {
-		MultiPathMaxStringLengthJsonFilter filter = new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, FULL.length - 4, 127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
-		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
-		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
 	}
 	
 }

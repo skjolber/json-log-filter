@@ -38,16 +38,6 @@ public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		MultiFullPathJsonFilter filter = new MultiFullPathJsonFilter(-1, null, null);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
-	}
-
-	@Test
 	public void exception_incorrect_level() throws Exception {
 		MultiFullPathJsonFilter filter = new MultiFullPathJsonFilter(127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
