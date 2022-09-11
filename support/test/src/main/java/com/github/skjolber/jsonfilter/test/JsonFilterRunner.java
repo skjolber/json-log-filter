@@ -293,6 +293,10 @@ public class JsonFilterRunner {
 			System.out.println(from);
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
+		
+		if(!filter.process(from, output, new DefaultJsonFilterMetrics())) {
+			throw new IllegalArgumentException("Unable to process using metrics");
+		}
 
 		String result = output.toString();
 
@@ -341,6 +345,11 @@ public class JsonFilterRunner {
 
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
+		
+		if(filter.process(from.getBytes(StandardCharsets.UTF_8), new DefaultJsonFilterMetrics()) == null) {
+			throw new IllegalArgumentException("Unable to process using metrics");
+		}
+
 
 		// this will break "truncated by XX"
 		// because it is bytes vs chars

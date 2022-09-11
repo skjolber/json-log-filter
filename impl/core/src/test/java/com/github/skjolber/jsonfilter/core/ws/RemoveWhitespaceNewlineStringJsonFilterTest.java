@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -40,6 +41,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	}
 
 	@Test
+	@Disabled
 	public void testDeepStructure5() throws IOException {
 		FileInputStream fileInputStream = new FileInputStream(new File("/home/skjolber/git/json-log-filter-github/impl/core/src/test/resources/json/wiki/person.json"));
 		String string = IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);

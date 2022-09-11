@@ -275,13 +275,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			return null;
 		} else if(offset < limit){
 			// max size reached before end of document
-			
-			if(mark == offset) {
-				System.out.println(mark + " " + offset);
-			}
-			
-			System.out.println(chars[mark]);
-			
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 
@@ -520,22 +513,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			return null;
 		} else if(offset < limit){
 			// max size reached before end of document
-			
-			System.out.println("Mark vs offset " + mark + " vs " + offset);
-			System.out.println("Bracket level " + bracketLevel);
-
-			System.out.println("Marked '" + new String(chars, 0, chars.length).charAt(filter.getMark()) + "'");
 
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 
 			filter.alignMark(chars);
-
-			System.out.println("Marked '" + new String(chars, 0, chars.length).charAt(filter.getMark()) + "'");
-
-			System.out.println("***************");
-			System.out.println(new String(chars, 0, mark));
-			System.out.println("***************");
 			
 			// filter rest of document
 			filter.addDelete(filter.getMark(), limit);

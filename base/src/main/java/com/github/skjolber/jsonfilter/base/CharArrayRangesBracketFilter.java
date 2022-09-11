@@ -358,11 +358,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					level--;
 
 					mark = offset;
-
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					}
 					
 					if(level == levelLimit) {
 						offset++;
@@ -449,7 +444,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = nextOffset;
+									mark = end;
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -491,6 +486,21 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				}
 			}
 			offset++;
+		}
+		
+		if(offset == mark) {
+			switch(chars[mark]) {
+				case '{' :
+				case '[' :
+					level++;
+					break;
+				case '}' :
+				case ']' :
+					level--;
+					break;
+				default : {
+				}
+			}
 		}
 
 		setLevel(level);

@@ -455,7 +455,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = nextOffset;
+									mark = end;
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -498,9 +498,24 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 			offset++;
 		}
 
+		if(offset == mark) {
+			switch(chars[mark]) {
+				case '{' :
+				case '[' :
+					level++;
+					break;
+				case '}' :
+				case ']' :
+					level--;
+					break;
+				default : {
+				}
+			}
+		}
+
 		setLevel(level);
 		setMark(mark);
-
+		
 		return offset;
 	}
 

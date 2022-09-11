@@ -6,11 +6,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class PrettyPrintingJsonFilterTest {
 
 	@Test
+	@Disabled
+	@Ignore
 	public void testDeepStructure5() throws IOException {
 		FileInputStream fileInputStream = new FileInputStream(new File("/home/skjolber/git/json-log-filter-github/impl/core/src/test/resources/json/wiki/person.json"));
 		String string = IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
