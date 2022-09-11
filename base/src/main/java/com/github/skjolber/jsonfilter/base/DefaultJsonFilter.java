@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.JsonFilter;
 
 /**
@@ -48,6 +49,42 @@ public class DefaultJsonFilter implements JsonFilter {
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		output.write(chars, offset, length);
 		return true;
+	}
+
+	@Override
+	public String process(char[] chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public String process(String chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public boolean process(String chars, StringBuilder output, JsonFilterMetrics filterMetrics) {
+		return process(chars, output);
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 
 }

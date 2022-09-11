@@ -18,22 +18,20 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import java.io.ByteArrayOutputStream;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 
-public class MaxSizePrettyPrintJsonFilter extends PrettyPrintJsonFilter {
+public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilter {
 
-	public MaxSizePrettyPrintJsonFilter(int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public MaxSizeRemoveWhitespaceJsonFilter(int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public MaxSizePrettyPrintJsonFilter(int maxSize) {
+	public MaxSizeRemoveWhitespaceJsonFilter(int maxSize) {
 		this(maxSize, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
-	protected MaxSizePrettyPrintJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
+	protected MaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
 		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 

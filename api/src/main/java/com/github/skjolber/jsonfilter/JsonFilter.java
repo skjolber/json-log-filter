@@ -42,6 +42,17 @@ public interface JsonFilter {
 	String process(char[] chars);
 
 	/**
+	 * Filter JSON characters to an output StringBuilder.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param filterMetrics filter metrics
+	 * @return a String instance if filtering was successful, null otherwise.
+	 */
+
+	String process(char[] chars, JsonFilterMetrics filterMetrics);
+
+	
+	/**
 	 * Filter JSON characters.
 	 * 
 	 * @param chars characters containing JSON to be filtered
@@ -49,6 +60,16 @@ public interface JsonFilter {
 	 */
 
 	String process(String chars);
+	
+	/**
+	 * Filter JSON characters.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param filterMetrics filter metrics
+	 * @return a StringBuilder instance filtering was successful, null otherwise.
+	 */
+
+	String process(String chars, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -60,6 +81,18 @@ public interface JsonFilter {
 
 	boolean process(String chars, StringBuilder output);
 
+
+	/**
+	 * Filter JSON characters to an output StringBuilder.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param output the buffer to which filtered JSON is appended
+	 * @param filterMetrics filter metrics
+	 * @return true if filtering was successful. If false, the output buffer is unaffected.
+	 */
+
+	boolean process(String chars, StringBuilder output, JsonFilterMetrics filterMetrics);
+	
 	/**
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
@@ -73,6 +106,19 @@ public interface JsonFilter {
 	boolean process(char[] chars, int offset, int length, StringBuilder output);
 
 	/**
+	 * Filter JSON characters to an output StringBuilder.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param offset the offset within the chars where the JSON starts
+	 * @param length the length of the JSON within the chars
+	 * @param output the buffer to which filtered JSON is appended
+	 * @param filterMetrics filter metrics
+	 * @return true if filtering was successful. If false, the output buffer is unaffected.
+	 */
+
+	boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics);
+
+	/**
 	 * Filter JSON characters.
 	 * 
 	 * @param chars characters containing JSON to be filtered
@@ -80,6 +126,17 @@ public interface JsonFilter {
 	 */
 
 	byte[] process(byte[] chars);
+
+
+	/**
+	 * Filter JSON characters.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param filterMetrics filter metrics
+	 * @return a byte array instance if filtering was successful, null otherwise.
+	 */
+
+	byte[] process(byte[] chars, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -91,6 +148,18 @@ public interface JsonFilter {
 	 */
 
 	byte[] process(byte[] chars, int offset, int length);
+	
+	/**
+	 * Filter JSON characters to an output StringBuilder.
+	 * 
+	 * @param chars characters containing JSON to be filtered
+	 * @param offset the offset within the chars where the JSON starts
+	 * @param length the length of the JSON within the chars
+	 * @param filterMetrics filter metrics
+	 * @return a byte array instance if filtering was successful, null otherwise.
+	 */
+
+	byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
@@ -102,6 +171,18 @@ public interface JsonFilter {
 	 */
 	
 	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
+
+	/**
+	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
+	 * 
+	 * @param chars bytes containing JSON to be filtered
+	 * @param offset the offset within the chars where the JSON starts
+	 * @param length the length of the JSON within the chars
+	 * @param filterMetrics filter metrics
+	 * @return true if filtering was successful, false otherwise.
+	 */
+	
+	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Check if validation

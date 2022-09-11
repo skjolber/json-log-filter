@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 public class FlexibleOutputStream extends ByteArrayOutputStream {
 
@@ -28,7 +30,9 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * Creates a new {@code ByteArrayOutputStream}, with a buffer capacity of
      * the specified size, in bytes.
      *
-     * @param  size   the initial size.
+     * @param  initialSize   the
+     *  initial size.
+     * @param  maxSize   the max size.
      * @throws IllegalArgumentException if size is negative.
      */
     public FlexibleOutputStream(int initialSize, int maxSize) {
@@ -87,7 +91,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * {@code b.length - off}
      */
     public synchronized void write(byte b[], int off, int len) {
-        Objects.checkFromIndexSize(off, len, b.length);
+    	// do not sanity check
         ensureCapacity(count + len);
         System.arraycopy(b, off, buf, count, len);
         count += len;
@@ -97,7 +101,6 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * Writes the complete contents of the specified byte array
      * to this {@code ByteArrayOutputStream}.
      *
-     * @apiNote
      * This method is equivalent to {@link #write(byte[],int,int)
      * write(b, 0, b.length)}.
      *

@@ -18,7 +18,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	}
 
 	@Override
-	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
+	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
 		final int[] elementFilterStart = this.elementFilterStart;
@@ -144,7 +144,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	
 
 	@Override
-	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
 		final int[] elementFilterStart = this.elementFilterStart;

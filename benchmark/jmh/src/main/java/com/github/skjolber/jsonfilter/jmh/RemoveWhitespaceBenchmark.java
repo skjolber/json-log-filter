@@ -25,7 +25,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.core.ws.PrettyPrintJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 @State(Scope.Thread)
@@ -42,7 +42,7 @@ public class RemoveWhitespaceBenchmark {
 	private char[] enabled;
 	private char[] disabled;
 	
-	private JsonFilter test0 = new PrettyPrintJsonFilter();
+	private JsonFilter test0 = new RemoveWhitespaceJsonFilter();
 
 	@Setup
 	public void init() throws Exception {

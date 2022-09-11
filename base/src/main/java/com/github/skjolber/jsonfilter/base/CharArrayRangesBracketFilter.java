@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
 	private boolean[] squareBrackets = new boolean[32];
@@ -64,6 +66,13 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			default : {
 			}
 		}
+	}
+	
+	@Override
+	public void filter(char[] chars, int offset, int length, StringBuilder buffer, JsonFilterMetrics metrics) {
+		super.filter(chars, offset, length, buffer, metrics);
+		
+		closeStructure(buffer);
 	}
 	
 	@Override

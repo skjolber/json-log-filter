@@ -17,9 +17,9 @@ import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
-public class PrettyPrintNewlineStringJsonFilterTest extends DefaultJsonFilterTest {
+public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilterTest {
 
-	public PrettyPrintNewlineStringJsonFilterTest() throws Exception {
+	public RemoveWhitespaceNewlineStringJsonFilterTest() throws Exception {
 		super();
 	}
 	
@@ -27,7 +27,7 @@ public class PrettyPrintNewlineStringJsonFilterTest extends DefaultJsonFilterTes
 	public void testDeepStructure4() throws IOException {
 		String string = readResource("/json/wiki/person.prettyprinted.json");
 		
-		JsonFilter filter = new PrettyPrintJsonFilter();
+		JsonFilter filter = new RemoveWhitespaceJsonFilter();
 
 		System.out.println(filter.getClass().getSimpleName() + " " + filter.process(string));
 		
@@ -52,7 +52,7 @@ public class PrettyPrintNewlineStringJsonFilterTest extends DefaultJsonFilterTes
 		System.out.println(whitespaceString);
 		System.out.println("**************************************");
 		
-		JsonFilter filter = new MaxStringLengthPrettyPrintJsonFilter(DEFAULT_MAX_STRING_LENGTH);
+		JsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH);
 		
 		System.out.println(filter.getClass().getSimpleName() + " " + filter.process(whitespaceString));
 	}

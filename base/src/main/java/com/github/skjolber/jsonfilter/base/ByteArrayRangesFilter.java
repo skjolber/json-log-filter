@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.base;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
@@ -104,7 +106,40 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 	}
-	
+
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+		length += offset;
+		
+		for(int i = 0; i < filterIndex; i += 3) {
+			
+			if(filter[i+2] == FILTER_ANON) {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+				
+				metrics.onAnonymize(1);
+			} else if(filter[i+2] == FILTER_PRUNE) {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(pruneMessage, 0, pruneMessage.length);
+				
+				metrics.onPrune(1);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				buffer.write(chars, offset, filter[i] - offset);
+				metrics.onMaxSize(length - filter[i]);
+			} else {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(truncateMessage, 0, truncateMessage.length);
+				writeInt(buffer, -filter[i+2]);
+				
+				metrics.onMaxStringLength(-filter[i+2]);
+			}
+			offset = filter[i + 1];
+		}
+		
+		if(offset < length) {
+			buffer.write(chars, offset, length - offset);
+		}
+	}
+
 	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		length += offset;
 		
@@ -117,7 +152,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(pruneMessage, 0, pruneMessage.length);
 			} else if(filter[i+2] == FILTER_DELETE) {
-				// do nothing
 				buffer.write(chars, offset, filter[i] - offset);
 			} else {
 				buffer.write(chars, offset, filter[i] - offset);

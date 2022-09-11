@@ -16,6 +16,7 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 
@@ -197,7 +198,6 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
 	}
-
 
 
 }

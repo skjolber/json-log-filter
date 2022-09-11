@@ -19,6 +19,7 @@ package com.github.skjolber.jsonfilter.core.pp;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public class PrettyPrintingJsonFilter implements JsonFilter {
 	
@@ -228,5 +229,59 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 			return output.toByteArray();
 		}
 		return null;
+	}
+	
+
+
+	
+	
+	
+	
+	
+	
+	
+	@Override
+	public String process(char[] chars, JsonFilterMetrics metrics) {
+		StringBuilder buffer = new StringBuilder(chars.length * 2);
+		if(process(chars, 0, chars.length, buffer)) {
+			return buffer.toString();
+		}
+		return null;
+	}
+
+	@Override
+	public String process(String chars, JsonFilterMetrics metrics) {
+		return process(chars.toCharArray());
+	}
+
+	@Override
+	public boolean process(String chars, StringBuilder buffer, JsonFilterMetrics metrics) {
+		return process(chars.toCharArray(), 0, chars.length(), buffer);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, JsonFilterMetrics metrics) {
+		return process(chars, 0, chars.length);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
+		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length * 2);
+		if(process(chars, 0, chars.length, output)) {
+			return output.toByteArray();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 }

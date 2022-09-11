@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.JsonFilterRunner;
 
@@ -37,6 +38,20 @@ public class AbstractSinglePathJsonFilterTest {
 				
 				return true;
 			}
+			return false;
+		}
+
+		@Override
+		public boolean process(char[] chars, int offset, int length, StringBuilder output,
+				JsonFilterMetrics filterMetrics) {
+
+			return false;
+		}
+
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+				JsonFilterMetrics filterMetrics) {
+
 			return false;
 		}
 		

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
@@ -40,6 +41,12 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	public void testDeepStructure() throws IOException {
 		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
 	}
+	
+	@Test
+	public void testDeepStructure2() throws IOException {
+		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {DEEP_PATH}, null));
+	}
+	
 	
 	@Test
 	public void passthrough_success() throws Exception {

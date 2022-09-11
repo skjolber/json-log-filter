@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class MaxSizeJsonFilter extends AbstractJsonFilter {
@@ -33,6 +34,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
+		return process(chars, offset, length, buffer, null);
+	}
+	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -97,13 +102,21 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			closeStructure(level, squareBrackets, buffer);
 		
+			if(metrics != null && mark < length) {
+				metrics.onMaxSize(length - mark);
+			}
+
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
 	}
-	
+
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
+	}
+
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -169,6 +182,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			output.write(chars, 0, mark);
 			
 			closeStructure(level, squareBrackets, output);
+			
+			if(metrics != null && mark < length) {
+				metrics.onMaxSize(length - mark);
+			}
 	
 			return true;
 		} catch(Exception e) {

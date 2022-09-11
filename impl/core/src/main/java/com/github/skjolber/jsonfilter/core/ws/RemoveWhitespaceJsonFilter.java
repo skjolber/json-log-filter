@@ -18,19 +18,20 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import java.io.ByteArrayOutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
-public class PrettyPrintJsonFilter extends AbstractJsonFilter {
+public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 
-	public PrettyPrintJsonFilter(String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public RemoveWhitespaceJsonFilter(String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(-1, -1, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public PrettyPrintJsonFilter() {
+	public RemoveWhitespaceJsonFilter() {
 		this(FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
-	protected PrettyPrintJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
+	protected RemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
 		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 	
@@ -98,5 +99,15 @@ public class PrettyPrintJsonFilter extends AbstractJsonFilter {
 		} catch(Exception e) {
 			return false;
 		}
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 }

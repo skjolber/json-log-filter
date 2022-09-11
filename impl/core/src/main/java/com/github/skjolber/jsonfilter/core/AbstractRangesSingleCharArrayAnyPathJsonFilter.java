@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import java.io.ByteArrayOutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
@@ -34,6 +35,31 @@ public abstract class AbstractRangesSingleCharArrayAnyPathJsonFilter extends Abs
 		}
 		
 		copy.filter(chars, offset, length, buffer);
+		
+		return true;
+	}
+	
+	
+	public boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+		ByteArrayRangesFilter copy = ranges(chars, offset, length);
+		if(copy == null) {
+			return false;
+		}
+		
+		copy.filter(chars, offset, length, buffer, metrics);
+		
+		return true;
+	}
+	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		CharArrayRangesFilter copy = ranges(chars, offset, length);
+		if(copy == null) {
+			return false;
+		}
+		
+		buffer.ensureCapacity(buffer.length() + copy.getMaxOutputLength()); 
+
+		copy.filter(chars, offset, length, buffer, metrics);
 		
 		return true;
 	}
