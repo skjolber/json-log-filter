@@ -188,22 +188,6 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		output.ensureCapacity(output.length() + length);
 

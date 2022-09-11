@@ -87,8 +87,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
         }
         return charPos;
     }
-
-	
 	
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;

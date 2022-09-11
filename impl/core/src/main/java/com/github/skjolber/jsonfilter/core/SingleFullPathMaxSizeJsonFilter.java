@@ -200,8 +200,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-								
 							} else {
 								if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 									offset = maxSizeLimit;

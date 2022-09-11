@@ -47,7 +47,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 		validateDeepStructure( (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {DEEP_PATH}, null));
 	}
 	
-	
 	@Test
 	public void passthrough_success() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new MultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, null, null);

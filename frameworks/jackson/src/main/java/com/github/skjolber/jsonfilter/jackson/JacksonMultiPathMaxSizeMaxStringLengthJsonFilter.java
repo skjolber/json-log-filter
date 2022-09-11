@@ -74,8 +74,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		} catch(final Exception e) {
 			return false;
 		}
-	}
-	
+	}	
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
 		// estimate output size based on input size
@@ -281,7 +280,6 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 			return false;
 		}
 	}
-	
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
