@@ -49,12 +49,12 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 
 	@Override
 	public void onInput(int inputSize) {
-		this.inputSize = inputSize;
+		this.inputSize += inputSize;
 	}
 	
 	@Override
 	public void onOutput(int outputSize) {
-		this.outputSize = outputSize;
+		this.outputSize += outputSize;
 	}
 	
 	public int getInputSize() {
