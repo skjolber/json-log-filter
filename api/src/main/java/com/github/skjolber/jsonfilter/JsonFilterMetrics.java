@@ -11,7 +11,7 @@ public interface JsonFilterMetrics {
 	/**
 	 * Record string value truncated
 	 * 
-	 * @param count number of characters or bytes truncated, or -1 if unknown
+	 * @param count number of values, or -1 if unknown count
 	 */
 	
 	void onMaxStringLength(int count);
@@ -19,7 +19,7 @@ public interface JsonFilterMetrics {
 	/**
 	 * Record document truncated
 	 * 
-	 * @param count number of characters or bytes truncated, or -1 if unknown
+	 * @param count number of values truncated, or -1 if unknown count
 	 */
 	
 	void onMaxSize(int count);
@@ -39,4 +39,20 @@ public interface JsonFilterMetrics {
 	 */
 	
 	void onAnonymize(int count);
+
+	/**
+	 * Record filter operation
+	 * 
+	 * @param inputSize total input size in characters or bytes
+	 */
+	
+	void onInput(int inputSize);
+
+	/**
+	 * Record filter operation
+	 * 
+	 * @param outputSize total output size in characters or bytes
+	 */
+	
+	void onOutput(int outputSize);
 }

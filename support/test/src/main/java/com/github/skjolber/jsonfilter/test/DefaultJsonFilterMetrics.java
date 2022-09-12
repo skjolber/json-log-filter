@@ -8,6 +8,8 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 	private int maxSize;
 	private int prune;
 	private int anonymize;
+	private int inputSize;
+	private int outputSize;
 	
 	@Override
 	public void onMaxStringLength(int count) {
@@ -45,4 +47,13 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 		return prune;
 	}
 
+	@Override
+	public void onInput(int inputSize) {
+		this.inputSize = inputSize;
+	}
+	
+	@Override
+	public void onOutput(int outputSize) {
+		this.outputSize = outputSize;
+	}
 }

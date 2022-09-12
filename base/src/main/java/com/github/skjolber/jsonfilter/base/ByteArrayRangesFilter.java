@@ -106,8 +106,13 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+		
+		metrics.onInput(length);
+
 		length += offset;
 		
+		int bufferSize = buffer.size();
+
 		for(int i = 0; i < filterIndex; i += 3) {
 			
 			if(filter[i+2] == FILTER_ANON) {
@@ -128,7 +133,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				buffer.write(truncateMessage, 0, truncateMessage.length);
 				writeInt(buffer, -filter[i+2]);
 				
-				metrics.onMaxStringLength(-filter[i+2]);
+				metrics.onMaxStringLength(1);
 			}
 			offset = filter[i + 1];
 		}
@@ -136,6 +141,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		if(offset < length) {
 			buffer.write(chars, offset, length - offset);
 		}
+		
+		metrics.onOutput(buffer.size() - bufferSize);
 	}
 
 	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {

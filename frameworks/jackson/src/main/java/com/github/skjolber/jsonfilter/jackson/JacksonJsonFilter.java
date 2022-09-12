@@ -15,7 +15,7 @@ public interface JacksonJsonFilter extends JsonFilter {
 	}
 	
 	default boolean isRemovingWhitespace() {
-		return false;
+		return true;
 	}
 	
 	public default boolean isRemovingLinebreaksInStrings() {

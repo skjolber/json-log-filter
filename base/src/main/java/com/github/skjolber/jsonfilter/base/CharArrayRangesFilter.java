@@ -24,7 +24,12 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		
+		metrics.onInput(length);
+		
 		length += offset;
+		
+		int bufferSize = buffer.length();
 		
 		for(int i = 0; i < filterIndex; i += 3) {
 			if(filter[i+2] == FILTER_ANON) {
@@ -45,7 +50,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 				buffer.append(truncateMessage);
 				buffer.append(-filter[i+2]);
 				
-				metrics.onMaxStringLength(-filter[i+2]);
+				metrics.onMaxStringLength(1);
 			}
 			offset = filter[i + 1];
 		}
@@ -53,6 +58,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		if(offset < length) {
 			buffer.append(chars, offset, length - offset);
 		}
+		
+		metrics.onOutput(buffer.length() - bufferSize);
 	}
 
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {

@@ -432,7 +432,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 
-				metrics.onMaxStringLength(parser.getTextLength() - maxStringLength);
+				metrics.onMaxStringLength(1);
 
 				offset = nextOffset;
 

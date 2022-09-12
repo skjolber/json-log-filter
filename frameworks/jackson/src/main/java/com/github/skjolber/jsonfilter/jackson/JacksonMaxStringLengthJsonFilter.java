@@ -196,7 +196,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
-				metrics.onMaxStringLength(parser.getTextLength() - maxStringLength);
+				metrics.onMaxStringLength(1);
 				
 				continue;
 			}
