@@ -8,20 +8,20 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
      * large String elements like base64-encoded binary data, or
      * whole JSON subtrees with low informational value
   * Reduce amount of data sent to log accumulation tools
-    * lower cost, and
+    * lower cost
     * potentially reduce search / visualization latency
     * keep within max log-statement size
        * GCP: [256 KB](https://cloud.google.com/logging/quotas)
-       * Azure: 32 KB 
-
+       * Azure: 32 KB
+    
 Features:
 
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
  * Truncate large documents (max total output size)
- * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
- * Filtering metrics; number of interactions with the above + total input and total output size
+ * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
+ * Metrics for the above operations + total input and output size 
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
 
