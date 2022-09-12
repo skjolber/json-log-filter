@@ -35,10 +35,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 
 		try {
 			offset = rangesFullPathMaxStringLength(chars, offset, limit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
-			
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
 			return filter;
 
 		} catch(Exception e) {
@@ -183,9 +179,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		int limit = length + offset;
 		try {
 			offset = rangesFullPathMaxStringLength(chars, offset, limit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
 			return filter;
 		} catch(Exception e) {
 			return null;

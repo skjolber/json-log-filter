@@ -28,9 +28,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		try {
 			offset = rangesFullPath(chars, offset, limit, 0, pathChars, 0, filterType, maxPathMatches, filter);
 
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
 			return filter;
 		} catch(Exception e) {
 			return null;
@@ -42,10 +39,8 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches, length);
 		int limit = offset + length;
 		try {
-			offset = rangesFullPath(chars, offset, offset + length, 0, pathBytes, 0, filterType, maxPathMatches, filter);
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
+			offset = rangesFullPath(chars, offset, limit, 0, pathBytes, 0, filterType, maxPathMatches, filter);
+
 			return filter;
 		} catch(Exception e) {
 			return null;

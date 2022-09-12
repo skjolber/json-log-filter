@@ -14,6 +14,8 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class AbstractPathJsonFilterTest {
 
 	public class MyAbstractPathJsonFilter extends AbstractPathJsonFilter {
@@ -30,6 +32,18 @@ public class AbstractPathJsonFilterTest {
 
 		@Override
 		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+			return false;
+		}
+
+		@Override
+		public boolean process(char[] chars, int offset, int length, StringBuilder output,
+				JsonFilterMetrics filterMetrics) {
+			return false;
+		}
+
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+				JsonFilterMetrics filterMetrics) {
 			return false;
 		}
 

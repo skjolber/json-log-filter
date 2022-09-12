@@ -114,10 +114,6 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
 		return filter;
 	}
 
@@ -195,10 +191,6 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				continue;
 			}
 			offset++;
-		}
-
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
 		}
 
 		return filter;

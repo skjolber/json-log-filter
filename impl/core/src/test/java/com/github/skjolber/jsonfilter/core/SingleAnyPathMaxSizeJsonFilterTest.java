@@ -45,36 +45,36 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void anonymizeAny() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1, DEFAULT_ANY_PATH, FilterType.ANON);
 
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH).hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void pruneAny() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1, DEFAULT_ANY_PATH, FilterType.PRUNE);
 		
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
 	}
 
 	@Test
 	public void anonymizeAnyMaxPathMatches() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, "//key1", FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key1", FilterType.ANON)).hasAnonymized("//key1");
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key1", FilterType.ANON)).hasAnonymized("//key1").hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 2,  "//child1", FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(2, "//child1", FilterType.ANON)).hasAnonymized("//child1");
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(2, "//child1", FilterType.ANON)).hasAnonymized("//child1").hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_ANY_PATH).hasAnonymizeMetrics();
 	}
 	
 	@Test
 	public void pruneAnyMaxPathMatches() throws Exception {
 		Function<Integer, JsonFilter> maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, "//key3", FilterType.PRUNE);
 		
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key3", FilterType.PRUNE)).hasPruned("//key3");
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key3", FilterType.PRUNE)).hasPruned("//key3").hasPruneMetrics();
 		
 		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH);
+		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
 
 	}
 	
@@ -84,16 +84,5 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
-	
-	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		SingleAnyPathMaxSizeJsonFilter filter = new SingleAnyPathMaxSizeJsonFilter(-1, FULL.length - 4, DEFAULT_ANY_PATH, FilterType.PRUNE);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertNull(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3));
-	}
-
 	
 }

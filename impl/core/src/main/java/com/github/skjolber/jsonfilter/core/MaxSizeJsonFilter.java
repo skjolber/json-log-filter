@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class MaxSizeJsonFilter extends AbstractJsonFilter {
@@ -33,13 +34,28 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
+		return process(chars, offset, length, buffer, null);
+	}
+	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
 			buffer.append(chars, offset, length);
+			
+			if(metrics != null) {
+				metrics.onOutput(length);
+			}
+			
 			return true;
 		}
+		
+		int bufferLength = buffer.length();
 		
 		length += offset;
 		
@@ -87,31 +103,50 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
-			
 			mark = alignMark(mark, chars);
 			
 			buffer.append(chars, 0, mark);
 			
 			closeStructure(level, squareBrackets, buffer);
 		
+			if(metrics != null && mark < length) {
+				metrics.onMaxSize(length - mark);
+			}
+			
+			if(metrics != null) {
+				metrics.onOutput(buffer.length() - bufferLength);
+			}
+
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
 	}
-	
+
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
+	}
+
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
 			output.write(chars, offset, length);
 			
+			if(metrics != null) {
+				metrics.onOutput(length);
+			}
+			
 			return true;
 		}
+		
+		int bufferLength = output.size();
 		
 		length += offset;
 		
@@ -119,7 +154,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 		int level = 0;
 		
-		boolean[] squareBrackes = new boolean[32];
+		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
 
@@ -128,13 +163,13 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
-						squareBrackes[level] = chars[offset] == '[';
+						squareBrackets[level] = chars[offset] == '[';
 						
 						level++;
-						if(level >= squareBrackes.length) {
-							boolean[] next = new boolean[squareBrackes.length + 32];
-							System.arraycopy(squareBrackes, 0, next, 0, squareBrackes.length);
-							squareBrackes = next;
+						if(level >= squareBrackets.length) {
+							boolean[] next = new boolean[squareBrackets.length + 32];
+							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+							squareBrackets = next;
 						}
 						mark = offset;
 						
@@ -159,16 +194,20 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 				
 			}
-			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
 
 			mark = alignMark(mark, chars);
 			
 			output.write(chars, 0, mark);
 			
-			closeStructure(level, squareBrackes, output);
+			closeStructure(level, squareBrackets, output);
+			
+			if(metrics != null && mark < length) {
+				metrics.onMaxSize(length - mark);
+			}
+			
+			if(metrics != null) {
+				metrics.onOutput(output.size() - bufferLength);
+			}
 	
 			return true;
 		} catch(Exception e) {
@@ -176,7 +215,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 
-	private void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
+	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
 				buffer.append(']');
@@ -186,7 +225,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public int alignMark(int mark, byte[] chars) {
+	public static int alignMark(int mark, byte[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
@@ -200,7 +239,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public int alignMark(int mark, char[] chars) {
+	public static int alignMark(int mark, char[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
@@ -214,9 +253,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	private void closeStructure(int level, boolean[] squareBrackes, OutputStream output) throws IOException {
+	public static void closeStructure(int level, boolean[] squareBrackets, OutputStream output) throws IOException {
 		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackes[i]) {
+			if(squareBrackets[i]) {
 				output.write(']');
 			} else {
 				output.write('}');

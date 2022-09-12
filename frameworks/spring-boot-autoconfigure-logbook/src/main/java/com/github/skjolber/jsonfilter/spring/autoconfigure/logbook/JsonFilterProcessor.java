@@ -23,7 +23,7 @@ public class JsonFilterProcessor extends CompactingJsonProcessor {
 		String filtered = filter.process(body);
 		
 		if(filtered != null) {
-			if(compacting && !filter.isRemovingLinebreaks()) {
+			if(compacting && !filter.isRemovingLinebreaksInStrings()) {
 				return compact(filtered);
 			} else {
 				return filtered;
@@ -38,7 +38,7 @@ public class JsonFilterProcessor extends CompactingJsonProcessor {
 		byte[] filtered = filter.process(body);
 		
 		if(filtered != null) {
-			if(compacting && !filter.isRemovingLinebreaks()) {
+			if(compacting && !filter.isRemovingLinebreaksInStrings()) {
 				return compact(filtered);
 			} else {
 				return filtered;

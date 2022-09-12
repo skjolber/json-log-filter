@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class CharArrayRangesFilter extends AbstractRangesFilter {
 	
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
@@ -20,8 +22,47 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 	}
-	
-	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {		
+
+	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		
+		metrics.onInput(length);
+		
+		length += offset;
+		
+		int bufferSize = buffer.length();
+		
+		for(int i = 0; i < filterIndex; i += 3) {
+			if(filter[i+2] == FILTER_ANON) {
+				buffer.append(chars, offset, filter[i] - offset);
+				buffer.append(anonymizeMessage);
+				
+				metrics.onAnonymize(1);
+			} else if(filter[i+2] == FILTER_PRUNE) {
+				buffer.append(chars, offset, filter[i] - offset);
+				buffer.append(pruneMessage);
+				metrics.onPrune(1);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				buffer.append(chars, offset, filter[i] - offset);
+				
+				metrics.onMaxSize(length - filter[i]);
+			} else {
+				buffer.append(chars, offset, filter[i] - offset);
+				buffer.append(truncateMessage);
+				buffer.append(-filter[i+2]);
+				
+				metrics.onMaxStringLength(1);
+			}
+			offset = filter[i + 1];
+		}
+		
+		if(offset < length) {
+			buffer.append(chars, offset, length - offset);
+		}
+		
+		metrics.onOutput(buffer.length() - bufferSize);
+	}
+
+	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -32,7 +73,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(pruneMessage);
 			} else if(filter[i+2] == FILTER_DELETE) {
-				// do nothing
 				buffer.append(chars, offset, filter[i] - offset);
 			} else {
 				buffer.append(chars, offset, filter[i] - offset);
@@ -320,10 +360,48 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	public void addMaxLength(char[] chars, int start, int end, int length) {
 		// account for code points and escaping
 		
+		int alignedStart = getStringAlignment(chars, start);
+		
+		length += start - alignedStart;
+		
+		super.addMaxLength(alignedStart, end, length);
+		
+		this.removedLength += end - alignedStart - truncateMessage.length - lengthToDigits(length); // max integer
+	}
+	
+	public void addAnon(int start, int end) {
+		super.addAnon(start, end);
+		
+		this.removedLength += end - start - anonymizeMessage.length;
+	}
+	
+	public void addPrune(int start, int end) {
+		super.addPrune(start, end);
+		
+		this.removedLength += end - start - pruneMessage.length;
+	}
+
+	public void addDelete(int start, int end) {
+		super.addDelete(start, end);
+		
+		this.removedLength += end - start;
+	}
+	
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+	
+	
+	public static int getStringAlignment(char[] chars, int start) {
+		// account for code points and escaping
+		
 		// A high surrogate precedes a low surrogate. Together they make up a codepoint.
 		if(Character.isLowSurrogate(chars[start])) {
 			start--;
-			length = end - start;
 		} else {
 			// \ u
 			// \ uX
@@ -363,7 +441,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					}
 					if(slashCount % 2 == 1) {
 						start -= offset;
-						length += offset;
 					}
 				}
 			} else {
@@ -380,40 +457,12 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					}
 					if(slashCount % 2 == 0) {
 						start--;
-						length++;
 					}
 				}
 			}
 		}
-		super.addMaxLength(start, end, length);
-		
-		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
-	}
-	
-	public void addAnon(int start, int end) {
-		super.addAnon(start, end);
-		
-		this.removedLength += end - start - anonymizeMessage.length;
-	}
-	
-	public void addPrune(int start, int end) {
-		super.addPrune(start, end);
-		
-		this.removedLength += end - start - pruneMessage.length;
+		return start;
 	}
 
-	public void addDelete(int start, int end) {
-		super.addDelete(start, end);
-		
-		this.removedLength += end - start;
-	}
-	
-	public int getPruneMessageLength() {
-		return pruneMessage.length;
-	}
-
-	public int getAnonymizeMessageLength() {
-		return anonymizeMessage.length;
-	}
 
 }

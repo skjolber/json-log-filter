@@ -2,6 +2,8 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.io.ByteArrayOutputStream;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 	private boolean[] squareBrackets = new boolean[32];
@@ -72,6 +74,13 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		this.squareBrackets = squareBrackets;
 	}
 
+	@Override
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+		super.filter(chars, offset, length, buffer, metrics);
+		
+		closeStructure(buffer);
+	}
+	
 	@Override
 	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		super.filter(chars, offset, length, buffer);
@@ -446,7 +455,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = nextOffset;
+									mark = end;
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -489,9 +498,24 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 			offset++;
 		}
 
+		if(offset == mark) {
+			switch(chars[mark]) {
+				case '{' :
+				case '[' :
+					level++;
+					break;
+				case '}' :
+				case ']' :
+					level--;
+					break;
+				default : {
+				}
+			}
+		}
+
 		setLevel(level);
 		setMark(mark);
-
+		
 		return offset;
 	}
 

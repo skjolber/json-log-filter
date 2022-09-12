@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 
@@ -136,6 +137,42 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 		}
 		return false;
 	}
-	
+
+	@Override
+	public String process(char[] chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public String process(String chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public boolean process(String chars, StringBuilder output, JsonFilterMetrics filterMetrics) {
+		return process(chars, output);
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, JsonFilterMetrics filterMetrics) {
+		return process(chars);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
 
 }

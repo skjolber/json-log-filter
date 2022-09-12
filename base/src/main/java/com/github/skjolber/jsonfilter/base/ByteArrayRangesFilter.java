@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.base;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
@@ -85,8 +87,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
         }
         return charPos;
     }
-
-	
 	
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
@@ -104,7 +104,47 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
 	}
-	
+
+	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+		
+		metrics.onInput(length);
+
+		length += offset;
+		
+		int bufferSize = buffer.size();
+
+		for(int i = 0; i < filterIndex; i += 3) {
+			
+			if(filter[i+2] == FILTER_ANON) {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+				
+				metrics.onAnonymize(1);
+			} else if(filter[i+2] == FILTER_PRUNE) {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(pruneMessage, 0, pruneMessage.length);
+				
+				metrics.onPrune(1);
+			} else if(filter[i+2] == FILTER_DELETE) {
+				buffer.write(chars, offset, filter[i] - offset);
+				metrics.onMaxSize(length - filter[i]);
+			} else {
+				buffer.write(chars, offset, filter[i] - offset);
+				buffer.write(truncateMessage, 0, truncateMessage.length);
+				writeInt(buffer, -filter[i+2]);
+				
+				metrics.onMaxStringLength(1);
+			}
+			offset = filter[i + 1];
+		}
+		
+		if(offset < length) {
+			buffer.write(chars, offset, length - offset);
+		}
+		
+		metrics.onOutput(buffer.size() - bufferSize);
+	}
+
 	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
 		length += offset;
 		
@@ -117,7 +157,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(pruneMessage, 0, pruneMessage.length);
 			} else if(filter[i+2] == FILTER_DELETE) {
-				// do nothing
 				buffer.write(chars, offset, filter[i] - offset);
 			} else {
 				buffer.write(chars, offset, filter[i] - offset);
@@ -133,9 +172,23 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public void addMaxLength(byte[] chars, int start, int end, int length) {
+		// account for code points and escaping
 		if(length < 0) {
 			throw new IllegalArgumentException();
 		}
+		
+		int alignedStart = getStringAlignment(chars, start);
+		
+		length += start - alignedStart;
+		
+		super.addMaxLength(alignedStart, end, length);
+		
+		this.removedLength += end - alignedStart - truncateMessage.length - lengthToDigits(length); // max integer
+	}
+
+	
+	
+	public static int getStringAlignment(byte[] chars, int start) {
 
 		// account for 1-4 bytes UTF-8 encoding
 		// i.e. backwards sync
@@ -180,7 +233,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				// remove it
 				int difference = start - index;
 				start -= difference;
-				length += difference;
 			}
 		}
 		
@@ -222,7 +274,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				}
 				if(slashCount % 2 == 1) {
 					start -= offset;
-					length += offset;
 				}
 			}
 		} else {
@@ -239,14 +290,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				}
 				if(slashCount % 2 == 0) {
 					start--;
-					length++;
 				}
 			}
 		}
 		
-		super.addMaxLength(start, end, length);
-		
-		this.removedLength += end - start - truncateMessage.length - lengthToDigits(length); // max integer
+		return start;
 	}
 
 	public void addAnon(int start, int end) {
@@ -261,7 +309,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.removedLength += end - start - pruneMessage.length;
 	}
 	
-	protected final void writeInt(ByteArrayOutputStream out, int v) {
+	public final void writeInt(ByteArrayOutputStream out, int v) {
+		writeInt(out, v, digit);
+	}
+	
+	public static final void writeInt(ByteArrayOutputStream out, int v, byte[] digit) {
 		int chars = getChars(v, 11, digit);
 		
 		out.write(digit, chars, 11 - chars);

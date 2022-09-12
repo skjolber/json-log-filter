@@ -14,11 +14,11 @@ public interface JacksonJsonFilter extends JsonFilter {
 		return true;
 	}
 	
-	default boolean isRemovingIndent() {
-		return false;
+	default boolean isRemovingWhitespace() {
+		return true;
 	}
 	
-	public default boolean isRemovingLinebreaks() {
+	public default boolean isRemovingLinebreaksInStrings() {
 		return true;
 	}
 }

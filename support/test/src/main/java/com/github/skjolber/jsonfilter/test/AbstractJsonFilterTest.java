@@ -25,7 +25,8 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public abstract class AbstractJsonFilterTest {
 	
-	protected String DEEP_PATH = "/f0/f1/f2/f3/f4/f5/f6/f7/f8/f9/f10/f11/f12/f13/f14/f15/f16/f17/f18/f19/f20/f21/f22/f23/f24/f25/f26/f27/f28/f29/f30/f31/f32/f33";
+	protected String DEEP_PATH2 = "/f0/f1/f2/f3/f4/f5/f6/f7/f8/f9/f10/f11/f12/f13/f14/f15/f16/f17/f18/f19/f20/f21/f22/f23/f24/f25/f26/f27/f28/f29/f30/f31/f32/f33";
+	protected String DEEP_PATH = "/f0/f1";
 
 	protected JsonFactory factory = new JsonFactory();
 
@@ -40,19 +41,28 @@ public abstract class AbstractJsonFilterTest {
 		return assertThat(filter, (s) -> true);
 	}
 	
-	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
+	protected JsonFilterResultSubject assertThat(JsonFilter filter, JsonFilter transformer) throws Exception {
+		JsonFilterResult process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
 		
+		return JsonFilterResultSubject.assertThat(process);
+	}
+	
+	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
 		JsonFilterResult process = runner.process(filter, predicate);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true);
+		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true, Function.identity());
 	}
 
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter) throws Exception {
-		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter);
+		return assertThatMaxSize(maxSize, infiniteSize, filter, Function.identity());
+	}
+
+	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter, Function<String, String> transformer) throws Exception {
+		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter, transformer);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
@@ -120,28 +130,46 @@ public abstract class AbstractJsonFilterTest {
 	}
 	
 	public void validateDeepStructure(Function<Integer, JsonFilter> filter) throws IOException {
-		int levels = 100;
-		byte[] generateDeepStructure = Generator.generateDeepObjectStructure(levels);
+		int levels = 3;
+		
+		byte[] generateDeepStructure = Generator.generateDeepObjectStructure(levels, false);
 		validate(filter, levels, generateDeepStructure);
 		
-		generateDeepStructure = Generator.generateDeepArrayStructure(levels);
+		generateDeepStructure = Generator.generateDeepArrayStructure(levels, false);
 		validate(filter, levels, generateDeepStructure);
 
-		generateDeepStructure = Generator.generateDeepMixedStructure(levels);
+		generateDeepStructure = Generator.generateDeepMixedStructure(levels, false);
+		validate(filter, levels, generateDeepStructure);
+		
+		generateDeepStructure = Generator.generateDeepObjectStructure(levels, true);
+		validate(filter, levels, generateDeepStructure);
+		
+		generateDeepStructure = Generator.generateDeepArrayStructure(levels, true);
 		validate(filter, levels, generateDeepStructure);
 
+		generateDeepStructure = Generator.generateDeepMixedStructure(levels, true);
+		validate(filter, levels, generateDeepStructure);
 	}
 
 	private void validate(Function<Integer, JsonFilter> filter, int levels, byte[] generateDeepStructure)
 			throws IOException, JsonParseException {
+		
 		for(int i = 2; i < generateDeepStructure.length; i++) {		
 			JsonFilter apply = filter.apply(i);
 		
 			byte[] process = apply.process(generateDeepStructure);
 	
-			assertTrue(process.length <= i + levels);
+			try {
+				validate(process);
+				assertTrue(process.length + " > " + (i + levels) + new String(process, StandardCharsets.UTF_8), process.length <= i + levels);
+			} catch(Throwable e) {
+				System.out.println(new String(generateDeepStructure));
+				System.out.println("Processed " + process.length + " for max size " + i);
+				System.out.println(new String(process));
+				
+				throw e;
+			}				
 			
-			validate(process);
 		}
 
 		String string = new String(generateDeepStructure, StandardCharsets.UTF_8);
@@ -150,9 +178,16 @@ public abstract class AbstractJsonFilterTest {
 		
 			String process = apply.process(string);
 	
-			assertTrue(process.length() <= i + levels);
-
-			validate(process);
+			try {
+				validate(process);
+				assertTrue(process.length() <= i + levels);
+			} catch(Throwable e) {
+				System.out.println(new String(generateDeepStructure));
+				System.out.println("Processed " + process.length() + " for max size " + i);
+				System.out.println(process);
+				
+				throw e;
+			}				
 		}
 	}
 
@@ -166,6 +201,10 @@ public abstract class AbstractJsonFilterTest {
 		try (JsonParser parse = factory.createParser(process)) {
 			while(parse.nextToken() != null);
 		}
+	}
+	
+	public String readResource(String path) throws IOException {
+		return IOUtils.toString(getClass().getResourceAsStream(path), StandardCharsets.UTF_8);
 	}
 	
 

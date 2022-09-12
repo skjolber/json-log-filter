@@ -1,15 +1,22 @@
 package com.github.skjolber.jsonfilter.test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class JsonFilterResult {
 
 	private List<JsonFilterOutputDirectory> filtered = new ArrayList<>();
 	private List<JsonFilterOutputDirectory> passthrough = new ArrayList<>();
-	
+
+	private List<Map<File, DefaultJsonFilterMetrics[]>> metrics = new ArrayList<>();
+
 	public JsonFilterResult() {
 	}
 	
@@ -102,6 +109,48 @@ public class JsonFilterResult {
 	
 	public boolean hasPassthrough() {
 		return !passthrough.isEmpty();
+	}
+	
+	public void add(Map<File, DefaultJsonFilterMetrics[]> m) {
+		metrics.add(m);
+	}
+	
+	private boolean filter(Function<DefaultJsonFilterMetrics, Integer> object) {
+		for (Map<File, DefaultJsonFilterMetrics[]> map : metrics) {
+			
+			for (Entry<File, DefaultJsonFilterMetrics[]> entry : map.entrySet()) {
+				for (DefaultJsonFilterMetrics defaultJsonFilterMetrics : entry.getValue()) {
+					if(object.apply(defaultJsonFilterMetrics) != 0) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean hasMaxStringLengthMetrics() {
+		return filter(DefaultJsonFilterMetrics::getMaxStringLength);
+	}
+	
+	public boolean hasMaxSizeMetrics() {
+		return filter(DefaultJsonFilterMetrics::getMaxSize);
+	}
+	
+	public boolean hasPruneMetrics() {
+		return filter(DefaultJsonFilterMetrics::getPrune);
+	}
+
+	public boolean hasAnonymizeMetrics() {
+		return filter(DefaultJsonFilterMetrics::getAnonymize);
+	}
+
+	public boolean hasInputSizeMetrics() {
+		return filter(DefaultJsonFilterMetrics::getInputSize);
+	}
+
+	public boolean hasOutputSizeMetrics() {
+		return filter(DefaultJsonFilterMetrics::getOutputSize);
 	}
 
 }
