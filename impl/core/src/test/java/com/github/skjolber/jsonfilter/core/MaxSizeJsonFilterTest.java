@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 
@@ -37,7 +38,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		String broken = string.substring(0, string.length() / 2);
 		
 		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(string.length());
-
+		
 		char[] brokenChars = broken.toCharArray();
 		assertFalse(filter.process(brokenChars, 0, string.length(), new StringBuilder()));
 		
@@ -70,7 +71,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	
 	@Test
 	public void maxSize() throws Exception {
-		assertThat(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
+		assertThat(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE).hasMaxSizeMetrics();
 	}
 	
 }

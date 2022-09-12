@@ -56,4 +56,12 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 	public void onOutput(int outputSize) {
 		this.outputSize = outputSize;
 	}
+	
+	public int getInputSize() {
+		return inputSize;
+	}
+	
+	public int getOutputSize() {
+		return outputSize;
+	}
 }

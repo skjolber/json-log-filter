@@ -102,6 +102,12 @@ public class JsonFilterResultSubject extends Subject {
 		return this;
 	}
 	
+	public final JsonFilterResultSubject hasMaxStringLengthMetrics() {
+		if (!actual.hasMaxStringLengthMetrics()) {
+			failWithoutActual(simpleFact("expected maxStringLength"));
+		}
+		return this;
+	}
 	
 	public final JsonFilterResultSubject hasMaxSize(int size) {
 		if (!actual.hasPropertyKeyValue("maxSize", Integer.toString(size))) {
@@ -110,6 +116,12 @@ public class JsonFilterResultSubject extends Subject {
 		return this;
 	}
 
+	public final JsonFilterResultSubject hasMaxSizeMetrics() {
+		if (!actual.hasMaxSizeMetrics()) {
+			failWithoutActual(simpleFact("expected maxSize"));
+		}
+		return this;
+	}
 
 	public final JsonFilterResultSubject hasPruned(String ... paths) {
 		Object value;
@@ -123,7 +135,13 @@ public class JsonFilterResultSubject extends Subject {
 		}
 		return this;
 	}
-
+	
+	public final JsonFilterResultSubject hasPruneMetrics() {
+		if (!actual.hasPruneMetrics()) {
+			failWithoutActual(simpleFact("expected prune"));
+		}
+		return this;
+	}
 
 	public final JsonFilterResultSubject hasNotPruned() {
 		if (actual.hasPropertyKeyValue("pruneFilters", null)) {
@@ -150,6 +168,13 @@ public class JsonFilterResultSubject extends Subject {
 		}
 		if (!actual.hasPropertyKeyValue("anonymizeFilters", value)) {
 			failWithoutActual(simpleFact("expected anonymize filters " + value));
+		}
+		return this;
+	}
+	
+	public final JsonFilterResultSubject hasAnonymizeMetrics() {
+		if (!actual.hasAnonymizeMetrics()) {
+			failWithoutActual(simpleFact("expected anonymize"));
 		}
 		return this;
 	}
