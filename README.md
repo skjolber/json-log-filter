@@ -164,6 +164,16 @@ The filters within this library support using multiple expressions at once.
 ### Max size
 Configure max size to limit the size of the resulting document. This reduces the size of the document by (silently) deleting the JSON content after the limit is reached.
 
+### Metrics
+Pass in a `JsonFilterMetrics` argument to the `process` method like so:
+
+```
+JsonFilterMetrics myMetrics = new DefaultJsonFilterMetrics();
+String filtered = filter.process(json, myMetrics); // perform filtering
+```
+
+The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing.
+
 ### Logbook module
 See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for Spring-flavoured REST services. Features:
 
