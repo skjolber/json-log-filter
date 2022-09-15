@@ -8,19 +8,20 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
      * large String elements like base64-encoded binary data, or
      * whole JSON subtrees with low informational value
   * Reduce amount of data sent to log accumulation tools
-    * lower cost, and
+    * lower cost
     * potentially reduce search / visualization latency
     * keep within max log-statement size
        * GCP: [256 KB](https://cloud.google.com/logging/quotas)
-       * Azure: 32 KB 
-
+       * Azure: 32 KB
+    
 Features:
 
  * Truncate large text values
  * Mask (anonymize) scalar values like String, Number, Boolean and so on.
  * Remove (prune) whole subtrees
  * Truncate large documents (max total output size)
- * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits
+ * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
+ * Metrics for the above operations + total input and output size 
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
 
@@ -37,7 +38,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>3.0.2</json-log-filter.version>
+<json-log-filter.version>4.0.0</json-log-filter.version>
 ```
 
 then add
@@ -72,7 +73,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '3.0.2'
+  jsonLogFilterVersion = '4.0.0'
 }
 ```
 
@@ -162,6 +163,16 @@ The filters within this library support using multiple expressions at once.
 
 ### Max size
 Configure max size to limit the size of the resulting document. This reduces the size of the document by (silently) deleting the JSON content after the limit is reached.
+
+### Metrics
+Pass in a `JsonFilterMetrics` argument to the `process` method like so:
+
+```
+JsonFilterMetrics myMetrics = new DefaultJsonFilterMetrics();
+String filtered = filter.process(json, myMetrics); // perform filtering
+```
+
+The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing.
 
 ### Logbook module
 See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for Spring-flavoured REST services. Features:

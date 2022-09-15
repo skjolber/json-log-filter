@@ -28,23 +28,17 @@ public class SkipObjectJsonFilter extends AbstractJsonFilter {
 		}
 		return ByteArrayRangesFilter.skipObject(chars, offset) == offset + length;
 	}
-	
+
 	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
-		output.append(chars, offset, length);
-		if(chars[offset] != '{') {
-			return true;
-		}
-		return CharArrayRangesFilter.skipObject(chars, offset) == offset + length;
+	public boolean process(char[] chars, int offset, int length, StringBuilder output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
-		output.write(chars, offset, length);
-		if(chars[offset] != '{') {
-			return true;
-		}
-		return ByteArrayRangesFilter.skipObject(chars, offset) == offset + length;
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 
 }

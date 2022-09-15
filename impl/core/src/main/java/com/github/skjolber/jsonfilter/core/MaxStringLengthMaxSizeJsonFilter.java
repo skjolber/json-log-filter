@@ -45,9 +45,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		try {
 			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
 			
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			} else if(offset < limit){
+			if(offset < limit){
 				// max size reached before end of document
 				filter.alignMark(chars);
 				
@@ -75,9 +73,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		try {
 			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
 			
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			} else if(offset < limit){
+			if(offset < limit){
 				// max size reached before end of document
 				filter.alignMark(chars);
 				

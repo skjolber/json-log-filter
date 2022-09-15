@@ -264,39 +264,39 @@ public class JsonPathFilter implements JsonFilter {
 	}
 
 	@Override
-	public String process(char[] chars, JsonFilterMetrics filterMetrics) {
+	public String process(char[] chars, JsonFilterMetrics metrics) {
 		return process(chars);
 	}
 
 	@Override
-	public String process(String chars, JsonFilterMetrics filterMetrics) {
+	public String process(String chars, JsonFilterMetrics metrics) {
 		return process(chars);
 	}
 
 	@Override
-	public boolean process(String chars, StringBuilder output, JsonFilterMetrics filterMetrics) {
+	public boolean process(String chars, StringBuilder output, JsonFilterMetrics metrics) {
 		return process(chars, output);
 	}
 
 	@Override
 	public boolean process(char[] chars, int offset, int length, StringBuilder output,
-			JsonFilterMetrics filterMetrics) {
+			JsonFilterMetrics metrics) {
 		return process(chars, offset, length, output);
 	}
 
 	@Override
-	public byte[] process(byte[] chars, JsonFilterMetrics filterMetrics) {
+	public byte[] process(byte[] chars, JsonFilterMetrics metrics) {
 		return process(chars);
 	}
 
 	@Override
-	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics) {
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
 		return process(chars, offset, length);
 	}
 
 	@Override
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
-			JsonFilterMetrics filterMetrics) {
+			JsonFilterMetrics metrics) {
 		return process(chars, offset, length, output);
 	}
 	

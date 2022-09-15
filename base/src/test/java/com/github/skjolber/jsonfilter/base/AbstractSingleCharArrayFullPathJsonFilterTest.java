@@ -35,14 +35,13 @@ public class AbstractSingleCharArrayFullPathJsonFilterTest {
 		@Override
 		public boolean process(char[] chars, int offset, int length, StringBuilder output,
 				JsonFilterMetrics filterMetrics) {
-
 			return false;
 		}
+		
 
 		@Override
 		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
-
 			return false;
 		}
 	}

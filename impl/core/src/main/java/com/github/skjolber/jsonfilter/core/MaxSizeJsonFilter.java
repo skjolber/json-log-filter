@@ -38,13 +38,24 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
 			buffer.append(chars, offset, length);
+			
+			if(metrics != null) {
+				metrics.onOutput(length);
+			}
+			
 			return true;
 		}
+		
+		int bufferLength = buffer.length();
 		
 		length += offset;
 		
@@ -92,10 +103,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
-			
 			mark = alignMark(mark, chars);
 			
 			buffer.append(chars, 0, mark);
@@ -104,6 +111,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 			if(metrics != null && mark < length) {
 				metrics.onMaxSize(length - mark);
+			}
+			
+			if(metrics != null) {
+				metrics.onOutput(buffer.length() - bufferLength);
 			}
 
 			return true;
@@ -117,14 +128,25 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
 			output.write(chars, offset, length);
 			
+			if(metrics != null) {
+				metrics.onOutput(length);
+			}
+			
 			return true;
 		}
+		
+		int bufferLength = output.size();
 		
 		length += offset;
 		
@@ -172,10 +194,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 				
 			}
-			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
 
 			mark = alignMark(mark, chars);
 			
@@ -185,6 +203,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			if(metrics != null && mark < length) {
 				metrics.onMaxSize(length - mark);
+			}
+			
+			if(metrics != null) {
+				metrics.onOutput(output.size() - bufferLength);
 			}
 	
 			return true;

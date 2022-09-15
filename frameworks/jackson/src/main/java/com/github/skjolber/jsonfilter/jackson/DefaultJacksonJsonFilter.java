@@ -3,6 +3,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
@@ -71,6 +72,18 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
 	}
 	
 }

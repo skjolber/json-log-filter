@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter implements JacksonJsonFilter {
@@ -136,5 +137,75 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
 	}
+
+	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
+		if(chars.length < offset + length) {
+			return false;
+		}
+		output.ensureCapacity(output.length() + length);
+
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator, metrics);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
+		if(bytes.length < offset + length) {
+			return false;
+		}
+		output.ensureCapacity(output.length() + length);
+
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, metrics);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+
+	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		if(bytes.length < offset + length) {
+			return false;
+		}
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, metrics);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
+
+		while(true) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				break;
+			}
+			
+			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+				
+				metrics.onMaxStringLength(1);
+				
+				continue;
+			}
+			generator.copyCurrentEvent(parser);
+		}
+		generator.flush(); // don't close
+
+		return true;
+	}
+
 
 }

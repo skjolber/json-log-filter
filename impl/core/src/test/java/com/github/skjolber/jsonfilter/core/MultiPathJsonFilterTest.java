@@ -28,17 +28,6 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
 	}
-	
-	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		MultiPathJsonFilter filter = new MultiPathJsonFilter(-1, null, null);
-		
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
-	}
 
 	@Test
 	public void exception_incorrect_level() throws Exception {
@@ -49,56 +38,56 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 	
 	@Test
 	public void anonymize() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(-1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1);
+		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();;
+		assertThat(new MultiPathJsonFilter(-1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();;
 		
-		assertThat(new MultiPathJsonFilter(-1, new String[]{"/key1", "/key2", "/key3"}, null)).hasAnonymized("/key1", "/key2", "/key3");
-		assertThat(new MultiPathJsonFilter(-1, new String[]{"/xxkey2", "/xxkey3", "/key1"}, null)).hasAnonymized("/xxkey2", "/xxkey3", "/key1");
+		assertThat(new MultiPathJsonFilter(-1, new String[]{"/key1", "/key2", "/key3"}, null)).hasAnonymized("/key1", "/key2", "/key3").hasAnonymizeMetrics();;
+		assertThat(new MultiPathJsonFilter(-1, new String[]{"/xxkey2", "/xxkey3", "/key1"}, null)).hasAnonymized("/xxkey2", "/xxkey3", "/key1").hasAnonymizeMetrics();;
 	}
 
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
-		assertThat(new MultiPathJsonFilter(1, new String[]{"/key1"}, null)).hasAnonymized("/key1");
+		assertThat(new MultiPathJsonFilter(1, new String[]{"/key1"}, null)).hasAnonymized("/key1").hasAnonymizeMetrics();;
 		
-		assertThat(new MultiPathJsonFilter(1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(2, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
+		assertThat(new MultiPathJsonFilter(1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();;
+		assertThat(new MultiPathJsonFilter(2, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();;
 	}
 	
 	@Test
 	public void anonymizeWildcard() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH);
+		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH).hasAnonymizeMetrics();;
 	}
 	
 	@Test
 	public void anonymizeAny() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_ANY_PATH}, null)).hasAnonymized(DEFAULT_ANY_PATH);
+		assertThat(new MultiPathJsonFilter(-1, new String[]{DEFAULT_ANY_PATH}, null)).hasAnonymized(DEFAULT_ANY_PATH).hasAnonymizeMetrics();;
 	}
 
 	@Test
 	public void prune() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEEP_PATH3})).hasPruned(DEEP_PATH3);
+		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEEP_PATH3})).hasPruned(DEEP_PATH3).hasPruneMetrics();
 	}
 	
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
-		assertThat(new MultiPathJsonFilter(1, null, new String[]{"/key3"})).hasPruned("/key3");
+		assertThat(new MultiPathJsonFilter(1, null, new String[]{"/key3"})).hasPruned("/key3").hasPruneMetrics();
 		
-		assertThat(new MultiPathJsonFilter(1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiPathJsonFilter(2, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
+		assertThat(new MultiPathJsonFilter(1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiPathJsonFilter(2, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
 		
 	}
 
 	@Test
 	public void pruneWildcard() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_WILDCARD_PATH})).hasPruned(DEFAULT_WILDCARD_PATH);
+		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_WILDCARD_PATH})).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
 	}
 	
 	@Test
 	public void pruneAny() throws Exception {
-		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_ANY_PATH})).hasPruned(DEFAULT_ANY_PATH);
+		assertThat(new MultiPathJsonFilter(-1, null, new String[]{DEFAULT_ANY_PATH})).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
 	}	
 
 	@Test
@@ -108,8 +97,8 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 			.hasAnonymized("/key1");
 				
 		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEEP_PATH1}, new String[]{DEEP_PATH3}))
-		.hasPruned(DEEP_PATH3)
-		.hasAnonymized(DEEP_PATH1);		
+		.hasPruned(DEEP_PATH3).hasPruneMetrics()
+		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();		
 	}
 		
 }

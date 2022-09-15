@@ -271,9 +271,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		} else if(offset < limit){
+		if(offset < limit){
 			// max size reached before end of document
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
@@ -509,9 +507,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		} else if(offset < limit){
+		if(offset < limit){
 			// max size reached before end of document
 
 			filter.setLevel(bracketLevel);

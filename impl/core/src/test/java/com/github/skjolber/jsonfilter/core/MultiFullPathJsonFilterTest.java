@@ -38,16 +38,6 @@ public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		MultiFullPathJsonFilter filter = new MultiFullPathJsonFilter(-1, null, null);
-		assertNull(filter.process(TRUNCATED));
-		assertNull(filter.process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-		
-		assertFalse(filter.process(FULL, 0, FULL.length - 3, new StringBuilder()));
-		assertFalse(filter.process(new String(FULL).getBytes(StandardCharsets.UTF_8), 0, FULL.length - 3, new ByteArrayOutputStream()));
-	}
-
-	@Test
 	public void exception_incorrect_level() throws Exception {
 		MultiFullPathJsonFilter filter = new MultiFullPathJsonFilter(127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
@@ -56,43 +46,43 @@ public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void anonymize() throws Exception {
-		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEEP_PATH1}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1);
+		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEEP_PATH1}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 	}
 	
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
 		assertThat(new MultiFullPathJsonFilter(1, new String[]{"/key1"}, null)).hasAnonymized("/key1");
 		
-		assertThat(new MultiFullPathJsonFilter(1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(2, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
+		assertThat(new MultiFullPathJsonFilter(1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new MultiFullPathJsonFilter(2, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 	}
 
 	@Test
 	public void anonymizeWildcard() throws Exception {
-		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH);
+		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH).hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void prune() throws Exception {
-		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(-1, new String[]{PASSTHROUGH_XPATH}, new String[]{DEEP_PATH3})).hasPruned(DEEP_PATH3);
+		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiFullPathJsonFilter(-1, new String[]{PASSTHROUGH_XPATH}, new String[]{DEEP_PATH3})).hasPruned(DEEP_PATH3).hasPruneMetrics();
 	}
 	
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
 		assertThat(new MultiFullPathJsonFilter(1, null, new String[]{"/key3"})).hasPruned("/key3");
 		
-		assertThat(new MultiFullPathJsonFilter(1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
-		assertThat(new MultiFullPathJsonFilter(2, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
+		assertThat(new MultiFullPathJsonFilter(1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(new MultiFullPathJsonFilter(2, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH).hasPruneMetrics();
 	}
 	
 	@Test
 	public void pruneWildcard() throws Exception {
-		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_WILDCARD_PATH})).hasPruned(DEFAULT_WILDCARD_PATH);
+		assertThat(new MultiFullPathJsonFilter(-1, null, new String[]{DEFAULT_WILDCARD_PATH})).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
 	}
 
 	@Test
@@ -102,8 +92,8 @@ public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasAnonymized("/key1");
 
 		assertThat(new MultiFullPathJsonFilter(-1, new String[]{DEEP_PATH1}, new String[]{DEEP_PATH3}))
-		.hasPruned(DEEP_PATH3)
-		.hasAnonymized(DEEP_PATH1);
+		.hasPruned(DEEP_PATH3).hasPruneMetrics()
+		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 
 	}	
 

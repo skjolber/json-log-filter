@@ -22,17 +22,18 @@ public class SkipSubtreeJsonFilter extends AbstractJsonFilter {
 		output.write(chars, offset, length);
 		return ByteArrayRangesFilter.skipSubtree(chars, offset) == offset + length;
 	}
-
-	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
-		output.append(chars, offset, length);
-		return CharArrayRangesFilter.skipSubtree(chars, offset) == offset + length;
-	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
-		output.write(chars, offset, length);
-		return ByteArrayRangesFilter.skipSubtree(chars, offset) == offset + length;
-	}
 	
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+			JsonFilterMetrics filterMetrics) {
+		return process(chars, offset, length, output);
+	}
+
 }

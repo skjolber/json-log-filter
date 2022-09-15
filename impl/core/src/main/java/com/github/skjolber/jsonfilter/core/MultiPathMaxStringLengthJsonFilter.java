@@ -156,10 +156,6 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 			offset++;
 		}
 
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
-		}
-
 		if(level != 0) {
 			return null;
 		}
@@ -295,10 +291,6 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 				default :
 			}
 			offset++;
-		}
-
-		if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-			return null;
 		}
 
 		if(level != 0) {

@@ -201,18 +201,18 @@ public interface JsonFilter {
 	 * @return true if the processing returns a compacted value
 	 */
 
-	default boolean isRemovingLinebreaks() {
+	default boolean isRemovingLinebreaksInStrings() {
 		return false;
 	}
 
 	/**
 	 * 
-	 * Check if compacting, as in not containing any linebreaks.
+	 * Check if removing whitespaces.
 	 * 
 	 * @return true if the processing returns a compacted value
 	 */
 
-	default boolean isRemovingIndent() {
+	default boolean isRemovingWhitespace() {
 		return false;
 	}
 

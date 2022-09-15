@@ -143,10 +143,6 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				offset++;
 			}
 
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
-
 			if(level != 0) {
 				return null;
 			}
@@ -286,10 +282,6 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					default :
 				}
 				offset++;
-			}
-
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
 			}
 
 			if(level != 0) {

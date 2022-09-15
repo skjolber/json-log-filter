@@ -42,9 +42,7 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 		int limit = offset + length;
 		try {
 			offset = ranges(chars, offset, limit, maxStringLength, filter);
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
+
 			return filter;			
 		} catch(Exception e) {
 			return null;
@@ -59,9 +57,7 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 		int limit = offset + length;
 		try {
 			offset = ranges(chars, offset, limit, maxStringLength, filter);
-			if(offset > limit) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return null;
-			}
+
 			return filter;			
 		} catch(Exception e) {
 			return null;
@@ -198,6 +194,5 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
 	}
-
 
 }

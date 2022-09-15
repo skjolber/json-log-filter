@@ -91,16 +91,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		return process(jsonString.toCharArray());
 	}
 	
-
-
-	
-	
-	
-	
-	
-	
-	
-	
 	public boolean process(String jsonString, StringBuilder output, JsonFilterMetrics metrics) {
 		char[] chars = jsonString.toCharArray();
 		
