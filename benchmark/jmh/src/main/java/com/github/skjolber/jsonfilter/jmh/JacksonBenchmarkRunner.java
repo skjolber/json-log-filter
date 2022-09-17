@@ -8,17 +8,17 @@ import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 public class JacksonBenchmarkRunner extends BenchmarkRunner<JacksonJsonFilter> {
 	
-	public JacksonBenchmarkRunner(File file, boolean recursive, JacksonJsonFilter filter, boolean newBuilder)
+	public JacksonBenchmarkRunner(File file, boolean recursive, JacksonJsonFilter filter, boolean newBuilder, boolean prettyPrint)
 			throws IOException {
-		super(file, recursive, filter, newBuilder);
+		super(file, recursive, filter, newBuilder, prettyPrint);
 	}
 
-	public JacksonBenchmarkRunner(File file, boolean recursive, JacksonJsonFilter filter) throws IOException {
-		super(file, recursive, filter);
+	public JacksonBenchmarkRunner(File file, boolean recursive, JacksonJsonFilter filter, boolean prettyPrint) throws IOException {
+		super(file, recursive, filter, prettyPrint);
 	}
 
-	public JacksonBenchmarkRunner(File file, boolean recursive) throws IOException {
-		super(file, recursive);
+	public JacksonBenchmarkRunner(File file, boolean recursive, boolean prettyPrint) throws IOException {
+		super(file, recursive, prettyPrint);
 	}
 
 	public long benchmarkBytes() {

@@ -69,8 +69,8 @@ public abstract class ScratchFilterBenchmark {
 		String xpath = "/CVE_Items/cve/affects/vendor/vendor_data/vendor_name";
 
 		// xml-log-filter
-		original = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
-		modified = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON));
+		original = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true);
+		modified = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true);
 
 		/*
 		// path - single

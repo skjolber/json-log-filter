@@ -29,6 +29,9 @@ import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxSizeRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
@@ -61,23 +64,28 @@ public class CveFilterBenchmark {
 	
 	private BenchmarkRunner<JsonFilter> maxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> maxStringLengthRemoveWhitespaceJsonFilter;
 	
 	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
 
 	private JacksonBenchmarkRunner maxSizeJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> maxSizeJsonFilter; 
-	
+	private BenchmarkRunner<JsonFilter> maxSizeRemoveWhitespaceJsonFilter; 
 	
 	private BenchmarkRunner<JsonFilter> singleFullPathMaxSizeMaxStringLengthJsonFilter;
 	private JacksonBenchmarkRunner singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter; 
 
+	private BenchmarkRunner<JsonFilter> removeWhitespaceJsonFilter;
+
+	
+	
 	private LogbookBenchmarkRunner singlePathLogbookJsonFilter;
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
-
 	private String fileName;
+	private final boolean prettyPrinted = false;
 	
 	@Setup
 	public void init() throws Exception {
@@ -90,25 +98,29 @@ public class CveFilterBenchmark {
 		//BodyFilter maxLength = JsonPathBodyFilters.jsonPath("$..*[?(@.* =~ /^[\\w\\W]{" + maxStringLength + ",}$/)]").replace("..removed");
 		int size = Integer.parseInt(fileName.substring(0,  fileName.length() - 2)) * 1024 - 1;
 		
-		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon, prune));
-		multiPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon, prune));
+		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon, prune), prettyPrinted);
+		multiPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon, prune), prettyPrinted);
 		
-		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
-		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build());
-		multiPathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0.tryMerge(prune0).tryMerge(prune1));
+		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
+		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
+		multiPathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0.tryMerge(prune0).tryMerge(prune1), prettyPrinted);
 
-		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
-		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build());
-		singlePathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0);
+		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build(), prettyPrinted);
+		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build(), prettyPrinted);
+		singlePathLogbookJsonFilter = new LogbookBenchmarkRunner(file, false, anon0, prettyPrinted);
 
-		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build());
-		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength));
-
-		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(size));
-		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size));
+		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build(), prettyPrinted);
+		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength), prettyPrinted);
+		maxStringLengthRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength), prettyPrinted);
 		
-		singleFullPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON));
-		singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon[0], FilterType.ANON));
+		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(size), prettyPrinted);
+		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), prettyPrinted);
+		maxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(size), prettyPrinted);
+		
+		singleFullPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON), prettyPrinted);
+		singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon[0], FilterType.ANON), prettyPrinted);
+
+		removeWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new RemoveWhitespaceJsonFilter(), prettyPrinted);
 	}
 	
 	@Benchmark
@@ -147,6 +159,11 @@ public class CveFilterBenchmark {
 	}	
 	
 	@Benchmark
+	public long maxStringLength_core_remove_whitespace() throws IOException {
+		return maxStringLengthRemoveWhitespaceJsonFilter.benchmarkBytes();
+	}	
+	
+	@Benchmark
 	public long anon_single_jackson() throws IOException {
 		return singlePathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
@@ -163,6 +180,16 @@ public class CveFilterBenchmark {
 	@Benchmark
 	public long maxSize() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
+	}
+	
+	@Benchmark
+	public long removeWhitespace() throws IOException {
+		return removeWhitespaceJsonFilter.benchmarkBytes();
+	}
+	
+	@Benchmark
+	public long maxSizeRemoveWhitespace() throws IOException {
+		return maxSizeRemoveWhitespaceJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark

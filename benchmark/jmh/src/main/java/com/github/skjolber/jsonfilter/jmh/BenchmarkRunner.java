@@ -8,10 +8,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.core.pp.Indent;
+import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryCache;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 public class BenchmarkRunner<T extends JsonFilter> {
+	
+	protected PrettyPrintingJsonFilter prettyPrinter = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 	
 	protected List<FileDirectoryValue> directories;
 	protected T jsonFilter;
@@ -20,19 +24,20 @@ public class BenchmarkRunner<T extends JsonFilter> {
 	protected ByteArrayOutputStream outputstream = new ByteArrayOutputStream(256 * 1000);
 	
 	protected boolean newBuilder;
-
-	public BenchmarkRunner(File file, boolean recursive, T filter) throws IOException {
-		this(file, recursive, filter, false);
+	protected boolean prettyPrint;
+	
+	public BenchmarkRunner(File file, boolean recursive, T filter, boolean prettyPrint) throws IOException {
+		this(file, recursive, filter, false, prettyPrint);
 	}
 
-	public BenchmarkRunner(File file, boolean recursive, T filter, boolean newBuilder) throws IOException {
-		this(file, recursive);
+	public BenchmarkRunner(File file, boolean recursive, T filter, boolean newBuilder, boolean prettyPrint) throws IOException {
+		this(file, recursive, prettyPrint);
 		this.newBuilder = newBuilder;
 		
 		setJsonFilter(filter);
 	}
 
-	public BenchmarkRunner(File file, boolean recursive) throws IOException {
+	public BenchmarkRunner(File file, boolean recursive, boolean prettyPrint) throws IOException {
 		directories = new FileDirectoryCache().getValue(file, new FileFilter() {
 			
 			@Override
@@ -40,6 +45,8 @@ public class BenchmarkRunner<T extends JsonFilter> {
 				return file.getName().toLowerCase().endsWith(".json");
 			}
 		}, recursive);
+		
+		this.prettyPrint = prettyPrint;
 	}
 
 	public JsonFilter getJsonFilter() {

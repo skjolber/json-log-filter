@@ -10,8 +10,8 @@ import com.github.skjolber.jsonfilter.jmh.utils.LogbookBodyFilter;
 
 public class LogbookBenchmarkRunner extends BenchmarkRunner<LogbookBodyFilter> {
 	
-	public LogbookBenchmarkRunner(File file, boolean recursive, BodyFilter filter) throws IOException {
-		super(file, recursive, new LogbookBodyFilter(filter));
+	public LogbookBenchmarkRunner(File file, boolean recursive, BodyFilter filter, boolean prettyPrint) throws IOException {
+		super(file, recursive, new LogbookBodyFilter(filter), prettyPrint);
 	}
 	
 	// body is always characters within logbook
