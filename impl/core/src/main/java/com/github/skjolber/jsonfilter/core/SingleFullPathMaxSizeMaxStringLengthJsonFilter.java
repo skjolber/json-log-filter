@@ -320,10 +320,10 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
 
-				filter.alignMark(chars);
+				int markLimit = filter.markToLimit(chars);
 				
 				// filter rest of document
-				filter.addDelete(filter.getMark(), length);
+				filter.addDelete(markLimit, length);
 			}
 			
 			return filter;
@@ -639,10 +639,10 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
 
-				filter.alignMark(chars);
+				int markLimit = filter.markToLimit(chars);
 				
 				// filter rest of document
-				filter.addDelete(filter.getMark(), length);
+				filter.addDelete(markLimit, length);
 			}
 			
 			return filter;

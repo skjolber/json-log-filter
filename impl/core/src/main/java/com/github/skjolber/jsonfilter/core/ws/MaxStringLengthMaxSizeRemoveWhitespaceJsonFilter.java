@@ -166,12 +166,12 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 			if(level == 0) {
 				buffer.append(chars, start, offset - start);
 			} else {
-				int deltaMark = deltaMark(mark, chars[mark]);
+				int markLimit = MaxSizeJsonFilter.markToLimit(mark, chars[mark]);
 
-				if(mark + deltaMark > start) {
-					buffer.append(chars, start, mark - start + deltaMark);
+				if(start < markLimit) {
+					buffer.append(chars, start, markLimit - start);
 				} else {
-					buffer.setLength(writtenMark + deltaMark(writtenMark, buffer.charAt(writtenMark)));
+					buffer.setLength(MaxSizeJsonFilter.markToLimit(writtenMark, buffer.charAt(writtenMark)));
 				}
 				
 				MaxSizeJsonFilter.closeStructure(level, squareBrackets, buffer);
@@ -334,12 +334,12 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 				stream.write(chars, start, offset - start);
 				stream.writeTo(output);
 			} else {
-				int deltaMark = deltaMark(mark, chars[mark]);
+				int markLimit = MaxSizeJsonFilter.markToLimit(mark, chars[mark]);
 
-				if(mark + deltaMark > start) {
-					stream.write(chars, start, mark - start + deltaMark);
+				if(markLimit > start) {
+					stream.write(chars, start, markLimit - start);
 				} else {
-					stream.setCount(writtenMark + deltaMark(writtenMark, stream.getByte(writtenMark)));
+					stream.setCount(MaxSizeJsonFilter.markToLimit(writtenMark, stream.getByte(writtenMark)));
 				}
 				
 				MaxSizeJsonFilter.closeStructure(level, squareBrackets, stream);

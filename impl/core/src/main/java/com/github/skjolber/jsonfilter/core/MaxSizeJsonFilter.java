@@ -38,10 +38,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
-		if(metrics != null) {
-			metrics.onInput(length);
-		}
-
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -49,15 +45,16 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			buffer.append(chars, offset, length);
 			
 			if(metrics != null) {
+				metrics.onInput(length);
 				metrics.onOutput(length);
 			}
 			
 			return true;
 		}
+
+		int startOffset = offset;
 		
 		int bufferLength = buffer.length();
-		
-		length += offset;
 		
 		int limit = offset + maxSize;
 
@@ -103,17 +100,18 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			mark = alignMark(mark, chars);
+			int markLimit = markToLimit(mark, chars);
 			
-			buffer.append(chars, 0, mark);
+			buffer.append(chars, startOffset, markLimit - startOffset);
 			
 			closeStructure(level, squareBrackets, buffer);
 		
-			if(metrics != null && mark < length) {
-				metrics.onMaxSize(length - mark);
-			}
-			
 			if(metrics != null) {
+				metrics.onInput(length);
+				int charsLimit = startOffset + length;
+				if(markLimit < charsLimit) {
+					metrics.onMaxSize(charsLimit - markLimit);
+				}
 				metrics.onOutput(buffer.length() - bufferLength);
 			}
 
@@ -146,9 +144,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
+		int startOffset = offset;
+
 		int bufferLength = output.size();
-		
-		length += offset;
 		
 		int limit = offset + maxSize;
 
@@ -195,17 +193,18 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				
 			}
 
-			mark = alignMark(mark, chars);
+			int markLimit = markToLimit(mark, chars);
 			
-			output.write(chars, 0, mark);
+			output.write(chars, startOffset, markLimit - startOffset);
 			
 			closeStructure(level, squareBrackets, output);
 			
-			if(metrics != null && mark < length) {
-				metrics.onMaxSize(length - mark);
-			}
-			
 			if(metrics != null) {
+				metrics.onInput(length);
+				int charsLimit = startOffset + length;
+				if(markLimit < charsLimit) {
+					metrics.onMaxSize(charsLimit - markLimit);
+				}
 				metrics.onOutput(output.size() - bufferLength);
 			}
 	
@@ -225,8 +224,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public static int alignMark(int mark, byte[] chars) {
-		switch(chars[mark]) {
+	public static int markToLimit(int mark, char c) {
+		switch(c) {
 			
 			case '{' :
 			case '}' :
@@ -239,8 +238,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 	
-	public static int alignMark(int mark, char[] chars) {
-		switch(chars[mark]) {
+	public static int markToLimit(int mark, byte c) {
+		switch(c) {
 			
 			case '{' :
 			case '}' :
@@ -251,6 +250,14 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				return mark;
 			}
 		}
+	}
+	
+	public static int markToLimit(int mark, byte[] chars) {
+		return markToLimit(mark, chars[mark]);
+	}
+	
+	public static int markToLimit(int mark, char[] chars) {
+		return markToLimit(mark, chars[mark]);
 	}
 	
 	public static void closeStructure(int level, boolean[] squareBrackets, OutputStream output) throws IOException {

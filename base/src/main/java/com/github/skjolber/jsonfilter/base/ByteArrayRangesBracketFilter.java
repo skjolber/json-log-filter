@@ -46,16 +46,16 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		this.mark = mark;
 	}
 	
-	public void alignMark(byte[] chars) {
+	public int markToLimit(byte[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
 			case '}' :
 			case '[' :
 			case ']' :
-				mark++;
-				break;
+				return mark + 1;
 			default : {
+				return mark;
 			}
 		}
 	}
@@ -367,22 +367,16 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 					if(level == levelLimit) {
 						offset++;
-						break loop;
-					}
-					
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					} else if(level < levelLimit) { // was scalar value
-						break loop;
+
+						// level same as before
+						setMark(mark);
+
+						return offset;
 					}
 					break;
 				}
 				case ',' : {
 					mark = offset;
-					if(level == levelLimit) { // was scalar value
-						break loop;
-					}
 					break;
 				}
 				case ' ' : 
@@ -420,8 +414,10 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
 								limit += getRemovedLength() - removedLength;
-								
-								mark = nextOffset;
+
+								if(nextOffset < limit) {
+									mark = nextOffset;
+								}
 							} else {
 								// make sure to stop scanning here
 								offset = limit;
@@ -455,7 +451,9 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = end;
+									if(end < limit) {
+										mark = end;
+									}
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -482,7 +480,9 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						addAnon(offset, nextOffset);
 						limit += getRemovedLength() - removedLength;
 
-						mark = nextOffset;
+						if(nextOffset < limit) {
+							mark = nextOffset;
+						}
 					} else {
 						// make sure to stop scanning here
 						offset = limit;
@@ -496,24 +496,6 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 				}
 			}
 			offset++;
-		}
-
-		// mark is inclusive, so if the loop exited
-		// at the current mark, adjust levels
-
-		if(offset == mark) {
-			switch(chars[mark]) {
-				case '{' :
-				case '[' :
-					level++;
-					break;
-				case '}' :
-				case ']' :
-					level--;
-					break;
-				default : {
-				}
-			}
 		}
 
 		setLevel(level);

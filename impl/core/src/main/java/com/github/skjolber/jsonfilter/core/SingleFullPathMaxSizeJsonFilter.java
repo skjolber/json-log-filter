@@ -276,10 +276,10 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 
-			filter.alignMark(chars);
+			int markLimit = filter.markToLimit(chars);
 			
 			// filter rest of document
-			filter.addDelete(filter.getMark(), limit);
+			filter.addDelete(markLimit, limit);
 		}
 		
 		return filter;
@@ -513,10 +513,10 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 
-			filter.alignMark(chars);
+			int markLimit = filter.markToLimit(chars);
 			
 			// filter rest of document
-			filter.addDelete(filter.getMark(), limit);
+			filter.addDelete(markLimit, limit);
 		}
 		
 		return filter;
