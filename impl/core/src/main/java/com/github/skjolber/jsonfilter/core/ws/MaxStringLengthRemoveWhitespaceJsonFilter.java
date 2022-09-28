@@ -37,144 +37,25 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
-		length += offset;
-
-		try {
-			int start = offset;
-
-			while(offset < length) {
-				char c = chars[offset];
-				if(c == '"') {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
-						// key or value, might be whitespace
-						int end = nextOffset;
-
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-
-						if(chars[nextOffset] == ':') {
-							// was a key
-							buffer.append(chars, start, end - start);
-						} else {
-							// was a value
-							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							buffer.append(chars, start, aligned - start);
-							buffer.append(truncateStringValue);
-							buffer.append(end - aligned - 1);
-							buffer.append('"');
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
-
-					continue;
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					buffer.append(chars, start, offset - start);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20);
-
-					start = offset;
-
-					continue;
-				}
-				offset++;
-			}
-			buffer.append(chars, start, offset - start);
-			return true;
-		} catch(Exception e) {
-			return false;
-		}
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		return process(chars, offset, length, output, null);
 	}
 
+	@Override
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
-		length += offset;
-
-		byte[] digit = new byte[11];
-
-		try {
-			int start = offset;
-
-			while(offset < length) {
-				byte c = chars[offset];
-				if(c == '"') {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
-						// key or value, might be whitespace
-						int end = nextOffset;
-
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-
-						if(chars[nextOffset] == ':') {
-							// was a key
-							output.write(chars, start, end - start);
-						} else {
-
-							// was a value
-							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, end - aligned - 1, digit);
-							output.write('"');
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
-
-					continue;
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					output.write(chars, start, offset - start);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20);
-
-					start = offset;
-
-					continue;
-				}
-				offset++;
-			}
-			output.write(chars, start, offset - start);
-			return true;
-		} catch(Exception e) {
-			return false;
-		}
+		return process(chars, offset, length, output, null);
 	}
-
-	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder buffer,
-			JsonFilterMetrics filterMetrics) {
-		length += offset;
+	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		int bufferLength = buffer.length();
+		
+		int limit = length + offset;
 
 		try {
 			int start = offset;
 
-			while(offset < length) {
+			while(offset < limit) {
 				char c = chars[offset];
 				if(c == '"') {
 					int nextOffset = offset;
@@ -183,27 +64,30 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
+						int endQuoteIndex = nextOffset;
+						
 						// key or value, might be whitespace
-						int end = nextOffset;
 
 						// skip whitespace
 						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
+						do {
 							nextOffset++;
-						}
+						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
 							// was a key
-							buffer.append(chars, start, end - start);
+							buffer.append(chars, start, endQuoteIndex - start + 1);
 						} else {
 							// was a value
 							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 							buffer.append(chars, start, aligned - start);
 							buffer.append(truncateStringValue);
-							buffer.append(end - aligned - 1);
+							buffer.append(endQuoteIndex - aligned);
 							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
 						}
 
 						start = nextOffset;
@@ -225,23 +109,29 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				offset++;
 			}
 			buffer.append(chars, start, offset - start);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(buffer.length() - bufferLength);
+			}			
+			
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
 	}
 
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
-			JsonFilterMetrics filterMetrics) {
-		length += offset;
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		int limit = length + offset;
+		
+		int bufferLength = output.size();
 
 		byte[] digit = new byte[11];
 
 		try {
 			int start = offset;
 
-			while(offset < length) {
+			while(offset < limit) {
 				byte c = chars[offset];
 				if(c == '"') {
 					int nextOffset = offset;
@@ -250,30 +140,31 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 					if(nextOffset - offset - 1 > maxStringLength) {
-						nextOffset++;
-
+						int endQuoteIndex = nextOffset;
+						
 						// key or value, might be whitespace
-						int end = nextOffset;
 
 						// skip whitespace
 						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
+						do {
 							nextOffset++;
-						}
+						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
 							// was a key
-							output.write(chars, start, end - start);
+							output.write(chars, start, endQuoteIndex - start + 1);
 						} else {
 
 							// was a value
 							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 							output.write(chars, start, aligned - start);
 							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, end - aligned - 1, digit);
+							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
 							output.write('"');
 							
-							filterMetrics.onMaxStringLength(aligned);
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
 						}
 
 						start = nextOffset;
@@ -295,10 +186,16 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				offset++;
 			}
 			output.write(chars, start, offset - start);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(output.size() - bufferLength);
+			}	
+			
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
-
 	}
+
 }

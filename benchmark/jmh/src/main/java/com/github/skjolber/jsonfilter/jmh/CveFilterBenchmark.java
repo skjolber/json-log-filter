@@ -26,15 +26,18 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.MaxStringLengthMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxSizeRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeMaxStringSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter;
 
@@ -66,6 +69,10 @@ public class CveFilterBenchmark {
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> maxStringLengthRemoveWhitespaceJsonFilter;
 	
+	private BenchmarkRunner<JsonFilter> maxStringLengthMaxSizeJsonFilter;
+	private BenchmarkRunner<JsonFilter> maxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
+	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthMaxSizeJacksonJsonFilter;
+	
 	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
 
@@ -77,8 +84,6 @@ public class CveFilterBenchmark {
 	private JacksonBenchmarkRunner singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter; 
 
 	private BenchmarkRunner<JsonFilter> removeWhitespaceJsonFilter;
-
-	
 	
 	private LogbookBenchmarkRunner singlePathLogbookJsonFilter;
 
@@ -116,6 +121,12 @@ public class CveFilterBenchmark {
 		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(size), prettyPrinted);
 		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), prettyPrinted);
 		maxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(size), prettyPrinted);
+		
+		
+		maxStringLengthMaxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthMaxSizeJsonFilter(maxStringLength, size), prettyPrinted);
+		maxStringLengthMaxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, size), prettyPrinted);
+		maxStringLengthMaxSizeJacksonJsonFilter = new BenchmarkRunner<JacksonJsonFilter>(file, true, new JacksonMaxSizeMaxStringSizeJsonFilter(maxStringLength, size), prettyPrinted);
+		
 		
 		singleFullPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON), prettyPrinted);
 		singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon[0], FilterType.ANON), prettyPrinted);
@@ -156,8 +167,8 @@ public class CveFilterBenchmark {
 	@Benchmark
 	public long maxStringLength_core() throws IOException {
 		return maxStringLengthJsonFilter.benchmarkBytes();
-	}	
-	
+	}
+
 	@Benchmark
 	public long maxStringLength_core_remove_whitespace() throws IOException {
 		return maxStringLengthRemoveWhitespaceJsonFilter.benchmarkBytes();
@@ -205,6 +216,22 @@ public class CveFilterBenchmark {
 	@Benchmark
 	public long all_single_jackson() throws IOException {
 		return singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter.benchmarkCharacters();
+	}
+
+	@Benchmark
+	public long maxStringLengthMaxSize_core() throws IOException {
+		return maxStringLengthMaxSizeJsonFilter.benchmarkCharacters();
+	}
+
+	@Benchmark
+	public long maxStringLengthMaxSizeRemoveWhitespace_core() throws IOException {
+		return maxStringLengthMaxSizeRemoveWhitespaceJsonFilter.benchmarkCharacters();
+	}
+
+
+	@Benchmark
+	public long maxStringLengthMaxSize_jackson() throws IOException {
+		return maxStringLengthMaxSizeJacksonJsonFilter.benchmarkCharacters();
 	}
 
 	public static void main(String[] args) throws RunnerException {

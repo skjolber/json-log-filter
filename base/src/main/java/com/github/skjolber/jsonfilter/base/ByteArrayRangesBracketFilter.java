@@ -498,6 +498,9 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 			offset++;
 		}
 
+		// mark is inclusive, so if the loop exited
+		// at the current mark, adjust levels
+
 		if(offset == mark) {
 			switch(chars[mark]) {
 				case '{' :

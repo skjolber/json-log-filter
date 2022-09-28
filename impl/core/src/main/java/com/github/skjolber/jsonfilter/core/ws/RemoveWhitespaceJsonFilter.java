@@ -35,13 +35,15 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
 	}
 	
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
-		length += offset;
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		
+		int limit = length + offset;
+		int bufferLength = buffer.length();
 		
 		try {
 			int start = offset;
 			
-			while(offset < length) {
+			while(offset < limit) {
 				char c = chars[offset];
 				if(c == '"') {
 					// there should be no newlines in strings for valid JSON
@@ -53,7 +55,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(offset < limit && chars[offset] <= 0x20);
 					
 					start = offset;
 					
@@ -62,19 +64,26 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			buffer.append(chars, start, offset - start);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(buffer.length() - bufferLength);
+			}
+
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
 	}
 	
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
-		length += offset;
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		int limit = length + offset;
+		int bufferLength = output.size();
 		
 		try {
 			int start = offset;
 			
-			while(offset < length) {
+			while(offset < limit) {
 				byte c = chars[offset];
 				if(c == '"') {
 					// there should be no newlines in strings for valid JSON
@@ -86,7 +95,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 					output.write(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(offset < limit && chars[offset] <= 0x20);
 					
 					start = offset;
 					
@@ -95,6 +104,11 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			output.write(chars, start, offset - start);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(output.size() - bufferLength);
+			}
 			return true;
 		} catch(Exception e) {
 			return false;
@@ -102,12 +116,12 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
+	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		return process(chars, offset, length, output, null);
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
 	}
 }

@@ -337,6 +337,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		boolean[] squareBrackets = getSquareBrackets();
 		int mark = getMark();
 
+		// TODO identify scalar or tree value, pass flow accordingly
+		
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
@@ -488,6 +490,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 			offset++;
 		}
 		
+		// mark is inclusive, so if the loop exited
+		// at the current mark, adjust levels
 		if(offset == mark) {
 			switch(chars[mark]) {
 				case '{' :

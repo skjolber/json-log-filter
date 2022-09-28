@@ -19,32 +19,28 @@ package com.github.skjolber.jsonfilter.core.ws;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 
-public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilter {
+public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilter {
 
-	public MaxSizeRemoveWhitespaceJsonFilter(int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		this(-1, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
+	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public MaxSizeRemoveWhitespaceJsonFilter(int maxSize) {
-		this(maxSize, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
-	}
-
-	protected MaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString) {
-		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
+	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize) {
+		this(maxStringLength, maxSize, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, buffer, metrics);
 		}
 		
 		int bufferLength = buffer.length();
-
-		int maxLimit = length + offset;
+		int lengthLimit = length + offset;
 
 		int limit = offset + maxSize;
 
@@ -81,11 +77,66 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 					mark = offset;
 					break;				
 				case '"': {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
 					
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+					if(nextOffset - offset - 1 > maxStringLength) {
+						int endQuoteIndex = nextOffset;
+
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
+						if(chars[nextOffset] == ':') {
+							
+							// was a key
+							if(endQuoteIndex != nextOffset) {
+								// did skip whitespace
+
+								if(start <= mark) {
+									writtenMark = buffer.length() + mark - start; 
+								}
+								buffer.append(chars, start, endQuoteIndex - start + 1);
+								
+								limit += nextOffset - endQuoteIndex;
+								if(limit >= lengthLimit) {
+									limit = lengthLimit;
+								}
+								
+								start = nextOffset;
+								offset = nextOffset;
+								continue;
+							}
+						} else {
+							// was a value
+							if(start <= mark) {
+								writtenMark = buffer.length() + mark - start; 
+							}
+							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+							buffer.append(chars, start, aligned - start);
+							buffer.append(truncateStringValue);
+							buffer.append(endQuoteIndex - aligned);
+							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							
+							limit += nextOffset - aligned; // also account for skipped whitespace, if any
+							if(limit >= length) {
+								limit = length;
+							}
+							
+							start = nextOffset;
+						}
+					} else {
+						nextOffset++;
+					}
+					offset = nextOffset;
+
 					continue;
 				}
 				default : {
@@ -98,10 +149,10 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 						do {
 							offset++;
 							limit++;
-						} while(offset < maxLimit && chars[offset] <= 0x20);
+						} while(offset < lengthLimit && chars[offset] <= 0x20);
 
-						if(limit >= maxLimit) {
-							limit = maxLimit;
+						if(limit >= lengthLimit) {
+							limit = lengthLimit;
 						}
 						start = offset;
 
@@ -129,8 +180,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < lengthLimit) {
+					metrics.onMaxSize(lengthLimit - mark - level);
 				}
 				
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -138,6 +189,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 			return true;
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}
@@ -147,11 +199,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			return super.process(chars, offset, length, output, metrics);
 		}
 
-		int bufferLength = output.size();
-		
 		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
 		
-		int maxLimit = length + offset;
+		byte[] digit = new byte[11];
+		
+		int bufferLength = output.size();
+		int lengthLimit = length + offset;
 
 		int limit = offset + maxSize;
 
@@ -186,12 +239,70 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 					// fall through
 				case ',' :
 					mark = offset;
-					break;
+					break;				
 				case '"': {
+					
+					int nextOffset = offset;
 					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+					if(nextOffset - offset - 1 > maxStringLength) {
+						int endQuoteIndex = nextOffset;
+
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
+						if(chars[nextOffset] == ':') {
+							
+							// was a key
+							if(endQuoteIndex != nextOffset) {
+								// did skip whitespace
+								// did skip whitespace
+
+								if(start <= mark) {
+									writtenMark = stream.size() + mark - start; 
+								}
+								stream.write(chars, start, endQuoteIndex - start + 1);
+								
+								limit += nextOffset - endQuoteIndex;
+								if(limit >= lengthLimit) {
+									limit = lengthLimit;
+								}
+								
+								start = nextOffset;
+								offset = nextOffset;
+								continue;
+							}
+						} else {
+							// was a value
+							if(start <= mark) {
+								writtenMark = stream.size() + mark - start; 
+							}
+							
+							// was a value
+							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+							stream.write(chars, start, aligned - start);
+							stream.write(truncateStringValueAsBytes);
+							ByteArrayRangesFilter.writeInt(stream, endQuoteIndex - aligned, digit);
+							stream.write('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							
+							limit += nextOffset - aligned; // also account for skipped whitespace, if any
+							if(limit >= length) {
+								limit = length;
+							}
+							
+							start = nextOffset;
+						}
+					} else {
+						nextOffset++;
+					}
+					offset = nextOffset;
 
 					continue;
 				}
@@ -205,12 +316,11 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 						do {
 							offset++;
 							limit++;
-						} while(offset < maxLimit && chars[offset] <= 0x20);
+						} while(offset < lengthLimit && chars[offset] <= 0x20);
 
-						if(limit >= maxLimit) {
-							limit = maxLimit;
+						if(limit >= lengthLimit) {
+							limit = lengthLimit;
 						}
-
 						start = offset;
 
 						continue;
@@ -219,7 +329,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				}
 				offset++;
 			}
-
+			
 			if(level == 0) {
 				stream.write(chars, start, offset - start);
 				stream.writeTo(output);
@@ -240,17 +350,17 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < lengthLimit) {
+					metrics.onMaxSize(lengthLimit - mark - level);
 				}
 				
 				metrics.onOutput(output.size() - bufferLength);
 			}
-			
+
 			return true;
 		} catch(Exception e) {
 			return false;
-		}
+		}		
 	}
 	
 	public static int deltaMark(int mark, char c) {
@@ -279,15 +389,5 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				return 0;
 			}
 		}
-	}
-
-	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		return process(chars, offset, length, output, null);
-	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
-		return process(chars, offset, length, output, null);
 	}
 }

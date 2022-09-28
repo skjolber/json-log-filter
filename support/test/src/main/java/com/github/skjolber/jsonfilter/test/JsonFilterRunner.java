@@ -230,24 +230,24 @@ public class JsonFilterRunner {
 	}
 
 	protected void compareChars(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer, JsonFilterMetrics metrics) {
-		String original = cache.getFile(sourceFile);
+		String from = cache.getFile(sourceFile);
 		
-		String from = transformer.apply(original);
-		if(!predicate.test(from)) {
+		String fromTransformed = transformer.apply(from);
+		if(!predicate.test(fromTransformed)) {
 			return;
 		}
 		String expected = cache.getFile(filteredFile);
 
 		String input;
-		if(expected.length() < from.length()) {
-			input = from;
+		if(expected.length() < fromTransformed.length()) {
+			input = fromTransformed;
 		} else {
-			input = from + spaces(expected.length() - from.length() + 1);
+			input = fromTransformed + spaces(expected.length() - fromTransformed.length() + 1);
 		}
 
 		JsonFilter maxSize = maxSizeFunction.apply(expected.length());
 
-		StringBuilder maxSizeOutput = new StringBuilder(from.length() * 2);
+		StringBuilder maxSizeOutput = new StringBuilder(fromTransformed.length() * 2);
 		if(!maxSize.process(input, maxSizeOutput)) {
 			System.out.println(sourceFile);
 			System.out.println(input);
@@ -262,19 +262,19 @@ public class JsonFilterRunner {
 		String result = maxSizeOutput.toString();
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		if(literal) {
 			if(!new String(expected).equals(result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " with max size " + expected.length());
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, input, result, original, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile + " size " + expected.length());
 			}
 		}
@@ -306,22 +306,22 @@ public class JsonFilterRunner {
 	}
 
 	protected void compareChars(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer, JsonFilterMetrics metrics) {
-		String original = cache.getFile(sourceFile);
+		String from = cache.getFile(sourceFile);
 		
-		String from = transformer.apply(original);
+		String fromTransformed = transformer.apply(from);
 		
-		if(!predicate.test(from)) {
+		if(!predicate.test(fromTransformed)) {
 			return;
 		}
 
-		StringBuilder output = new StringBuilder(from.length() * 2);
-		if(!filter.process(from, output)) {
+		StringBuilder output = new StringBuilder(fromTransformed.length() * 2);
+		if(!filter.process(fromTransformed, output)) {
 			System.out.println(sourceFile);
-			System.out.println(from);
+			System.out.println(fromTransformed);
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 		
-		if(!filter.process(from, new StringBuilder(from.length() * 2), metrics)) {
+		if(!filter.process(fromTransformed, new StringBuilder(fromTransformed.length() * 2), metrics)) {
 			throw new IllegalArgumentException("Unable to process using metrics");
 		}
 
@@ -330,19 +330,19 @@ public class JsonFilterRunner {
 		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
 		if(literal) {
 			if(!new String(expected).equals(result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(expected), result)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -358,36 +358,38 @@ public class JsonFilterRunner {
 	}
 	
 	protected void compareBytes(JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer, JsonFilterMetrics metrics) {
-		String original = cache.getFile(sourceFile);
+		String from = cache.getFile(sourceFile);
 		
-		String from = transformer.apply(original);
-		if(!predicate.test(from)) {
+		String fromTransformed = transformer.apply(from);
+		if(!predicate.test(fromTransformed)) {
 			return;
 		}
 		
-		byte[] process = filter.process(from.getBytes(StandardCharsets.UTF_8));
+		byte[] fromTransformedBytes = fromTransformed.getBytes(StandardCharsets.UTF_8);
+		
+		byte[] process = filter.process(fromTransformedBytes);
 		if(process == null) {
 			System.out.println("Unable to process " + sourceFile);
-			System.out.println(from);
+			System.out.println(fromTransformed);
 
 			throw new IllegalArgumentException("Unable to process " + sourceFile + " using " + filter);
 		}
 		
-		if(filter.process(from.getBytes(StandardCharsets.UTF_8), metrics) == null) {
+		if(filter.process(fromTransformedBytes, metrics) == null) {
 			throw new IllegalArgumentException("Unable to process using metrics");
 		}
 
 
 		// this will break "truncated by XX"
 		// because it is bytes vs chars
-		boolean surrogates = isSurrogates(from);
+		boolean surrogates = isSurrogates(fromTransformed);
 
 		String result = new String(process);
 
 		String expected = cache.getFile(filteredFile);
 
 		if(isWellformed(result, jsonFactory) != isWellformed(expected, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+			printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
@@ -396,13 +398,13 @@ public class JsonFilterRunner {
 
 		if(literal) {
 			if(!new String(filteredExpected).equals(filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(filteredExpected), filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, from, original, result, expected);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expected);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -410,21 +412,21 @@ public class JsonFilterRunner {
 
 
 	protected void compareBytes(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter filter, File sourceFile, File filteredFile, Properties properties, Predicate<String> predicate, Function<String, String> transformer, JsonFilterMetrics metrics) {
-		String original = cache.getFile(sourceFile);
+		String from = cache.getFile(sourceFile);
 		
-		String chars = transformer.apply(original);
-		if(!predicate.test(chars)) {
+		String fromTransformed = transformer.apply(from);
+		if(!predicate.test(fromTransformed)) {
 			return;
 		}
-		byte[] from = chars.getBytes(StandardCharsets.UTF_8);
+		byte[] fromTransformedBytes = fromTransformed.getBytes(StandardCharsets.UTF_8);
 
 		byte[] expected = cache.getFile(filteredFile).getBytes(StandardCharsets.UTF_8);
 
 		byte[] input;
-		if(expected.length < from.length) {
-			input = from;
+		if(expected.length < fromTransformedBytes.length) {
+			input = fromTransformedBytes;
 		} else {
-			input = spaces(from, expected.length - from.length + 1);
+			input = spaces(fromTransformedBytes, expected.length - fromTransformedBytes.length + 1);
 		}
 
 		JsonFilter maxSize = maxSizeFunction.apply(expected.length);		
@@ -432,7 +434,7 @@ public class JsonFilterRunner {
 		byte[] maxSizeOutput = maxSize.process(input);
 		if(maxSizeOutput == null) {
 			System.out.println("Unable to process max size " + sourceFile);
-			System.out.println(from);
+			System.out.println(fromTransformedBytes);
 			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + maxSize);
 		}
 		
@@ -442,13 +444,13 @@ public class JsonFilterRunner {
 
 		// this will break "truncated by XX"
 		// because it is bytes vs chars
-		boolean surrogates = isSurrogates(chars);
+		boolean surrogates = isSurrogates(fromTransformed);
 
 		String result = new String(maxSizeOutput);
 		String expectedChars = new String(expected);
 		
 		if(isWellformed(result, jsonFactory) != isWellformed(expectedChars, jsonFactory)) {
-			printDiff(filter, properties, filteredFile, sourceFile, chars, original, result, expectedChars);
+			printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expectedChars);
 			throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 		}
 
@@ -457,13 +459,13 @@ public class JsonFilterRunner {
 
 		if(literal) {
 			if(!new String(filteredExpected).equals(filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, original, filteredResult, expectedChars);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		} else {
 			// compare events
 			if(!parseCompare(new String(filteredExpected), filteredResult)) {
-				printDiff(filter, properties, filteredFile, sourceFile, filteredExpected, original, filteredResult, expectedChars);
+				printDiff(filter, properties, filteredFile, sourceFile, from, fromTransformed, result, expectedChars);
 				throw new IllegalArgumentException("Unexpected result for " + sourceFile);
 			}
 		}
@@ -544,7 +546,7 @@ public class JsonFilterRunner {
 		return true;
 	}
 
-	protected void printDiff(JsonFilter filter, Properties properties, File expectedFile, File original, String from, String fromTransformed, String to, String expected) {
+	protected void printDiff(JsonFilter filter, Properties properties, File expectedFile, File original, String from, String fromTransformed, String result, String expected) {
 		System.out.println("Processing using: " + filter);
 		System.out.println("Properties: " + properties);
 		if(expectedFile.equals(original)) {
@@ -558,12 +560,12 @@ public class JsonFilterRunner {
 			System.out.println("Transformed: \n" + fromTransformed);
 		}
 		System.out.println("Expected:\n" + expected);
-		System.out.println("Actual:\n" + to);
-		System.out.println("(size " + expected.length() + " vs " + to.length() + ")");
+		System.out.println("Actual:\n" + result);
+		System.out.println("(size " + expected.length() + " vs " + result.length() + ")");
 
-		for(int k = 0; k < Math.min(expected.length(), to.length()); k++) {
-			if(expected.charAt(k) != to.charAt(k)) {
-				System.out.println("Diff at " + k + ": " + expected.charAt(k) + " vs + " + to.charAt(k));
+		for(int k = 0; k < Math.min(expected.length(), result.length()); k++) {
+			if(expected.charAt(k) != result.charAt(k)) {
+				System.out.println("Diff at " + k + ": " + expected.charAt(k) + " vs + " + result.charAt(k));
 
 				break;
 			}
