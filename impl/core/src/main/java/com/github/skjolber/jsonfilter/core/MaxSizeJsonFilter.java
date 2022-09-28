@@ -127,10 +127,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		
-		if(metrics != null) {
-			metrics.onInput(length);
-		}
-
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -138,6 +134,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			output.write(chars, offset, length);
 			
 			if(metrics != null) {
+				metrics.onInput(length);
 				metrics.onOutput(length);
 			}
 			
