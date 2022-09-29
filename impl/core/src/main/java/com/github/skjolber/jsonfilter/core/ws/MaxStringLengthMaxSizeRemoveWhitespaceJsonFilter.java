@@ -363,31 +363,4 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 		}		
 	}
 	
-	public static int deltaMark(int mark, char c) {
-		switch(c) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return 1;
-			default : {
-				return 0;
-			}
-		}
-	}
-	
-	public static int deltaMark(int mark, byte c) {
-		switch(c) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return 1;
-			default : {
-				return 0;
-			}
-		}
-	}
 }
