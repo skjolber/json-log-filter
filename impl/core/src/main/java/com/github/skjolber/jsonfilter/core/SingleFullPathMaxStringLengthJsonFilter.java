@@ -47,16 +47,13 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
 						
-						level--;
-						
 						continue;
 					}
+					level++;
 					
 					break;
 				case '}' :
@@ -190,16 +187,13 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
 						
-						level--;
-						
 						continue;
 					}
+					level++;
 
 					break;
 				case '}' :
