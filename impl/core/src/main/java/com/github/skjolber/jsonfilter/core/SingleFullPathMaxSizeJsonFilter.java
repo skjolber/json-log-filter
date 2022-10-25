@@ -58,8 +58,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-
 					squareBrackets[bracketLevel] = false;
 					bracketLevel++;
 					
@@ -67,12 +65,10 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
-					mark = offset;
-
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						filter.setLevel(bracketLevel);
-						filter.setMark(mark);
+						filter.setMark(offset);
 						
 						offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
 
@@ -80,11 +76,12 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						mark = filter.getMark();
 						bracketLevel = filter.getLevel();
 
-						// counted offset bracket twice
-						level--;
-						
 						continue;
 					}
+					level++;
+
+					mark = offset;
+
 					break;
 				case '}' :
 					level--;
@@ -292,8 +289,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-
 					squareBrackets[bracketLevel] = false;
 					bracketLevel++;
 					
@@ -301,24 +296,22 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
-					mark = offset;
-
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						filter.setLevel(bracketLevel);
-						filter.setMark(mark);
+						filter.setMark(offset);
 						
 						offset = filter.skipObjectMaxSize(chars, offset + 1, maxSizeLimit);
 
 						squareBrackets = filter.getSquareBrackets();
 						mark = filter.getMark();
 						bracketLevel = filter.getLevel();
-
-						// counted offset bracket twice
-						level--;
 						
 						continue;
 					}
+					mark = offset;
+
+					level++;
 					break;
 				case '}' :
 					level--;

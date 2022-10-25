@@ -51,15 +51,15 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						offset = CharArrayRangesFilter.skipObject(chars, offset);
-						level--;
 						
 						continue;
 					}
+					
+					level++;
+					
 					break;
 				case '}' :
 					level--;
@@ -163,16 +163,14 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						offset = ByteArrayRangesFilter.skipObject(chars, offset);
 						
-						level--;
-						
 						continue;
 					}
+					level++;
+					
 					break;
 				case '}' :
 					level--;
