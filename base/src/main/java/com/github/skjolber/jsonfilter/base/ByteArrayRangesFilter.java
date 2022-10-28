@@ -347,8 +347,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}	
-
-
 	
 	public static int skipSubtree(byte[] chars, int offset) {
 		int level = 0;

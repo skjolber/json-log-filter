@@ -4,9 +4,9 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
-	private boolean[] squareBrackets = new boolean[32];
-	private int mark;
-	private int level;
+	protected boolean[] squareBrackets = new boolean[32];
+	protected int mark;
+	protected int level;
 
 	public CharArrayRangesBracketFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
 			char[] truncateMessage) {
@@ -81,72 +81,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		
 		closeStructure(buffer);
 	}
-
-	public int skipSubtreeMaxSize(char[] chars, int offset, int limit) {
-		int levelLimit = getLevel();
-		
-		int level = getLevel();
-		
-		boolean[] squareBrackets = getSquareBrackets();
-		int mark = getMark();
-
-		loop:
-		while(offset < limit) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					squareBrackets[level] = chars[offset] == '[';
-					
-					level++;
-					if(level >= squareBrackets.length) {
-						squareBrackets = grow(squareBrackets);
-					}
-					mark = offset;
-					
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					} else if(level < levelLimit) { // was scalar value
-						break loop;
-					}
-					break;
-				}
-				case ',' : {
-					mark = offset;
-					if(level == levelLimit) { // was scalar value
-						break loop;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == levelLimit) { 
-						offset++;
-						break loop;
-					}
-					break;
-				}
-				default :
-			}
-			offset++;
-		}
-		
-		setLevel(level);
-		setMark(mark);
-		
-		return offset;
-	}
-	
 	
 	public int skipObjectMaxSize(char[] chars, int offset, int limit) {
 		int levelLimit = getLevel() - 1;
