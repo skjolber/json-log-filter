@@ -19,13 +19,12 @@ package com.github.skjolber.jsonfilter.core.ws;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.AbstractRangesSingleCharArrayFullPathJsonFilter;
 
-public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractRangesSingleCharArrayFullPathJsonFilter {
+public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter {
 
 	protected SingleFullPathRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
@@ -116,22 +115,58 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractRangesSing
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 
-					if(chars[nextOffset] != ':') {
+					if(chars[nextOffset] == ':') {
 						// was a key
 						buffer.append(chars, start, endQuoteIndex - start + 1);
 						
-						
-					} else {
-						// was a value
-						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						buffer.append(chars, start, aligned - start);
-						buffer.append(truncateStringValue);
-						buffer.append(endQuoteIndex - aligned);
-						buffer.append('"');
-						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
+						if(matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
+							matches++;
+						} else {
+							offset = nextOffset;
+							
+							start = nextOffset;
+							
+							continue;
 						}
+						
+						if(matches == elementPaths.length) {
+							if(filterType == FilterType.PRUNE) {
+								
+								
+								//filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
+							} else {
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+									// filter as tree
+									//offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+									//filter.addAnon(nextOffset, offset);
+								}
+							}
+							if(pathMatches != -1) {
+								pathMatches--;
+								if(pathMatches == 0) {
+									// just remove whitespace
+								}							
+							}
+							
+							matches--;
+						} else {
+							offset = nextOffset;
+						}
+						
+						continue;
+						
+						
+
+					} else {
+
 					}
 
 					offset = nextOffset + 1;
@@ -185,18 +220,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractRangesSing
 						if(chars[nextOffset] == ':') {
 							// was a key
 							output.write(chars, start, endQuoteIndex - start + 1);
-						} else {
-
-							// was a value
-							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
-							output.write('"');
 							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
+							
+							
+						} else {
+							// was a value
 						}
 
 						start = nextOffset;
@@ -228,6 +256,67 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractRangesSing
 		} catch(Exception e) {
 			return false;
 		}
+	}
+
+	public boolean anonymizeSubtree(final char[] chars, int offset, int limit, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		int start = offset;
+
+		while(offset < limit) {
+			char c = chars[offset];
+			if(c == '"') {
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// key or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					if(chars[nextOffset] == ':') {
+						// was a key
+						buffer.append(chars, start, endQuoteIndex - start + 1);
+					} else {
+						// was a value
+						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						buffer.append(chars, start, aligned - start);
+						buffer.append(truncateStringValue);
+						buffer.append(endQuoteIndex - aligned);
+						buffer.append('"');
+						
+						if(metrics != null) {
+							metrics.onMaxStringLength(1);
+						}
+					}
+
+					start = nextOffset;
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			} else if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+
+				continue;
+			}
+			offset++;
+		}
+		buffer.append(chars, start, offset - start);
+			
+			
 	}
 
 }
