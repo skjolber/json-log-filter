@@ -158,4 +158,10 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
+	
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+
 }

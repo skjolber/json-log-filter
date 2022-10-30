@@ -198,4 +198,9 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+
 }

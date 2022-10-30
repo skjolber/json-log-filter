@@ -212,7 +212,17 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
-								offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
+								
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+									offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+								}
 
 								filter.addPrune(nextOffset, offset);
 								
@@ -532,7 +542,17 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 									break loop;
 								}
-								offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset);
+								
+								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+									offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								} else {
+									if(chars[nextOffset] == '"') {
+										// quoted value
+										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									} else {
+										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									}
+								}
 
 								filter.addPrune(nextOffset, offset);
 								

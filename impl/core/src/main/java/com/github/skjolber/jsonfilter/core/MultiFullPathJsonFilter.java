@@ -38,7 +38,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						if(level >= elementFilterStart.length) {
 							// so other always level < elementFilterStart.length
-							offset = CharArrayRangesFilter.skipObject(chars, offset);
+							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
 							
 							level--;
 									
@@ -92,19 +92,22 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
-							if(type == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
-							} else {
-								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-									// filter as tree
-									offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 								} else {
-									if(chars[nextOffset] == '"') {
-										// quoted value
-										offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-									} else {
-										offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-									}
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								}
+							} else {
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset);
+								} else {
 									filter.addAnon(nextOffset, offset);
 								}
 							}
@@ -160,7 +163,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(level > elementFilterStart.length) {
-							offset = ByteArrayRangesFilter.skipObject(chars, offset);
+							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
 							
 							level--;
 									
@@ -225,23 +228,26 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
 						if(type != null) {
 							// matched
-							if(type == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-							} else {
-								
-								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-									// filter as tree
-									offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 								} else {
-									if(chars[nextOffset] == '"') {
-										// quoted value
-										offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-									} else {
-										offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-									}
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								}
+							} else {
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset);
+								} else {
 									filter.addAnon(nextOffset, offset);
 								}
 							}
+
 							
 							if(pathMatches != -1) {
 								pathMatches--;

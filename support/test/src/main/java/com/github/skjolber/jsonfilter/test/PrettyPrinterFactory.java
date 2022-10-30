@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.test;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.Indenter;
@@ -32,27 +30,27 @@ public class PrettyPrinterFactory {
 	public DefaultPrettyPrinter newInstance(int[] dimensions) {
 		DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
 		
-		spacesInObjectEntries(prettyPrinter, dimensions);
-		withArrayIndenter(prettyPrinter, dimensions);
-		withObjectIndenter(prettyPrinter, dimensions);
+		prettyPrinter = spacesInObjectEntries(prettyPrinter, dimensions);
+		prettyPrinter = withArrayIndenter(prettyPrinter, dimensions);
+		prettyPrinter = withObjectIndenter(prettyPrinter, dimensions);
 		
 		return prettyPrinter;
 	}
 	
-	public void spacesInObjectEntries(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
+	public DefaultPrettyPrinter spacesInObjectEntries(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
 		if(dimensions[spacesInObjectEntries] == 1) {
-			prettyPrinter = prettyPrinter.withoutSpacesInObjectEntries();
+			return prettyPrinter.withoutSpacesInObjectEntries();
 		} else {
-			prettyPrinter = prettyPrinter.withSpacesInObjectEntries();
+			return prettyPrinter.withSpacesInObjectEntries();
 		}
 	}
 	
-	public void withArrayIndenter(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
-		prettyPrinter = prettyPrinter.withArrayIndenter(intenders[dimensions[withArrayIndenter]]);
+	public DefaultPrettyPrinter withArrayIndenter(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
+		return prettyPrinter.withArrayIndenter(intenders[dimensions[withArrayIndenter]]);
 	}
 
-	public void withObjectIndenter(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
-		prettyPrinter = prettyPrinter.withObjectIndenter(intenders[dimensions[withObjectIndenter]]);
+	public DefaultPrettyPrinter withObjectIndenter(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
+		return prettyPrinter.withObjectIndenter(intenders[dimensions[withObjectIndenter]]);
 	}
 	
 }

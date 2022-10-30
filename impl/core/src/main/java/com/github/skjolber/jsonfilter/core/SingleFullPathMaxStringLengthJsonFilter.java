@@ -63,7 +63,9 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					level--;
 					
 					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
+					if(matches > level) {
+						matches = level;
+					}
 					
 					break;
 				case '"' :
@@ -116,22 +118,26 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					}
 					
 					if(matches == elementPaths.length) {
-						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
-						} else {
-							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								// filter as tree
-								offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 							} else {
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-								} else {
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-								}
+								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							}
+						} else {
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+							} else {
+								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset);
+							} else {
 								filter.addAnon(nextOffset, offset);
 							}
 						}
+						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
@@ -205,7 +211,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 				case '}' :
 					level--;
 					
-					if(matches >= level) {
+					if(matches > level) {
 						matches = level;
 					}
 					
@@ -235,7 +241,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(nextOffset - offset > maxStringLength) {								
+							if(quoteIndex - offset + 1 > maxStringLength) {
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
@@ -259,22 +265,26 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					}
 					
 					if(matches == elementPaths.length) {
-						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-						} else {
-							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								// filter as tree
-								offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 							} else {
-								if(chars[nextOffset] == '"') {
-									// quoted value
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-								} else {
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-								}
+								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							}
+						} else {
+							if(chars[nextOffset] == '"') {
+								// quoted value
+								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+							} else {
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset);
+							} else {
 								filter.addAnon(nextOffset, offset);
 							}
-						}
+						}						
+						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {

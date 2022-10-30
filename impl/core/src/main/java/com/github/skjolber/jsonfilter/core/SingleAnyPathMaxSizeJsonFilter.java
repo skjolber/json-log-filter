@@ -143,8 +143,17 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 								offset = maxSizeLimit;
 								break loop;
 							}
-							offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset);
-
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+							} else {
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+							}
+							
 							filter.addPrune(nextOffset, offset);
 							
 							// increment limit since we removed something
@@ -400,8 +409,17 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 								offset = maxSizeLimit;								
 								break loop;
 							}
-							offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset);
-
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+							} else {
+								if(chars[nextOffset] == '"') {
+									// quoted value
+									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+								} else {
+									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								}
+							}
+							
 							filter.addPrune(nextOffset, offset);
 
 							// increment limit since we removed something

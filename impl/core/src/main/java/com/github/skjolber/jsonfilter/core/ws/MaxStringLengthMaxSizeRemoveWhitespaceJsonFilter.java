@@ -189,7 +189,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 
 			return true;
 		} catch(Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -362,5 +361,10 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 			return false;
 		}		
 	}
-	
+
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+
 }

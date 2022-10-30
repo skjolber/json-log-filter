@@ -52,6 +52,8 @@ public class JsonFilterPropertiesFactory extends AbstractJsonFilterPropertiesFac
 				}
 			}
 			
+			properties.remove("removingWhitespace");
+			
 			return new JsonFilterProperties(filter, properties);
 		} catch(Exception e) {
 			throw new RuntimeException(e);

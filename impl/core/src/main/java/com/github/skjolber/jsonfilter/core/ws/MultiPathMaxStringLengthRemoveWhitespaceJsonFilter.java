@@ -198,4 +198,9 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abstract
 		}
 	}
 
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+
 }

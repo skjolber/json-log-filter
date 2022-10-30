@@ -99,7 +99,6 @@ public class JsonPathFilter implements JsonFilter {
 	}
 
 	private String convert(String str) {
-		String original = str;
 		if(!str.startsWith("$")) {
 			str = '$' + str;
 		}
@@ -119,7 +118,7 @@ public class JsonPathFilter implements JsonFilter {
 		for(JsonPath jsonPath : anon) {
 			original = original.map(jsonPath, (currentValue, configuration) -> {
 				if(currentValue instanceof ContainerNode) {
-					ContainerNode containerNode = (ContainerNode)currentValue;
+					ContainerNode<?> containerNode = (ContainerNode<?>)currentValue;
 					anonymize(containerNode);
 					
 					return containerNode;
@@ -162,7 +161,7 @@ public class JsonPathFilter implements JsonFilter {
 		return original.jsonString();
 	}
 	
-	private void anonymize(ContainerNode containerNode) {
+	private void anonymize(ContainerNode<?> containerNode) {
 		if(containerNode instanceof ArrayNode) {
 			ArrayNode arrayNode = (ArrayNode)containerNode;
 			
@@ -170,9 +169,8 @@ public class JsonPathFilter implements JsonFilter {
 				JsonNode jsonNode = arrayNode.get(i);
 				
 				if(jsonNode instanceof ContainerNode) {
-					anonymize((ContainerNode)jsonNode);
+					anonymize((ContainerNode<?>)jsonNode);
 				} else if(jsonNode instanceof ValueNode) {
-					ValueNode valueNode = (ValueNode)jsonNode;
 					arrayNode.set(i, TextNode.valueOf(FILTER_ANONYMIZE));
 				}
 			}
@@ -185,7 +183,7 @@ public class JsonPathFilter implements JsonFilter {
 
 				JsonNode jsonNode = objectNode.findValue(next);
 				if(jsonNode instanceof ContainerNode) {
-					anonymize((ContainerNode)jsonNode);
+					anonymize((ContainerNode<?>)jsonNode);
 				} else {
 					objectNode.put(next, FILTER_ANONYMIZE);
 				}

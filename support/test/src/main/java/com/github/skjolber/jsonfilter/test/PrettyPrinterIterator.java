@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 
 public class PrettyPrinterIterator {
 
-	public static List<DefaultPrettyPrinter> getPermutations() {
+	public static List<DefaultPrettyPrinter> getAll() {
 		
 		List<DefaultPrettyPrinter> list = new ArrayList<>();
 		

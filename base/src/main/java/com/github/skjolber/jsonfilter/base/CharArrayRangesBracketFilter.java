@@ -402,7 +402,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
 
 					if(offset + getAnonymizeMessageLength() < limit) {
 						

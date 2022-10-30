@@ -319,4 +319,9 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 			
 	}
 
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+
 }
