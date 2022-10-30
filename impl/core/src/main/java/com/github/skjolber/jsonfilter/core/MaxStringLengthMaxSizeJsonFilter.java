@@ -47,10 +47,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < limit){
 				// max size reached before end of document
-				filter.alignMark(chars);
+				int markLimit = filter.markToLimit(chars);
 				
 				// filter rest of document
-				filter.addDelete(filter.getMark(), limit);
+				filter.addDelete(markLimit, limit);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -75,10 +75,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < limit){
 				// max size reached before end of document
-				filter.alignMark(chars);
+				int markLimit = filter.markToLimit(chars);
 				
 				// filter rest of document
-				filter.addDelete(filter.getMark(), limit);
+				filter.addDelete(markLimit, limit);
 			}
 			return filter;
 		} catch(Exception e) {

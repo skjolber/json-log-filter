@@ -21,7 +21,7 @@ public class JsonPathFilterTest extends DefaultJsonFilterTest {
 	protected static final Predicate<String> ARRAY_FILTER =  (json) -> !json.startsWith("[");
 
 	public JsonPathFilterTest() throws Exception {
-		super(false);
+		super(false, true);
 	}
 
 	@Test

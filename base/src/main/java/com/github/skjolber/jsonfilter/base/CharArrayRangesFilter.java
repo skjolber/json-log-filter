@@ -86,9 +86,9 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			buffer.append(chars, offset, length - offset);
 		}
 	}
-	
+
 	public static int skipObject(char[] chars, int offset) {
-		int level = 0;
+		int level = 1;
 
 		while(true) {
 			switch(chars[offset]) {
@@ -191,9 +191,9 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-	
-	public static int skipSubtree(char[] chars, int offset) {
-		int level = 0;
+
+	public static int skipObjectOrArray(char[] chars, int offset) {
+		int level = 1;
 
 		while(true) {
 			switch(chars[offset]) {
@@ -209,14 +209,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					
 					if(level == 0) {
 						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
 					}
 					break;
 				}
@@ -225,9 +217,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 						offset++;
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					
-					if(level == 0) { 
-						return offset + 1;
-					}
 					break;
 				}
 				default :
@@ -236,16 +225,15 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
+	
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
 		return offset + 1;
 	}
-
+	
 	public static final int scanUnquotedValue(final char[] chars, int offset) {
-		do {
-			offset++;
-		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
+		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
 
 		return offset;
 	}
@@ -343,7 +331,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
 					
 					filter.addAnon(offset, nextOffset);
 					
@@ -356,6 +344,110 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
+	
+
+	public static int anonymizeObjectOrArray(char[] chars, int offset, CharArrayRangesFilter filter) {
+		int level = 1;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '[' : 
+				case '{' : {
+					level++;
+					break;
+				}
+	
+				case ']' : 
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case ',' : {
+					break;
+				}
+				case ' ' : 
+				case '\t' : 
+				case '\n' : 
+				case '\r' : {
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+	
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+					} else {
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
+						// space: 0x20
+						// tab: 0x09 \t
+						// carriage return: 0x0D \r
+						// newline: 0x0A \n
+						
+						if(chars[nextOffset] > 0x20) {						
+							// was a value
+							filter.addAnon(offset, nextOffset);
+							offset = nextOffset;						
+						} else {
+							// fast-forward over whitespace
+							int end = nextOffset;
+	
+							// optimization: scan for highest value
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+	
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
+							
+							if(chars[nextOffset] == ':') {
+								// key
+								offset = nextOffset + 1;
+							} else {
+								// value
+								filter.addAnon(offset, end);
+								
+								offset = nextOffset;
+							}
+						}
+					}
+					
+					continue;
+				}
+				default : {
+					// scalar value
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+					
+					filter.addAnon(offset, nextOffset);
+					
+					offset = nextOffset;
+					
+					continue;
+							
+				}
+			}
+			offset++;
+		}
+	}
+	
 	
 	public void addMaxLength(char[] chars, int start, int end, int length) {
 		// account for code points and escaping

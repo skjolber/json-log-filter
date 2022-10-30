@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingleCharArrayAnyPathJsonFilter {
 
@@ -83,20 +84,22 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 				}
 				
 				if(matchPath(chars, offset + 1, quoteIndex, path)) {
-					if(filterType == FilterType.PRUNE) {
-						filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
-					} else {
-						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							// filter as tree
-							offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 						} else {
-							if(chars[nextOffset] == '"') {
-								// quoted value
-								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-							} else {
-								// scalar value
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-							}
+							offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						}
+					} else {
+						if(chars[nextOffset] == '"') {
+							// quoted value
+							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						} else {
+							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset);
+						} else {
 							filter.addAnon(nextOffset, offset);
 						}
 					}
@@ -186,23 +189,25 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 				}
 
 				if(matchPath(chars, offset + 1, quoteIndex, path)) {
-					if(filterType == FilterType.PRUNE) {
-						filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-					} else {
-						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							// filter as tree
-							offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 						} else {
-							if(chars[nextOffset] == '"') {
-								// quoted value
-								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-							} else {
-								// scalar value
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
-							}
+							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						}
+					} else {
+						if(chars[nextOffset] == '"') {
+							// quoted value
+							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						} else {
+							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset);
+						} else {
 							filter.addAnon(nextOffset, offset);
 						}
-					}
+					}						
 					
 					if(pathMatches != -1) {
 						pathMatches--;

@@ -46,16 +46,16 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		this.mark = mark;
 	}
 	
-	public void alignMark(byte[] chars) {
+	public int markToLimit(byte[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
 			case '}' :
 			case '[' :
 			case ']' :
-				mark++;
-				break;
+				return mark + 1;
 			default : {
+				return mark;
 			}
 		}
 	}
@@ -87,72 +87,6 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		
 		closeStructure(buffer);
 	}
-
-	public int skipSubtreeMaxSize(char[] chars, int offset, int limit) {
-		int levelLimit = getLevel();
-		
-		int level = getLevel();
-		
-		boolean[] squareBrackets = getSquareBrackets();
-		int mark = getMark();
-
-		loop:
-		while(offset < limit) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					squareBrackets[level] = chars[offset] == '[';
-					
-					level++;
-					if(level >= squareBrackets.length) {
-						squareBrackets = grow(squareBrackets);
-					}
-					mark = offset;
-					
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					} else if(level < levelLimit) { // was scalar value
-						break loop;
-					}
-					break;
-				}
-				case ',' : {
-					mark = offset;
-					if(level == levelLimit) { // was scalar value
-						break loop;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == levelLimit) { 
-						offset++;
-						break loop;
-					}
-					break;
-				}
-				default :
-			}
-			offset++;
-		}
-		
-		setLevel(level);
-		setMark(mark);
-		
-		return offset;
-	}
-	
 	
 	public int skipObjectMaxSize(byte[] chars, int offset, int limit) {
 		int levelLimit = getLevel() - 1;
@@ -367,22 +301,16 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 					if(level == levelLimit) {
 						offset++;
-						break loop;
-					}
-					
-					if(level == levelLimit) {
-						offset++;
-						break loop;
-					} else if(level < levelLimit) { // was scalar value
-						break loop;
+
+						// level same as before
+						setMark(mark);
+
+						return offset;
 					}
 					break;
 				}
 				case ',' : {
 					mark = offset;
-					if(level == levelLimit) { // was scalar value
-						break loop;
-					}
 					break;
 				}
 				case ' ' : 
@@ -420,8 +348,10 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
 								limit += getRemovedLength() - removedLength;
-								
-								mark = nextOffset;
+
+								if(nextOffset < limit) {
+									mark = nextOffset;
+								}
 							} else {
 								// make sure to stop scanning here
 								offset = limit;
@@ -455,7 +385,9 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
 	
-									mark = end;
+									if(end < limit) {
+										mark = end;
+									}
 								} else {
 									// make sure to stop scanning here
 									offset = limit;
@@ -474,7 +406,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
 
 					if(offset + getAnonymizeMessageLength() < limit) {
 						
@@ -482,7 +414,9 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						addAnon(offset, nextOffset);
 						limit += getRemovedLength() - removedLength;
 
-						mark = nextOffset;
+						if(nextOffset < limit) {
+							mark = nextOffset;
+						}
 					} else {
 						// make sure to stop scanning here
 						offset = limit;
@@ -496,21 +430,6 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 				}
 			}
 			offset++;
-		}
-
-		if(offset == mark) {
-			switch(chars[mark]) {
-				case '{' :
-				case '[' :
-					level++;
-					break;
-				case '}' :
-				case ']' :
-					level--;
-					break;
-				default : {
-				}
-			}
 		}
 
 		setLevel(level);

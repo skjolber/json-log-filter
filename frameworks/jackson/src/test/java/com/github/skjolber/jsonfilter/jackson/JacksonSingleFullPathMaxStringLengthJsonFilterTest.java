@@ -18,7 +18,7 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 public class JacksonSingleFullPathMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonSingleFullPathMaxStringLengthJsonFilterTest() throws Exception {
-		super();
+		super(true);
 	}
 
 	@Test

@@ -34,7 +34,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(anyElementFilters == null && level >= elementFilterStart.length) {
-							offset = CharArrayRangesFilter.skipObject(chars, offset);
+							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
 
 							level--;
 							
@@ -99,21 +99,15 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							nextOffset++;
 						}
 
-						if(type == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipSubtree(chars, nextOffset));
-							
-							if(pathMatches != -1) {
-								pathMatches--;
-								if(pathMatches == 0) {
-									return filter; // done filtering
-								}
-							}
-							
-							constrainMatchesCheckLevel(elementMatches, level - 1);
-						} else if(type == FilterType.ANON) {
+						// match again any higher filter
+						if(type != null) {
+							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								// filter as tree
-								offset = CharArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								} else {
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								}
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
@@ -121,7 +115,11 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 								} else {
 									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
-								filter.addAnon(nextOffset, offset);
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset);
+								} else {
+									filter.addAnon(nextOffset, offset);
+								}
 							}
 							
 							if(pathMatches != -1) {
@@ -175,7 +173,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(anyElementFilters == null && level >= elementFilterStart.length) {
-							offset = ByteArrayRangesFilter.skipObject(chars, offset);
+							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
 
 							level--;
 							
@@ -240,21 +238,15 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							nextOffset++;
 						}
 
-						if(type == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipSubtree(chars, nextOffset));
-							
-							if(pathMatches != -1) {
-								pathMatches--;
-								if(pathMatches == 0) {
-									return filter; // done filtering
-								}
-							}
-							
-							constrainMatchesCheckLevel(elementMatches, level - 1);
-						} else if(type == FilterType.ANON) {
+						// match again any higher filter
+						if(type != null) {
+							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								// filter as tree
-								offset = ByteArrayRangesFilter.anonymizeSubtree(chars, nextOffset, filter);
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								} else {
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								}
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
@@ -262,8 +254,13 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 								} else {
 									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
-								filter.addAnon(nextOffset, offset);
+								if(type == FilterType.PRUNE) {
+									filter.addPrune(nextOffset, offset);
+								} else {
+									filter.addAnon(nextOffset, offset);
+								}
 							}
+
 							
 							if(pathMatches != -1) {
 								pathMatches--;
@@ -275,7 +272,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							constrainMatchesCheckLevel(elementMatches, level - 1);
 						} else {
 							offset = nextOffset;
-						}
+						}						
 						
 						continue;
 						

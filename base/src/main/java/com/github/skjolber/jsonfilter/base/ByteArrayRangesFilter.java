@@ -320,7 +320,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public static int skipObject(byte[] chars, int offset) {
-		int level = 0;
+		int level = 1;
 
 		while(true) {
 			switch(chars[offset]) {
@@ -346,12 +346,24 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			}
 			offset++;
 		}
-	}	
-
-
+	}
 	
-	public static int skipSubtree(byte[] chars, int offset) {
-		int level = 0;
+	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
+		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
+
+		return offset + 1;
+	}
+
+	public static final int scanUnquotedValue(final byte[] chars, int offset) {
+		do {
+			offset++;
+		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
+
+		return offset;
+	}
+
+	public static int skipObjectOrArray(byte[] chars, int offset) {
+		int level = 1;
 
 		while(true) {
 			switch(chars[offset]) {
@@ -367,14 +379,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					
 					if(level == 0) {
 						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
 					}
 					break;
 				}
@@ -383,9 +387,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 						offset++;
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					
-					if(level == 0) {
-						return offset + 1;
-					}
 					break;
 				}
 				default :
@@ -393,21 +394,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-
-
-	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
-		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-
-		return offset + 1;
-	}
-
-	public static final int scanUnquotedValue(final byte[] chars, int offset) {
-		do {
-			offset++;
-		} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
-
-		return offset;
-	}
+	
+	
 	
 	public static int anonymizeSubtree(byte[] chars, int offset, ByteArrayRangesFilter filter) {
 		int level = 0;
@@ -515,6 +503,110 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
+	
+
+	public static int anonymizeObjectOrArray(byte[] chars, int offset, ByteArrayRangesFilter filter) {
+		int level = 1;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '[' : 
+				case '{' : {
+					level++;
+					break;
+				}
+	
+				case ']' : 
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case ',' : {
+					break;
+				}
+				case ' ' : 
+				case '\t' : 
+				case '\n' : 
+				case '\r' : {
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+	
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+					} else {
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
+						// space: 0x20
+						// tab: 0x09 \t
+						// carriage return: 0x0D \r
+						// newline: 0x0A \n
+						
+						if(chars[nextOffset] > 0x20) {						
+							// was a value
+							filter.addAnon(offset, nextOffset);
+							offset = nextOffset;						
+						} else {
+							// fast-forward over whitespace
+							int end = nextOffset;
+	
+							// optimization: scan for highest value
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+	
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
+							
+							if(chars[nextOffset] == ':') {
+								// key
+								offset = nextOffset + 1;
+							} else {
+								// value
+								filter.addAnon(offset, end);
+								
+								offset = nextOffset;
+							}
+						}
+					}
+					
+					continue;
+				}
+				default : {
+					// scalar value
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+					
+					filter.addAnon(offset, nextOffset);
+					
+					offset = nextOffset;
+					
+					continue;
+							
+				}
+			}
+			offset++;
+		}
+	}
+	
 	
 	public static int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayRangesFilter filter) {
 		int level = 0;

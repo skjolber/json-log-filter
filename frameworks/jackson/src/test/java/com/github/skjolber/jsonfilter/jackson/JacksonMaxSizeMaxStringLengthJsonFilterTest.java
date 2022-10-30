@@ -19,7 +19,7 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonMaxSizeMaxStringLengthJsonFilterTest() throws Exception {
-		super();
+		super(false);
 	}
 	
 	@Test

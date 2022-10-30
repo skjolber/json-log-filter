@@ -17,7 +17,7 @@ import com.fasterxml.jackson.core.JsonToken;
 public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonMaxSizeJsonFilterTest() throws Exception {
-		super();
+		super(false);
 	}
 
 	@Test

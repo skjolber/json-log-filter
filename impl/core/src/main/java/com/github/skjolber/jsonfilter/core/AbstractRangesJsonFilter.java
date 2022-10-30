@@ -14,7 +14,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		
 		int bufferLength = buffer.length();
 		
 		metrics.onInput(length);
@@ -71,7 +70,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 		copy.filter(chars, offset, length, buffer, metrics);
 		
 		metrics.onOutput(buffer.size() - bufferSize);
-		
 		return true;
 	}
 	

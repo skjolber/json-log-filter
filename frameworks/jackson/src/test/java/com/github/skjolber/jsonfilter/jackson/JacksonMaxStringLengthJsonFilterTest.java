@@ -17,7 +17,7 @@ import com.fasterxml.jackson.core.JsonParser;
 public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonMaxStringLengthJsonFilterTest() throws Exception {
-		super();
+		super(true);
 	}
 
 	@Test

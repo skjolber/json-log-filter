@@ -41,12 +41,12 @@ public class AbstractPathJsonFilterTest {
 			return false;
 		}
 
+
 		@Override
 		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}
-
 	}
 	
 	@Test
