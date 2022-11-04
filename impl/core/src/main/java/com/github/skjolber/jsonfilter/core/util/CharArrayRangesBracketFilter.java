@@ -1,22 +1,20 @@
-package com.github.skjolber.jsonfilter.base;
-
-import java.io.ByteArrayOutputStream;
+package com.github.skjolber.jsonfilter.core.util;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
+public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
-	private boolean[] squareBrackets = new boolean[32];
-	private int mark;
-	private int level;
-	
-	public ByteArrayRangesBracketFilter(int initialCapacity, int length) {
-		super(initialCapacity, length);
+	protected boolean[] squareBrackets = new boolean[32];
+	protected int mark;
+	protected int level;
+
+	public CharArrayRangesBracketFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
+			char[] truncateMessage) {
+		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public ByteArrayRangesBracketFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage,
-			byte[] truncateMessage) {
-		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
+	public CharArrayRangesBracketFilter(int initialCapacity, int length) {
+		super(initialCapacity, length);
 	}
 
 	public boolean[] grow(boolean[] squareBrackets) {
@@ -45,8 +43,18 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 	public void setMark(int mark) {
 		this.mark = mark;
 	}
-	
-	public int markToLimit(byte[] chars) {
+
+	public void closeStructure(final StringBuilder buffer) {
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				buffer.append(']');
+			} else {
+				buffer.append('}');
+			}
+		}
+	}
+
+	public int markToLimit(char[] chars) {
 		switch(chars[mark]) {
 			
 			case '{' :
@@ -60,35 +68,21 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		}
 	}
 	
-	public void closeStructure(ByteArrayOutputStream output) {
-		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackets[i]) {
-				output.write(']');
-			} else {
-				output.write('}');
-			}
-		}
-	}	
-	
-	public void setSquareBrackets(boolean[] squareBrackets) {
-		this.squareBrackets = squareBrackets;
-	}
-
 	@Override
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public void filter(char[] chars, int offset, int length, StringBuilder buffer, JsonFilterMetrics metrics) {
 		super.filter(chars, offset, length, buffer, metrics);
 		
 		closeStructure(buffer);
 	}
 	
 	@Override
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public void filter(char[] chars, int offset, int length, StringBuilder buffer) {
 		super.filter(chars, offset, length, buffer);
 		
 		closeStructure(buffer);
 	}
 	
-	public int skipObjectMaxSize(byte[] chars, int offset, int limit) {
+	public int skipObjectMaxSize(char[] chars, int offset, int limit) {
 		int levelLimit = getLevel() - 1;
 		
 		int level = getLevel();
@@ -145,7 +139,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		return offset;
 	}
 	
-	public int skipObjectMaxSizeMaxStringLength(byte[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
+	public int skipObjectMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;
 		
@@ -269,7 +263,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		return offset;
 	}
 
-	public int anonymizeSubtree(byte[] chars, int offset, int limit) {
+	public int anonymizeSubtree(char[] chars, int offset, int limit) {
 		int levelLimit = getLevel();
 		
 		int level = getLevel();
@@ -277,6 +271,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		boolean[] squareBrackets = getSquareBrackets();
 		int mark = getMark();
 
+		// TODO identify scalar or tree value, pass flow accordingly
+		
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
@@ -298,7 +294,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 					level--;
 
 					mark = offset;
-
+					
 					if(level == levelLimit) {
 						offset++;
 
@@ -348,7 +344,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
 								limit += getRemovedLength() - removedLength;
-
+								
 								if(nextOffset < limit) {
 									mark = nextOffset;
 								}
@@ -384,7 +380,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									int removedLength = getRemovedLength();
 									addAnon(offset, end);
 									limit += getRemovedLength() - removedLength;
-	
+									
 									if(end < limit) {
 										mark = end;
 									}
@@ -412,11 +408,13 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
+						
 						limit += getRemovedLength() - removedLength;
-
+						
 						if(nextOffset < limit) {
 							mark = nextOffset;
 						}
+
 					} else {
 						// make sure to stop scanning here
 						offset = limit;
@@ -434,8 +432,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 		setLevel(level);
 		setMark(mark);
-		
+
 		return offset;
 	}
-
+	
 }

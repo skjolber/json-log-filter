@@ -22,7 +22,7 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
 	public JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest() throws Exception {
-		super();
+		super(false);
 	}
 
 	@Test

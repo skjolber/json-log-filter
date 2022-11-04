@@ -2,20 +2,20 @@ package com.github.skjolber.jsonfilter.base;
 
 public abstract class AbstractRangesFilter {
 
-	protected static final int MAX_INITIAL_ARRAY_SIZE = 256;
-	protected static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
+	public static final int MAX_INITIAL_ARRAY_SIZE = 256;
+	public static final int DEFAULT_INITIAL_ARRAY_SIZE = 16;
 
 	protected static final int FILTER_PRUNE = 0;
 	protected static final int FILTER_ANON = 1;
 	protected static final int FILTER_DELETE = 2;
 	protected static final int FILTER_MAX_LENGTH = 3;
 	
-	protected static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
-	protected static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
+	public static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
+	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	
-	protected static final String FILTER_ANONYMIZE = "*****";
-	protected static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
-	protected static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
+	public static final String FILTER_ANONYMIZE = "*****";
+	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
+	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
 
 	protected int[] filter; // start, end, type (if positive) or length (if negative)
 	protected int filterIndex = 0;

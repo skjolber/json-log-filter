@@ -25,7 +25,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false);
+		super(false, true);
 	}
 
 	@Test

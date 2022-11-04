@@ -1,9 +1,10 @@
-package com.github.skjolber.jsonfilter.base;
+package com.github.skjolber.jsonfilter.core.util;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	
@@ -348,51 +349,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
-	public static int skipSubtree(byte[] chars, int offset) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == 0) {
-						return offset + 1;
-					}
-					break;
-				}
-				default :
-			}
-			offset++;
-		}
-	}
-
-
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
@@ -407,24 +363,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		return offset;
 	}
 
-	public static int skipScalarValue(char[] chars, int offset) {
-		/*
-		while(chars[offset] <= 0x20) {
-			offset++;
-		}
-*/
-		if(chars[offset] == '"') {
-			do {
-				offset++;
-			} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-		} else {
-			do {
-				offset++;
-			} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
-		}
-		return offset;
-	}
-	
 	public static int skipObjectOrArray(byte[] chars, int offset) {
 		int level = 1;
 
@@ -457,8 +395,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-	
-	
 	
 	public static int anonymizeSubtree(byte[] chars, int offset, ByteArrayRangesFilter filter) {
 		int level = 0;

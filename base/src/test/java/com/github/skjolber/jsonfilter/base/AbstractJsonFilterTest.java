@@ -137,7 +137,8 @@ public class AbstractJsonFilterTest {
 		AbstractJsonFilter.quoteAsString(new String(new byte[] {0}), output);
 		assertThat(output.toString()).isEqualTo("\\u0000");
 	}
-	
+
+	/*
 	@Test
 	public void testGetFilters() {
 		
@@ -152,9 +153,6 @@ public class AbstractJsonFilterTest {
 		assertEquals(new String(byteArrayRangesFilter.anonymizeMessage), new String(filter.getAnonymizeJsonValue()));
 		assertEquals(new String(byteArrayRangesFilter.pruneMessage), new String(filter.getPruneJsonValue()));
 		assertEquals(new String(byteArrayRangesFilter.truncateMessage), new String(filter.getTruncateStringValue()));
-		
-		
-		
 	}
-	
+*/	
 }

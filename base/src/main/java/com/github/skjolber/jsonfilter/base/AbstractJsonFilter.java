@@ -124,30 +124,6 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	public String process(String jsonString, JsonFilterMetrics metrics) {
 		return process(jsonString.toCharArray(), metrics);
 	}
-
-	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
-		return getCharArrayRangesFilter(-1, length);
-	}
-
-	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
-		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-	}
-
-	protected CharArrayRangesBracketFilter getCharArrayRangesBracketFilter(int capacity, int length) {
-		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-	}
-
-	protected ByteArrayRangesBracketFilter getByteArrayRangesBracketFilter(int capacity, int length) {
-		return new ByteArrayRangesBracketFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
-	}
-
-	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
-		return getByteArrayRangesFilter(-1, length);
-	}
-	
-	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity, int length) {
-		return new ByteArrayRangesFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
-	}
 	
 	/**
 	 * Method that will quote text contents using JSON standard quoting,

@@ -43,6 +43,7 @@ public class JsonFilterRunner {
 	private List<JsonFilterOutputDirectory> outputDirectories;
 	private boolean literal;
 	private JsonFactory jsonFactory;
+	private boolean prettyPrint;
 
 	public JsonFilterRunner(List<?> nullable, File directory, JsonFilterPropertiesFactory jsonFilterPropertiesFactory) throws Exception {
 		this(nullable, directory, jsonFilterPropertiesFactory, true);
@@ -249,22 +250,27 @@ public class JsonFilterRunner {
 			Set<String> fromTransformedSet = new HashSet<>();
 			fromTransformedList.add(apply);
 			expectedList.add(expectedFile);
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				String prettyPrinted = prettyPrintTransformer.apply(apply);
-				if(fromTransformedSet.add(prettyPrinted)) {
-					fromTransformedList.add(prettyPrinted);
-					expectedList.add(expectedFile);
+			
+			if(prettyPrint) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					String prettyPrinted = prettyPrintTransformer.apply(apply);
+					if(fromTransformedSet.add(prettyPrinted)) {
+						fromTransformedList.add(prettyPrinted);
+						expectedList.add(expectedFile);
+					}
 				}
 			}
 		} else {
 			Set<String> fromTransformedSet = new HashSet<>();
 			fromTransformedList.add(apply);
 			expectedList.add(expectedFile);
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				String prettyPrinted = prettyPrintTransformer.apply(apply);
-				if(fromTransformedSet.add(prettyPrinted)) {
-					fromTransformedList.add(prettyPrinted);
-					expectedList.add(prettyPrintTransformer.apply(expectedFile));
+			if(prettyPrint) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					String prettyPrinted = prettyPrintTransformer.apply(apply);
+					if(fromTransformedSet.add(prettyPrinted)) {
+						fromTransformedList.add(prettyPrinted);
+						expectedList.add(prettyPrintTransformer.apply(expectedFile));
+					}
 				}
 			}
 		}
@@ -352,9 +358,11 @@ public class JsonFilterRunner {
 		
 		Set<String> fromTransformedList = new HashSet<>();
 		fromTransformedList.add(apply);
-		if(filter.isRemovingWhitespace()) {
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				fromTransformedList.add(prettyPrintTransformer.apply(apply));
+		if(prettyPrint) {
+			if(filter.isRemovingWhitespace()) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					fromTransformedList.add(prettyPrintTransformer.apply(apply));
+				}
 			}
 		}
 
@@ -415,9 +423,11 @@ public class JsonFilterRunner {
 		
 		Set<String> fromTransformedList = new HashSet<>();
 		fromTransformedList.add(apply);
-		if(filter.isRemovingWhitespace()) {
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				fromTransformedList.add(prettyPrintTransformer.apply(apply));
+		if(prettyPrint) {
+			if(filter.isRemovingWhitespace()) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					fromTransformedList.add(prettyPrintTransformer.apply(apply));
+				}
 			}
 		}
 
@@ -487,22 +497,26 @@ public class JsonFilterRunner {
 			Set<String> fromTransformedSet = new HashSet<>();
 			fromTransformedList.add(apply);
 			expectedList.add(expectedFile);
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				String prettyPrinted = prettyPrintTransformer.apply(apply);
-				if(fromTransformedSet.add(prettyPrinted)) {
-					fromTransformedList.add(prettyPrinted);
-					expectedList.add(expectedFile);
+			if(prettyPrint) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					String prettyPrinted = prettyPrintTransformer.apply(apply);
+					if(fromTransformedSet.add(prettyPrinted)) {
+						fromTransformedList.add(prettyPrinted);
+						expectedList.add(expectedFile);
+					}
 				}
 			}
 		} else {
 			Set<String> fromTransformedSet = new HashSet<>();
 			fromTransformedList.add(apply);
 			expectedList.add(expectedFile);
-			for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
-				String prettyPrinted = prettyPrintTransformer.apply(apply);
-				if(fromTransformedSet.add(prettyPrinted)) {
-					fromTransformedList.add(prettyPrinted);
-					expectedList.add(prettyPrintTransformer.apply(expectedFile));
+			if(prettyPrint) {
+				for (PrettyPrintTransformer prettyPrintTransformer : PrettyPrintTransformer.ALL) {
+					String prettyPrinted = prettyPrintTransformer.apply(apply);
+					if(fromTransformedSet.add(prettyPrinted)) {
+						fromTransformedList.add(prettyPrinted);
+						expectedList.add(prettyPrintTransformer.apply(expectedFile));
+					}
 				}
 			}
 		}
@@ -682,6 +696,10 @@ public class JsonFilterRunner {
 
 	public File getDirectory() {
 		return directory;
+	}
+	
+	public void setPrettyPrint(boolean prettyPrint) {
+		this.prettyPrint = prettyPrint;
 	}
 
 }

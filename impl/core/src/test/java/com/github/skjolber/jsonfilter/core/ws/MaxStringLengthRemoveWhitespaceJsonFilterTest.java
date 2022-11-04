@@ -17,7 +17,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxStringLengthRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false);
+		super(false, true);
 	}
 
 	@Test

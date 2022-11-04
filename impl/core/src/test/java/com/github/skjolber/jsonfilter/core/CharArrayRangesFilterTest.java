@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.base;
+package com.github.skjolber.jsonfilter.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class CharArrayRangesFilterTest {
 
@@ -266,23 +268,4 @@ public class CharArrayRangesFilterTest {
 		}
 	}
 
-	@Test
-	public void testSkip() {
-		String endCurlyBracket = "abcde}";
-		int skipSubtree = CharArrayRangesFilter.skipSubtree(endCurlyBracket.toCharArray(), 0);
-		assertEquals(skipSubtree, endCurlyBracket.length() - 1);
-		
-		String endComma = "abcde,";
-		skipSubtree = CharArrayRangesFilter.skipSubtree(endComma.toCharArray(), 0);
-		assertEquals(skipSubtree, endComma.length() - 1);
-		
-		String endBracket = "abcde]";
-		skipSubtree = CharArrayRangesFilter.skipSubtree(endBracket.toCharArray(), 0);
-		assertEquals(skipSubtree, endBracket.length() - 1);
-		
-		String quoted = "\"abcde\"";
-		skipSubtree = CharArrayRangesFilter.skipSubtree(quoted.toCharArray(), 0);
-		assertEquals(skipSubtree, quoted.length());
-		
-	}	
 }

@@ -20,7 +20,7 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false);
+		super(false, true);
 	}
 
 	@Test

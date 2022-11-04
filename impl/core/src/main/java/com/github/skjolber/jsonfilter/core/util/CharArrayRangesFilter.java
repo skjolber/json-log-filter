@@ -1,6 +1,7 @@
-package com.github.skjolber.jsonfilter.base;
+package com.github.skjolber.jsonfilter.core.util;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayRangesFilter extends AbstractRangesFilter {
 	
@@ -191,51 +192,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			offset++;
 		}
 	}
-	
-	public static int skipSubtree(char[] chars, int offset) {
-		int level = 0;
-
-		while(true) {
-			switch(chars[offset]) {
-				case '[' : 
-				case '{' : {
-					level++;
-					break;
-				}
-	
-				case ']' : 
-				case '}' : {
-					level--;
-					
-					if(level == 0) {
-						return offset + 1;
-					} else if(level < 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case ',' : {
-					if(level == 0) { // was scalar value
-						return offset;
-					}
-					break;
-				}
-				case '"' : {
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					
-					if(level == 0) { 
-						return offset + 1;
-					}
-					break;
-				}
-				default :
-			}
-			offset++;
-		}
-	}
-	
 
 	public static int skipObjectOrArray(char[] chars, int offset) {
 		int level = 1;
@@ -283,24 +239,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		return offset;
 	}
 
-	public static int skipScalarValue(char[] chars, int offset) {
-		/*
-		while(chars[offset] <= 0x20) {
-			offset++;
-		}
-*/
-		if(chars[offset] == '"') {
-			while(chars[++offset] != '"' || chars[offset - 1] == '\\');
-
-			return offset + 1;
-		} else {
-			do {
-				offset++;
-			} while(chars[offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
-		}
-		return offset;
-	}
-	
 	public static int anonymizeSubtree(char[] chars, int offset, CharArrayRangesFilter filter) {
 		int level = 0;
 

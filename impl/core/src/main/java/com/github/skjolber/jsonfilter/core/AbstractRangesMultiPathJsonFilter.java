@@ -4,8 +4,10 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public abstract class AbstractRangesMultiPathJsonFilter extends AbstractMultiPathJsonFilter {
 
@@ -65,4 +67,30 @@ public abstract class AbstractRangesMultiPathJsonFilter extends AbstractMultiPat
 	}
 	
 	protected abstract ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length);
+	
+
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
+		return getCharArrayRangesFilter(-1, length);
+	}
+
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
+		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
+	protected CharArrayRangesBracketFilter getCharArrayRangesBracketFilter(int capacity, int length) {
+		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
+	protected ByteArrayRangesBracketFilter getByteArrayRangesBracketFilter(int capacity, int length) {
+		return new ByteArrayRangesBracketFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
+		return getByteArrayRangesFilter(-1, length);
+	}
+	
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity, int length) {
+		return new ByteArrayRangesFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+	
 }

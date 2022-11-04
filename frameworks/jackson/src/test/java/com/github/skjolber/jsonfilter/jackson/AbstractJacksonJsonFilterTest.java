@@ -16,8 +16,8 @@ public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTes
 	// max size and max string length does not work for unicode
 	protected static final Predicate<String> UNICODE_FILTER =  (json) -> !json.contains("\\");
 	
-	public AbstractJacksonJsonFilterTest() throws Exception {
-		super(false);
+	public AbstractJacksonJsonFilterTest(boolean includePrettyPrinting) throws Exception {
+		super(false, includePrettyPrinting);
 	}
 	
 	public void testConvenienceMethods(JacksonJsonFilter successFilter, JacksonJsonFilter failureFilter, JacksonJsonFilter brokenFactory) throws IOException {

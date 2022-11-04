@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.base;
+package com.github.skjolber.jsonfilter.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 
 public class ByteArrayRangesFilterTest {
 
@@ -279,26 +281,5 @@ public class ByteArrayRangesFilterTest {
 			assertThat(buffer.toString()).isEqualTo(outputs[i]);
 		}
 	}
-
-	@Test
-	public void testSkip() {
-		String endCurlyBracket = "abcde}";
-		int skipSubtree = ByteArrayRangesFilter.skipSubtree(endCurlyBracket.getBytes(), 0);
-		assertEquals(skipSubtree, endCurlyBracket.length() - 1);
-		
-		String endComma = "abcde,";
-		skipSubtree = ByteArrayRangesFilter.skipSubtree(endComma.getBytes(), 0);
-		assertEquals(skipSubtree, endComma.length() - 1);
-		
-		String endBracket = "abcde]";
-		skipSubtree = ByteArrayRangesFilter.skipSubtree(endBracket.getBytes(), 0);
-		assertEquals(skipSubtree, endBracket.length() - 1);
-		
-		String quoted = "\"abcde\"";
-		skipSubtree = ByteArrayRangesFilter.skipSubtree(quoted.getBytes(), 0);
-		assertEquals(skipSubtree, quoted.length());		
-	}
-
-
 	
 }
