@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.test;
+package com.github.skjolber.jsonfilter.test.truth;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Fact.simpleFact;
@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
+import com.github.skjolber.jsonfilter.test.JsonFilterResult;
 import com.google.common.base.Objects;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;

@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.test;
+package com.github.skjolber.jsonfilter.test.pp;
 
 import java.util.ArrayList;
 import java.util.List;

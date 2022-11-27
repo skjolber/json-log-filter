@@ -60,9 +60,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					level--;
 					
 					// always skips start object if not on a matching level, so must always constrain here
-					if(matches > level) {
-						matches = level;
-					}
+					matches = level;
 					
 					break;
 				case '"' :
@@ -205,9 +203,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 				case '}' :
 					level--;
 					
-					if(matches > level) {
-						matches = level;
-					}
+					matches = level;
 					
 					break;
 				case '"' :
@@ -277,7 +273,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							} else {
 								filter.addAnon(nextOffset, offset);
 							}
-						}						
+						}
 						
 						if(pathMatches != -1) {
 							pathMatches--;

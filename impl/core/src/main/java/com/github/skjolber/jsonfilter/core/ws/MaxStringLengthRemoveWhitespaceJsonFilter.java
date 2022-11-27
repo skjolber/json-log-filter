@@ -66,7 +66,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					if(nextOffset - offset - 1 > maxStringLength) {
 						int endQuoteIndex = nextOffset;
 						
-						// key or value, might be whitespace
+						// field name or value, might be whitespace
 
 						// skip whitespace
 						// optimization: scan for highest value
@@ -74,8 +74,9 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
 
+						// TODO avoid flushing if no whitespace? this is a bit unusual place to see a whitespace 
 						if(chars[nextOffset] == ':') {
-							// was a key
+							// was a field name
 							buffer.append(chars, start, endQuoteIndex - start + 1);
 						} else {
 							// was a value
@@ -100,8 +101,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
-
+					} while(chars[offset] <= 0x20 && offset < limit);					
+					
 					start = offset;
 
 					continue;
@@ -177,7 +178,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					output.write(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(chars[offset] <= 0x20 && offset < limit);					
 
 					start = offset;
 

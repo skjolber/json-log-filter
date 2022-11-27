@@ -126,8 +126,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 							}
 							
 							limit += nextOffset - aligned; // also accounts for skipped whitespace, if any
-							if(limit >= length) {
-								limit = length;
+							if(limit >= lengthLimit) {
+								limit = lengthLimit;
 							}
 							
 							start = nextOffset;
@@ -292,8 +292,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhit
 							}
 							
 							limit += nextOffset - aligned; // also account for skipped whitespace, if any
-							if(limit >= length) {
-								limit = length;
+							if(limit >= lengthLimit) {
+								limit = lengthLimit;
 							}
 							
 							start = nextOffset;

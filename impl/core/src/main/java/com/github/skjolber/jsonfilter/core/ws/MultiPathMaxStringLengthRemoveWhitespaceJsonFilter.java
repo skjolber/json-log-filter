@@ -100,7 +100,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abstract
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(offset < limit && chars[offset] <= 0x20);					
 
 					start = offset;
 
@@ -177,7 +177,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abstract
 					output.write(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(offset < limit && chars[offset] <= 0x20);					
 
 					start = offset;
 

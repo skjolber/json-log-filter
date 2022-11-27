@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilterTest {
@@ -41,7 +42,6 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	}
 
 	@Test
-	@Disabled
 	public void testDeepStructure5() throws IOException {
 		FileInputStream fileInputStream = new FileInputStream(new File("/home/skjolber/git/json-log-filter-github/impl/core/src/test/resources/json/wiki/person.json"));
 		String string = IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
@@ -54,9 +54,33 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 		System.out.println(whitespaceString);
 		System.out.println("**************************************");
 		
+		/*
 		JsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH);
 		
 		System.out.println(filter.getClass().getSimpleName() + " " + filter.process(whitespaceString));
+		*/
+		
+		CharWhitespaceFilter test = new CharWhitespaceFilter();
+		
+		
+		char[] charArray = whitespaceString.toCharArray();
+		
+		StringBuilder builder = new StringBuilder();
+
+		long time = System.currentTimeMillis();
+		
+		for(int i = 0; i < 5000_0000; i++) {
+			builder.setLength(0);
+			test.setStart(0);
+			if(test.skipObjectOrArray(charArray, 1, charArray.length, builder) == -1) {
+				throw new RuntimeException();
+			}
+		}
+		System.out.println((System.currentTimeMillis() - time));
+//		System.out.println(skipObjectOrArray);
+//		System.out.println(builder);
+		
+		
 	}
 
 }

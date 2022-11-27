@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
 
 public class JsonFilterRunner {
 
@@ -681,18 +682,7 @@ public class JsonFilterRunner {
 			}
 		}
 	}
-	public static boolean isWellformed(String s) {
-		return isWellformed(s, new JsonFactory());
-	}
 
-	public static boolean isWellformed(String s, JsonFactory jsonFactory) {
-		try (JsonParser parser = jsonFactory.createParser(new StringReader(s))) {
-			while(parser.nextToken() != null);
-		} catch(Exception e) {
-			return false;
-		}
-		return true;			
-	}
 
 	public File getDirectory() {
 		return directory;

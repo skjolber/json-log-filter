@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.test;
+package com.github.skjolber.jsonfilter.test.pp;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;

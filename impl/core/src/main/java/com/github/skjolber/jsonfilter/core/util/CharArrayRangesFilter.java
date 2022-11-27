@@ -117,6 +117,35 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
+	public static int skipArray(char[] chars, int offset) {
+		int level = 1;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '[' : {
+					level++;
+					break;
+				}
+				case ']' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' : {
+					do {
+						offset++;
+					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+					break;
+				}
+				default :
+			}
+			offset++;
+		}
+	}	
+	
 	public static int skipObjectMaxStringLength(char[] chars, int offset, int maxStringLength, CharArrayRangesFilter filter) {
 		int level = 0;
 

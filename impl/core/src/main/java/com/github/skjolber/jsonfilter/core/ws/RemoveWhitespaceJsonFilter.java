@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
 
 public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 
@@ -41,29 +43,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = buffer.length();
 		
 		try {
-			int start = offset;
-			
-			while(offset < limit) {
-				char c = chars[offset];
-				if(c == '"') {
-					// there should be no newlines in strings for valid JSON
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					buffer.append(chars, start, offset - start);
-					do {
-						offset++;
-					} while(offset < limit && chars[offset] <= 0x20);
-					
-					start = offset;
-					
-					continue;
-				}
-				offset++;
-			}
-			buffer.append(chars, start, offset - start);
+			CharWhitespaceFilter.process(chars, offset, limit, buffer);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -81,29 +61,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = output.size();
 		
 		try {
-			int start = offset;
-			
-			while(offset < limit) {
-				byte c = chars[offset];
-				if(c == '"') {
-					// there should be no newlines in strings for valid JSON
-					do {
-						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					output.write(chars, start, offset - start);
-					do {
-						offset++;
-					} while(offset < limit && chars[offset] <= 0x20);
-					
-					start = offset;
-					
-					continue;
-				}
-				offset++;
-			}
-			output.write(chars, start, offset - start);
+			ByteWhitespaceFilter.process(chars, offset, limit, output);
 			
 			if(metrics != null) {
 				metrics.onInput(length);

@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.core.util;
 
+import java.io.ByteArrayOutputStream;
+
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteWhitespaceFilter {
@@ -12,12 +14,14 @@ public class ByteWhitespaceFilter {
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
 
-	private int start;
-	private int writtenMark;
-	private byte[] digit = new byte[11];
-	
-	protected boolean[] squareBrackets = new boolean[32];
+	protected int start;
 	protected int mark;
+	protected int writtenMark;
+	protected byte[] digit = new byte[11];
+	
+	protected int limit;
+
+	protected boolean[] squareBrackets = new boolean[32];
 	protected int level;	
 
 	public ByteWhitespaceFilter() {
@@ -99,6 +103,39 @@ public class ByteWhitespaceFilter {
 
 	public byte[] getDigit() {
 		return digit;
+	}
+
+	public int getLimit() {
+		return limit;
+	}
+	
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+	
+	public static void process(byte[] chars, int offset, int limit, ByteArrayOutputStream output) {
+		int start = offset;
+		
+		while(offset < limit) {
+			byte c = chars[offset];
+			if(c == '"') {
+				do {
+					offset++;
+				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+			} else if(c <= 0x20) {
+				// skip this char and any other whitespace
+				output.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(offset < limit && chars[offset] <= 0x20);
+				
+				start = offset;
+				
+				continue;
+			}
+			offset++;
+		}
+		output.write(chars, start, offset - start);
 	}
 
 }

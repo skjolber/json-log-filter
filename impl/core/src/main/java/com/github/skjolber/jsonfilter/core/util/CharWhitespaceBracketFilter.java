@@ -1,39 +1,110 @@
-/***************************************************************************
- * Copyright 2022 Thomas Rorvik Skjolberg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *	   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- */
-package com.github.skjolber.jsonfilter.core.ws;
+package com.github.skjolber.jsonfilter.core.util;
+
+import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceBracketFilter;
 
-public class MaxSizeRemoveWhitespaceJsonFilter2 {
+public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 
-	public int skipObjectOrArray(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, CharWhitespaceBracketFilter filter) {
-		int levelLimit = filter.getLimit() - 1;
+	protected int limit;
 
-		int limit = filter.getLimit();
+	protected boolean[] squareBrackets = new boolean[32];
+	protected int level;	
+	
+	protected int mark;
+	protected int writtenMark;
 
-		int level = filter.getLevel();
-		boolean[] squareBrackets = filter.getSquareBrackets();
+	public CharWhitespaceBracketFilter() {
+		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
+	}
 
-		int mark = filter.getMark();
-		int writtenMark = filter.getWrittenMark();
+	public CharWhitespaceBracketFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+		super(pruneMessage, anonymizeMessage, truncateMessage);
+	}
 
-		int start = filter.getStart();
+	public int getWrittenMark() {
+		return writtenMark;
+	}
+
+	public void setWrittenMark(int writtenMark) {
+		this.writtenMark = writtenMark;
+	}
+	
+	public boolean[] grow(boolean[] squareBrackets) {
+		boolean[] next = new boolean[squareBrackets.length + 32];
+		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+		this.squareBrackets = next;
+		return next;
+	}
+
+	public boolean[] getSquareBrackets() {
+		return squareBrackets;
+	}
+	
+	public int getLevel() {
+		return level;
+	}
+	
+	public int getMark() {
+		return mark;
+	}
+	
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	public void setMark(int mark) {
+		this.mark = mark;
+	}
+
+	public void closeStructure(ByteArrayOutputStream output) {
+		for(int i = level - 1; i >= 0; i--) {
+			if(squareBrackets[i]) {
+				output.write(']');
+			} else {
+				output.write('}');
+			}
+		}
+	}	
+
+	public int markToLimit(byte[] chars) {
+		switch(chars[mark]) {
+			
+			case '{' :
+			case '}' :
+			case '[' :
+			case ']' :
+				return mark + 1;
+			default : {
+				return mark;
+			}
+		}
+	}
+
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
+	
+	public int getLimit() {
+		return limit;
+	}
+
+	public char[] getTruncateString() {
+		return truncateMessage;
+	}
+
+	public int skipObjectOrArray(final char[] chars, int offset, int maxLimit, final StringBuilder buffer) {
+		int levelLimit = getLimit() - 1;
+
+		int limit = getLimit();
+
+		int level = getLevel();
+		boolean[] squareBrackets = getSquareBrackets();
+
+		int mark = getMark();
+		int writtenMark = getWrittenMark();
+
+		int start = getStart();
 
 		loop: while(offset < limit) {
 			switch(chars[offset]) {
@@ -43,7 +114,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter2 {
 
 				level++;
 				if(level >= squareBrackets.length) {
-					squareBrackets = filter.grow(squareBrackets);
+					squareBrackets = grow(squareBrackets);
 				}
 				mark = offset;
 
@@ -94,28 +165,28 @@ public class MaxSizeRemoveWhitespaceJsonFilter2 {
 			offset++;
 		}
 		
-		filter.setWrittenMark(writtenMark);
-		filter.setStart(start);
-		filter.setMark(mark);
-		filter.setLevel(level);
-		filter.setLimit(limit);
+		setWrittenMark(writtenMark);
+		setStart(start);
+		setMark(mark);
+		setLevel(level);
+		setLimit(limit);
 		
 		return offset;
 	}
 	
-	public int skipObjectOrArray(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics, CharWhitespaceBracketFilter filter) {
+	public int skipObjectMaxSizeMaxStringLength(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
-		int levelLimit = filter.getLimit() - 1;
+		int levelLimit = getLimit() - 1;
 
-		int limit = filter.getLimit();
+		int limit = getLimit();
 
-		int level = filter.getLevel();
-		boolean[] squareBrackets = filter.getSquareBrackets();
+		int level = getLevel();
+		boolean[] squareBrackets = getSquareBrackets();
 
-		int mark = filter.getMark();
-		int writtenMark = filter.getWrittenMark();
+		int mark = getMark();
+		int writtenMark = getWrittenMark();
 
-		int start = filter.getStart();
+		int start = getStart();
 		
 		loop: while(offset < limit) {
 			switch(chars[offset]) {
@@ -187,7 +258,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter2 {
 						}
 						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 						buffer.append(chars, start, aligned - start);
-						buffer.append(filter.getTruncateString());
+						buffer.append(getTruncateString());
 						buffer.append(endQuoteIndex - aligned);
 						buffer.append('"');
 						
@@ -233,13 +304,13 @@ public class MaxSizeRemoveWhitespaceJsonFilter2 {
 			offset++;
 		}
 		
-		filter.setWrittenMark(writtenMark);
-		filter.setStart(start);
-		filter.setMark(mark);
-		filter.setLevel(level);
-		filter.setLimit(limit);
+		setWrittenMark(writtenMark);
+		setStart(start);
+		setMark(mark);
+		setLevel(level);
+		setLimit(limit);
 
 		return offset;
 	}
-
+	
 }
