@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.test;
 import java.io.File;
 import java.util.Arrays;
 
+import com.github.skjolber.jsonfilter.test.directory.JsonFilterPropertiesFactory;
+
 /**
  * 
  * Default test class.

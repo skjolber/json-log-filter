@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.test;
+package com.github.skjolber.jsonfilter.test.directory;
 
 import java.util.Properties;
 

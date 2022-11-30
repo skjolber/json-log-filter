@@ -1,10 +1,22 @@
-package com.github.skjolber.jsonfilter.test;
+package com.github.skjolber.jsonfilter.test.directory;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.Map.Entry;
+
+import com.github.skjolber.jsonfilter.JsonFilter;
 
 /**
  * 
@@ -12,21 +24,22 @@ import java.util.Properties;
  * 
  */
 
-public abstract class AbstractJsonFilterPropertiesFactory {
+public class JsonFilterPropertiesFactory {
 
-	protected static final Properties noopProperties;
+	public static Properties noopProperties;
 
 	static {
 		noopProperties = new Properties();
 	}
 	
-	public static boolean isFilterDirectory(File directory) {
-		return new File(directory, "filter.properties").exists();
+	public static boolean isFilterDirectory(Path directory) {
+		Path resolve = directory.resolve("filter.properties");
+		return Files.exists(resolve);
 	}
-	
+
 	private final List<?> nullable;
-	
-	public AbstractJsonFilterPropertiesFactory(List<?> nullable) {
+
+	public JsonFilterPropertiesFactory(List<?> nullable) {
 		this.nullable = nullable;
 	}
 
@@ -141,4 +154,60 @@ public abstract class AbstractJsonFilterPropertiesFactory {
 		throw new IllegalArgumentException();
 	}
 
+	public Properties readDirectoryProperties(Path directory) throws IOException {
+		return normalize(readPropertiesFile(directory.resolve("filter.properties")));
+	}
+
+	private Properties normalize(Properties properties) {
+		
+		Properties normalizedProperties = new Properties();
+		for (Entry<Object, Object> entry : properties.entrySet()) {
+			put(normalizedProperties, entry.getValue(), (String)entry.getKey());
+		}
+		
+		return normalizedProperties;
+	}
+	
+	public Properties readPropertiesFile(Path filter) throws IOException {
+		Properties properties = new Properties();
+		InputStream fin = Files.newInputStream(filter);
+		try {
+			properties.load(fin);
+		} finally {
+			fin.close();
+		}
+		return properties;
+	}
+	
+	public JsonFilterProperties createInstance(JsonFilter filter) {
+		try {
+			Properties properties = new Properties();
+			BeanInfo beanInfo = Introspector.getBeanInfo(filter.getClass());
+			PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+			if(propertyDescriptors == null || propertyDescriptors.length == 1) {
+				return new JsonFilterProperties(filter, null);
+			}
+			for (PropertyDescriptor pd : propertyDescriptors) {
+				Method readMethod = pd.getReadMethod();
+				if(readMethod != null) {
+					Object invoke = readMethod.invoke(filter);
+					
+					String name = readMethod.getName();
+					if(!name.equals("getClass")) {
+						put(properties, invoke, normalize(name));
+					}
+				}
+			}
+			
+			properties.remove("removingWhitespace");
+			
+			return new JsonFilterProperties(filter, properties);
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
+
+	
 }

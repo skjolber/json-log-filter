@@ -61,7 +61,7 @@ public class JsonNormalizer {
 		return sb.toString();
 	}
 
-	private static boolean isHighSurrogate(String from) {
+	public static boolean isHighSurrogate(String from) {
 		for(int i = 0; i < from.length(); i++) {
 			if(Character.isHighSurrogate(from.charAt(i))) {
 				return true;

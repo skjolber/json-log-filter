@@ -8,36 +8,36 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
 
-public class JsonFilterResult {
+public class JsonFilterDirectoryUnitTestCollection {
 
-	private List<JsonFilterOutputDirectory> filtered = new ArrayList<>();
-	private List<JsonFilterOutputDirectory> passthrough = new ArrayList<>();
+	private List<JsonFilterDirectoryUnitTest> filtered = new ArrayList<>();
+	private List<JsonFilterDirectoryUnitTest> passthrough = new ArrayList<>();
 
 	private List<Map<File, DefaultJsonFilterMetrics[]>> metrics = new ArrayList<>();
 
-	public JsonFilterResult() {
+	public JsonFilterDirectoryUnitTestCollection() {
 	}
 	
-	public boolean addFiltered(JsonFilterOutputDirectory e) {
+	public boolean addFiltered(JsonFilterDirectoryUnitTest e) {
 		return filtered.add(e);
 	}
 
-	public boolean addPassthrough(JsonFilterOutputDirectory e) {
+	public boolean addPassthrough(JsonFilterDirectoryUnitTest e) {
 		return passthrough.add(e);
 	}
 
-	public List<JsonFilterOutputDirectory> getFiltered() {
+	public List<JsonFilterDirectoryUnitTest> getFiltered() {
 		return filtered;
 	}
 	
-	public List<JsonFilterOutputDirectory> getPassthrough() {
+	public List<JsonFilterDirectoryUnitTest> getPassthrough() {
 		return passthrough;
 	}
 
 	public boolean hasPropertyKey(String key) {
-		for (JsonFilterOutputDirectory jsonFilterOutputDirectory : filtered) {
+		for (JsonFilterDirectoryUnitTest jsonFilterOutputDirectory : filtered) {
 			Properties properties = jsonFilterOutputDirectory.getProperties();
 			
 			String object = trimNull(properties.getProperty(key));
@@ -57,7 +57,7 @@ public class JsonFilterResult {
 			return false;
 		}
 		
-		for (JsonFilterOutputDirectory jsonFilterOutputDirectory : filtered) {
+		for (JsonFilterDirectoryUnitTest jsonFilterOutputDirectory : filtered) {
 			Properties properties = jsonFilterOutputDirectory.getProperties();
 			Object object = properties.get(key);
 			
@@ -74,7 +74,7 @@ public class JsonFilterResult {
 			return false;
 		}
 
-		for (JsonFilterOutputDirectory jsonFilterOutputDirectory : filtered) {
+		for (JsonFilterDirectoryUnitTest jsonFilterOutputDirectory : filtered) {
 			Properties properties = jsonFilterOutputDirectory.getProperties();
 			
 			for(int i = 0; i < keyValues.length; i+=2) {
@@ -153,4 +153,5 @@ public class JsonFilterResult {
 		return filter(DefaultJsonFilterMetrics::getOutputSize);
 	}
 
+	
 }

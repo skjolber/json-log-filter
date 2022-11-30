@@ -8,41 +8,41 @@ import java.util.Arrays;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
-import com.github.skjolber.jsonfilter.test.JsonFilterResult;
+import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.google.common.base.Objects;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 /**
- * Propositions for {@link JsonFilterResult} subjects.
+ * Propositions for {@link JsonFilterDirectoryUnitTestCollection} subjects.
  *
  */
 public class JsonFilterResultSubject extends Subject {
 
 	// User-defined entry point
-	public static JsonFilterResultSubject assertThat(@NullableDecl JsonFilterResult result) {
-		return assertAbout(JSON_FILTER_SUBJECT_FACTORY).that(result);
+	public static JsonFilterResultSubject assertThat(@NullableDecl JsonFilterDirectoryUnitTestCollection result) {
+		return assertAbout(JSON_FILTER_RESULT_SUBJECT_FACTORY).that(result);
 	}
 
-	public static Factory<JsonFilterResultSubject, JsonFilterResult> jsonFilterResults() {
+	public static Factory<JsonFilterResultSubject, JsonFilterDirectoryUnitTestCollection> jsonFilterResults() {
 		return JsonFilterResultSubject::new;
 	}	
 
 	// Static method for getting the subject factory (for use with assertAbout())
-	public static Subject.Factory<JsonFilterResultSubject, JsonFilterResult> employees() {
-		return JSON_FILTER_SUBJECT_FACTORY;
+	public static Subject.Factory<JsonFilterResultSubject, JsonFilterDirectoryUnitTestCollection> employees() {
+		return JSON_FILTER_RESULT_SUBJECT_FACTORY;
 	}
 
 	// Boiler-plate Subject.Factory for EmployeeSubject
-	private static final Subject.Factory<JsonFilterResultSubject, JsonFilterResult> JSON_FILTER_SUBJECT_FACTORY = JsonFilterResultSubject::new;	
+	private static final Subject.Factory<JsonFilterResultSubject, JsonFilterDirectoryUnitTestCollection> JSON_FILTER_RESULT_SUBJECT_FACTORY = JsonFilterResultSubject::new;	
 
-	protected final JsonFilterResult actual;
+	protected final JsonFilterDirectoryUnitTestCollection actual;
 
 	/**
 	 * Constructor for use by subclasses. If you want to create an instance of this class itself, call
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
 	 */
 
-	private JsonFilterResultSubject(FailureMetadata metadata, @NullableDecl JsonFilterResult map) {
+	private JsonFilterResultSubject(FailureMetadata metadata, @NullableDecl JsonFilterDirectoryUnitTestCollection map) {
 		super(metadata, map);
 		this.actual = map;
 	}

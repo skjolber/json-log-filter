@@ -17,6 +17,9 @@ public class JsonComparator {
 				JsonToken expectedToken = expectedParser.nextToken();
 				JsonToken resultToken = resultParser.nextToken();
 				if(expectedToken == null) {
+					if(resultToken != null) {
+						return false;
+					}
 					break;
 				}
 
@@ -79,6 +82,9 @@ public class JsonComparator {
 				JsonToken expectedToken = expectedParser.nextToken();
 				JsonToken resultToken = resultParser.nextToken();
 				if(expectedToken == null) {
+					if(resultToken != null) {
+						return false;
+					}
 					break;
 				}
 
@@ -129,5 +135,19 @@ public class JsonComparator {
 
 		return true;
 	}
+	
+	public static void printDiff(String result, String expected) {
+		System.out.println("Expected (size " + expected.length() + "):\n" + expected);
+		System.out.println("Actual (size " + result.length() + "):\n" + result);
+
+		for(int k = 0; k < Math.min(expected.length(), result.length()); k++) {
+			if(expected.charAt(k) != result.charAt(k)) {
+				System.out.println("Diff at " + k + ": " + expected.charAt(k) + " vs + " + result.charAt(k));
+
+				break;
+			}
+		}
+	}
+
 
 }

@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -16,6 +18,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
+import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTestFactory;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;
 
 /**
@@ -32,24 +36,27 @@ public abstract class AbstractJsonFilterTest {
 	protected JsonFactory factory = new JsonFactory();
 
 	protected Map<String, byte[]> maps = new HashMap<>();
+
+	
+	private List<JsonFilterDirectoryUnitTest> directoryUnitTests;
 	
 	protected JsonFilterRunner runner;
 	
-	public AbstractJsonFilterTest(JsonFilterRunner runner) {
-		this.runner = runner;
+	public AbstractJsonFilterTest() {
+		this.directoryUnitTests = new JsonFilterDirectoryUnitTestFactory(Collections.emptyList()).create(null);
 	}
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
 		return assertThat(filter, (s) -> true);
 	}
 	
 	protected JsonFilterResultSubject assertThat(JsonFilter filter, JsonFilter transformer) throws Exception {
-		JsonFilterResult process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
+		JsonFilterDirectoryUnitTestCollection process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
 		
 		return JsonFilterResultSubject.assertThat(process);
 	}
 	
 	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
-		JsonFilterResult process = runner.process(filter, predicate);
+		JsonFilterDirectoryUnitTestCollection process = runner.process(filter, predicate);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
@@ -63,7 +70,7 @@ public abstract class AbstractJsonFilterTest {
 	}
 
 	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter, Function<String, String> transformer) throws Exception {
-		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter, transformer);
+		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSize, infiniteSize, filter, transformer);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
