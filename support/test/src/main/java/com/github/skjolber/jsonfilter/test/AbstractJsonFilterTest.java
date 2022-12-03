@@ -37,27 +37,15 @@ public abstract class AbstractJsonFilterTest {
 
 	protected Map<String, byte[]> maps = new HashMap<>();
 
-	
-	private List<JsonFilterDirectoryUnitTest> directoryUnitTests;
-	
 	protected JsonFilterRunner runner;
 	
-	public AbstractJsonFilterTest() {
-		this.directoryUnitTests = new JsonFilterDirectoryUnitTestFactory(Collections.emptyList()).create(null);
+	public AbstractJsonFilterTest(JsonFilterRunner jsonFilterRunner) {
+		this.runner = jsonFilterRunner;
 	}
+
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
-		return assertThat(filter, (s) -> true);
-	}
-	
-	protected JsonFilterResultSubject assertThat(JsonFilter filter, JsonFilter transformer) throws Exception {
-		JsonFilterDirectoryUnitTestCollection process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
+		JsonFilterDirectoryUnitTestCollection process = runner.process(filter);
 		
-		return JsonFilterResultSubject.assertThat(process);
-	}
-	
-	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
-		JsonFilterDirectoryUnitTestCollection process = runner.process(filter, predicate);
-			
 		return JsonFilterResultSubject.assertThat(process);
 	}
 

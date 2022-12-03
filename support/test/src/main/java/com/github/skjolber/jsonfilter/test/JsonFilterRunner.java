@@ -2,7 +2,9 @@ package com.github.skjolber.jsonfilter.test;
 
 import java.io.File;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +28,7 @@ import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterPropertiesFactory;
 import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest;
 
 public class JsonFilterRunner {
 
@@ -42,78 +45,113 @@ public class JsonFilterRunner {
 	}
 	
 	private JsonFileCache cache;
-	private JsonFilterPropertiesFactory jsonFilterPropertiesFactory;
-	private JsonFilterDirectoryUnitTestFactory jsonOutputDirectoriesFactory;
-	private File directory;
 	private List<JsonFilterDirectoryUnitTest> outputDirectories;
 	private boolean literal;
-	private JsonFactory jsonFactory;
-	private boolean prettyPrint;
+	
+	private List<JsonFilterDirectoryUnitTest> directoryTests;
 
-	public JsonFilterRunner(List<?> nullable, File directory, JsonFilterPropertiesFactory jsonFilterPropertiesFactory) throws Exception {
-		this(nullable, directory, jsonFilterPropertiesFactory, true);
-	}
+	public JsonFilterRunner(List<?> nullable, boolean literal, JsonFileCache cache) throws Exception {
+		JsonFilterDirectoryUnitTestFactory factory = JsonFilterDirectoryUnitTestFactory.fromResource("/json", nullable);
 
-	public JsonFilterRunner(List<?> nullable, File directory, JsonFilterPropertiesFactory jsonFilterPropertiesFactory, boolean literal) throws Exception {
-		this(nullable, directory, jsonFilterPropertiesFactory, literal, JsonFileCache.getInstance());
-	}
-
-	public JsonFilterRunner(List<?> nullable, File directory, JsonFilterPropertiesFactory jsonFilterPropertiesFactory, boolean literal, JsonFileCache cache) throws Exception {
-		this.directory = directory;
-		this.jsonOutputDirectoriesFactory = new JsonFilterDirectoryUnitTestFactory(nullable);
-		this.jsonFilterPropertiesFactory = jsonFilterPropertiesFactory;
 		this.literal = literal;
 		this.cache = cache;
-
-		this.jsonFactory = new JsonFactory();
-		this.outputDirectories = jsonOutputDirectoriesFactory.create(directory);
+		
+		this.directoryTests = factory.create();
 	}
 
-	public JsonFilterDirectoryUnitTestCollection process(JsonFilter filter, Predicate<String> predicate) throws Exception {
-		return process(filter, predicate, Function.identity());
-	}
-
-	public JsonFilterDirectoryUnitTestCollection process(JsonFilter filter, Predicate<String> predicate, Function<String, String> transformer) throws Exception {
-		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection();
-
-		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(filter);
-
-		if(!properties.isNoop()) {
-			for(JsonFilterDirectoryUnitTest outputDirectory : outputDirectories) {
-				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
-				if(inputDirectory.matches(properties)) {
-					Map<File, DefaultJsonFilterMetrics[]> processInputOutput = processInputOutput(inputDirectory, outputDirectory, filter, predicate, transformer);
-
-					result.addFiltered(outputDirectory);
-					result.add(processInputOutput);
+	public JsonFilterDirectoryUnitTestCollection process(JsonFilter filter) throws Exception {
+		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection(); 
+		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
+			if(directoryTest.isNoop()) {
+				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
+				for (Path path : directoryTest.getFiles().keySet()) {
+					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
+							.withFilter(filter)
+							.withInputFile(path)
+							.withOutputFile(path)
+							.withOutputProperties(properties)
+							.build();
 				}
-			}
-		} else {
-			for(JsonFilterDirectoryUnitTest outputDirectory : outputDirectories) {
-				JsonFilterInputDirectory inputDirectory = outputDirectory.getInputDirectories();
-
-				processInput(inputDirectory, filter, predicate, transformer);
-
-				Map<String, File> files = outputDirectory.getFiles();
-				Map<File, DefaultJsonFilterMetrics[]> processInputOutput = processInputOutput(filter, files, files, properties.getProperties(), predicate, transformer);
-
-				result.addPassthrough(outputDirectory);
-				result.add(processInputOutput);
+				result.addPassthrough(directoryTest);
+			} else {
+				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
+				 for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
+					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
+							.withFilter(filter)
+							.withInputFile(entry.getKey())
+							.withOutputFile(entry.getValue())
+							.withOutputProperties(properties)
+							.build();
+				}
+				result.addFiltered(directoryTest);
 			}
 		}
 
 		return result;
 	}
 
-	public JsonFilterDirectoryUnitTestCollection process(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		return process(maxSize, infiniteSize, (p) -> true, Function.identity());
-	}
-	
-	public JsonFilterDirectoryUnitTestCollection process(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Function<String, String> transformer) throws Exception {
-		return process(maxSize, infiniteSize, (p) -> true, transformer);
-	}
+	public JsonFilterDirectoryUnitTestCollection process(Function<Integer, JsonFilter> maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+		
+		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection(); 
+		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
+			if(directoryTest.isNoop()) {
+				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
+				for (Path path : directoryTest.getFiles().keySet()) {
+					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
+							.withFilter(filter)
+							.withInputFile(path)
+							.withOutputFile(path)
+							.withOutputProperties(properties)
+							.build();
+				}
+				result.addPassthrough(directoryTest);
+			} else {
+				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
+				 for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
+					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
+							.withFilter(filter)
+							.withInputFile(entry.getKey())
+							.withOutputFile(entry.getValue())
+							.withOutputProperties(properties)
+							.build();
+				}
+				result.addFiltered(directoryTest);
+			}
+		}
 
-	public JsonFilterDirectoryUnitTestCollection process(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> predicate, Function<String, String> transformer) throws Exception {
+		return result;
+
+		
+		
+		String fromTransformed = fromTransformedList.get(i);
+		String expected = expectedList.get(i);
+		
+		String input;
+		if(expected.length() < fromTransformed.length()) {
+			input = fromTransformed;
+		} else {
+			input = fromTransformed + spaces(expected.length() - fromTransformed.length() + 1);
+		}
+
+		JsonFilter maxSize = maxSizeFunction.apply(expected.length());
+
+		StringBuilder maxSizeOutput = new StringBuilder(fromTransformed.length() * 2);
+		if(!maxSize.process(input, maxSizeOutput)) {
+			System.out.println(sourceFile);
+			System.out.println(input);
+			throw new IllegalArgumentException("Unable to process max size " + sourceFile + " using " + filter);
+		}
+		
+		if(maxSize.process(input, metrics) == null) {
+			throw new IllegalArgumentException();
+		}
+		
+		
+		
+		
+		
+		
+		
 		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection();
 
 		JsonFilterProperties properties = jsonFilterPropertiesFactory.createInstance(infiniteSize);
@@ -685,11 +723,6 @@ public class JsonFilterRunner {
 				break;
 			}
 		}
-	}
-
-
-	public File getDirectory() {
-		return directory;
 	}
 	
 	public void setPrettyPrint(boolean prettyPrint) {

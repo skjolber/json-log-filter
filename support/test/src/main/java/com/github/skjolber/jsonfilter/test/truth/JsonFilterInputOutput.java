@@ -4,11 +4,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest.Builder;
 
 public class JsonFilterInputOutput {
 
@@ -19,10 +21,16 @@ public class JsonFilterInputOutput {
 	public static class Builder {
 		
 		private JsonFilter filter;
-		private File inputFile;
+		private Path inputFile;
+		private String input;
 		
-		public Builder withInputFile(File file) {
+		public Builder withInputFile(Path file) {
 			this.inputFile = file;
+			return this;
+		}
+		
+		public Builder withInput(String input) {
+			this.input = input;
 			return this;
 		}
 		
@@ -32,7 +40,7 @@ public class JsonFilterInputOutput {
 		}
 		
 		public JsonFilterInputOutput build() {
-			if(inputFile == null) {
+			if(inputFile == null && input == null) {
 				throw new IllegalStateException();
 			}
 			if(filter == null) {

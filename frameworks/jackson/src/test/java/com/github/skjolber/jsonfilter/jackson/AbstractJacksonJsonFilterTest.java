@@ -13,9 +13,6 @@ import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTest {
 
-	// max size and max string length does not work for unicode
-	protected static final Predicate<String> UNICODE_FILTER =  (json) -> !json.contains("\\");
-	
 	public AbstractJacksonJsonFilterTest(boolean includePrettyPrinting) throws Exception {
 		super(false, includePrettyPrinting);
 	}

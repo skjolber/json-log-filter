@@ -1,6 +1,6 @@
 package com.github.skjolber.jsonfilter.test;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class JsonFilterDirectoryUnitTestCollection {
 	private List<JsonFilterDirectoryUnitTest> filtered = new ArrayList<>();
 	private List<JsonFilterDirectoryUnitTest> passthrough = new ArrayList<>();
 
-	private List<Map<File, DefaultJsonFilterMetrics[]>> metrics = new ArrayList<>();
+	private List<Map<Path, DefaultJsonFilterMetrics[]>> metrics = new ArrayList<>();
 
 	public JsonFilterDirectoryUnitTestCollection() {
 	}
@@ -111,14 +111,14 @@ public class JsonFilterDirectoryUnitTestCollection {
 		return !passthrough.isEmpty();
 	}
 	
-	public void add(Map<File, DefaultJsonFilterMetrics[]> m) {
+	public void add(Map<Path, DefaultJsonFilterMetrics[]> m) {
 		metrics.add(m);
 	}
 	
 	private boolean filter(Function<DefaultJsonFilterMetrics, Integer> object) {
-		for (Map<File, DefaultJsonFilterMetrics[]> map : metrics) {
+		for (Map<Path, DefaultJsonFilterMetrics[]> map : metrics) {
 			
-			for (Entry<File, DefaultJsonFilterMetrics[]> entry : map.entrySet()) {
+			for (Entry<Path, DefaultJsonFilterMetrics[]> entry : map.entrySet()) {
 				for (DefaultJsonFilterMetrics defaultJsonFilterMetrics : entry.getValue()) {
 					if(object.apply(defaultJsonFilterMetrics) != 0) {
 						return true;

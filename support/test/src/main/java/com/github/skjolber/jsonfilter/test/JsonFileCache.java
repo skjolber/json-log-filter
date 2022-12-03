@@ -1,6 +1,9 @@
 package com.github.skjolber.jsonfilter.test;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,14 +17,16 @@ public class JsonFileCache {
 		return instance;
 	}
 	
-	protected Map<File, String> cache = new ConcurrentHashMap<>();
+	protected Map<Path, String> cache = new ConcurrentHashMap<>();
 
-	public String getFile(File file) {
+	public String getFile(Path path) {
 		try {
-			String string = cache.get(file);
+			String string = cache.get(path);
 			if(string == null) {
-				string = IOUtils.toString(file.toURI().toURL(), "UTF-8");
-				cache.put(file, string);
+				try (InputStream in = Files.newInputStream(path)) {
+					string = IOUtils.toString(in, "UTF-8");
+					cache.put(path, string);
+				}
 			}
 			return string;
 		} catch(Exception e) {

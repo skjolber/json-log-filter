@@ -1,6 +1,6 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.JsonFileCache;
@@ -8,7 +8,7 @@ import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
 
-public class JsonFilerUnitTest {
+public class JsonFilterUnitTest {
 
 	public static Builder newBuilder() {
 		return new Builder();
@@ -17,17 +17,29 @@ public class JsonFilerUnitTest {
 	public static class Builder {
 		
 		private JsonFilter filter;
-		private File inputFile;
-		private File outputFile;
+		private Path inputFile;
+		private String input;
+		private Path outputFile;
+		private String output;
 		private JsonFilterProperties outputProperties;
 		private boolean literal = true;
 		
-		public Builder withInputFile(File file) {
+		public Builder withInputFile(Path file) {
 			this.inputFile = file;
 			return this;
 		}
-		
-		public Builder withOutputFile(File file) {
+
+		public Builder withInput(String input) {
+			this.input = input;
+			return this;
+		}
+
+		public Builder withOutput(String output) {
+			this.output = output;
+			return this;
+		}
+
+		public Builder withOutputFile(Path file) {
 			this.outputFile = file;
 			return this;
 		}
@@ -42,11 +54,11 @@ public class JsonFilerUnitTest {
 			return this;
 		}
 		
-		public JsonFilerUnitTest build() {
-			if(inputFile == null) {
+		public JsonFilterUnitTest build() {
+			if(inputFile == null && input == null) {
 				throw new IllegalStateException();
 			}
-			if(outputFile == null) {
+			if(outputFile == null && output == null) {
 				throw new IllegalStateException();
 			}
 			if(filter == null) {
@@ -56,17 +68,23 @@ public class JsonFilerUnitTest {
 				throw new IllegalStateException();
 			}
 
-			String expectedJonOutput = JsonFileCache.getInstance().getFile(outputFile);
+			String expectedJonOutput;
+			if(outputFile != null) {
+				expectedJonOutput = JsonFileCache.getInstance().getFile(outputFile);
+			} else {
+				expectedJonOutput = output;
+			}
+			
 			JsonFilterInputOutput jsonFilterInputOutput = JsonFilterInputOutput.newBuilder().withFilter(filter).withInputFile(inputFile).build();
 			JsonInputOutput result = jsonFilterInputOutput.getResult();
-			if(result.hasStringOutput()) {
+			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
 			}
 
 			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
 				throw new IllegalStateException();
 			}
-			return new JsonFilerUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
+			return new JsonFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
 		}
 
 		private boolean isEqual(String expectedJsonOutput, String stringOutput) {
@@ -93,7 +111,7 @@ public class JsonFilerUnitTest {
 	private String output;
 	private JsonFilterInputOutput inputOutput;
 	
-	public JsonFilerUnitTest(JsonFilterProperties outputProperties, String output, JsonFilterInputOutput inputOutput) {
+	public JsonFilterUnitTest(JsonFilterProperties outputProperties, String output, JsonFilterInputOutput inputOutput) {
 		super();
 		this.outputProperties = outputProperties;
 		this.output = output;

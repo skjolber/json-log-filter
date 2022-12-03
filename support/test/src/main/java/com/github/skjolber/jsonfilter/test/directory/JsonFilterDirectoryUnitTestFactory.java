@@ -1,8 +1,11 @@
 package com.github.skjolber.jsonfilter.test.directory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +15,11 @@ import java.util.Properties;
 
 public class JsonFilterDirectoryUnitTestFactory {
 
+	public static JsonFilterDirectoryUnitTestFactory fromResource(String path, List<?> nullable) throws URISyntaxException {
+        URI uri = JsonFilterDirectoryUnitTestFactory.class.getResource(path).toURI();
+        return new JsonFilterDirectoryUnitTestFactory(nullable, Paths.get(uri));
+	}
+	
 	public static class JsonDirectory {
 
 		private Path directory;
@@ -27,12 +35,14 @@ public class JsonFilterDirectoryUnitTestFactory {
 	}
 
 	private JsonFilterPropertiesFactory jsonFilterPropertiesFactory;
+	private Path directory;
 	
-	public JsonFilterDirectoryUnitTestFactory(List<?> nullable) {
-		jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable);
+	public JsonFilterDirectoryUnitTestFactory(List<?> nullable, Path directory) {
+		this.jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable);
+		this.directory = directory;
 	}
 
-	public List<JsonFilterDirectoryUnitTest> create(Path directory) throws Exception {
+	public List<JsonFilterDirectoryUnitTest> create() throws Exception {
 		List<JsonFilterDirectoryUnitTest> result = new ArrayList<>();
 
 		JsonDirectory jsonDirectory = createJsonDirectory(null, directory);
@@ -43,7 +53,6 @@ public class JsonFilterDirectoryUnitTestFactory {
 	}
 
 	protected JsonDirectory createJsonDirectory(JsonDirectory parent, Path directory) throws IOException {
-		System.out.println("Scan " + directory);
 		JsonDirectory jsonDirectory = new JsonDirectory();
 		jsonDirectory.directory = directory;
 		

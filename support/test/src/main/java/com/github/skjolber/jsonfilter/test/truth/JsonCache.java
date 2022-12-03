@@ -1,13 +1,12 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import org.apache.commons.io.IOUtils;
 
 import com.github.skjolber.jsonfilter.test.JsonFileCache;
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
@@ -17,13 +16,13 @@ public class JsonCache {
 	
 	private static final JsonCache instance = new JsonCache();
 	
-	public static JsonInput get(File file) {
+	public static JsonInput get(Path file) {
 		return instance.get(file);
 	}
 	
-	protected Map<File, JsonInput> cache = new ConcurrentHashMap<>();
+	protected Map<Path, JsonInput> cache = new ConcurrentHashMap<>();
 
-	public JsonInput getJsonInput(File file) {
+	public JsonInput getJsonInput(Path file) {
 		try {
 			JsonInput item = cache.get(file);
 			if(item == null) {

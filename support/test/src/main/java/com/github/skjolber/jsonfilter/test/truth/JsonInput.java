@@ -1,19 +1,19 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
 
 public final class JsonInput {
 	
-	private final File source;
+	private final Path source;
 	
 	private final String contentAsString;
 	
 	private final List<String> prettyPrinted;
 
-	public JsonInput(File file, String content, List<String> prettyPrinted) {
-		this.source = file;
+	public JsonInput(Path source, String content, List<String> prettyPrinted) {
+		this.source = source;
 		this.contentAsString = content;
 		this.prettyPrinted = prettyPrinted;
 	}
@@ -38,7 +38,7 @@ public final class JsonInput {
 		return prettyPrinted.get(index).getBytes(StandardCharsets.UTF_8);
 	}
 
-	public File getSource() {
+	public Path getSource() {
 		return source;
 	}
 	
