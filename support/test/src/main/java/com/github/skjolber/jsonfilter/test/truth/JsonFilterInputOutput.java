@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.test.truth;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -10,7 +9,6 @@ import java.util.Objects;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
-import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest.Builder;
 
 public class JsonFilterInputOutput {
 
@@ -22,15 +20,18 @@ public class JsonFilterInputOutput {
 		
 		private JsonFilter filter;
 		private Path inputFile;
-		private String input;
 		
-		public Builder withInputFile(Path file) {
-			this.inputFile = file;
+		// add padding so that the max length code paths are in use
+		private int minimumLength = -1;
+		private JsonCache jsonCache = JsonCache.getInstance();
+		
+		public Builder withMinimumLength(int length) {
+			this.minimumLength = length;
 			return this;
 		}
 		
-		public Builder withInput(String input) {
-			this.input = input;
+		public Builder withInputFile(Path file) {
+			this.inputFile = file;
 			return this;
 		}
 		
@@ -40,26 +41,29 @@ public class JsonFilterInputOutput {
 		}
 		
 		public JsonFilterInputOutput build() {
-			if(inputFile == null && input == null) {
+			if(inputFile == null) {
 				throw new IllegalStateException();
 			}
 			if(filter == null) {
 				throw new IllegalStateException();
 			}
 			
-			JsonInput jsonInput = JsonCache.get(inputFile);
+			JsonInput jsonInput = jsonCache.getJsonInput(inputFile);
 			
-			String contentAsString = jsonInput.getContentAsString();
-			byte[] contentAsBytes = jsonInput.getContentAsBytes();
+			String contentAsString = jsonInput.getContentAsString(minimumLength);
+			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLength);
 			
 			String stringOutput = filter.process(contentAsString);
 			byte[] byteOutput = filter.process(contentAsBytes);
 			
+			System.out.println(contentAsString);
+			System.out.println(stringOutput);
+			
 			checkSymmetric(stringOutput, byteOutput);
 
 			for(int i = 0; i < jsonInput.getPrettyPrintedSize(); i++) {
-				String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i);
-				byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i);
+				String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, minimumLength);
+				byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, minimumLength);
 				
 				String prettyPrintStringOutput = filter.process(prettyPrintedAsString);
 				byte[] prettyPrintBytesOutput = filter.process(prettyPrintedAsBytes);

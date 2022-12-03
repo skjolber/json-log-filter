@@ -119,7 +119,7 @@ public class JsonFilterDirectoryUnitTestFactory {
 			String key = entry.getKey();
 			Path from = parent.jsonFiles.get(key);
 			if(from == null) {
-				throw new IllegalArgumentException("No file " + key + " in " + parent.directory + " for " + jsonDirectory.directory);
+				throw new IllegalArgumentException("No file " + key + " in " + parent.directory + " for " + jsonDirectory.directory + ", just found " + parent.jsonFiles.keySet() + ", wanted " + jsonDirectory.jsonFiles.keySet());
 			}
 			Path to = entry.getValue();
 

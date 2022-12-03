@@ -49,16 +49,8 @@ public abstract class AbstractJsonFilterTest {
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true, Function.identity());
-	}
-
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, filter, Function.identity());
-	}
-
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter, Function<String, String> transformer) throws Exception {
-		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSize, infiniteSize, filter, transformer);
+	protected JsonFilterResultSubject assertThatMaxSize(MaxSizeJsonFilterAdapter maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSizeFunction, infiniteSize);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}

@@ -10,6 +10,15 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.ParseContext;
+import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+
 /** 
  * Verify as much of the test resources as possible.
  *
@@ -17,11 +26,16 @@ import org.junit.jupiter.api.Test;
 
 public class JsonPathFilterTest extends DefaultJsonFilterTest {
 
-	protected static final Predicate<String> UNICODE_FILTER =  (json) -> !json.contains("\\");
-	protected static final Predicate<String> ARRAY_FILTER =  (json) -> !json.startsWith("[");
-
+    private static final ParseContext CONTEXT = JsonPath.using(
+            Configuration.builder()
+                    .jsonProvider(new JacksonJsonNodeJsonProvider())
+                    .mappingProvider(new JacksonMappingProvider())
+                    .options(Option.SUPPRESS_EXCEPTIONS)
+                    .options(Option.ALWAYS_RETURN_LIST)
+                    .build());
+    
 	public JsonPathFilterTest() throws Exception {
-		super(false, true);
+		super(true);
 	}
 
 	@Test
@@ -52,6 +66,35 @@ public class JsonPathFilterTest extends DefaultJsonFilterTest {
 		JsonPathFilter filter = new JsonPathFilter(127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
+	public void filter() {
+		JsonPath jsonPath = JsonPath.compile("$.[?(@.key)]");
+		
+		String chars = "{\"key\":[\"a\",1,true,null,\"abcdefghijklmnopqrst\"]}";
+		DocumentContext parse = CONTEXT.parse(chars);
+		
+		parse = parse.map(jsonPath, (currentValue, configuration) -> {
+			System.out.println(currentValue);
+			return "FILTER_ANONYMIZE";
+		});
+		
+		System.out.println(parse.jsonString());
+	}
+	
+	@Test
+	public void filter2() {
+		JsonPath jsonPath = JsonPath.compile("$.key");
+		
+		String chars = "[{\"key\":[\"a\",1,true,null,\"abcdefghijklmnopqrst\"]}]";
+		DocumentContext parse = CONTEXT.parse(chars);
+		
+		parse = parse.map(jsonPath, (currentValue, configuration) -> {
+			return "FILTER_ANONYMIZE";
+		});
+		
+		System.out.println(parse.jsonString());
 	}
 	
 	@Test

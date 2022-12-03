@@ -47,4 +47,8 @@ public class JsonCache {
 	public void clear() {
 		cache.clear();
 	}
+
+	public static JsonCache getInstance() {
+		return instance;
+	}
 }

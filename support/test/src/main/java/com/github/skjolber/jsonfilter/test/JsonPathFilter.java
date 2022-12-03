@@ -103,7 +103,7 @@ public class JsonPathFilter implements JsonFilter {
 			str = '$' + str;
 		}
 		String result = str.replace('/', '.');
-		
+
 		return result;
 	}
 
