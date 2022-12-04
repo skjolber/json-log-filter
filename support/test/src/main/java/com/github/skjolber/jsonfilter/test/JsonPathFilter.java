@@ -298,4 +298,14 @@ public class JsonPathFilter implements JsonFilter {
 		return process(chars, offset, length, output);
 	}
 	
+	@Override
+	public boolean isRemovingWhitespace() {
+		return true;
+	}
+	
+	@Override
+	public boolean isValidating() {
+		return true;
+	}
+	
 }

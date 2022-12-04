@@ -14,15 +14,13 @@ import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonFilterTest {
 
-	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
-
 	public MaxStringLengthRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false, true);
+		super(true);
 	}
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new MaxStringLengthRemoveWhitespaceJsonFilter(-1), pp).hasPassthrough();
+		assertThat(new MaxStringLengthRemoveWhitespaceJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
@@ -42,7 +40,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	
 	@Test
 	public void maxStringLength() throws Exception {
-		assertThat(new MaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH), pp).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThat(new MaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 }

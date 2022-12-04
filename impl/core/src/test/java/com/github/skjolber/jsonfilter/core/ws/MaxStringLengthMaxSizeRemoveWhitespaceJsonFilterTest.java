@@ -19,13 +19,14 @@ import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends DefaultJsonFilterTest {
 
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false, true);
+		super();
 	}
 
 	@Test
@@ -62,7 +63,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1), pp).hasPassthrough();
+		assertThat(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1)).hasPassthrough();
 	}
 
 	@Test
@@ -79,16 +80,16 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	
 	@Test
 	public void maxSize() throws Exception {
-		assertThat(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, DEFAULT_MAX_SIZE), pp).hasMaxSize(DEFAULT_MAX_SIZE);
+		assertThat(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, DEFAULT_MAX_SIZE)).hasMaxSize(DEFAULT_MAX_SIZE);
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
-		assertThatMaxSize(maxSize, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1), (s) -> true, (f) -> pp.process(f)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
+		assertThatMaxSize(maxSize, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
 	}
-	
+
 	@Test
 	public void testFile() throws Exception {
 		FileInputStream fileInputStream = new FileInputStream(new File("/home/skjolber/git/json-log-filter-github/support/test/src/main/resources/json/array/1d/anyArray.json"));

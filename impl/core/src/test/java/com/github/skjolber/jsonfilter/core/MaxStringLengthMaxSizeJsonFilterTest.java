@@ -12,6 +12,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
@@ -32,14 +33,14 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 
 	@Test
 	public void passthrough_success() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(-1, size);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(-1, size);
 
 		assertThatMaxSize(maxSize, new MaxStringLengthJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
 		assertThatMaxSize(maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
 	}

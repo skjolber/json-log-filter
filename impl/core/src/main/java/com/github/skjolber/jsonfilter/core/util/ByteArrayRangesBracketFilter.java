@@ -438,4 +438,174 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		return offset;
 	}
 
+	public int anonymizeSubtreeMaxSize(byte[] chars, int offset, int maxSizeLimit, int limit) {
+		int levelLimit = getLevel();
+		
+		int level = getLevel();
+		
+		boolean[] squareBrackets = getSquareBrackets();
+		int mark = getMark();
+
+		loop:
+		while(offset < maxSizeLimit) {
+			switch(chars[offset]) {
+				case '[' : 
+				case '{' : {
+					squareBrackets[level] = chars[offset] == '[';
+					
+					level++;
+					if(level >= squareBrackets.length) {
+						squareBrackets = grow(squareBrackets);
+					}
+					mark = offset;
+					
+					break;
+				}
+	
+				case ']' : 
+				case '}' : {
+					level--;
+
+					mark = offset;
+
+					if(level == levelLimit) {
+						offset++;
+
+						// level same as before
+						setMark(mark);
+
+						return offset;
+					}
+					break;
+				}
+				case ',' : {
+					mark = offset;
+					break;
+				}
+				case ' ' : 
+				case '\t' : 
+				case '\n' : 
+				case '\r' : {
+					limit++;
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					nextOffset++;
+	
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+					} else {
+						// most likely there is now no whitespace, but a comma, end array or end object
+						
+						// legal whitespaces are:
+						// space: 0x20
+						// tab: 0x09 \t
+						// carriage return: 0x0D \r
+						// newline: 0x0A \n
+						
+						if(chars[nextOffset] > 0x20) {						
+							// was a value
+							if(offset + getAnonymizeMessageLength() < limit) {
+								
+								int removedLength = getRemovedLength();
+								addAnon(offset, nextOffset);
+								limit += getRemovedLength() - removedLength;
+
+								if(nextOffset < limit) {
+									mark = nextOffset;
+								}
+							} else {
+								// make sure to stop scanning here
+								offset = limit;
+
+								break loop;
+							}
+
+							offset = nextOffset;
+						} else {
+							// fast-forward over whitespace
+							int end = nextOffset;
+	
+							// optimization: scan for highest value
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+	
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
+							
+							if(chars[nextOffset] == ':') {
+								// key
+								offset = nextOffset + 1;
+							} else {
+								// value
+								if(offset + getAnonymizeMessageLength() < limit) {
+									
+									int removedLength = getRemovedLength();
+									addAnon(offset, end);
+									limit += getRemovedLength() - removedLength;
+	
+									if(end < limit) {
+										mark = end;
+									}
+								} else {
+									// make sure to stop scanning here
+									offset = limit;
+
+									break loop;
+								}
+								offset = nextOffset;
+							}
+						}
+					}
+					
+					continue;
+				}
+				default : {
+					// scalar value
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+
+					if(offset + getAnonymizeMessageLength() < limit) {
+						
+						int removedLength = getRemovedLength();
+						addAnon(offset, nextOffset);
+						limit += getRemovedLength() - removedLength;
+
+						if(nextOffset < limit) {
+							mark = nextOffset;
+						}
+					} else {
+						// make sure to stop scanning here
+						offset = limit;
+
+						break loop;
+					}
+
+					offset = nextOffset;
+					
+					continue;
+				}
+			}
+			offset++;
+		}
+
+		setLevel(level);
+		setMark(mark);
+		
+		return offset;
+	}
+
 }

@@ -116,6 +116,13 @@ public class JsonFilterResultSubject extends Subject {
 		}
 		return this;
 	}
+	
+	public final JsonFilterResultSubject hasMaxSize() {
+		if (!actual.hasPropertyKey("maxSize")) {
+			failWithoutActual(simpleFact("expected maxSize"));
+		}
+		return this;
+	}
 
 	public final JsonFilterResultSubject hasMaxSizeMetrics() {
 		if (!actual.hasMaxSizeMetrics()) {
@@ -139,7 +146,7 @@ public class JsonFilterResultSubject extends Subject {
 	
 	public final JsonFilterResultSubject hasPruneMetrics() {
 		if (!actual.hasPruneMetrics()) {
-			failWithoutActual(simpleFact("expected prune"));
+			failWithoutActual(simpleFact("expected prune metrics"));
 		}
 		return this;
 	}
@@ -175,7 +182,7 @@ public class JsonFilterResultSubject extends Subject {
 	
 	public final JsonFilterResultSubject hasAnonymizeMetrics() {
 		if (!actual.hasAnonymizeMetrics()) {
-			failWithoutActual(simpleFact("expected anonymize"));
+			failWithoutActual(simpleFact("expected anonymize metrics"));
 		}
 		return this;
 	}

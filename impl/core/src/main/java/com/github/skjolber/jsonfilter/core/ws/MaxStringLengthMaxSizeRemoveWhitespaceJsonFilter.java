@@ -24,7 +24,7 @@ import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
-public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilter {
+public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringLengthRemoveWhitespaceJsonFilter {
 
 	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage);

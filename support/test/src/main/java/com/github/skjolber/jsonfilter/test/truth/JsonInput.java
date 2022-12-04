@@ -18,6 +18,10 @@ public final class JsonInput {
 		this.prettyPrinted = prettyPrinted;
 	}
 
+	public int getContentAsStringSize() {
+		return contentAsString.length();
+	}
+
 	public String getContentAsString(int length) {
 		if(length > contentAsString.length()) {
 			return padded(contentAsString, length);
@@ -62,6 +66,14 @@ public final class JsonInput {
 		return prettyPrintedAsBytes;
 	}
 
+	public String getPrettyPrintedAsString(int index) {
+		return prettyPrinted.get(index);
+	}
+
+	public byte[] getPrettyPrintedAsBytes(int index) {
+		return prettyPrinted.get(index).getBytes(StandardCharsets.UTF_8);
+	}
+	
 	public Path getSource() {
 		return source;
 	}

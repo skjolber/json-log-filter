@@ -1,18 +1,19 @@
 package com.github.skjolber.jsonfilter.core.util;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteWhitespaceFilter {
 
-	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_PRUNE_MESSAGE_JSON.toCharArray();
-	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_ANONYMIZE_MESSAGE.toCharArray();
-	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_TRUNCATE_MESSAGE.toCharArray();
+	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
+	protected static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
+	protected static final byte[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_TRUNCATE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 
-	protected final char[] pruneMessage;
-	protected final char[] anonymizeMessage;
-	protected final char[] truncateMessage;
+	protected final byte[] pruneMessage;
+	protected final byte[] anonymizeMessage;
+	protected final byte[] truncateMessage;
 
 	protected int start;
 	protected int mark;
@@ -28,7 +29,7 @@ public class ByteWhitespaceFilter {
 		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public ByteWhitespaceFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+	public ByteWhitespaceFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
@@ -137,5 +138,155 @@ public class ByteWhitespaceFilter {
 		}
 		output.write(chars, start, offset - start);
 	}
+	
+	public int skipObject(final byte[] chars, int offset, int limit, final ByteArrayOutputStream buffer) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(offset < limit) {
+			if(chars[offset] <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(offset < limit && chars[offset] <= 0x20);
+				
+				start = offset;
+
+				continue;
+			}
+			
+			switch(chars[offset]) {
+			case '"': {
+				do {
+					offset++;
+				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				offset++;
+				
+				continue;
+			}
+			case '{' :
+				level++;
+
+				break;
+			case '}' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		buffer.write(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
+
+	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer) {
+		int level = 1;
+
+		int start = getStart();
+
+		while(true) {
+			if(chars[offset] <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(offset < limit && chars[offset] <= 0x20);
+				
+				start = offset;
+
+				continue;
+			}
+			
+			switch(chars[offset]) {
+				case '[' : 
+				case '{' : {
+					level++;
+					break;
+				}
+	
+				case ']' : 
+				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						setStart(start);
+						
+						return offset + 1;
+					}
+					break;
+				}
+				case ',' : {
+					break;
+				}
+				case ' ' : 
+				case '\t' : 
+				case '\n' : 
+				case '\r' : {
+					break;
+				}
+				case '"' : {
+					
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+					int endQuoteIndex = nextOffset;
+					
+					// key or value
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					if(chars[nextOffset] == ':') {
+						// was a key
+						buffer.write(chars, start, endQuoteIndex - start + 1);
+					} else {
+						// was a value
+						buffer.write(chars, start, offset - start);
+						
+						buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+					}
+
+					offset = nextOffset;
+					start = nextOffset;			
+					
+					continue;
+				}
+				default : {
+					// scalar value
+					buffer.write(chars, start, offset - start);
+
+					int nextOffset = offset;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+					
+					buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+					
+					offset = nextOffset;
+					start = nextOffset;
+					
+					continue;
+							
+				}
+			}
+			offset++;
+		}
+	}
+		
 
 }

@@ -20,6 +20,7 @@ import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
 
@@ -50,13 +51,13 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 	
 	@Test
 	public void passthrough_success() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, PASSTHROUGH_XPATH, FilterType.ANON);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, PASSTHROUGH_XPATH, FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();
 	}
 
 	@Test
 	public void anonymize() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.ANON);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEEP_PATH1, FilterType.ANON);
@@ -65,7 +66,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key1", FilterType.ANON);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key1", FilterType.ANON);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, 1, "/key1", FilterType.ANON)).hasAnonymized("/key1").hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, DEFAULT_PATH, FilterType.ANON);
@@ -77,14 +78,14 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 	
 	@Test
 	public void anonymizeWildcard() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
 		
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_WILDCARD_PATH).hasAnonymizeMetrics();
 	}
 	
 	@Test
 	public void prune() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, -1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH).hasPruneMetrics();
 		
 		maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEEP_PATH3, FilterType.PRUNE);
@@ -93,7 +94,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key3", FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key3", FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3").hasPruneMetrics();
 		
 		maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, DEFAULT_PATH, FilterType.PRUNE);
@@ -105,20 +106,20 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 
 	@Test
 	public void pruneWildcard() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key3", FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, "/key3", FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(-1, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3").hasPruneMetrics();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics()
 		;
 	}
 
 	@Test
 	public void maxStringLengthMaxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 1, "/key3", FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 1, "/key3", FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, 1, "/key3", FilterType.PRUNE)).hasPruned("/key3").hasPruneMetrics();
 	}
 
@@ -138,7 +139,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 	
 	@Test
 	public void maxStringLengthAnonymize() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.ANON);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.ANON);
 
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON))
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxSizeMetrics()
@@ -147,7 +148,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJ
 
 	@Test
 	public void maxStringLengthPrune() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.PRUNE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new SingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, DEFAULT_PATH, FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.PRUNE))
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics()
 			.hasPruned(DEFAULT_PATH).hasPruneMetrics();

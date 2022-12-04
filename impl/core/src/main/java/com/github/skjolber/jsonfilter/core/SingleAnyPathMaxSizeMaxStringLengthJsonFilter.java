@@ -118,7 +118,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(quoteIndex - offset + 1 > maxStringLength) {
+							if(quoteIndex - offset >= maxStringLength) {
 								// text length too long
 								
 								if(offset + maxStringLength > maxSizeLimit) {
@@ -369,7 +369,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(quoteIndex - offset + 1 > maxStringLength) {
+							if(quoteIndex - offset >= maxStringLength) {
 								// text length too long
 								
 								if(offset + maxStringLength > maxSizeLimit) {

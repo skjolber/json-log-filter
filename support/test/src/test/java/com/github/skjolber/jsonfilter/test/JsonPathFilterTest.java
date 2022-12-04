@@ -35,7 +35,7 @@ public class JsonPathFilterTest extends DefaultJsonFilterTest {
                     .build());
     
 	public JsonPathFilterTest() throws Exception {
-		super(true);
+		super(false);
 	}
 
 	@Test

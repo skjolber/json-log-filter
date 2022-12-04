@@ -86,7 +86,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(nextOffset - offset > maxStringLength) {								
+							if(quoteIndex - offset >= maxStringLength) {								
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
@@ -224,7 +224,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(nextOffset - offset > maxStringLength) {								
+							if(quoteIndex - offset >= maxStringLength) {								
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 

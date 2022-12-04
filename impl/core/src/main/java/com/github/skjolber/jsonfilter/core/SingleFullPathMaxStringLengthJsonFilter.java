@@ -88,7 +88,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(quoteIndex - offset + 1 > maxStringLength) {
+							if(quoteIndex - offset >= maxStringLength) {
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
@@ -231,7 +231,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(quoteIndex - offset + 1 > maxStringLength) {
+							if(quoteIndex - offset >= maxStringLength) {
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 

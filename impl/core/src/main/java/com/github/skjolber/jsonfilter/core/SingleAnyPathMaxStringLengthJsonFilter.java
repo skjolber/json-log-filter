@@ -35,7 +35,6 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 		} catch(Exception e) {
 			return null;
 		}
-
 	}
 
 	protected static <T extends CharArrayRangesFilter> T rangesAnyPathMaxStringLength(final char[] chars, int offset, int limit, int maxStringLength,
@@ -66,7 +65,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
-						if(nextOffset - offset > maxStringLength) {								
+						if(quoteIndex - offset >= maxStringLength) {								
 							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 						}
 
@@ -171,7 +170,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
-						if(nextOffset - offset > maxStringLength) {								
+						if(quoteIndex - offset >= maxStringLength) {								
 							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 						}
 

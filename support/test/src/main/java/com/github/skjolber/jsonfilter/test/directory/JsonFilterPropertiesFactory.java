@@ -12,8 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -37,16 +39,18 @@ public class JsonFilterPropertiesFactory {
 		return Files.exists(resolve);
 	}
 
-	private final List<?> nullable;
+	private final Set<?> nullableValues;
+	private final Set<String> ignorableProperties;
 
-	public JsonFilterPropertiesFactory(List<?> nullable) {
-		this.nullable = nullable;
+	public JsonFilterPropertiesFactory(List<?> nullableValues, List<String> ignorableProperties) {
+		this.nullableValues = new HashSet<>(nullableValues);
+		this.ignorableProperties = new HashSet<>(ignorableProperties);
 	}
 
 	protected void put(Properties properties, Object invoke, String name) {
 		Object normalizeValue = normalizeValue(invoke);
 		if(normalizeValue != null) {
-			Object reducedValue = reduceValue(normalizeValue, nullable);
+			Object reducedValue = reduceValue(normalizeValue);
 			if(reducedValue != null) {
 				if(reducedValue instanceof Number) {
 					properties.put(name, reducedValue.toString());
@@ -57,8 +61,8 @@ public class JsonFilterPropertiesFactory {
 		}
 	}
 
-	protected static Object reduceValue(Object normalizeValue, List<?> nullable) {
-		if(nullable.contains(normalizeValue)) {
+	protected Object reduceValue(Object normalizeValue) {
+		if(nullableValues.contains(normalizeValue)) {
 			return null;
 		}
 		if(normalizeValue instanceof List) {
@@ -66,7 +70,7 @@ public class JsonFilterPropertiesFactory {
 
 			List<?> input = (List<?>)normalizeValue; 
 			for (Object value : input) {
-				Object reducedValue = reduceValue(value, nullable);
+				Object reducedValue = reduceValue(value);
 				if(reducedValue != null) {
 					output.add(reducedValue);
 				}
@@ -194,12 +198,13 @@ public class JsonFilterPropertiesFactory {
 					
 					String name = readMethod.getName();
 					if(!name.equals("getClass")) {
-						put(properties, invoke, normalize(name));
+						String normalize = normalize(name);
+						if(!name.equals("getClass") && !ignorableProperties.contains(normalize)) {
+							put(properties, invoke, normalize);
+						}
 					}
 				}
 			}
-			
-			properties.remove("removingWhitespace");
 			
 			return new JsonFilterProperties(filter, properties);
 		} catch(Exception e) {

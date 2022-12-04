@@ -139,7 +139,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							
 							if(chars[nextOffset] != ':') {
 								// was a text value
-								if(nextOffset - offset > maxStringLength) {
+								if(quoteIndex - offset >= maxStringLength) {
 									
 									if(offset + maxStringLength > maxSizeLimit) {
 										break loop;
@@ -451,7 +451,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							
 							if(chars[nextOffset] != ':') {
 								// was a text value
-								if(nextOffset - offset > maxStringLength) {
+								if(quoteIndex - offset >= maxStringLength) {
 									
 									if(offset + maxStringLength > maxSizeLimit) {
 										break loop;

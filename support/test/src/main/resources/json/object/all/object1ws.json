@@ -1,9 +1,0 @@
-{
-	"grandparent": {
-		"parent": {
-			"child1": "*****",
-			"child2": true,
-			"child3": "SUBTREE REMOVED"
-		}
-	}
-}

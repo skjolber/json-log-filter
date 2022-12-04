@@ -18,7 +18,7 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public RemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false, true);
+		super();
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new RemoveWhitespaceJsonFilter(), pp).hasPassthrough();
+		assertThat(new RemoveWhitespaceJsonFilter()).hasPassthrough();
 	}
 
 	@Test

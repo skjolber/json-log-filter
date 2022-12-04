@@ -23,4 +23,6 @@ public interface JsonFilterConstants {
 	public static final char[] FULL = "{\"terminated\":\"string value\"}".toCharArray();
 	public static final String INCORRECT_LEVEL = "{";
 
+	public static final String VALIDATING = "validating";
+
 }

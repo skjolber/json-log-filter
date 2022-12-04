@@ -1,14 +1,15 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.JsonFileCache;
 import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
-import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest.Builder;
 
 public class JsonMaxSizeFilterUnitTest {
 
@@ -24,6 +25,12 @@ public class JsonMaxSizeFilterUnitTest {
 		private boolean literal = true;
 		private MaxSizeJsonFilterAdapter adapter;
 		private JsonFileCache cache = JsonFileCache.getInstance();
+		private JsonFilterMetrics metrics;
+
+		public Builder withMetrics(JsonFilterMetrics metrics) {
+			this.metrics = metrics;
+			return this;
+		}
 		
 		public Builder withAdapter(MaxSizeJsonFilterAdapter adapter) {
 			this.adapter = adapter;
@@ -66,12 +73,12 @@ public class JsonMaxSizeFilterUnitTest {
 
 			String expectedJonOutput = cache.getFile(outputFile);
 			
-			JsonFilter filter = adapter.getMaxSize(expectedJonOutput.length());
-			
-			JsonFilterInputOutput jsonFilterInputOutput = JsonFilterInputOutput.newBuilder()
-					.withFilter(filter)
+			JsonMaxSizeFilterInputOutput jsonFilterInputOutput = JsonMaxSizeFilterInputOutput.newBuilder()
+					.withFilter(adapter)
 					.withInputFile(inputFile)
-					.withMinimumLength(expectedJonOutput.length())
+					.withMetrics(metrics)
+					.withMinimumLengthChars(expectedJonOutput.length())
+					.withMinimumLengthBytes(expectedJonOutput.getBytes(StandardCharsets.UTF_8).length)
 					.build();
 			JsonInputOutput result = jsonFilterInputOutput.getResult();
 			if(!result.hasStringOutput()) {
@@ -79,9 +86,13 @@ public class JsonMaxSizeFilterUnitTest {
 			}
 
 			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
-				throw new IllegalStateException();
+				System.out.println("Unexpected result for " + inputFile);
+				System.out.println("Input   :" + result.getStringInput());
+				System.out.println("Output  :" + result.getStringOutput());
+				System.out.println("Expected:" + expectedJonOutput);
+				throw new IllegalStateException("Unexpected result for " + outputProperties.getProperties());
 			}
-			return new JsonMaxSizeFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
+			return new JsonMaxSizeFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput.getFilter(), jsonFilterInputOutput.getResult());
 		}
 
 		private boolean isEqual(String expectedJsonOutput, String stringOutput) {
@@ -106,26 +117,16 @@ public class JsonMaxSizeFilterUnitTest {
 
 	private JsonFilterProperties outputProperties;
 	private String output;
-	private JsonFilterInputOutput inputOutput;
+	private JsonFilter filter;
+	private JsonInputOutput jsonFilterResult;
 	
-	public JsonMaxSizeFilterUnitTest(JsonFilterProperties outputProperties, String output, JsonFilterInputOutput inputOutput) {
+	public JsonMaxSizeFilterUnitTest(JsonFilterProperties outputProperties, String output, JsonFilter filter, JsonInputOutput jsonFilterResult) {
 		super();
 		this.outputProperties = outputProperties;
 		this.output = output;
-		this.inputOutput = inputOutput;
+		this.filter = filter;
+		this.jsonFilterResult = jsonFilterResult;
 	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	

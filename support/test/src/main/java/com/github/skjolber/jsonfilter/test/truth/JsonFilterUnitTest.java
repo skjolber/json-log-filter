@@ -3,11 +3,12 @@ package com.github.skjolber.jsonfilter.test.truth;
 import java.nio.file.Path;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.JsonFileCache;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
-import com.github.skjolber.jsonfilter.test.truth.JsonFilterInputOutput.Builder;
 
 public class JsonFilterUnitTest {
 
@@ -23,6 +24,13 @@ public class JsonFilterUnitTest {
 		private JsonFilterProperties outputProperties;
 		private boolean literal = true;
 		private int length;
+		private JsonFilterMetrics metrics;
+		private JsonFileCache jsonFileCache = JsonFileCache.getInstance();
+		
+		public Builder withMetrics(JsonFilterMetrics metrics) {
+			this.metrics = metrics;
+			return this;
+		}
 		
 		public Builder withInputFile(Path file) {
 			this.inputFile = file;
@@ -67,24 +75,33 @@ public class JsonFilterUnitTest {
 				throw new IllegalStateException();
 			}
 
-			String expectedJonOutput = JsonFileCache.getInstance().getFile(outputFile);
+			String expectedJonOutput = jsonFileCache.getFile(outputFile);
 			
 			JsonFilterInputOutput jsonFilterInputOutput = JsonFilterInputOutput.newBuilder()
 					.withFilter(filter)
 					.withInputFile(inputFile)
 					.withMinimumLength(length)
+					.withMetrics(metrics)
 					.build();
 			JsonInputOutput result = jsonFilterInputOutput.getResult();
 			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
 			}
 
-			System.out.println("Expected " + expectedJonOutput);
-			System.out.println("Got      " + result.getStringOutput());
-
 			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
+				System.out.println(inputFile);
+				System.out.println(outputFile);
+				System.out.println(outputProperties.getProperties());
+				System.out.println("         " + result.getStringInput());
+				System.out.println("Expected " + expectedJonOutput);
+				System.out.println("Got      " + result.getStringOutput());
+
 				throw new IllegalStateException();
 			}
+			
+			System.out.println(inputFile);
+			System.out.println(outputFile);
+			
 			return new JsonFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
 		}
 
@@ -105,6 +122,11 @@ public class JsonFilterUnitTest {
 			}
 
 			return JsonComparator.isSameEvents(normalizedExpectedJsonOutput, normalizedStringOutput);
+		}
+
+		public Builder withMetrics(DefaultJsonFilterMetrics metrics) {
+			this.metrics = metrics;
+			return this;
 		}
 	}
 

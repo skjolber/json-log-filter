@@ -175,7 +175,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	public void addMaxLength(byte[] chars, int start, int end, int length) {
 		// account for code points and escaping
 		if(length < 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Negative length " + length);
 		}
 		
 		int alignedStart = getStringAlignment(chars, start);

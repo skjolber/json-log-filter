@@ -10,17 +10,20 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 
 	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 	public MaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
-		super(false, true);
+		super(false);
 	}
 
 	@Test
@@ -57,7 +60,7 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new MaxSizeRemoveWhitespaceJsonFilter(-1), pp).hasPassthrough();
+		assertThat(new MaxSizeRemoveWhitespaceJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
@@ -74,7 +77,8 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	
 	@Test
 	public void maxSize() throws Exception {
-		assertThat(new MaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_SIZE), pp).hasMaxSize(DEFAULT_MAX_SIZE);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
+		assertThatMaxSize(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
 	}
 	
 }

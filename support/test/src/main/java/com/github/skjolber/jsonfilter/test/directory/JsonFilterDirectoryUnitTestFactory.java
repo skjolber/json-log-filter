@@ -7,17 +7,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import com.github.skjolber.jsonfilter.JsonFilter;
+
 public class JsonFilterDirectoryUnitTestFactory {
 
 	public static JsonFilterDirectoryUnitTestFactory fromResource(String path, List<?> nullable) throws URISyntaxException {
-        URI uri = JsonFilterDirectoryUnitTestFactory.class.getResource(path).toURI();
-        return new JsonFilterDirectoryUnitTestFactory(nullable, Paths.get(uri));
+        URI uri = JsonFilterDirectoryUnitTestFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+        
+        Path uriPath = Paths.get(uri);
+        
+        if(path.startsWith("/")) {
+        	path = path.substring(1);
+        }
+        
+        return new JsonFilterDirectoryUnitTestFactory(nullable, uriPath.resolve(path));
 	}
 	
 	public static class JsonDirectory {
@@ -31,6 +41,25 @@ public class JsonFilterDirectoryUnitTestFactory {
 		private Map<String, Path> jsonFiles;
 		
 		private boolean output = false;
+		
+		public Path getParentFile(String name) {
+			Path file = null;
+			JsonDirectory directory = this.parent;
+			while(directory != null) {
+				
+				Path path = directory.jsonFiles.get(name);
+				if(path != null) {
+					file = path;
+				}
+				
+				directory = directory.parent;
+			}
+			if(properties != null && !properties.isEmpty() && file == null) {
+				throw new IllegalArgumentException("No file " + name + " any parent directory for " + this.directory + " for " + properties);
+			}
+			
+			return file;
+		}
 
 	}
 
@@ -38,7 +67,7 @@ public class JsonFilterDirectoryUnitTestFactory {
 	private Path directory;
 	
 	public JsonFilterDirectoryUnitTestFactory(List<?> nullable, Path directory) {
-		this.jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable);
+		this.jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable, Arrays.asList("removingWhitespace", "validating"));
 		this.directory = directory;
 	}
 
@@ -50,6 +79,10 @@ public class JsonFilterDirectoryUnitTestFactory {
 		processFilterDirectories(jsonDirectory, result);
 		
 		return result;
+	}
+	
+	public JsonFilterProperties getProperties(JsonFilter filter) {
+		return jsonFilterPropertiesFactory.createInstance(filter);
 	}
 
 	protected JsonDirectory createJsonDirectory(JsonDirectory parent, Path directory) throws IOException {
@@ -83,6 +116,8 @@ public class JsonFilterDirectoryUnitTestFactory {
 		
 		jsonDirectory.parent = parent;
 		
+		System.out.println(directory + " " + jsonDirectory.jsonFiles.size());
+		
 		return jsonDirectory;
 	}
 	
@@ -112,18 +147,16 @@ public class JsonFilterDirectoryUnitTestFactory {
 	}
 
 	protected Map<Path, Path> getInputFiles(JsonDirectory jsonDirectory) {
-		JsonDirectory parent = jsonDirectory.parent;
-		
 		Map<Path, Path> map = new HashMap<>();
 		for (Entry<String, Path> entry : jsonDirectory.jsonFiles.entrySet()) {
 			String key = entry.getKey();
-			Path from = parent.jsonFiles.get(key);
-			if(from == null) {
-				throw new IllegalArgumentException("No file " + key + " in " + parent.directory + " for " + jsonDirectory.directory + ", just found " + parent.jsonFiles.keySet() + ", wanted " + jsonDirectory.jsonFiles.keySet());
+			
+			Path from = jsonDirectory.getParentFile(key);
+			if(from != null) {
+				Path to = entry.getValue();
+	
+				map.put(from,  to);
 			}
-			Path to = entry.getValue();
-
-			map.put(from,  to);
 		}
 		return map;
 	}
