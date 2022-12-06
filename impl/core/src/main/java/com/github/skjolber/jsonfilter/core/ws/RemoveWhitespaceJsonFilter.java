@@ -38,11 +38,11 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		
-		int limit = length + offset;
 		int bufferLength = buffer.length();
 		
 		try {
+			int limit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			
 			CharWhitespaceFilter.process(chars, offset, limit, buffer);
 			
 			if(metrics != null) {
@@ -57,10 +57,11 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		int limit = length + offset;
 		int bufferLength = output.size();
 		
 		try {
+			int limit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+
 			ByteWhitespaceFilter.process(chars, offset, limit, output);
 			
 			if(metrics != null) {

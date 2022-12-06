@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -29,14 +30,14 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJackson
 
 	@Test
 	public void passthrough_success() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(-1, size);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(-1, size);
 		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
-		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
+		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

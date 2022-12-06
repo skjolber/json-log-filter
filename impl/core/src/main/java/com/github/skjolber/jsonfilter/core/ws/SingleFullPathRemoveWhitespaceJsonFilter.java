@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -54,12 +55,9 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		
 		CharWhitespaceFilter filter = new CharWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
 		int bufferLength = buffer.length();
-		
-		int limit = length + offset;
 		
 		int level = 0;
 		final char[][] elementPaths = this.pathChars;
@@ -68,6 +66,8 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		int pathMatches = 0;
 
 		try {
+			int limit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			
 			int start = offset;
 
 			while(offset < limit) {
@@ -80,15 +80,12 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					} while(chars[offset] <= 0x20);
 
 					start = offset;
-
-					continue;
+					c = chars[offset];
 				}
 				
 				switch(c) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						
 						filter.setStart(start);
@@ -97,10 +94,9 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						start = filter.getStart();
 						
-						level--;
-						
 						continue;
 					}
+					level++;
 					break;
 				case '}' :
 					level--;
@@ -146,24 +142,29 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					}
 					
 					if(matches == elementPaths.length) {
-						start = nextOffset;
-						
 						buffer.append(':');
 						
-						nextOffset++;
-						
+						// skip whitespace
+						// optimization: scan for highest value
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
-								offset = CharArrayRangesFilter.skipObject(chars, nextOffset);
-
-								buffer.append(pruneJsonValue);
+								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 								
+								buffer.append(pruneJsonValue);
+								if(metrics != null) {
+									metrics.onPrune(1);
+								}
+
 								start = offset;
 							} else {
-								filter.setStart(start);
+								filter.setStart(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
 								
 								start = filter.getStart();
 							}
@@ -177,8 +178,16 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 
 							if(filterType == FilterType.PRUNE) {
 								buffer.append(pruneJsonValue);
+								if(metrics != null) {
+									metrics.onPrune(1);
+								}
+
 							} else {
 								buffer.append(anonymizeJsonValue);
+								if(metrics != null) {
+									metrics.onAnonymize(1);
+								}
+
 							}
 							
 							start = offset;
@@ -201,6 +210,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						matches--;
 					} else {
+						start = nextOffset;
 						offset = nextOffset;
 					}
 
@@ -311,15 +321,19 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(filterType == FilterType.PRUNE) {
 									// skip both whitespace and actual content
-									offset = CharArrayRangesFilter.skipObject(chars, nextOffset);
+									offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 
 									buffer.append(pruneJsonValue);
-									
+
+									if(metrics != null) {
+										metrics.onPrune(1);
+									}
+
 									start = offset;
 								} else {
 									filter.setStart(start);
 
-									offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer);
+									offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
 									
 									start = filter.getStart();
 								}
@@ -333,8 +347,17 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 
 								if(filterType == FilterType.PRUNE) {
 									buffer.append(pruneJsonValue);
+									
+									if(metrics != null) {
+										metrics.onPrune(1);
+									}
+									
 								} else {
 									buffer.append(anonymizeJsonValue);
+									
+									if(metrics != null) {
+										metrics.onAnonymize(1);
+									}
 								}
 							}
 							
@@ -452,12 +475,9 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 	}
 	
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		
 		ByteWhitespaceFilter filter = new ByteWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		int bufferLength = output.size();
-		
-		int limit = length + offset;
 		
 		int level = 0;
 		final byte[][] elementPaths = this.pathBytes;
@@ -466,6 +486,8 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		int pathMatches = 0;
 
 		try {
+			int limit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+
 			int start = offset;
 
 			while(offset < limit) {
@@ -478,15 +500,12 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					} while(chars[offset] <= 0x20);
 
 					start = offset;
-
-					continue;
+					c = chars[offset];
 				}
 				
 				switch(c) {
 				case '{' :
-					level++;
-					
-					if(level > matches + 1) {
+					if(level > matches) {
 						// so always level < elementPaths.length
 						
 						filter.setStart(start);
@@ -495,10 +514,9 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						start = filter.getStart();
 						
-						level--;
-						
 						continue;
 					}
+					level++;
 					break;
 				case '}' :
 					level--;
@@ -544,24 +562,29 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					}
 					
 					if(matches == elementPaths.length) {
-						start = nextOffset;
-						
 						output.write(':');
 						
-						nextOffset++;
-						
+						// skip whitespace
+						// optimization: scan for highest value
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
-								offset = ByteArrayRangesFilter.skipObject(chars, nextOffset);
+								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 
 								output.write(pruneJsonValueAsBytes);
+								if(metrics != null) {
+									metrics.onPrune(1);
+								}
 								
 								start = offset;
 							} else {
-								filter.setStart(start);
+								filter.setStart(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output, metrics);
 								
 								start = filter.getStart();
 							}
@@ -575,8 +598,18 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 
 							if(filterType == FilterType.PRUNE) {
 								output.write(pruneJsonValueAsBytes);
+								
+								if(metrics != null) {
+									metrics.onPrune(1);
+								}
+
 							} else {
 								output.write(anonymizeJsonValueAsBytes);
+								
+								if(metrics != null) {
+									metrics.onAnonymize(1);
+								}
+
 							}
 							
 							start = offset;
@@ -599,6 +632,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						matches--;
 					} else {
+						start = nextOffset;
 						offset = nextOffset;
 					}
 

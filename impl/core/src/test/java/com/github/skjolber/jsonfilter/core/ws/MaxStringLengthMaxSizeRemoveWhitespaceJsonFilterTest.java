@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;

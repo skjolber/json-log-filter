@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteWhitespaceFilter {
@@ -128,7 +129,7 @@ public class ByteWhitespaceFilter {
 				output.write(chars, start, offset - start);
 				do {
 					offset++;
-				} while(offset < limit && chars[offset] <= 0x20);
+				} while(chars[offset] <= 0x20);
 				
 				start = offset;
 				
@@ -189,7 +190,7 @@ public class ByteWhitespaceFilter {
 		return offset;
 	}
 
-	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer) {
+	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int start = getStart();
@@ -254,11 +255,18 @@ public class ByteWhitespaceFilter {
 					if(chars[nextOffset] == ':') {
 						// was a key
 						buffer.write(chars, start, endQuoteIndex - start + 1);
+						buffer.write(':');
+						
+						nextOffset++;
 					} else {
 						// was a value
 						buffer.write(chars, start, offset - start);
 						
 						buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+						
+						if(metrics != null) {
+							metrics.onAnonymize(1);
+						}
 					}
 
 					offset = nextOffset;
@@ -277,6 +285,10 @@ public class ByteWhitespaceFilter {
 					
 					buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
 					
+					if(metrics != null) {
+						metrics.onAnonymize(1);
+					}
+
 					offset = nextOffset;
 					start = nextOffset;
 					
@@ -287,6 +299,14 @@ public class ByteWhitespaceFilter {
 			offset++;
 		}
 	}
+
+	public static int skipWhitespaceBackwards(byte[] chars, int limit) {
+		// skip backwards so that we can jump over whitespace without checking limit
+		do {
+			limit--;
+		} while(chars[limit] <= 0x20);
 		
+		return limit + 1;
+	}
 
 }

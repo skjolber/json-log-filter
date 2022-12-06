@@ -87,7 +87,6 @@ public class JsonFilterUnitTest {
 			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
 			}
-
 			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
 				System.out.println(inputFile);
 				System.out.println(outputFile);
@@ -98,9 +97,6 @@ public class JsonFilterUnitTest {
 
 				throw new IllegalStateException();
 			}
-			
-			System.out.println(inputFile);
-			System.out.println(outputFile);
 			
 			return new JsonFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
 		}

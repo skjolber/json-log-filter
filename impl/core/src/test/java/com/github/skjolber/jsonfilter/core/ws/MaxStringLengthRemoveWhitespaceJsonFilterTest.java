@@ -8,8 +8,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.core.pp.Indent;
-import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonFilterTest {

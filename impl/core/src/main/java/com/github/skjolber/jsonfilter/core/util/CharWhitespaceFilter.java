@@ -300,7 +300,7 @@ public class CharWhitespaceFilter {
 		return false;
 	}	
 	
-	public int anonymizeObjectOrArray(char[] chars, int offset, int limit, StringBuilder buffer) {
+	public int anonymizeObjectOrArray(char[] chars, int offset, int limit, StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int start = getStart();
@@ -365,11 +365,18 @@ public class CharWhitespaceFilter {
 					if(chars[nextOffset] == ':') {
 						// was a key
 						buffer.append(chars, start, endQuoteIndex - start + 1);
+						buffer.append(':');
+						
+						nextOffset++;
 					} else {
 						// was a value
 						buffer.append(chars, start, offset - start);
 						
 						buffer.append(anonymizeMessage);
+						
+						if(metrics != null) {
+							metrics.onAnonymize(1);
+						}
 					}
 
 					offset = nextOffset;
@@ -387,7 +394,11 @@ public class CharWhitespaceFilter {
 					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
 					
 					buffer.append(anonymizeMessage);
-					
+
+					if(metrics != null) {
+						metrics.onAnonymize(1);
+					}
+
 					offset = nextOffset;
 					start = nextOffset;
 					
@@ -413,7 +424,7 @@ public class CharWhitespaceFilter {
 				output.append(chars, start, offset - start);
 				do {
 					offset++;
-				} while(offset < limit && chars[offset] <= 0x20);
+				} while(chars[offset] <= 0x20);
 				
 				start = offset;
 				
@@ -424,6 +435,15 @@ public class CharWhitespaceFilter {
 		output.append(chars, start, offset - start);
 		
 		return offset;
+	}
+	
+	public static int skipWhitespaceBackwards(char[] chars, int limit) {
+		// skip backwards so that we can jump over whitespace without checking limit
+		do {
+			limit--;
+		} while(chars[limit] <= 0x20);
+		
+		return limit + 1;
 	}
 	
 }

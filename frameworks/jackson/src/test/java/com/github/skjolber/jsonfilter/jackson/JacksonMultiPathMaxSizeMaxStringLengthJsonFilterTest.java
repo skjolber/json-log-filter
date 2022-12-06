@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -32,7 +33,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 
 	@Test
 	public void passthrough_success() throws Exception {		
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, null);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null)).hasPassthrough();
 		
 		maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
@@ -41,7 +42,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 	
 	@Test
 	public void anonymize() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH}, null);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH}, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		
 		maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
@@ -53,19 +54,19 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 
 	@Test
 	public void anonymizeWildcard() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_WILDCARD_PATH}, null);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_WILDCARD_PATH}, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH);
 	}
 	
 	@Test
 	public void anonymizeAny() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_ANY_PATH}, null);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_ANY_PATH}, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_ANY_PATH}, null)).hasAnonymized(DEFAULT_ANY_PATH);
 	}
 
 	@Test
 	public void prune() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, new String[]{DEFAULT_PATH});
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, new String[]{DEFAULT_PATH});
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, new String[]{DEFAULT_PATH})).hasPruned(DEFAULT_PATH);
 		
 		maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH});
@@ -77,25 +78,25 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 
 	@Test
 	public void pruneWildcard() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size,  null, new String[]{DEFAULT_WILDCARD_PATH});
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size,  null, new String[]{DEFAULT_WILDCARD_PATH});
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, new String[]{DEFAULT_WILDCARD_PATH})).hasPruned(DEFAULT_WILDCARD_PATH);
 	}
 	
 	@Test
 	public void pruneAny() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size,  null, new String[]{DEFAULT_ANY_PATH});
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size,  null, new String[]{DEFAULT_ANY_PATH});
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, new String[]{DEFAULT_ANY_PATH})).hasPruned(DEFAULT_ANY_PATH);
 	}	
 
 	@Test
 	public void maxStringLength() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, null, null);
-		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, null, null), UNICODE_FILTER).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, null, null);
+		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, null, null)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test
 	public void maxStringLengthAnonymizePrune() throws Exception {
-		Function<Integer, JsonFilter> maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, new String[]{"/key1"}, new String[]{"/key3"});
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, new String[]{"/key1"}, new String[]{"/key3"});
 
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, new String[]{"/key1"}, new String[]{"/key3"}))
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)

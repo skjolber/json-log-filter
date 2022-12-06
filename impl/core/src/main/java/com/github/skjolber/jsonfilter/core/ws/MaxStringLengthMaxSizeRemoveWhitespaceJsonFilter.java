@@ -22,7 +22,9 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
 
 public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringLengthRemoveWhitespaceJsonFilter {
 
@@ -40,7 +42,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		}
 		
 		int bufferLength = buffer.length();
-		int lengthLimit = length + offset;
 
 		int limit = offset + maxSize;
 
@@ -52,10 +53,32 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		int writtenMark = 0;
 
 		try {
+			int maxLimit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			
 			int start = offset;
 
 			while(offset < limit) {
-				switch(chars[offset]) {
+				char c = chars[offset];
+				if(c <= 0x20) {
+					if(start <= mark) {
+						writtenMark = buffer.length() + mark - start; 
+					}
+					// skip this char and any other whitespace
+					buffer.append(chars, start, offset - start);
+					do {
+						offset++;
+						limit++;
+					} while(chars[offset] <= 0x20);
+
+					if(limit >= maxLimit) {
+						limit = maxLimit;
+					}
+
+					start = offset;
+					c = chars[offset];
+				}
+				
+				switch(c) {
 				case '{' :
 				case '[' :
 					squareBrackets[level] = chars[offset] == '[';
@@ -102,8 +125,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 								buffer.append(chars, start, endQuoteIndex - start + 1);
 								
 								limit += nextOffset - endQuoteIndex;
-								if(limit >= lengthLimit) {
-									limit = lengthLimit;
+								if(limit >= maxLimit) {
+									limit = maxLimit;
 								}
 								
 								start = nextOffset;
@@ -126,8 +149,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 							}
 							
 							limit += nextOffset - aligned; // also accounts for skipped whitespace, if any
-							if(limit >= lengthLimit) {
-								limit = lengthLimit;
+							if(limit >= maxLimit) {
+								limit = maxLimit;
 							}
 							
 							start = nextOffset;
@@ -140,24 +163,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					continue;
 				}
 				default : {
-					if(chars[offset] <= 0x20) {
-						// skip this char and any other whitespace
-						if(start <= mark) {
-							writtenMark = buffer.length() + mark - start; 
-						}
-						buffer.append(chars, start, offset - start);
-						do {
-							offset++;
-							limit++;
-						} while(offset < lengthLimit && chars[offset] <= 0x20);
-
-						if(limit >= lengthLimit) {
-							limit = lengthLimit;
-						}
-						start = offset;
-
-						continue;
-					}
 				}
 				}
 				offset++;
@@ -180,8 +185,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < lengthLimit) {
-					metrics.onMaxSize(lengthLimit - mark - level);
+				if(mark - level < maxLimit) {
+					metrics.onMaxSize(maxLimit - mark - level);
 				}
 				
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -203,7 +208,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		byte[] digit = new byte[11];
 		
 		int bufferLength = output.size();
-		int lengthLimit = length + offset;
 
 		int limit = offset + maxSize;
 
@@ -215,10 +219,32 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		int writtenMark = 0;
 
 		try {
+			int maxLimit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			
 			int start = offset;
 
 			while(offset < limit) {
-				switch(chars[offset]) {
+				byte c = chars[offset];
+				if(c <= 0x20) {
+					if(start <= mark) {
+						writtenMark = stream.size() + mark - start; 
+					}
+					// skip this char and any other whitespace
+					stream.write(chars, start, offset - start);
+					do {
+						offset++;
+						limit++;
+					} while(chars[offset] <= 0x20);
+
+					if(limit >= maxLimit) {
+						limit = maxLimit;
+					}
+				
+					start = offset;
+					c = chars[offset];
+				}
+				
+				switch(c) {
 				case '{' :
 				case '[' :
 					squareBrackets[level] = chars[offset] == '[';
@@ -266,8 +292,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 								stream.write(chars, start, endQuoteIndex - start + 1);
 								
 								limit += nextOffset - endQuoteIndex;
-								if(limit >= lengthLimit) {
-									limit = lengthLimit;
+								if(limit >= maxLimit) {
+									limit = maxLimit;
 								}
 								
 								start = nextOffset;
@@ -292,8 +318,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 							}
 							
 							limit += nextOffset - aligned; // also account for skipped whitespace, if any
-							if(limit >= lengthLimit) {
-								limit = lengthLimit;
+							if(limit >= maxLimit) {
+								limit = maxLimit;
 							}
 							
 							start = nextOffset;
@@ -306,24 +332,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					continue;
 				}
 				default : {
-					if(chars[offset] <= 0x20) {
-						// skip this char and any other whitespace
-						if(start <= mark) {
-							writtenMark = stream.size() + mark - start; 
-						}
-						stream.write(chars, start, offset - start);
-						do {
-							offset++;
-							limit++;
-						} while(offset < lengthLimit && chars[offset] <= 0x20);
-
-						if(limit >= lengthLimit) {
-							limit = lengthLimit;
-						}
-						start = offset;
-
-						continue;
-					}
 				}
 				}
 				offset++;
@@ -349,8 +357,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < lengthLimit) {
-					metrics.onMaxSize(lengthLimit - mark - level);
+				if(mark - level < maxLimit) {
+					metrics.onMaxSize(maxLimit - mark - level);
 				}
 				
 				metrics.onOutput(output.size() - bufferLength);

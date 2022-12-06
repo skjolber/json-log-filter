@@ -21,7 +21,9 @@ import java.io.ByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
 
 public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 
@@ -50,9 +52,9 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int bufferLength = buffer.length();
 		
-		int limit = length + offset;
-
 		try {
+			int limit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+
 			int start = offset;
 
 			while(offset < limit) {
@@ -101,7 +103,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20 && offset < limit);					
+					} while(chars[offset] <= 0x20);					
 					
 					start = offset;
 
@@ -123,13 +125,13 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		int limit = length + offset;
-		
 		int bufferLength = output.size();
 
 		byte[] digit = new byte[11];
 
 		try {
+			int limit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			
 			int start = offset;
 
 			while(offset < limit) {
@@ -178,7 +180,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					output.write(chars, start, offset - start);
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20 && offset < limit);					
+					} while(chars[offset] <= 0x20 );					
 
 					start = offset;
 

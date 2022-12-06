@@ -76,19 +76,28 @@ public class JsonFilterInputOutput {
 				
 				if(filter.isRemovingWhitespace()) {
 					if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
-						System.out.println(prettyPrintedAsString);
-						System.out.println(prettyPrintStringOutput);
-						System.out.println(stringOutput);
+						System.out.println("Input 1:  " + contentAsString);
+						System.out.println("Output 1: " + stringOutput);
+						System.out.println("Input 2:  " + prettyPrintedAsString);
+						System.out.println("Output 2: " + prettyPrintStringOutput);
+						
 						fail("Expected symmertic pretty-printed string result for " + inputFile);
 					}
 					if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
+						System.out.println("Input 1:  " + new String(contentAsBytes, StandardCharsets.UTF_8));
+						System.out.println("Output 1: " + new String(byteOutput, StandardCharsets.UTF_8));
+						System.out.println("Input 2:  " + new String(prettyPrintedAsBytes, StandardCharsets.UTF_8));
+						System.out.println("Output 2: " + new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
+						
 						fail("Expected symmertic pretty-printed byte[] result for " + inputFile);
 					}
 				} else {
 					if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
-						System.out.println(prettyPrintedAsString);
-						System.out.println(stringOutput);
-						System.out.println(prettyPrintStringOutput);
+						System.out.println("Input 1:  " + contentAsString);
+						System.out.println("Output 1: " + stringOutput);
+						System.out.println("Input 2:  " + prettyPrintedAsString);
+						System.out.println("Output 2: " + prettyPrintStringOutput);
+						
 						fail("Expected event symmertic pretty-printed byte[] result for " + inputFile + " minimum length " + minimumLength + " -> " + prettyPrintedAsString.length());
 					}
 				}

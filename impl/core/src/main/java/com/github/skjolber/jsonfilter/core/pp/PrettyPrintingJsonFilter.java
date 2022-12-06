@@ -231,15 +231,6 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 		return null;
 	}
 	
-
-
-	
-	
-	
-	
-	
-	
-	
 	@Override
 	public String process(char[] chars, JsonFilterMetrics metrics) {
 		StringBuilder buffer = new StringBuilder(chars.length * 2);
