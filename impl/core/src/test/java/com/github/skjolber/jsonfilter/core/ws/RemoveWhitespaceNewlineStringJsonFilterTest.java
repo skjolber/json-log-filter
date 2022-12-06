@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 
-public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
+public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilterTest {
 
-	public RemoveWhitespaceJsonFilterTest() throws Exception {
+	public RemoveWhitespaceNewlineStringJsonFilterTest() throws Exception {
 		super();
 	}
 
@@ -23,7 +23,7 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 
 		String broken = string.substring(0, string.length() / 2);
 		
-		RemoveWhitespaceJsonFilter filter = new RemoveWhitespaceJsonFilter();
+		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
 		char[] brokenChars = broken.toCharArray();
 		assertFalse(filter.process(brokenChars, 0, string.length(), new StringBuilder()));
@@ -31,7 +31,7 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 		byte[] brokenBytes = broken.getBytes(StandardCharsets.UTF_8);
 		assertFalse(filter.process(brokenBytes, 0, string.length(), new ByteArrayOutputStream()));
 		
-		filter = new RemoveWhitespaceJsonFilter();
+		filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
 		assertFalse(filter.process(new char[]{}, 0, string.length(), new StringBuilder()));
 		
@@ -40,19 +40,19 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void passthrough_success() throws Exception {
-		assertThat(new RemoveWhitespaceJsonFilter()).hasPassthrough();
+		assertThat(new RemoveWhitespaceNewlineStringJsonFilter()).hasPassthrough();
 	}
 
 	@Test
 	public void exception_returns_false() throws Exception {
-		assertFalse(new RemoveWhitespaceJsonFilter().process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(new RemoveWhitespaceJsonFilter().process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(new RemoveWhitespaceNewlineStringJsonFilter().process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(new RemoveWhitespaceNewlineStringJsonFilter().process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
 	}
 
 	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
-		assertNull(new RemoveWhitespaceJsonFilter().process(TRUNCATED));
-		assertNull(new RemoveWhitespaceJsonFilter().process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+		assertNull(new RemoveWhitespaceNewlineStringJsonFilter().process(TRUNCATED));
+		assertNull(new RemoveWhitespaceNewlineStringJsonFilter().process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
 	}
 	
 }

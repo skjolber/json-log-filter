@@ -22,8 +22,6 @@ import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends DefaultJsonFilterTest {
 
-	private final static PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
-
 	public MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
 		super();
 	}
@@ -88,25 +86,5 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		
 		assertThatMaxSize(maxSize, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
 	}
-
-	@Test
-	public void testFile() throws Exception {
-		FileInputStream fileInputStream = new FileInputStream(new File("/home/skjolber/git/json-log-filter-github/support/test/src/main/resources/json/array/1d/anyArray.json"));
-		String string = IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
-		
-		Indent indent = Indent.newBuilder().build();
-		PrettyPrintingJsonFilter pp = new PrettyPrintingJsonFilter(indent);
-		
-		String whitespaceString = pp.process(string);
-		System.out.println("**************************************");
-		System.out.println(whitespaceString);
-		System.out.println("**************************************");
-		
-		JsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 62);
-		
-		System.out.println(filter.getClass().getSimpleName() + " " + filter.process(whitespaceString));
-
-	}
-	
 	
 }

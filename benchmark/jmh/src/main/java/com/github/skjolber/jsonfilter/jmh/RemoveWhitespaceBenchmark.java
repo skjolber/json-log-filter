@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.jmh;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,6 +18,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -26,7 +26,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
-import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 @State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
@@ -89,6 +88,8 @@ public class RemoveWhitespaceBenchmark {
 				.include(RemoveWhitespaceBenchmark.class.getSimpleName())
 				.warmupIterations(5)
 				.measurementIterations(5)
+				.result("target/" + System.currentTimeMillis() + ".json")
+				.resultFormat(ResultFormatType.JSON)
 				.build();
 
 		new Runner(opt).run();

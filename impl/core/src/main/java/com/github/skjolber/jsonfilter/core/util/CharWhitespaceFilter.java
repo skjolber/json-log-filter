@@ -144,59 +144,6 @@ public class CharWhitespaceFilter {
 		
 		return offset;
 	}
-	
-	public int skipObjectOrArray2(final char[] chars, int offset, int limit, final StringBuilder buffer) {
-		int level = 1;
-
-		int start = getStart();
-
-		loop: while(offset < limit) {
-			if(chars[offset] <= 0x20) {
-				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
-				do {
-					offset++;
-				} while(offset < limit && chars[offset] <= 0x20);
-				
-				start = offset;
-
-				continue;
-			}
-			
-			switch(chars[offset]) {
-			case '"': {
-				do {
-					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-				offset++;
-				
-				continue;
-			}
-			case '{' :
-			case '[' :
-				level++;
-
-				break;
-			case '}' :
-			case ']' :
-				level--;
-
-				if(level == 0) {
-					offset++;
-					break loop;
-				}
-				break;
-			}
-			offset++;
-		}
-		
-		buffer.append(chars, start, offset - start);
-		
-		setStart(offset);
-		
-		return offset;
-	}
-	
 
 	public int skipObject(final char[] chars, int offset, int limit, final StringBuilder buffer) {
 		int level = 1;
@@ -247,58 +194,6 @@ public class CharWhitespaceFilter {
 		
 		return offset;
 	}
-	
-	public boolean anonymizeSubtree3(final char[] chars, int offset, int limit, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		int start = getStart();
-
-		while(offset < limit) {
-			char c = chars[offset];
-			if(c == '"') {
-				int nextOffset = offset;
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-				int endQuoteIndex = nextOffset;
-				
-				// key or value, might be whitespace
-
-				// skip whitespace
-				// optimization: scan for highest value
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] <= 0x20);
-
-				if(chars[nextOffset] == ':') {
-					// was a key
-					buffer.append(chars, start, endQuoteIndex - start + 1);
-				} else {
-					// was a value
-					
-				}
-
-				start = nextOffset;
-
-				continue;
-			} else if(c <= 0x20) {
-				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
-
-				start = offset;
-
-				continue;
-			}
-			offset++;
-		}
-		buffer.append(chars, start, offset - start);
-		
-		
-		
-		return false;
-	}	
 	
 	public int anonymizeObjectOrArray(char[] chars, int offset, int limit, StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
@@ -437,7 +332,7 @@ public class CharWhitespaceFilter {
 		return offset;
 	}
 	
-	public static int skipWhitespaceBackwards(char[] chars, int limit) {
+	public static int skipWhitespaceFromEnd(char[] chars, int limit) {
 		// skip backwards so that we can jump over whitespace without checking limit
 		do {
 			limit--;

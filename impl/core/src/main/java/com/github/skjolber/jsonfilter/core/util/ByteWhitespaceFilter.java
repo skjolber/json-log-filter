@@ -300,7 +300,7 @@ public class ByteWhitespaceFilter {
 		}
 	}
 
-	public static int skipWhitespaceBackwards(byte[] chars, int limit) {
+	public static int skipWhitespaceFromEnd(byte[] chars, int limit) {
 		// skip backwards so that we can jump over whitespace without checking limit
 		do {
 			limit--;

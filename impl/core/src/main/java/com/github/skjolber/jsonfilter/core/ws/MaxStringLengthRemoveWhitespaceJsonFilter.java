@@ -53,7 +53,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		int bufferLength = buffer.length();
 		
 		try {
-			int limit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			int start = offset;
 
@@ -130,7 +130,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		byte[] digit = new byte[11];
 
 		try {
-			int limit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int start = offset;
 

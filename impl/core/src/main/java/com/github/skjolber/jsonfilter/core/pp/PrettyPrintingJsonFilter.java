@@ -20,16 +20,18 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
-public class PrettyPrintingJsonFilter implements JsonFilter {
+public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	
 	private final Indent indent;
 	
 	public PrettyPrintingJsonFilter(Indent indent) {
+		super(-1, -1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 		this.indent = indent;
 	}
 
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {	
 		length += offset;
 		
 		int level = 0;
@@ -76,31 +78,29 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 				}
 
 				switch(chars[offset]) {
-					case ',' :
-						indent.append(buffer, level);
-						break;
-					case ':' :
-						buffer.append(' ');
-						break;
-					case '[' :
-						int nextOffset = offset + 1;
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] == ']') {
-							buffer.append(']');
-							offset = nextOffset + 1;
-							level--;
-							continue;
-						}
-					case '{' :
-						indent.append(buffer, level);
-				}		
-				
-				
+				case ',' :
+					indent.append(buffer, level);
+					break;
+				case ':' :
+					buffer.append(' ');
+					break;
+				case '[' :
+					int nextOffset = offset + 1;
+					// skip whitespace
+					// optimization: scan for highest value
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
+					
+					if(chars[nextOffset] == ']') {
+						buffer.append(']');
+						offset = nextOffset + 1;
+						level--;
+						continue;
+					}
+				case '{' :
+					indent.append(buffer, level);
+				}
 				offset++;
 			}
 			
@@ -114,7 +114,7 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 		}
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
 		length += offset;
 
 		int level = 0;
@@ -161,28 +161,28 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 				}
 
 				switch(chars[offset]) {
-					case ',' :
-						indent.append(output, level);
-						break;
-					case ':' :
-						output.write(' ');
-						break;
-					case '[' :
-						int nextOffset = offset + 1;
-						// skip whitespace
-						// optimization: scan for highest value
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] == ']') {
-							output.write(']');
-							offset = nextOffset + 1;
-							level--;
-							continue;
-						}
-					case '{' :
-						indent.append(output, level);
+				case ',' :
+					indent.append(output, level);
+					break;
+				case ':' :
+					output.write(' ');
+					break;
+				case '[' :
+					int nextOffset = offset + 1;
+					// skip whitespace
+					// optimization: scan for highest value
+					while(chars[nextOffset] <= 0x20) {
+						nextOffset++;
+					}
+					
+					if(chars[nextOffset] == ']') {
+						output.write(']');
+						offset = nextOffset + 1;
+						level--;
+						continue;
+					}
+				case '{' :
+					indent.append(output, level);
 				}		
 				
 				offset++;
@@ -199,80 +199,12 @@ public class PrettyPrintingJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public String process(char[] chars) {
-		StringBuilder buffer = new StringBuilder(chars.length * 2);
-		if(process(chars, 0, chars.length, buffer)) {
-			return buffer.toString();
-		}
-		return null;
+	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		return process(chars, offset, length, output, null);
 	}
 
 	@Override
-	public String process(String chars) {
-		return process(chars.toCharArray());
-	}
-
-	@Override
-	public boolean process(String chars, StringBuilder buffer) {
-		return process(chars.toCharArray(), 0, chars.length(), buffer);
-	}
-
-	@Override
-	public byte[] process(byte[] chars) {
-		return process(chars, 0, chars.length);
-	}
-
-	@Override
-	public byte[] process(byte[] chars, int offset, int length) {
-		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length * 2);
-		if(process(chars, 0, chars.length, output)) {
-			return output.toByteArray();
-		}
-		return null;
-	}
-	
-	@Override
-	public String process(char[] chars, JsonFilterMetrics metrics) {
-		StringBuilder buffer = new StringBuilder(chars.length * 2);
-		if(process(chars, 0, chars.length, buffer)) {
-			return buffer.toString();
-		}
-		return null;
-	}
-
-	@Override
-	public String process(String chars, JsonFilterMetrics metrics) {
-		return process(chars.toCharArray());
-	}
-
-	@Override
-	public boolean process(String chars, StringBuilder buffer, JsonFilterMetrics metrics) {
-		return process(chars.toCharArray(), 0, chars.length(), buffer);
-	}
-
-	@Override
-	public byte[] process(byte[] chars, JsonFilterMetrics metrics) {
-		return process(chars, 0, chars.length);
-	}
-
-	@Override
-	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
-		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length * 2);
-		if(process(chars, 0, chars.length, output)) {
-			return output.toByteArray();
-		}
-		return null;
-	}
-
-	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output,
-			JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
-	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
-			JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
+	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
 	}
 }

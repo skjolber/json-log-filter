@@ -13,6 +13,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -246,6 +247,8 @@ public class AllFilterBenchmark {
 				.include(AllFilterBenchmark.class.getSimpleName())
 				.warmupIterations(25)
 				.measurementIterations(50)
+				.resultFormat(ResultFormatType.JSON)
+				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();
 
 		new Runner(opt).run();

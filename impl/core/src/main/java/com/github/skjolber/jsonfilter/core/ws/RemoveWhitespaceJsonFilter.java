@@ -41,7 +41,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = buffer.length();
 		
 		try {
-			int limit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			CharWhitespaceFilter.process(chars, offset, limit, buffer);
 			
@@ -60,7 +60,7 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = output.size();
 		
 		try {
-			int limit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			ByteWhitespaceFilter.process(chars, offset, limit, output);
 			

@@ -116,8 +116,6 @@ public class JsonFilterDirectoryUnitTestFactory {
 		
 		jsonDirectory.parent = parent;
 		
-		System.out.println(directory + " " + jsonDirectory.jsonFiles.size());
-		
 		return jsonDirectory;
 	}
 	

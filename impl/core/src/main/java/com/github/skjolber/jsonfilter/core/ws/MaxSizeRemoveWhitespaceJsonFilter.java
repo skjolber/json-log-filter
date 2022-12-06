@@ -56,7 +56,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = CharWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int maxLimit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			int start = offset;
 
@@ -166,7 +166,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = ByteWhitespaceFilter.skipWhitespaceBackwards(chars, length + offset);
+			int maxLimit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int start = offset;
 

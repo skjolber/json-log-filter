@@ -121,6 +121,7 @@ public abstract class ScratchFilterBenchmark {
 				.warmupIterations(10)
 				.measurementIterations(10)
 				.resultFormat(ResultFormatType.JSON)
+				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();
 
 		new Runner(opt).run();

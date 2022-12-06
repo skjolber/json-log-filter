@@ -14,6 +14,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -122,11 +123,9 @@ public class CveFilterBenchmark {
 		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), prettyPrinted);
 		maxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(size), prettyPrinted);
 		
-		
 		maxStringLengthMaxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthMaxSizeJsonFilter(maxStringLength, size), prettyPrinted);
 		maxStringLengthMaxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, size), prettyPrinted);
 		maxStringLengthMaxSizeJacksonJsonFilter = new BenchmarkRunner<JacksonJsonFilter>(file, true, new JacksonMaxSizeMaxStringSizeJsonFilter(maxStringLength, size), prettyPrinted);
-		
 		
 		singleFullPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON), prettyPrinted);
 		singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon[0], FilterType.ANON), prettyPrinted);
@@ -189,17 +188,17 @@ public class CveFilterBenchmark {
 		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 	@Benchmark
-	public long maxSize() throws IOException {
+	public long maxSize_core() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long removeWhitespace() throws IOException {
+	public long core_remove_whitespace() throws IOException {
 		return removeWhitespaceJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
-	public long maxSizeRemoveWhitespace() throws IOException {
+	public long maxSize_core_remove_whitespace() throws IOException {
 		return maxSizeRemoveWhitespaceJsonFilter.benchmarkBytes();
 	}
 
@@ -224,10 +223,9 @@ public class CveFilterBenchmark {
 	}
 
 	@Benchmark
-	public long maxStringLengthMaxSizeRemoveWhitespace_core() throws IOException {
+	public long maxStringLengthMaxSize_remove_whitespace_core() throws IOException {
 		return maxStringLengthMaxSizeRemoveWhitespaceJsonFilter.benchmarkCharacters();
 	}
-
 
 	@Benchmark
 	public long maxStringLengthMaxSize_jackson() throws IOException {
@@ -239,6 +237,8 @@ public class CveFilterBenchmark {
 				.include(CveFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
 				.measurementIterations(5)
+				.result("target/" + System.currentTimeMillis() + ".json")
+				.resultFormat(ResultFormatType.JSON)
 				.build();
 
 		new Runner(opt).run();
