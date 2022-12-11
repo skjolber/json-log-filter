@@ -18,7 +18,6 @@ package com.github.skjolber.jsonfilter.core.pp;
 
 import java.io.ByteArrayOutputStream;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
@@ -103,10 +102,6 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 				}
 				offset++;
 			}
-			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
 		
 			return true;
 		} catch(Exception e) {
@@ -188,10 +183,6 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			if(offset > length) { // so checking bounds here; one of the scan methods might have overshoot due to corrupt JSON. 
-				return false;
-			}
-		
 			return true;
 		} catch(Exception e) {
 			return false;

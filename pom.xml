@@ -270,6 +270,11 @@
 	            <artifactId>javax.activation</artifactId>
 	            <version>${javax.activation.version}</version>
 	        </dependency>
+			<dependency>
+			    <groupId>io.github.classgraph</groupId>
+			    <artifactId>classgraph</artifactId>
+			    <version>4.8.152</version>
+			</dependency>	        
 		</dependencies>
 	</dependencyManagement>
 
@@ -292,7 +297,7 @@
 					<configuration>
 						<forkCount>1</forkCount>
 						<reuseForks>true</reuseForks>
-						<redirectTestOutputToFile>true</redirectTestOutputToFile>
+						<redirectTestOutputToFile>false</redirectTestOutputToFile>
 					</configuration>
 				</plugin>
 				<plugin>

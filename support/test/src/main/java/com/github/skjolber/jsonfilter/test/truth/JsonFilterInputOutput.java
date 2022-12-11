@@ -27,6 +27,8 @@ public class JsonFilterInputOutput {
 		private int minimumLength = -1;
 		private JsonCache jsonCache = JsonCache.getInstance();
 		private JsonFilterMetrics metrics;
+		private boolean unicode = true;
+		private boolean whitespace = true;
 		
 		public Builder withMinimumLength(int length) {
 			this.minimumLength = length;
@@ -48,6 +50,16 @@ public class JsonFilterInputOutput {
 			return this;
 		}
 		
+		public Builder withUnicode(boolean unicode) {
+			this.unicode = unicode;
+			return this;
+		}
+
+		public Builder withWhitespace(boolean whitespace) {
+			this.whitespace = whitespace;
+			return this;
+		}
+		
 		public JsonFilterInputOutput build() {
 			if(inputFile == null) {
 				throw new IllegalStateException();
@@ -60,6 +72,9 @@ public class JsonFilterInputOutput {
 			}
 			
 			JsonInput jsonInput = jsonCache.getJsonInput(inputFile);
+			if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
+				return null;
+			}
 			
 			String contentAsString = jsonInput.getContentAsString(minimumLength);
 			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLength);
@@ -67,41 +82,43 @@ public class JsonFilterInputOutput {
 			String stringOutput = filter.process(contentAsString, metrics);
 			byte[] byteOutput = filter.process(contentAsBytes, metrics);
 			
-			for(int i = 0; i < jsonInput.getPrettyPrintedSize(); i++) {
-				String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, minimumLength);
-				byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, minimumLength);
-				
-				String prettyPrintStringOutput = filter.process(prettyPrintedAsString, metrics);
-				byte[] prettyPrintBytesOutput = filter.process(prettyPrintedAsBytes, metrics);
-				
-				if(filter.isRemovingWhitespace()) {
-					if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
-						System.out.println("Input 1:  " + contentAsString);
-						System.out.println("Output 1: " + stringOutput);
-						System.out.println("Input 2:  " + prettyPrintedAsString);
-						System.out.println("Output 2: " + prettyPrintStringOutput);
-						
-						fail("Expected symmertic pretty-printed string result for " + inputFile);
+			if(whitespace) {
+				for(int i = 0; i < jsonInput.getPrettyPrintedSize(); i++) {
+					String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, minimumLength);
+					byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, minimumLength);
+					
+					String prettyPrintStringOutput = filter.process(prettyPrintedAsString, metrics);
+					byte[] prettyPrintBytesOutput = filter.process(prettyPrintedAsBytes, metrics);
+					
+					if(filter.isRemovingWhitespace()) {
+						if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
+							System.out.println("Input 1:  " + contentAsString);
+							System.out.println("Output 1: " + stringOutput);
+							System.out.println("Input 2:  " + prettyPrintedAsString);
+							System.out.println("Output 2: " + prettyPrintStringOutput);
+							
+							fail("Expected symmertic pretty-printed string result for " + inputFile);
+						}
+						if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
+							System.out.println("Input 1:  " + new String(contentAsBytes, StandardCharsets.UTF_8));
+							System.out.println("Output 1: " + new String(byteOutput, StandardCharsets.UTF_8));
+							System.out.println("Input 2:  " + new String(prettyPrintedAsBytes, StandardCharsets.UTF_8));
+							System.out.println("Output 2: " + new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
+							
+							fail("Expected symmertic pretty-printed byte[] result for " + inputFile);
+						}
+					} else {
+						if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
+							System.out.println("Input 1:  " + contentAsString);
+							System.out.println("Output 1: " + stringOutput);
+							System.out.println("Input 2:  " + prettyPrintedAsString);
+							System.out.println("Output 2: " + prettyPrintStringOutput);
+							
+							fail("Expected event symmertic pretty-printed byte[] result for " + inputFile + " minimum length " + minimumLength + " -> " + prettyPrintedAsString.length());
+						}
 					}
-					if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
-						System.out.println("Input 1:  " + new String(contentAsBytes, StandardCharsets.UTF_8));
-						System.out.println("Output 1: " + new String(byteOutput, StandardCharsets.UTF_8));
-						System.out.println("Input 2:  " + new String(prettyPrintedAsBytes, StandardCharsets.UTF_8));
-						System.out.println("Output 2: " + new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
-						
-						fail("Expected symmertic pretty-printed byte[] result for " + inputFile);
-					}
-				} else {
-					if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
-						System.out.println("Input 1:  " + contentAsString);
-						System.out.println("Output 1: " + stringOutput);
-						System.out.println("Input 2:  " + prettyPrintedAsString);
-						System.out.println("Output 2: " + prettyPrintStringOutput);
-						
-						fail("Expected event symmertic pretty-printed byte[] result for " + inputFile + " minimum length " + minimumLength + " -> " + prettyPrintedAsString.length());
-					}
+					checkSymmetric(prettyPrintStringOutput, prettyPrintBytesOutput);
 				}
-				checkSymmetric(prettyPrintStringOutput, prettyPrintBytesOutput);
 			}
 			checkSymmetric(stringOutput, byteOutput);
 
@@ -125,18 +142,21 @@ public class JsonFilterInputOutput {
 			}
 			
 			// for unicode and max string size, bytes and chars are counted somewhat differently
-			String outputAsBytesAsNormalizedString = JsonNormalizer.filterMaxStringLength(outputAsBytesAsString);
-			String outputAsStringAsNormalizedString = JsonNormalizer.filterMaxStringLength(outputAsString);
+			String outputAsBytesAsNormalizedString = JsonNormalizer.normalize(outputAsBytesAsString);
+			String outputAsStringAsNormalizedString = JsonNormalizer.normalize(outputAsString);
 			if(outputAsBytesAsNormalizedString.equals(outputAsStringAsNormalizedString)) {
 				return true;
 			}
 			
 			System.out.println(outputAsBytesAsString);
 			System.out.println(outputAsString);
+			System.out.println(outputAsBytesAsNormalizedString);
+			System.out.println(outputAsStringAsNormalizedString);
 			fail("Expected symmertic result for " + inputFile + "\n" + outputAsBytesAsString + "\n" + outputAsString + "\n");
 
 			return true;
 		}
+
 
 	}
 

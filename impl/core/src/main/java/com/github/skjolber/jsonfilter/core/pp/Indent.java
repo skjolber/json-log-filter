@@ -1,8 +1,6 @@
 package com.github.skjolber.jsonfilter.core.pp;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -113,7 +111,7 @@ public class Indent {
 	protected static byte[][] prepareBytes(char character, int count, LinebreakType linebreak, int levels) {
 		byte[][] indentations = new byte[levels + 1][]; // count zero as a level
 
-		indentations[0] = linebreak.characters.getBytes(StandardCharsets.UTF_8);
+		indentations[0] = linebreak.getCharacters().getBytes(StandardCharsets.UTF_8);
 		
 		StringBuilder increment = new StringBuilder(count);
 		for(int k = 0; k < count; k++) {
@@ -135,7 +133,7 @@ public class Indent {
 	protected static char[][] prepareChars(char character, int count, LinebreakType linebreak, int levels) {
 		char[][] indentations = new char[levels + 1][]; // count zero as a level
 
-		indentations[0] = linebreak.characters.toCharArray();
+		indentations[0] = linebreak.getCharacters().toCharArray();
 		StringBuilder increment = new StringBuilder(count);
 		for(int k = 0; k < count; k++) {
 			increment.append(character);
@@ -167,20 +165,6 @@ public class Indent {
 		}
 	}
 
-	public void append(StringBuffer buffer, int level) {
-		if(level < charIndentations.length) {
-			buffer.append(charIndentations[level]);
-		} else {
-			// do not ensure capacity here, leave that up to the caller
-			// append a longer intent than we have prepared
-			buffer.append(charIndentations[level % preparedLevels]);
-
-			for(int i = 0; i < level / preparedLevels; i++) {
-				buffer.append(charIndentations[preparedLevels], linebreakType.length(), charIndentations[preparedLevels].length - linebreakType.length());
-			}
-		}
-	}
-
 	public void append(StringBuilder buffer, int level) {
 		if(level < charIndentations.length) {
 			buffer.append(charIndentations[level]);
@@ -194,36 +178,7 @@ public class Indent {
 			}
 		}
 	}
-	
-	public void append(Writer buffer, int level) throws IOException {
-		if(level < charIndentations.length) {
-			buffer.write(charIndentations[level]);
-		} else {
-			// append a longer intent than we have prepared
-			buffer.write(charIndentations[level % preparedLevels]);
 
-			for(int i = 0; i < level / preparedLevels; i++) {
-				buffer.write(charIndentations[preparedLevels], linebreakType.length(), charIndentations[preparedLevels].length - linebreakType.length());
-			}
-		}
-	}		
-	
-	public char getCharacter() {
-		return character;
-	}
-	
-	public int getCount() {
-		return count;
-	}
-	
-	public LinebreakType getLinebreakType() {
-		return linebreakType;
-	}
-	
-	public int getPreparedLevels() {
-		return preparedLevels;
-	}
-	
 	public String asIndent() {
 		StringBuilder increment = new StringBuilder(count);
 		for(int k = 0; k < count; k++) {
@@ -238,5 +193,4 @@ public class Indent {
 		}
 		return null;
 	}
-
 }

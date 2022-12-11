@@ -26,7 +26,14 @@ public class JsonMaxSizeFilterUnitTest {
 		private MaxSizeJsonFilterAdapter adapter;
 		private JsonFileCache cache = JsonFileCache.getInstance();
 		private JsonFilterMetrics metrics;
+		private boolean whitespace;
+		private boolean unicode = true;
 
+		public Builder withWhitespace(boolean whitespace) {
+			this.whitespace = whitespace;
+			return this;
+		}
+		
 		public Builder withMetrics(JsonFilterMetrics metrics) {
 			this.metrics = metrics;
 			return this;
@@ -57,6 +64,11 @@ public class JsonMaxSizeFilterUnitTest {
 			return this;
 		}
 
+		public Builder withUnicode(boolean unicode) {
+			this.unicode  = unicode;
+			return this;
+		}
+		
 		public JsonMaxSizeFilterUnitTest build() {
 			if(inputFile == null) {
 				throw new IllegalStateException();
@@ -77,9 +89,15 @@ public class JsonMaxSizeFilterUnitTest {
 					.withFilter(adapter)
 					.withInputFile(inputFile)
 					.withMetrics(metrics)
+					.withUnicode(unicode)
 					.withMinimumLengthChars(expectedJonOutput.length())
 					.withMinimumLengthBytes(expectedJonOutput.getBytes(StandardCharsets.UTF_8).length)
+					.withWhitespace(whitespace)
 					.build();
+			if(jsonFilterInputOutput == null) {
+				return null;
+			}
+			
 			JsonInputOutput result = jsonFilterInputOutput.getResult();
 			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
@@ -113,6 +131,7 @@ public class JsonMaxSizeFilterUnitTest {
 
 			return JsonComparator.isSameEvents(normalizedExpectedJsonOutput, normalizedStringOutput);
 		}
+
 	}
 
 	private JsonFilterProperties outputProperties;

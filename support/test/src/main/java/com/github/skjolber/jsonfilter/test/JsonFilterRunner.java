@@ -16,14 +16,21 @@ public class JsonFilterRunner {
 	private JsonFileCache cache;
 	private List<JsonFilterDirectoryUnitTest> outputDirectories;
 	private boolean literal;
+	// test filters with pretty printed JSON
+	private boolean whitespace;
+	// test json with unicode
+	private boolean unicode;
 
 	private List<JsonFilterDirectoryUnitTest> directoryTests;
 	private JsonFilterDirectoryUnitTestFactory factory;
+	
 
-	public JsonFilterRunner(List<?> nullable, boolean literal, JsonFileCache cache) throws Exception {
+	public JsonFilterRunner(List<?> nullable, boolean literal, boolean whitespace, boolean unicode, JsonFileCache cache) throws Exception {
 		this.factory = JsonFilterDirectoryUnitTestFactory.fromResource("/json", nullable);
 		this.literal = literal;
+		this.whitespace = whitespace;
 		this.cache = cache;
+		this.unicode = unicode;
 		this.directoryTests = factory.create();
 	}
 
@@ -33,7 +40,7 @@ public class JsonFilterRunner {
 		JsonFilterProperties filterProperties = factory.getProperties(filter);
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
-		
+
 		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
 			if(filterProperties.isNoop()) {
 				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
@@ -42,9 +49,11 @@ public class JsonFilterRunner {
 							.withFilter(filter)
 							.withInputFile(path)
 							.withOutputFile(path)
+							.withUnicode(unicode)
 							.withOutputProperties(properties)
 							.withLiteral(literal)
 							.withMetrics(metrics)
+							.withWhitespace(whitespace)
 							.build();
 				}
 				result.addPassthrough(directoryTest);
@@ -57,6 +66,8 @@ public class JsonFilterRunner {
 							.withOutputFile(entry.getValue())
 							.withOutputProperties(properties)
 							.withLiteral(literal)
+							.withUnicode(unicode)
+							.withWhitespace(whitespace)
 							.withMetrics(metrics)
 							.build();
 				}
@@ -85,6 +96,8 @@ public class JsonFilterRunner {
 							.withInputFile(path)
 							.withOutputFile(path)
 							.withOutputProperties(properties)
+							.withWhitespace(whitespace)
+							.withUnicode(unicode)
 							.withLiteral(literal)
 							.withMetrics(metrics)
 							.build();
@@ -98,6 +111,8 @@ public class JsonFilterRunner {
 							.withInputFile(entry.getKey())
 							.withOutputFile(entry.getValue())
 							.withOutputProperties(properties)
+							.withWhitespace(whitespace)
+							.withUnicode(unicode)
 							.withLiteral(literal)
 							.withMetrics(metrics)
 							.build();

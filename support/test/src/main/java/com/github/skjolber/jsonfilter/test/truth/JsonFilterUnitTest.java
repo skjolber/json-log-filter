@@ -22,10 +22,12 @@ public class JsonFilterUnitTest {
 		private Path inputFile;
 		private Path outputFile;
 		private JsonFilterProperties outputProperties;
+		private boolean unicode = true;
 		private boolean literal = true;
 		private int length;
 		private JsonFilterMetrics metrics;
 		private JsonFileCache jsonFileCache = JsonFileCache.getInstance();
+		private boolean whitespace = true;
 		
 		public Builder withMetrics(JsonFilterMetrics metrics) {
 			this.metrics = metrics;
@@ -56,6 +58,13 @@ public class JsonFilterUnitTest {
 			this.literal = enabled;
 			return this;
 		}		
+		
+
+		public Builder withUnicode(boolean enabled) {
+			this.unicode = enabled;
+			return this;
+		}	
+		
 		public Builder withLength(int length) {
 			this.length = length;
 			return this;
@@ -82,7 +91,12 @@ public class JsonFilterUnitTest {
 					.withInputFile(inputFile)
 					.withMinimumLength(length)
 					.withMetrics(metrics)
+					.withUnicode(unicode)
+					.withWhitespace(whitespace)
 					.build();
+			if(jsonFilterInputOutput == null) {
+				return null;
+			}
 			JsonInputOutput result = jsonFilterInputOutput.getResult();
 			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
@@ -124,6 +138,12 @@ public class JsonFilterUnitTest {
 			this.metrics = metrics;
 			return this;
 		}
+
+		public Builder withWhitespace(boolean whitespace) {
+			this.whitespace = whitespace;
+			return this;
+		}
+
 	}
 
 	private JsonFilterProperties outputProperties;

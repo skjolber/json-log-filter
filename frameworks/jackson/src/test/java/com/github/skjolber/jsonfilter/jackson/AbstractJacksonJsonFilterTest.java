@@ -14,7 +14,7 @@ import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTest {
 
 	public AbstractJacksonJsonFilterTest(boolean includePrettyPrinting) throws Exception {
-		super(false);
+		super(false, includePrettyPrinting, false);
 	}
 	
 	public void testConvenienceMethods(JacksonJsonFilter successFilter, JacksonJsonFilter failureFilter, JacksonJsonFilter brokenFactory) throws IOException {

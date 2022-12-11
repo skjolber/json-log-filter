@@ -17,11 +17,11 @@ import com.fasterxml.jackson.core.io.CharTypes;
 
 public class JsonNormalizer {
 
-    private final static byte BYTE_u = (byte) 'u';
-    private final static byte BYTE_0 = (byte) '0';
-    private final static byte BYTE_BACKSLASH = (byte) '\\';
+    private final static char BYTE_u = 'u';
+    private final static char BYTE_0 = '0';
+    private final static char BYTE_BACKSLASH = '\\';
 
-    private final static byte[] HEX_CHARS = CharTypes.copyHexBytes();
+    private final static char[] HEX_CHARS = CharTypes.copyHexChars();
     
     public static String normalize(String value) {
 		if(isHighSurrogate(value) || isEscape(value)) {
@@ -31,10 +31,8 @@ public class JsonNormalizer {
 			
 			for(int i = 0; i < filtered.length(); i++) {
 				if(Character.isHighSurrogate(filtered.charAt(i))) {
-					int codePointAt = Character.codePointAt(filtered, i);
-					
-					writeGenericEscape(codePointAt, sb);
-					
+					writeGenericEscape(filtered.charAt(i), sb);
+					writeGenericEscape(filtered.charAt(i + 1), sb);
 					i++;
 				} else {
 					sb.append(filtered.charAt(i));
@@ -43,7 +41,7 @@ public class JsonNormalizer {
 			
 			return sb.toString();
 		} else {
-			return value;
+			return filterMaxStringLength(value);
 		}
 	}
 
@@ -70,18 +68,34 @@ public class JsonNormalizer {
 		return false;
 	}
 	
-	private static boolean isEscape(String from) {
+	public static boolean isEscape(String from) {
 		loop:
 		for(int i = 0; i < from.length() - 6; i++) {
-			if(from.charAt(i) == '\\' && from.charAt(i + 1) == 'u') {
+			if(from.charAt(i) == '\\') {
+				if(from.charAt(i + 1) == 'u') {
 				
-				for(int k = 0; k < 4; k++) {
-					if(!Character.isDigit(from.charAt(i + 2 + k))) {
-						continue loop;
+					for(int k = 0; k < 4; k++) {
+						if(!Character.isDigit(from.charAt(i + 2 + k))) {
+							continue loop;
+						}
+					}
+					
+					return true;
+				} else {
+					switch(from.charAt(i + 1)) {
+					case '"':
+					case '\\':
+					case '/':
+					case 'b':
+					case 'f':
+					case 'n':
+					case 'r':
+					case 't':
+						return true;
+					default : 
+						
 					}
 				}
-				
-				return true;
 			}
 		}
 		return false;
@@ -110,24 +124,6 @@ public class JsonNormalizer {
         // We know it's a control char, so only the last 2 chars are non-0
         builder.append(HEX_CHARS[charToEscape >> 4]);
         builder.append(HEX_CHARS[charToEscape & 0xF]);
-    }
-
-    public static void writeGenericEscape(int charToEscape, OutputStream output) throws IOException {
-    	output.write(BYTE_BACKSLASH);
-    	output.write(BYTE_u);
-    	
-        if (charToEscape > 0xFF) {
-            int hi = (charToEscape >> 8) & 0xFF;
-            output.write(HEX_CHARS[hi >> 4]);
-            output.write(HEX_CHARS[hi & 0xF]);
-            charToEscape &= 0xFF;
-        } else {
-        	output.write(BYTE_0);
-        	output.write(BYTE_0);
-        }
-        // We know it's a control char, so only the last 2 chars are non-0
-        output.write(HEX_CHARS[charToEscape >> 4]);
-        output.write(HEX_CHARS[charToEscape & 0xF]);
     }
 
 }

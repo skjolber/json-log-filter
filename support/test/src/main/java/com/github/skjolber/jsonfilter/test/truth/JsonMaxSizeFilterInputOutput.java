@@ -29,9 +29,16 @@ public class JsonMaxSizeFilterInputOutput {
 		private int minimumLengthBytes = -1;
 		private JsonCache jsonCache = JsonCache.getInstance();
 		private JsonFilterMetrics metrics;
+		private boolean whitespace = true;
+		private boolean unicode = true;
 		
 		public Builder withMinimumLengthChars(int length) {
 			this.minimumLengthChars = length;
+			return this;
+		}
+
+		public Builder withWhitespace(boolean whitespace) {
+			this.whitespace = whitespace;
 			return this;
 		}
 
@@ -49,12 +56,17 @@ public class JsonMaxSizeFilterInputOutput {
 			this.metrics = metrics;
 			return this;
 		}
-		
+
 		public Builder withFilter(MaxSizeJsonFilterAdapter adapter) {
 			this.adapter = adapter;
 			return this;
 		}
 		
+		public Builder withUnicode(boolean unicode) {
+			this.unicode = unicode;
+			return this;
+		}
+
 		public JsonMaxSizeFilterInputOutput build() {
 			if(inputFile == null) {
 				throw new IllegalStateException();
@@ -67,67 +79,72 @@ public class JsonMaxSizeFilterInputOutput {
 			}
 			
 			JsonInput jsonInput = jsonCache.getJsonInput(inputFile);
+			if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
+				return null;
+			}
 			
-			String contentAsString = jsonInput.getContentAsString(minimumLengthChars);
-			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLengthChars);
+			String contentAsString = jsonInput.getContentAsString(minimumLengthChars+6);
+			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLengthChars+6);
 			
-			JsonFilter charFilter = adapter.getMaxSize(minimumLengthChars);
-			JsonFilter byteFilter = adapter.getMaxSize(minimumLengthBytes);
+			JsonFilter charFilter = adapter.getMaxSize(minimumLengthChars + 5);
+			JsonFilter byteFilter = adapter.getMaxSize(minimumLengthBytes + 5);
 			
 			String stringOutput = charFilter.process(contentAsString, metrics);
 			byte[] byteOutput = byteFilter.process(contentAsBytes, metrics);
 			
 			checkSymmetric(stringOutput, byteOutput);
 
-			for(int i = 0; i < jsonInput.getPrettyPrintedSize(); i++) {
-				String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i);
-				byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i);
-				
-				JsonFilter prettyPrintCharFilter;
-				JsonFilter prettyPrintByteFilter;
-				if(charFilter.isRemovingWhitespace()) {
-					prettyPrintCharFilter = charFilter;
-					prettyPrintByteFilter = byteFilter;
-				} else {
-					// so the filter might quit prematurely because of whitespace 
-					// also the replacements might be longer than the actual content, so account for that as well
+			if(whitespace) {
+				for(int i = 0; i < jsonInput.getPrettyPrintedSize(); i++) {
+					String prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i);
+					byte[] prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i);
 					
-					int expectedDifference = jsonInput.getContentAsStringSize() - minimumLengthChars;
-					
-					int stringLength = prettyPrintedAsString.length() - expectedDifference;
-					int byteLength = prettyPrintedAsBytes.length - expectedDifference;
-					
-					prettyPrintCharFilter = adapter.getMaxSize(stringLength);
-					prettyPrintByteFilter = adapter.getMaxSize(byteLength);
-					
-					prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, stringLength + 1);
-					prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, byteLength + 1);
-				}
-				
-				String prettyPrintStringOutput = prettyPrintCharFilter.process(prettyPrintedAsString, metrics);
-				byte[] prettyPrintBytesOutput = prettyPrintByteFilter.process(prettyPrintedAsBytes, metrics);
-				
-				if(checkSymmetric(prettyPrintStringOutput, prettyPrintBytesOutput)) {
+					JsonFilter prettyPrintCharFilter;
+					JsonFilter prettyPrintByteFilter;
 					if(charFilter.isRemovingWhitespace()) {
-						if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
-							System.out.println(inputFile);
-							System.out.println(prettyPrintedAsString);
-							System.out.println(stringOutput);
-							System.out.println(prettyPrintStringOutput);
-							fail("Expected symmertic pretty-printed string result for " + inputFile);
-						}
-						if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
-							System.out.println(inputFile);
-							System.out.println(new String(byteOutput, StandardCharsets.UTF_8));
-							System.out.println(new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
-							fail("Expected symmertic pretty-printed byte[] result for " + inputFile);
-						}
+						prettyPrintCharFilter = charFilter;
+						prettyPrintByteFilter = byteFilter;
 					} else {
-						if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
-							System.out.println(prettyPrintedAsString);
-							System.out.println(stringOutput);
-							System.out.println(prettyPrintStringOutput);
-							fail("Expected event symmertic pretty-printed byte[] result for " + inputFile + " minimum length " + minimumLengthChars + " -> " + prettyPrintedAsString.length());
+						// so the filter might quit prematurely because of whitespace 
+						// also the replacements might be longer than the actual content, so account for that as well
+						
+						int expectedDifference = jsonInput.getContentAsStringSize() - minimumLengthChars;
+						
+						int stringLength = prettyPrintedAsString.length() - expectedDifference;
+						int byteLength = prettyPrintedAsBytes.length - expectedDifference;
+						
+						prettyPrintCharFilter = adapter.getMaxSize(stringLength + 3);
+						prettyPrintByteFilter = adapter.getMaxSize(byteLength + 3);
+						
+						prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, stringLength + 4);
+						prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, byteLength + 4);
+					}
+					
+					String prettyPrintStringOutput = prettyPrintCharFilter.process(prettyPrintedAsString, metrics);
+					byte[] prettyPrintBytesOutput = prettyPrintByteFilter.process(prettyPrintedAsBytes, metrics);
+					
+					if(checkSymmetric(prettyPrintStringOutput, prettyPrintBytesOutput)) {
+						if(charFilter.isRemovingWhitespace()) {
+							if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
+								System.out.println(inputFile);
+								System.out.println(prettyPrintedAsString);
+								System.out.println(stringOutput);
+								System.out.println(prettyPrintStringOutput);
+								fail("Expected symmertic pretty-printed string result for " + inputFile + " " + minimumLengthBytes);
+							}
+							if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
+								System.out.println(inputFile);
+								System.out.println(new String(byteOutput, StandardCharsets.UTF_8));
+								System.out.println(new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
+								fail("Expected symmertic pretty-printed byte[] result for " + inputFile);
+							}
+						} else {
+							if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
+								System.out.println(prettyPrintedAsString);
+								System.out.println(stringOutput);
+								System.out.println(prettyPrintStringOutput);
+								fail("Expected event symmertic pretty-printed byte[] result for " + inputFile + " minimum length " + minimumLengthChars + " -> " + prettyPrintedAsString.length());
+							}
 						}
 					}
 				}

@@ -17,9 +17,12 @@ public class DefaultJsonFilterTest extends AbstractJsonFilterTest implements Jso
 	public DefaultJsonFilterTest() throws Exception {
 		this(true);
 	}
+	public DefaultJsonFilterTest(boolean literal, boolean whitespace, boolean unicode) throws Exception {
+		super(new JsonFilterRunner(NULLABLE, literal, whitespace, unicode, JsonFileCache.getInstance()));
+	}
 	
 	public DefaultJsonFilterTest(boolean literal) throws Exception {
-		super(new JsonFilterRunner(NULLABLE, literal, JsonFileCache.getInstance()));
+		this(literal, true, true);
 	}
 	
 }

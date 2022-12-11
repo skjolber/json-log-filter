@@ -53,6 +53,22 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 	}
 
 	@Test
+	public void test() {
+		String str = "[\n"
+				+ "  1.1,\n"
+				+ "  2.2,\n"
+				+ "  3.3\n"
+				+ "] ";
+		
+		
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_PATH}, null);
+		
+		JsonFilter maxSize2 = maxSize.getMaxSize(str.length() );
+		
+		System.out.println(maxSize2.process(str));
+	}
+	
+	@Test
 	public void anonymizeWildcard() throws Exception {
 		MaxSizeJsonFilterAdapter maxSize = (size) -> new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{DEFAULT_WILDCARD_PATH}, null);
 		assertThatMaxSize(maxSize, new JacksonMultiPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_WILDCARD_PATH}, null)).hasAnonymized(DEFAULT_WILDCARD_PATH);

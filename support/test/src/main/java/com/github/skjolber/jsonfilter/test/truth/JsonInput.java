@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
+
 public final class JsonInput {
 	
 	private final Path source;
@@ -87,6 +89,14 @@ public final class JsonInput {
 		}
 		
 		return c;
+	}
+
+	public boolean hasUnicode() {
+		return JsonNormalizer.isHighSurrogate(contentAsString);
+	}
+
+	public boolean hasEscapeSequence() {
+		return JsonNormalizer.isEscape(contentAsString);
 	}
 
 }
