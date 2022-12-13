@@ -93,8 +93,8 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		return truncateMessage;
 	}
 
-	public int skipObjectOrArray(final char[] chars, int offset, int maxLimit, final StringBuilder buffer) {
-		int levelLimit = getLimit() - 1;
+	public int skipObjectOrArrayMaxSize(final char[] chars, int offset, int maxLimit, final StringBuilder buffer) {
+		int levelLimit = getLevel() - 1;
 
 		int limit = getLimit();
 
@@ -107,10 +107,30 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		int start = getStart();
 
 		loop: while(offset < limit) {
-			switch(chars[offset]) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				if(start <= mark) {
+					writtenMark = buffer.length() + mark - start; 
+				}
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+					limit++;
+				} while(chars[offset] <= 0x20);
+
+				if(limit >= maxLimit) {
+					limit = maxLimit;
+				}
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
 			case '{' :
 			case '[' :
-				squareBrackets[level] = chars[offset] == '[';
+				squareBrackets[level] = c == '[';
 
 				level++;
 				if(level >= squareBrackets.length) {
@@ -141,26 +161,6 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 				
 				continue;
 			}
-			default : {
-				if(chars[offset] <= 0x20) {
-					// skip this char and any other whitespace
-					if(start <= mark) {
-						writtenMark = buffer.length() + mark - start; 
-					}
-					buffer.append(chars, start, offset - start);
-					do {
-						offset++;
-						limit++;
-					} while(offset < maxLimit && chars[offset] <= 0x20);
-
-					if(limit >= maxLimit) {
-						limit = maxLimit;
-					}
-					start = offset;
-
-					continue;
-				}
-			}
 			}
 			offset++;
 		}
@@ -176,7 +176,7 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 	
 	public int skipObjectMaxSizeMaxStringLength(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
-		int levelLimit = getLimit() - 1;
+		int levelLimit = getLevel() - 1;
 
 		int limit = getLimit();
 
@@ -189,16 +189,34 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		int start = getStart();
 		
 		loop: while(offset < limit) {
-			switch(chars[offset]) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				if(start <= mark) {
+					writtenMark = buffer.length() + mark - start; 
+				}
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+					limit++;
+				} while(chars[offset] <= 0x20);
+
+				if(limit >= maxLimit) {
+					limit = maxLimit;
+				}
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {			
 			case '{' :
 			case '[' :
-				squareBrackets[level] = chars[offset] == '[';
+				squareBrackets[level] = c == '[';
 
 				level++;
 				if(level >= squareBrackets.length) {
-					boolean[] next = new boolean[squareBrackets.length + 32];
-					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-					squareBrackets = next;
+					squareBrackets = grow(squareBrackets);
 				}
 				mark = offset;
 
@@ -280,26 +298,168 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 
 				continue;
 			}
-			default : {
-				if(chars[offset] <= 0x20) {
-					// skip this char and any other whitespace
+			}
+			offset++;
+		}
+		
+		setWrittenMark(writtenMark);
+		setStart(start);
+		setMark(mark);
+		setLevel(level);
+		setLimit(limit);
+
+		return offset;
+	}
+	
+	public int anonymizeObjectOrArrayMaxSize(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		int levelLimit = getLevel() - 1;
+
+		int limit = getLimit();
+
+		int level = getLevel();
+		boolean[] squareBrackets = getSquareBrackets();
+
+		int mark = getMark();
+		int writtenMark = getWrittenMark();
+
+		int start = getStart();
+		
+		loop: while(offset < limit) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				if(start <= mark) {
+					writtenMark = buffer.length() + mark - start; 
+				}
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+					limit++;
+				} while(chars[offset] <= 0x20);
+
+				if(limit >= maxLimit) {
+					limit = maxLimit;
+				}
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {			
+			case '{' :
+			case '[' :
+				squareBrackets[level] = c == '[';
+
+				level++;
+				if(level >= squareBrackets.length) {
+					squareBrackets = grow(squareBrackets);
+				}
+				mark = offset;
+
+				break;
+			case '}' :
+			case ']' :
+				level--;
+
+				mark = offset;
+
+				if(level == levelLimit) {
+					offset++;
+					break loop;
+				}
+				break;
+			case ',' :
+				mark = offset;
+				break;				
+			case '"': {
+				
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+				nextOffset++;
+				int endQuoteIndex = nextOffset;
+				
+				// key or value
+
+				// skip whitespace
+				// optimization: scan for highest value
+				while(chars[nextOffset] <= 0x20) {
+					nextOffset++;
+				}
+
+				if(chars[nextOffset] == ':') {
+					// was a key
+					offset = nextOffset + 1;
+
+					if(nextOffset != endQuoteIndex) {
+						// did skip whitespace
+						if(start <= mark) {
+							writtenMark = buffer.length() + mark - start; 
+						}
+						buffer.append(chars, start, endQuoteIndex - start);
+						buffer.append(':');
+						
+						limit += nextOffset - endQuoteIndex;
+						if(limit >= maxLimit) {
+							limit = maxLimit;
+						}
+						
+						start = offset;			
+					}
+					continue;
+				} else {
+					// was a value
 					if(start <= mark) {
 						writtenMark = buffer.length() + mark - start; 
 					}
 					buffer.append(chars, start, offset - start);
-					do {
-						offset++;
-						limit++;
-					} while(offset < maxLimit && chars[offset] <= 0x20);
-
+					buffer.append(anonymizeMessage);
+					
+					limit += nextOffset - offset - anonymizeMessage.length;
 					if(limit >= maxLimit) {
 						limit = maxLimit;
+					}					
+					
+					if(metrics != null) {
+						metrics.onAnonymize(1);
 					}
-					start = offset;
-
-					continue;
 				}
+				offset = nextOffset;
+				start = nextOffset;				
+
+				continue;
 			}
+			default : {
+				// scalar value
+				if(start <= mark) {
+					writtenMark = buffer.length() + mark - start; 
+				}
+				buffer.append(chars, start, offset - start);
+
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
+
+				buffer.append(anonymizeMessage);
+
+				limit += nextOffset - offset - anonymizeMessage.length;
+				if(limit >= maxLimit) {
+					limit = maxLimit;
+				}					
+				
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
+
+				offset = nextOffset;
+				start = nextOffset;
+				
+				continue;
+			}
+			
 			}
 			offset++;
 		}

@@ -151,19 +151,19 @@ public class CharWhitespaceFilter {
 		int start = getStart();
 
 		loop: while(offset < limit) {
-			if(chars[offset] <= 0x20) {
+			char c = chars[offset];
+			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.append(chars, start, offset - start);
 				do {
 					offset++;
-				} while(offset < limit && chars[offset] <= 0x20);
-				
-				start = offset;
+				} while(chars[offset] <= 0x20);
 
-				continue;
+				start = offset;
+				c = chars[offset];
 			}
 			
-			switch(chars[offset]) {
+			switch(c) {
 			case '"': {
 				do {
 					offset++;
@@ -201,19 +201,19 @@ public class CharWhitespaceFilter {
 		int start = getStart();
 
 		while(true) {
-			if(chars[offset] <= 0x20) {
+			char c = chars[offset];
+			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.append(chars, start, offset - start);
 				do {
 					offset++;
-				} while(offset < limit && chars[offset] <= 0x20);
-				
-				start = offset;
+				} while(chars[offset] <= 0x20);
 
-				continue;
+				start = offset;
+				c = chars[offset];
 			}
 			
-			switch(chars[offset]) {
+			switch(c) {		
 				case '[' : 
 				case '{' : {
 					level++;
@@ -247,35 +247,39 @@ public class CharWhitespaceFilter {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
+					nextOffset++;
 					int endQuoteIndex = nextOffset;
 					
 					// key or value
 
 					// skip whitespace
 					// optimization: scan for highest value
-					do {
+					while(chars[nextOffset] <= 0x20) {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					}
 
 					if(chars[nextOffset] == ':') {
 						// was a key
-						buffer.append(chars, start, endQuoteIndex - start + 1);
-						buffer.append(':');
-						
-						nextOffset++;
+						offset = nextOffset + 1;
+
+						if(nextOffset != endQuoteIndex) {
+							buffer.append(chars, start, endQuoteIndex - start);
+							buffer.append(':');
+							
+							start = offset;			
+						}
+						continue;
 					} else {
 						// was a value
 						buffer.append(chars, start, offset - start);
-						
 						buffer.append(anonymizeMessage);
 						
 						if(metrics != null) {
 							metrics.onAnonymize(1);
 						}
 					}
-
 					offset = nextOffset;
-					start = nextOffset;			
+					start = nextOffset;
 					
 					continue;
 				}
@@ -286,8 +290,8 @@ public class CharWhitespaceFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
-					
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
+
 					buffer.append(anonymizeMessage);
 
 					if(metrics != null) {
@@ -298,7 +302,6 @@ public class CharWhitespaceFilter {
 					start = nextOffset;
 					
 					continue;
-							
 				}
 			}
 			offset++;
@@ -341,4 +344,96 @@ public class CharWhitespaceFilter {
 		return limit + 1;
 	}
 	
+	public int skipObjectMaxStringLength(final char[] chars, int offset, int limit, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(offset < limit) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
+			case '"': {
+				
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// field name or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					// TODO avoid flushing if no whitespace? this is a bit unusual place to see a whitespace 
+					if(chars[nextOffset] == ':') {
+						// was a field name
+						buffer.append(chars, start, endQuoteIndex - start + 1);
+					} else {
+						// was a value
+						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						buffer.append(chars, start, aligned - start);
+						buffer.append(truncateMessage);
+						buffer.append(endQuoteIndex - aligned);
+						buffer.append('"');
+						
+						if(metrics != null) {
+							metrics.onMaxStringLength(1);
+						}
+					}
+
+					start = nextOffset;
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			}
+			case '{' :
+				level++;
+
+				break;
+			case '}' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		buffer.append(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
+	
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+		
+
 }

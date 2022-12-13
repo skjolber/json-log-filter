@@ -63,9 +63,8 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 		<dependency>
-		  <groupId>com.google.jimfs</groupId>
-		  <artifactId>jimfs</artifactId>
-		  <version>1.2</version>
+			<groupId>com.google.jimfs</groupId>
+			<artifactId>jimfs</artifactId>
 		</dependency>		
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

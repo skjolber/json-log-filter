@@ -17,6 +17,7 @@
 package com.github.skjolber.jsonfilter.core.ws;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
@@ -55,63 +56,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		try {
 			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
-			int start = offset;
-
-			while(offset < limit) {
-				char c = chars[offset];
-				if(c == '"') {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						int endQuoteIndex = nextOffset;
-						
-						// field name or value, might be whitespace
-
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
-
-						// TODO avoid flushing if no whitespace? this is a bit unusual place to see a whitespace 
-						if(chars[nextOffset] == ':') {
-							// was a field name
-							buffer.append(chars, start, endQuoteIndex - start + 1);
-						} else {
-							// was a value
-							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							buffer.append(chars, start, aligned - start);
-							buffer.append(truncateStringValue);
-							buffer.append(endQuoteIndex - aligned);
-							buffer.append('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
-
-					continue;
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					buffer.append(chars, start, offset - start);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20);					
-					
-					start = offset;
-
-					continue;
-				}
-				offset++;
-			}
-			buffer.append(chars, start, offset - start);
+			processMaxStringLength(chars, offset, limit, buffer, metrics, maxStringLength, truncateStringValue);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -124,6 +69,66 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
+	public static void processMaxStringLength(final char[] chars, int offset, int limit, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateStringValue) {
+		int start = offset;
+
+		while(offset < limit) {
+			char c = chars[offset];
+			if(c == '"') {
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// field name or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					// TODO avoid flushing if no whitespace? this is a bit unusual place to see a whitespace 
+					if(chars[nextOffset] == ':') {
+						// was a field name
+						buffer.append(chars, start, endQuoteIndex - start + 1);
+					} else {
+						// was a value
+						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						buffer.append(chars, start, aligned - start);
+						buffer.append(truncateStringValue);
+						buffer.append(endQuoteIndex - aligned);
+						buffer.append('"');
+						
+						if(metrics != null) {
+							metrics.onMaxStringLength(1);
+						}
+					}
+
+					start = nextOffset;
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			} else if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);					
+				
+				start = offset;
+
+				continue;
+			}
+			offset++;
+		}
+		buffer.append(chars, start, offset - start);
+	}
+
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int bufferLength = output.size();
 
@@ -132,63 +137,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		try {
 			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			int start = offset;
-
-			while(offset < limit) {
-				byte c = chars[offset];
-				if(c == '"') {
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
-					if(nextOffset - offset - 1 > maxStringLength) {
-						int endQuoteIndex = nextOffset;
-						
-						// key or value, might be whitespace
-
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
-
-						if(chars[nextOffset] == ':') {
-							// was a key
-							output.write(chars, start, endQuoteIndex - start + 1);
-						} else {
-
-							// was a value
-							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
-							output.write('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-						}
-
-						start = nextOffset;
-					}
-					offset = nextOffset + 1;
-
-					continue;
-				} else if(c <= 0x20) {
-					// skip this char and any other whitespace
-					output.write(chars, start, offset - start);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20 );					
-
-					start = offset;
-
-					continue;
-				}
-				offset++;
-			}
-			output.write(chars, start, offset - start);
+			processMaxStringLength(chars, offset, limit, output, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -199,6 +148,67 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		} catch(Exception e) {
 			return false;
 		}
+	}
+
+	public static void processMaxStringLength(byte[] chars, int offset, int limit, ByteArrayOutputStream output, byte[] digit,
+			JsonFilterMetrics metrics, int maxStringLength, byte[] truncateStringValueAsBytes) throws IOException {
+		int start = offset;
+
+		while(offset < limit) {
+			byte c = chars[offset];
+			if(c == '"') {
+				int nextOffset = offset;
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// key or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					if(chars[nextOffset] == ':') {
+						// was a key
+						output.write(chars, start, endQuoteIndex - start + 1);
+					} else {
+
+						// was a value
+						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						output.write(chars, start, aligned - start);
+						output.write(truncateStringValueAsBytes);
+						ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
+						output.write('"');
+						
+						if(metrics != null) {
+							metrics.onMaxStringLength(1);
+						}
+					}
+
+					start = nextOffset;
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			} else if(c <= 0x20) {
+				// skip this char and any other whitespace
+				output.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20 );					
+
+				start = offset;
+
+				continue;
+			}
+			offset++;
+		}
+		output.write(chars, start, offset - start);
 	}
 
 	@Override

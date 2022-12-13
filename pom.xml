@@ -274,7 +274,12 @@
 			    <groupId>io.github.classgraph</groupId>
 			    <artifactId>classgraph</artifactId>
 			    <version>4.8.152</version>
-			</dependency>	        
+			</dependency>
+			<dependency>
+				<groupId>com.google.jimfs</groupId>
+				<artifactId>jimfs</artifactId>
+				<version>1.2</version>
+			</dependency>			
 		</dependencies>
 	</dependencyManagement>
 
