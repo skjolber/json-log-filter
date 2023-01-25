@@ -13,6 +13,7 @@ import org.zalando.logbook.Sink;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public class PathFilterSink implements Sink {
 
@@ -49,18 +50,18 @@ public class PathFilterSink implements Sink {
 	protected final boolean validateRequests;
 	protected final boolean validateResponses;
 	
-	protected final boolean compactRequests;
-	protected final boolean compactResponses;
+	protected final WhitespaceStrategy requestWhitespaceStrategy;
+	protected final WhitespaceStrategy responseWhitespaceStrategy;
 	
 	protected final JsonFactory factory;
 	
-	public PathFilterSink(Sink sink, RequestResponseJsonFilter filter, boolean validateRequests, boolean validateResponses, boolean compactRequests, boolean compactResponses, JsonFactory factory) {
+	public PathFilterSink(Sink sink, RequestResponseJsonFilter filter, boolean validateRequests, boolean validateResponses, WhitespaceStrategy requestWhitespaceStrategy, WhitespaceStrategy responseWhitespaceStrategy, JsonFactory factory) {
 		this.sink = sink;
 		this.filter = filter;
 		this.validateRequests = validateRequests;
 		this.validateResponses = validateResponses;
-		this.compactRequests = compactRequests;
-		this.compactResponses = compactResponses;
+		this.requestWhitespaceStrategy = requestWhitespaceStrategy;
+		this.responseWhitespaceStrategy = responseWhitespaceStrategy;
 		this.factory = factory;
 	}
 
@@ -92,8 +93,8 @@ public class PathFilterSink implements Sink {
 					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
 
 					if(jsonFilter != null) {
-						sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compactRequests)));
-					} else if(compactRequests) {
+						sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
+					} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
 						sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
 					} else {
 						sink.write(precorrelation, request);
@@ -106,13 +107,13 @@ public class PathFilterSink implements Sink {
 			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests);
 			if(jsonFilter != null) {
 				if(validateRequests) {
-					sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, compactRequests)));
+					sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, requestWhitespaceStrategy)));
 				} else {
-					sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compactRequests)));
+					sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
 				}
 			} else if(validateRequests) {
-				sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, compactRequests)));
-			} else if(compactRequests) {
+				sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, requestWhitespaceStrategy)));
+			} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
 				sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
 			} else {
 				sink.write(precorrelation, request);
@@ -150,8 +151,8 @@ public class PathFilterSink implements Sink {
 					// so no JSON validation is necessary
 					JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), false);
 					if(jsonFilter != null) {
-						sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, compactResponses)));
-					} else if(compactResponses) {
+						sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
+					} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
 						sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
 					} else {
 						sink.write(correlation, request, response);
@@ -164,13 +165,13 @@ public class PathFilterSink implements Sink {
 			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), validateResponses);
 			if(jsonFilter != null) {
 				if(validateResponses) {
-					sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonFilterProcessor(jsonFilter, factory, compactResponses)));
+					sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonFilterProcessor(jsonFilter, factory, responseWhitespaceStrategy)));
 				} else {
-					sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, compactResponses)));
+					sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
 				}
 			} else if(validateResponses) {
-				sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonProcessor(factory, compactResponses)));
-			} else if(compactResponses) {
+				sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonProcessor(factory, responseWhitespaceStrategy)));
+			} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
 				sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
 			} else {
 				sink.write(correlation, request, response);

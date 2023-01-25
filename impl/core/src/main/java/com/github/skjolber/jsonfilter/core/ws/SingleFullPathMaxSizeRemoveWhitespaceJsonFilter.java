@@ -105,7 +105,12 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends AbstractSin
 				
 				switch(c) {
 				case '{' :
-					squareBrackets[level] = c == '[';
+					squareBrackets[bracketLevel] = false;
+					bracketLevel++;
+					
+					if(bracketLevel >= squareBrackets.length) {
+						squareBrackets = filter.grow(squareBrackets);
+					}
 
 					if(level > matches) {
 						// so always level < elementPaths.length
@@ -115,15 +120,18 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends AbstractSin
 						filter.setMark(mark);
 						filter.setWrittenMark(writtenMark);
 						
-						offset = filter.skipObjectOrArray(chars, offset + 1, maxLimit, buffer);
+						offset = filter.skipObjectOrArrayMaxSize(chars, offset, maxLimit, buffer);
 						
 						start = filter.getStart();
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 						writtenMark = filter.getWrittenMark();
+						squareBrackets = filter.getSquareBrackets();
 						
 						continue;
 					}
+					mark = offset;
+
 					level++;
 					break;
 				case '}' :
@@ -213,11 +221,18 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends AbstractSin
 
 								start = offset;
 							} else {
-								filter.setStart(nextOffset);
-
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
+								filter.setStart(start);
+								filter.setLevel(bracketLevel);
+								filter.setMark(mark);
+								filter.setWrittenMark(writtenMark);
+								
+								offset = filter.anonymizeObjectOrArrayMaxSize(chars, nextOffset, maxLimit, buffer, metrics);
 								
 								start = filter.getStart();
+								bracketLevel = filter.getLevel();
+								mark = filter.getMark();
+								writtenMark = filter.getWrittenMark();
+								squareBrackets = filter.getSquareBrackets();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -318,7 +333,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends AbstractSin
 						
 						filter.setStart(start);
 						
-						offset = filter.skipObject(chars, offset + 1, limit, output);
+						offset = filter.skipObject(chars, offset, limit, output);
 						
 						start = filter.getStart();
 						
@@ -392,6 +407,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends AbstractSin
 							} else {
 								filter.setStart(nextOffset);
 
+								// anonymizeObjectOrArrayMaxSize
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output, metrics);
 								
 								start = filter.getStart();

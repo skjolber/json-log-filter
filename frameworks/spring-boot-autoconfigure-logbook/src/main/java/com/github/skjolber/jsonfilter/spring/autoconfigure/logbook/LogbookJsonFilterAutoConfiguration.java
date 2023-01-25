@@ -45,7 +45,7 @@ public class LogbookJsonFilterAutoConfiguration {
 		JsonFactory jsonFactory = new JsonFactory();
 		ProcessingProperties requests = properties.getRequests();
 		ProcessingProperties responses = properties.getResponses();
-		return new PathFilterSink(sink, filter, requests.isValidate(), responses.isValidate(), requests.isCompact(), responses.isCompact(), jsonFactory);
+		return new PathFilterSink(sink, filter, requests.isValidate(), responses.isValidate(), requests.getWhitespaceStrategy(), responses.getWhitespaceStrategy(), jsonFactory);
 	}
 
 	@ConditionalOnMissingBean(Sink.class)
@@ -58,7 +58,7 @@ public class LogbookJsonFilterAutoConfiguration {
 		JsonFactory jsonFactory = new JsonFactory();
 		ProcessingProperties requests = properties.getRequests();
 		ProcessingProperties responses = properties.getResponses();
-		return new PathFilterSink(sink, filter, requests.isValidate(), responses.isValidate(), requests.isCompact(), responses.isCompact(), jsonFactory);
+		return new PathFilterSink(sink, filter, requests.isValidate(), responses.isValidate(), requests.getWhitespaceStrategy(), responses.getWhitespaceStrategy(), jsonFactory);
 	}
 
 }

@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.spring.autoconfigure.logbook;
 import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 /**
  * Compacting JSON processor
@@ -11,11 +12,11 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 public class JsonFilterProcessor extends CompactingJsonProcessor {
 
 	protected final JsonFilter filter;
-	protected final boolean compacting;
+	protected final WhitespaceStrategy whitespaceStrategy;
 
-	public JsonFilterProcessor(JsonFilter filter, boolean compacting) {
+	public JsonFilterProcessor(JsonFilter filter, WhitespaceStrategy whitespaceStrategy) {
 		this.filter = filter;
-		this.compacting = compacting;
+		this.whitespaceStrategy = whitespaceStrategy;
 	}
 
 	@Override
@@ -23,14 +24,14 @@ public class JsonFilterProcessor extends CompactingJsonProcessor {
 		String filtered = filter.process(body);
 		
 		if(filtered != null) {
-			if(compacting && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
+			if(whitespaceStrategy != WhitespaceStrategy.NEVER && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
 				return compact(filtered);
 			} else {
 				return filtered;
 			}
 		}
 
-		return handleInvalidBodyAsString(body, compacting);
+		return handleInvalidBodyAsString(body, whitespaceStrategy);
 	}
 	
 	@Override
@@ -38,14 +39,14 @@ public class JsonFilterProcessor extends CompactingJsonProcessor {
 		byte[] filtered = filter.process(body);
 		
 		if(filtered != null) {
-			if(compacting && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
+			if(whitespaceStrategy != WhitespaceStrategy.NEVER && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
 				return compact(filtered);
 			} else {
 				return filtered;
 			}
 		}
 
-		return handleInvalidBodyAsBytes(body, compacting);
+		return handleInvalidBodyAsBytes(body, whitespaceStrategy);
 	}
 
 }

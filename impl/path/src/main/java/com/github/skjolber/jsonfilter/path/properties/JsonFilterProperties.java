@@ -9,6 +9,7 @@ public class JsonFilterProperties {
 
 	protected int maxStringLength = -1;
 	protected int maxPathMatches = -1;
+	protected int maxSize = -1;
 	
 	protected List<String> anonymizes = new ArrayList<>();
 	protected List<String> prunes = new ArrayList<>();
@@ -37,13 +38,17 @@ public class JsonFilterProperties {
 	public void setPrunes(List<String> pruneFilters) {
 		this.prunes = pruneFilters;
 	}
-	
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-	}
-	
+	}	
 	public boolean isEnabled() {
 		return enabled;
 	}
-	
+
+	public int getMaxSize() {
+		return maxSize;
+	}
+	public void setMaxSize(int maxSize) {
+		this.maxSize = maxSize;
+	}
 }

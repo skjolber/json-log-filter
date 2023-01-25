@@ -243,7 +243,7 @@ public class ByteWhitespaceFilter {
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 					nextOffset++;
-					int endQuoteIndex = nextOffset;
+					int postQuoteIndex = nextOffset;
 					
 					// key or value
 
@@ -257,21 +257,20 @@ public class ByteWhitespaceFilter {
 						// was a key
 						offset = nextOffset + 1;
 
-						if(nextOffset != endQuoteIndex) {
-							buffer.write(chars, start, endQuoteIndex - start);
+						if(nextOffset != postQuoteIndex) {
+							buffer.write(chars, start, postQuoteIndex - start);
 							buffer.write(':');
 							
 							start = offset;			
 						}
 						continue;
-					} else {
-						// was a value
-						buffer.write(chars, start, offset - start);
-						buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
-						
-						if(metrics != null) {
-							metrics.onAnonymize(1);
-						}
+					} 
+					// was a value
+					buffer.write(chars, start, offset - start);
+					buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
+					
+					if(metrics != null) {
+						metrics.onAnonymize(1);
 					}
 					offset = nextOffset;
 					start = nextOffset;							

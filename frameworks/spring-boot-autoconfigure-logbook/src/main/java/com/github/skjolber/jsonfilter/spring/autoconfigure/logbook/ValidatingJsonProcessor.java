@@ -7,15 +7,16 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public class ValidatingJsonProcessor extends JsonProcessor {
 
 	protected final JsonFactory factory;
-	protected final boolean compacting;
+	protected final WhitespaceStrategy whitespaceStrategy;
 
-	public ValidatingJsonProcessor(JsonFactory factory, boolean compacting) {
+	public ValidatingJsonProcessor(JsonFactory factory, WhitespaceStrategy whitespaceStrategy) {
 		this.factory = factory;
-		this.compacting = compacting;
+		this.whitespaceStrategy = whitespaceStrategy;
 	}
 
 	protected String validate(final String json) throws IOException {
@@ -59,7 +60,7 @@ public class ValidatingJsonProcessor extends JsonProcessor {
 			} catch (Exception e) {
 				// fall through to escape as string
 			}
-			return handleInvalidBodyAsBytes(body, compacting);
+			return handleInvalidBodyAsBytes(body, whitespaceStrategy);
 		}
 		return body;
 	}
@@ -73,7 +74,7 @@ public class ValidatingJsonProcessor extends JsonProcessor {
 			} catch (Exception e) {
 				// fall through to escape as string
 			}
-			return handleInvalidBodyAsString(body, compacting);
+			return handleInvalidBodyAsString(body, whitespaceStrategy);
 		}
 		return body;
 	}

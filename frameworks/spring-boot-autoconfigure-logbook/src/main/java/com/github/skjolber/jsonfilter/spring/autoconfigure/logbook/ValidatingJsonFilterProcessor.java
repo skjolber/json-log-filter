@@ -4,12 +4,13 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public class ValidatingJsonFilterProcessor extends ValidatingJsonProcessor {
 
 	protected final JsonFilter filter;
 
-	public ValidatingJsonFilterProcessor(JsonFilter filter, JsonFactory factory, boolean compacting) {
+	public ValidatingJsonFilterProcessor(JsonFilter filter, JsonFactory factory, WhitespaceStrategy compacting) {
 		super(factory, compacting);
 		this.filter = filter;
 	}
@@ -25,14 +26,14 @@ public class ValidatingJsonFilterProcessor extends ValidatingJsonProcessor {
 				} catch (Exception e) {
 					// fall through to escape as string
 				}
-			} else if(compacting && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
+			} else if(whitespaceStrategy != WhitespaceStrategy.NEVER && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
 				return compact(filtered);
 			} else {
 				return filtered;
 			}
 		}
 
-		return handleInvalidBodyAsString(bodyAsString, compacting);
+		return handleInvalidBodyAsString(bodyAsString, whitespaceStrategy);
 	}
 	
 	protected byte[] handleBodyAsBytes(byte[] bodyAsString) throws IOException {
@@ -46,14 +47,14 @@ public class ValidatingJsonFilterProcessor extends ValidatingJsonProcessor {
 				} catch (Exception e) {
 					// fall through to escape as string
 				}
-			} else if(compacting && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
+			} else if(whitespaceStrategy != WhitespaceStrategy.NEVER && (!filter.isRemovingLinebreaksInStrings() || !filter.isRemovingWhitespace())) {
 				return compact(filtered);
 			} else {
 				return filtered;
 			}
 		}
 
-		return handleInvalidBodyAsBytes(bodyAsString, compacting);
+		return handleInvalidBodyAsBytes(bodyAsString, whitespaceStrategy);
 	}
 
 }

@@ -6,19 +6,20 @@ import org.zalando.logbook.RequestFilter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public class PathResponseFilter implements RequestFilter {
 
 	protected final RequestResponseJsonFilter filter;
 	
 	protected final boolean validate;
-	protected final boolean compact;
+	protected final WhitespaceStrategy whitespaceStrategy;
 	protected final JsonFactory factory;
 	
-	public PathResponseFilter(RequestResponseJsonFilter filter, boolean validate, boolean compact, JsonFactory factory) {
+	public PathResponseFilter(RequestResponseJsonFilter filter, boolean validate, WhitespaceStrategy whitespaceStrategy, JsonFactory factory) {
 		this.filter = filter;
 		this.validate = validate;
-		this.compact = compact;
+		this.whitespaceStrategy = whitespaceStrategy;
 		this.factory = factory;
 	}
 	
@@ -49,8 +50,8 @@ public class PathResponseFilter implements RequestFilter {
 					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
 
 					if(jsonFilter != null) {
-						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compact));
-					} else if(compact) {
+						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+					} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
 						return new JsonHttpRequest(request, new CompactingJsonProcessor());
 					}
 					return request;
@@ -61,13 +62,13 @@ public class PathResponseFilter implements RequestFilter {
 			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validate);
 			if(jsonFilter != null) {
 				if(validate) {
-					return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, compact));
+					return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, whitespaceStrategy));
 				} else {
-					return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, compact));
+					return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
 				}
 			} else if(validate) {
-				return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, compact));
-			} else if(compact) {
+				return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, whitespaceStrategy));
+			} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
 				return new JsonHttpRequest(request, new CompactingJsonProcessor());
 			} else {
 				return request;

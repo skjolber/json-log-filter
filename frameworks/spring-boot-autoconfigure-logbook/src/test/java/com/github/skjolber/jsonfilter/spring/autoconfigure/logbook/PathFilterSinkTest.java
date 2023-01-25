@@ -18,6 +18,7 @@ import org.zalando.logbook.Sink;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.path.RequestResponseJsonFilter;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public class PathFilterSinkTest {
 
@@ -35,7 +36,7 @@ public class PathFilterSinkTest {
 	public void testSink() throws IOException {
 		RequestResponseJsonFilter requestResponseJsonFilter = mock(RequestResponseJsonFilter.class);
 		Sink sink = mock(Sink.class);
-		PathFilterSink pathFilterSink = new PathFilterSink(sink, requestResponseJsonFilter, false, false, false, false, new JsonFactory());
+		PathFilterSink pathFilterSink = new PathFilterSink(sink, requestResponseJsonFilter, false, false, WhitespaceStrategy.ALWAYS, WhitespaceStrategy.ALWAYS, new JsonFactory());
 		
 		JsonFilter jsonFilter = mock(JsonFilter.class);
 		when(requestResponseJsonFilter.getResponseFilter("/def", false)).thenReturn(jsonFilter);

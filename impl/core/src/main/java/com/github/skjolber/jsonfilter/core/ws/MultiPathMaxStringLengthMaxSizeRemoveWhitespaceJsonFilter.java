@@ -104,6 +104,28 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 							
 							// was a key
 							if(endQuoteIndex != nextOffset) {
+								
+								
+								
+								
+								
+								
+								
+								
+								// XXX
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
 								// did skip whitespace
 
 								if(start <= mark) {

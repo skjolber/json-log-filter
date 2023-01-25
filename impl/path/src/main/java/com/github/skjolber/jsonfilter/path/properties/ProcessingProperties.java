@@ -3,23 +3,24 @@ package com.github.skjolber.jsonfilter.path.properties;
 public class ProcessingProperties {
 
 	protected boolean validate;
-	protected boolean compact;
+	protected WhitespaceStrategy whitespaceStrategy;
+	protected int maxSize = -1;
 
 	public ProcessingProperties() {
 	}
 	
-	public ProcessingProperties(boolean validate, boolean compact) {
+	public ProcessingProperties(boolean validate, WhitespaceStrategy strategy) {
 		super();
 		this.validate = validate;
-		this.compact = compact;
+		this.whitespaceStrategy = strategy;
 	}
 
-	public boolean isCompact() {
-		return compact;
+	public WhitespaceStrategy getWhitespaceStrategy() {
+		return whitespaceStrategy;
 	}
 	
-	public void setCompact(boolean compact) {
-		this.compact = compact;
+	public void setWhitespaceStrategy(WhitespaceStrategy strategy) {
+		this.whitespaceStrategy = strategy;
 	}
 	
 	public void setValidate(boolean validate) {
@@ -28,5 +29,13 @@ public class ProcessingProperties {
 	
 	public boolean isValidate() {
 		return validate;
+	}
+	
+	public void setMaxSize(int maxSize) {
+		this.maxSize = maxSize;
+	}
+	
+	public int getMaxSize() {
+		return maxSize;
 	}
 }

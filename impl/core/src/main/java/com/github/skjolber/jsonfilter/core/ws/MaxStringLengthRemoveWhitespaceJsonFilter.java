@@ -56,7 +56,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		try {
 			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
-			processMaxStringLength(chars, offset, limit, buffer, metrics, maxStringLength, truncateStringValue);
+			processMaxStringLength(chars, offset, limit, offset, buffer, metrics, maxStringLength, truncateStringValue);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -69,9 +69,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(final char[] chars, int offset, int limit, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateStringValue) {
-		int start = offset;
-
+	public static void processMaxStringLength(final char[] chars, int offset, int limit, int start, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateStringValue) {
 		while(offset < limit) {
 			char c = chars[offset];
 			if(c == '"') {
@@ -137,7 +135,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		try {
 			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			processMaxStringLength(chars, offset, limit, output, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+			processMaxStringLength(chars, offset, limit, offset, output, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -150,10 +148,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(byte[] chars, int offset, int limit, ByteArrayOutputStream output, byte[] digit,
+	public static void processMaxStringLength(byte[] chars, int offset, int limit, int start, ByteArrayOutputStream output, byte[] digit,
 			JsonFilterMetrics metrics, int maxStringLength, byte[] truncateStringValueAsBytes) throws IOException {
-		int start = offset;
-
 		while(offset < limit) {
 			byte c = chars[offset];
 			if(c == '"') {

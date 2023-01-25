@@ -210,7 +210,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, buffer, metrics, maxStringLength, truncateStringValue);
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, start, buffer, metrics, maxStringLength, truncateStringValue);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -404,7 +404,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, output, filter.getDigit(), metrics, maxStringLength, truncateStringValueAsBytes);
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, start, output, filter.getDigit(), metrics, maxStringLength, truncateStringValueAsBytes);
 								
 								if(metrics != null) {
 									metrics.onInput(length);

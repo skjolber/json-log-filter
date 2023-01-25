@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.core.io.JsonStringEncoder;
+import com.github.skjolber.jsonfilter.path.properties.WhitespaceStrategy;
 
 public abstract class JsonProcessor {
 
-	protected String handleInvalidBodyAsString(String bodyAsString, boolean compact) {
-		if(compact) {
+	protected String handleInvalidBodyAsString(String bodyAsString, WhitespaceStrategy compact) {
+		if(compact != WhitespaceStrategy.NEVER) {
 			bodyAsString = compact(bodyAsString);
 		}
 
@@ -31,9 +32,9 @@ public abstract class JsonProcessor {
 		return escaped.getBytes(StandardCharsets.UTF_8);
 	}
 
-	protected byte[] handleInvalidBodyAsBytes(byte[] bodyAsString, boolean compact) {
+	protected byte[] handleInvalidBodyAsBytes(byte[] bodyAsString, WhitespaceStrategy compact) {
 		// escape as string
-		if(compact) {
+		if(compact != WhitespaceStrategy.NEVER) {
 			bodyAsString = compact(bodyAsString);
 		}
 

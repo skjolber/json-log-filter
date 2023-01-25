@@ -409,22 +409,21 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 						start = offset;			
 					}
 					continue;
-				} else {
-					// was a value
-					if(start <= mark) {
-						writtenMark = buffer.length() + mark - start; 
-					}
-					buffer.append(chars, start, offset - start);
-					buffer.append(anonymizeMessage);
-					
-					limit += nextOffset - offset - anonymizeMessage.length;
-					if(limit >= maxLimit) {
-						limit = maxLimit;
-					}					
-					
-					if(metrics != null) {
-						metrics.onAnonymize(1);
-					}
+				}
+				// was a value
+				if(start <= mark) {
+					writtenMark = buffer.length() + mark - start; 
+				}
+				buffer.append(chars, start, offset - start);
+				buffer.append(anonymizeMessage);
+				
+				limit += nextOffset - offset - anonymizeMessage.length;
+				if(limit >= maxLimit) {
+					limit = maxLimit;
+				}					
+				
+				if(metrics != null) {
+					metrics.onAnonymize(1);
 				}
 				offset = nextOffset;
 				start = nextOffset;				

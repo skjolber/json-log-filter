@@ -96,7 +96,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				} while(chars[offset] <= 0x20);
 
 				if(limit >= maxLimit) {
-					limit = maxLimit;
+					super.processMaxStringLength(chars, offset, maxLimit, offset, buffer, metrics, maxStringLength, truncateStringValue);
+
+					return 0;
 				}
 
 				start = offset;
@@ -132,24 +134,29 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 				if(nextOffset - offset - 1 > maxStringLength) {
-					int endQuoteIndex = nextOffset;
+					nextOffset++;
+					int postQuoteIndex = nextOffset;
+					
+					// key or value
 
-					do {
+					// skip whitespace
+					// optimization: scan for highest value
+					while(chars[nextOffset] <= 0x20) {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					}
 
 					if(chars[nextOffset] == ':') {
 						
 						// was a key
-						if(endQuoteIndex != nextOffset) {
+						if(postQuoteIndex != nextOffset) {
 							// did skip whitespace
 
 							if(start <= mark) {
 								writtenMark = buffer.length() + mark - start; 
 							}
-							buffer.append(chars, start, endQuoteIndex - start + 1);
+							buffer.append(chars, start, postQuoteIndex - start);
 							
-							limit += nextOffset - endQuoteIndex;
+							limit += nextOffset - postQuoteIndex + 1;
 							if(limit >= maxLimit) {
 								limit = maxLimit;
 							}
@@ -166,7 +173,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 						buffer.append(chars, start, aligned - start);
 						buffer.append(truncateStringValue);
-						buffer.append(endQuoteIndex - aligned);
+						buffer.append(postQuoteIndex - 1 - aligned);
 						buffer.append('"');
 						
 						if(metrics != null) {
@@ -175,7 +182,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						
 						limit += nextOffset - aligned; // also accounts for skipped whitespace, if any
 						if(limit >= maxLimit) {
-							limit = maxLimit;
+							super.processMaxStringLength(chars, nextOffset, maxLimit, nextOffset, buffer, metrics, maxStringLength, truncateStringValue);
+
+							return 0;
 						}
 						
 						start = nextOffset;
@@ -273,7 +282,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				} while(chars[offset] <= 0x20);
 
 				if(limit >= maxLimit) {
-					limit = maxLimit;
+					super.processMaxStringLength(chars, offset, maxLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+					
+					return 0;
 				}
 			
 				start = offset;
@@ -309,24 +320,30 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 				if(nextOffset - offset - 1 > maxStringLength) {
-					int endQuoteIndex = nextOffset;
+					nextOffset++;
+					int postQuoteIndex = nextOffset;
+					
+					// key or value
 
-					do {
+					// skip whitespace
+					// optimization: scan for highest value
+					while(chars[nextOffset] <= 0x20) {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					}					
 
 					if(chars[nextOffset] == ':') {
 						
 						// was a key
-						if(endQuoteIndex != nextOffset) {
+						if(postQuoteIndex != nextOffset) {
 							if(start <= mark) {
 								writtenMark = stream.size() + mark - start; 
 							}
-							stream.write(chars, start, endQuoteIndex - start + 1);
+							stream.write(chars, start, postQuoteIndex - start);
 							
-							limit += nextOffset - endQuoteIndex;
+							limit += nextOffset - postQuoteIndex + 1;
 							if(limit >= maxLimit) {
-								limit = maxLimit;
+								super.processMaxStringLength(chars, nextOffset, maxLimit, nextOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+								return 0;
 							}
 							
 							start = nextOffset;
@@ -343,7 +360,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 						stream.write(chars, start, aligned - start);
 						stream.write(truncateStringValueAsBytes);
-						ByteArrayRangesFilter.writeInt(stream, endQuoteIndex - aligned, digit);
+						ByteArrayRangesFilter.writeInt(stream, postQuoteIndex - 1 - aligned, digit);
 						stream.write('"');
 						
 						if(metrics != null) {

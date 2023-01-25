@@ -248,7 +248,7 @@ public class CharWhitespaceFilter {
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
 
 					nextOffset++;
-					int endQuoteIndex = nextOffset;
+					int postQuoteIndex = nextOffset;
 					
 					// key or value
 
@@ -262,22 +262,22 @@ public class CharWhitespaceFilter {
 						// was a key
 						offset = nextOffset + 1;
 
-						if(nextOffset != endQuoteIndex) {
-							buffer.append(chars, start, endQuoteIndex - start);
+						if(nextOffset != postQuoteIndex) {
+							buffer.append(chars, start, postQuoteIndex - start);
 							buffer.append(':');
 							
 							start = offset;			
 						}
 						continue;
-					} else {
-						// was a value
-						buffer.append(chars, start, offset - start);
-						buffer.append(anonymizeMessage);
-						
-						if(metrics != null) {
-							metrics.onAnonymize(1);
-						}
+					} 
+					// was a value
+					buffer.append(chars, start, offset - start);
+					buffer.append(anonymizeMessage);
+					
+					if(metrics != null) {
+						metrics.onAnonymize(1);
 					}
+					
 					offset = nextOffset;
 					start = nextOffset;
 					
