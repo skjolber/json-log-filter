@@ -1,0 +1,47 @@
+{
+   "rate": {
+       "origin": {
+           "country": "NO",
+           "postal_code": "0169",
+           "province": "Oslo",
+           "city": "Oslo",
+           "name": null,
+           "address1": "520 Cambridge Street South",
+           "address2": null,
+           "address3": null,
+           "phone": null,
+           "fax": null,
+           "address_type": null,
+           "company_name": null
+       },
+       "destination": {
+           "country": "NO",
+           "postal_code": "2050",
+           "province": "Trondheim",
+           "city": "Trondheim",
+           "name": "Jason Normore",
+           "address1": "520 Cambridge Street South Apt. 5",
+           "address2": null,
+           "address3": null,
+           "phone": "7097433959",
+           "fax": null,
+           "address_type": null,
+           "company_name": null
+       },
+       "items": [
+           {
+               "name": "My Product 3",
+               "sku": null,
+               "quantity": 1,
+               "grams": 1000,
+               "price": 2000,
+               "vendor": "TestVendor",
+               "requires_shipping": true,
+               "taxable": true,
+               "fulfillment_service": "manual"
+           }
+       ],
+       "currency": "NOK",
+       "locale": "no"
+   }
+}

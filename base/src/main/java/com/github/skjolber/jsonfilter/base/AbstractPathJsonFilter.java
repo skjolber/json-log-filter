@@ -34,7 +34,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected static final String ANY_PREFIX_SLASHES = "//";
 	protected static final String ANY_PREFIX_DOTS = "..";
 	
-	protected static final String STAR = "*";
+	public static final String STAR = "*";
 	protected static final char[] STAR_CHARS = STAR.toCharArray();
 	protected static final byte[] STAR_BYTES = new byte[] {'*'};
 	

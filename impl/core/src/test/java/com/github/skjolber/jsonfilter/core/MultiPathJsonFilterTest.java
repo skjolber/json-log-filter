@@ -4,10 +4,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
@@ -101,4 +103,22 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();		
 	}
 		
+	@Test
+	public void testBug() throws IOException {
+		//MultiFullPathJsonFilter requestFilter = (MultiFullPathJsonFilter) DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/rate/destination/name", "/rate/destination/phone", "/rate/destination/email").build();
+		
+		JsonFilter requestFilter = DefaultJsonLogFilterBuilder.createInstance().withAnonymize("/rate/destination/name").build();
+
+		String readResource = readResource("/json/shippingRateRequest.json");
+		
+		String process = requestFilter.process(readResource);
+		System.out.println(requestFilter);
+		System.out.println(process);
+		
+	}
+	
+	
+	
+	
+	
 }

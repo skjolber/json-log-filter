@@ -19,12 +19,30 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter {
 
+	protected static class AbsolutePathItem {
+		
+		public final byte[][] pathBytes;
+		public final char[][] pathChars;
+		public final String[] pathStrings;
+		public final FilterType filterType;
+		
+		public final AbsolutePathItem[] next;
+		public final AbsolutePathItem[] previous;
+		
+		public final int index;
+	}
+
+	protected static class AbsolutePathAdapter {
+		
+	}
+	
 	protected static class AbsolutePathFilter {
 		
 		public final byte[][] pathBytes;
@@ -42,7 +60,11 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		protected int getLength() {
 			return pathChars.length;
 		}
-		
+
+		@Override
+		public String toString() {
+			return "AbsolutePathFilter[" + Arrays.toString(pathStrings) + "]";
+		}
 	}
 	
 	public static class AnyPathFilter {
@@ -65,7 +87,23 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 	}
 
-	protected static final Comparator<AbsolutePathFilter> comparator = (AbsolutePathFilter o1, AbsolutePathFilter o2) -> Integer.compare(o1.getLength(), o2.getLength());
+	protected static final Comparator<AbsolutePathFilter> comparator = new Comparator<AbstractMultiPathJsonFilter.AbsolutePathFilter>() {
+
+		@Override
+		public int compare(AbsolutePathFilter o1, AbsolutePathFilter o2) {
+			 int compare = Integer.compare(o1.getLength(), o2.getLength());
+			 if(compare != 0) {
+				 return 0;
+			 }
+			 for(int i = 0; i < o1.getLength(); i++) {
+				 compare = o1.pathStrings[i].compareTo(o2.pathStrings[i]);
+				 if(compare != 0) {
+					 return compare;
+				 }
+			 }
+			 return 0;
+		}
+	};
 	
 	/** absolute path expressions */
 	protected final AbsolutePathFilter[] elementFilters;
@@ -150,7 +188,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 	}
 	
-	protected static void constrain(int[] filter, int[] matches, int level) {
+	protected void constrain(int[] filter, int[] matches, int level) {
 		for(int i = filter[level]; i < matches.length; i++) {
 			if(matches[i] > level) {
 				matches[i] = level;
@@ -174,7 +212,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			if(elementMatches[i] == level - 1) {
 				if(matchPath(chars, elementFilters[i].pathStrings[elementMatches[i]])) {
 					elementMatches[i]++;
-					if(i < elementFilterEnd[level]) {
+					
+					if(elementMatches[i] == elementFilterEnd[level]) {
 						match = true;
 					}
 				}
@@ -187,7 +226,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	/**
 	 * Note that the order or the filters establishes precedence (prune over anon).
 	 * 
-	 * @param chars XML characters
+	 * @param chars JSON characters
 	 * @return the matching filter type, or null if none
 	 */
 	
@@ -219,8 +258,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			if(elementMatches[i] == level - 1) {
 				if(matchPath(chars, start, end, elementFilters[i].pathChars[elementMatches[i]])) {
 					elementMatches[i]++;
-					
-					if(i < elementFilterEnd[level]) {
+
+					if(elementMatches[i] == elementFilterEnd[level]) {
 						if(type == null) {
 							// matched
 							type = elementFilters[i].filterType;
@@ -252,7 +291,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 				if(matchPath(chars, start, end, elementFilters[i].pathBytes[elementMatches[i]])) {
 					elementMatches[i]++;
 					
-					if(i < elementFilterEnd[level]) {
+					if(elementMatches[i] == elementFilterEnd[level]) {
 						if(type == null) {
 							// matched
 							type = elementFilters[i].filterType;

@@ -99,7 +99,10 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 							continue;
 						}
 					}
-					
+
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
@@ -145,7 +148,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 							}							
 						}
 						
-						matches--;
+						matches = level - 1;
 					} else {
 						offset = nextOffset;
 					}
@@ -213,7 +216,10 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 							continue;
 						}
 					}
-					
+
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {

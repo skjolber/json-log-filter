@@ -44,8 +44,11 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									
 							continue;
 						}
+						System.out.println("Start level " + level);
 						break;
 					case '}' :
+						System.out.println("End level " + level);
+						
 						level--;
 						
 						constrainMatches(elementMatches, level);
@@ -118,8 +121,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									return filter; // done filtering
 								}
 							}
-							
-							constrainMatches(elementMatches, level - 1);
+							System.out.println("Constrain match");
+							constrainMatches(elementMatches, level);
 						} else {
 							offset = nextOffset;
 						}
@@ -169,8 +172,10 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									
 							continue;
 						}
+						System.out.println("Start level " + level);
 						break;
 					case '}' :
+						System.out.println("End level " + level);
 						level--;
 						
 						constrainMatches(elementMatches, level);
@@ -256,7 +261,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 								}
 							}
 							
-							constrainMatches(elementMatches, level - 1);
+							System.out.println("Constrain match");
+							constrainMatches(elementMatches, level);
 						} else {
 							offset = nextOffset;
 						}

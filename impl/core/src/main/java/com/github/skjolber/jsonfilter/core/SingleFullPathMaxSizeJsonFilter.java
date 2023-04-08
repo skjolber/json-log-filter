@@ -143,11 +143,15 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						}
 					}
 					
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;
+						
 						continue;
 					}
 
@@ -385,11 +389,15 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						}
 					}
 					
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
 					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;
+						
 						continue;
 					}
 

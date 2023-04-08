@@ -183,6 +183,9 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								continue;
 							}
 						}
+
+						// reset match for a sibling field name, if any
+						matches = level - 1;
 						
 						// was field name
 						if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
@@ -512,6 +515,9 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								continue;
 							}
 						}
+						
+						// reset match for a sibling field name, if any
+						matches = level - 1;
 						
 						// was field name
 						if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
