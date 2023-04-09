@@ -19,37 +19,15 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
+import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.PathItemFactory;
 
 public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter {
 	
-	protected static class AbsolutePathFilter {
-		
-		public final byte[][] pathBytes;
-		public final char[][] pathChars;
-		public final String[] pathStrings;
-		public final FilterType filterType;
-		
-		public AbsolutePathFilter(String[] pathStrings, FilterType filterType) {
-			this.pathChars = toCharArray(pathStrings);
-			this.pathBytes = toByteArray(pathStrings);
-			this.pathStrings = pathStrings;
-			this.filterType = filterType;
-		}
-		
-		protected int getLength() {
-			return pathChars.length;
-		}
+	private static PathItemFactory FACTORY = new PathItemFactory();
 
-		@Override
-		public String toString() {
-			return "AbsolutePathFilter[" + Arrays.toString(pathStrings) + "]";
-		}
-	}
-	
 	public static class AnyPathFilter {
 		
 		public final String pathString;
@@ -69,38 +47,18 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			return filterType;
 		}
 	}
-
-	protected static final Comparator<AbsolutePathFilter> comparator = new Comparator<AbstractMultiPathJsonFilter.AbsolutePathFilter>() {
-
-		@Override
-		public int compare(AbsolutePathFilter o1, AbsolutePathFilter o2) {
-			 int compare = Integer.compare(o1.getLength(), o2.getLength());
-			 if(compare != 0) {
-				 return 0;
-			 }
-			 for(int i = 0; i < o1.getLength(); i++) {
-				 compare = o1.pathStrings[i].compareTo(o2.pathStrings[i]);
-				 if(compare != 0) {
-					 return compare;
-				 }
-			 }
-			 return 0;
-		}
-	};
 	
 	/** absolute path expressions */
-	protected final AbsolutePathFilter[] elementFilters;
-
+	protected final PathItem pathItem; 
+	
 	/** any path expression - //element */
 	protected final AnyPathFilter[] anyElementFilters;
-	
-	protected final int[] elementFilterStart;
-	protected final int[] elementFilterEnd; // exclusive
 
 	public AbstractMultiPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
-		List<AbsolutePathFilter> elements = new ArrayList<>();
+		List<String> pathsList = new ArrayList<>();
+		List<FilterType> typesList = new ArrayList<>();
 
 		List<AnyPathFilter> any = new ArrayList<>(); // prunes take precedence of anonymizes
 
@@ -110,7 +68,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 				if(hasAnyPrefix(prune)) {
 					any.add(new AnyPathFilter(prune.substring(2), FilterType.PRUNE));
 				} else {
-					elements.add(new AbsolutePathFilter(parse(prune), FilterType.PRUNE));
+					pathsList.add(prune);
+					typesList.add(FilterType.PRUNE);
 				}
 			}
 		}
@@ -121,7 +80,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 				if(hasAnyPrefix(anonymize)) {
 					any.add(new AnyPathFilter(anonymize.substring(2), FilterType.ANON));
 				} else {
-					elements.add(new AbsolutePathFilter(parse(anonymize), FilterType.ANON));
+					pathsList.add(anonymize);
+					typesList.add(FilterType.ANON);
 				}
 			}
 		}
@@ -131,79 +91,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		} else {
 			anyElementFilters = null;
 		}
-		
-		if(!elements.isEmpty()) {
-			Collections.sort(elements, comparator);
-			
-			int maxElementPaths = Integer.MIN_VALUE;
-			for(AbsolutePathFilter elementPath : elements) {
-				if(elementPath.getLength() > maxElementPaths) {
-					maxElementPaths = elementPath.getLength();
-				}
-			}
-			
-			elementFilterStart = new int[maxElementPaths + 1];
-			elementFilterEnd = new int[maxElementPaths + 1];
 
-			for (AbsolutePathFilter absolutePathFilter : elements) {
-				elementFilterEnd[absolutePathFilter.getLength()]++;
-			}
-			
-			for(int i = 1; i < elementFilterEnd.length; i++) {
-				int sum = 0;
-				for(int k = 0; k < i; k++) {
-					sum += elementFilterEnd[k];
-				}
-				
-				elementFilterStart[i] = sum;
-			}
-
-			// add start to count for end
-			for(int i = 0; i < elementFilterEnd.length; i++) {
-				elementFilterEnd[i] += elementFilterStart[i];
-			}
-
-			elementFilters = elements.toArray(new AbsolutePathFilter[elements.size()]);
-		} else {
-			elementFilterStart = new int[]{};
-			elementFilterEnd = new int[]{};
-			elementFilters = new AbsolutePathFilter[]{};
-		}
-	}
-	
-	protected void constrain(int[] filter, int[] matches, int level) {
-		for(int i = filter[level]; i < matches.length; i++) {
-			if(matches[i] > level) {
-				matches[i] = level;
-			}
-		}
-	}
-
-	protected void constrainMatchesCheckLevel(int[] matches, int level) {
-		if(level < elementFilterStart.length) {
-			constrain(elementFilterStart, matches, level);
-		}
-	}
-
-	protected void constrainMatches(int[] matches, int level) {
-		constrain(elementFilterStart, matches, level);
-	}
-	
-	protected boolean matchElements(final String chars, int level, final int[] elementMatches) {
-		boolean match = false;
-		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
-			if(elementMatches[i] == level - 1) {
-				if(matchPath(chars, elementFilters[i].pathStrings[elementMatches[i]])) {
-					elementMatches[i]++;
-					
-					if(elementMatches[i] == elementFilterEnd[level]) {
-						match = true;
-					}
-				}
-
-			}
-		}
-		return match;
+		this.pathItem = FACTORY.create(pathsList, typesList);		
 	}
 	
 	/**
@@ -222,72 +111,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		return null;
 			
 	}
-
-	/**
-	 * Match a char range against a specific level of path expressions.
-	 * 
-	 * @param chars text source
-	 * @param start text source start
-	 * @param end text source end (exclusive)
-	 * @param level path level
-	 * @param elementMatches current expression matches, constrained to the current level minus one
-	 * @return first filter of a matched filter
-	 */
-
-	protected FilterType matchElements(final char[] chars, int start, int end, int level, final int[] elementMatches) {
-		FilterType type = null;
-		
-		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
-			if(elementMatches[i] == level - 1) {
-				if(matchPath(chars, start, end, elementFilters[i].pathChars[elementMatches[i]])) {
-					elementMatches[i]++;
-
-					if(elementMatches[i] == elementFilterEnd[level]) {
-						if(type == null) {
-							// matched
-							type = elementFilters[i].filterType;
-						}
-					}
-				}
-			}
-		}
-		return type;
-	}
-		
-	
-	/**
-	 * Match a byte range against a specific level of path expressions.
-	 * 
-	 * @param chars text source
-	 * @param start text source start
-	 * @param end text source end (exclusive)
-	 * @param level path level
-	 * @param elementMatches current expression matches, constrained to the current level minus one
-	 * @return true if all segments of a path expression is matched
-	 */
-
-	protected FilterType matchElements(final byte[] chars, int start, int end, int level, final int[] elementMatches) {
-		FilterType type = null;
-		
-		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
-			if(elementMatches[i] == level - 1) {
-				byte[] path = elementFilters[i].pathBytes[elementMatches[i]];
-				if(path == STAR_BYTES || matchPath(chars, start, end, path)) {
-					elementMatches[i]++;
-					
-					if(elementMatches[i] == elementFilterEnd[level]) {
-						if(type == null) {
-							// matched
-							type = elementFilters[i].filterType;
-						}
-					}
-
-				}
-
-			}
-		}
-		return type;
-	}	
 	
 	/**
 	 * Match a char range against any-type expressions.

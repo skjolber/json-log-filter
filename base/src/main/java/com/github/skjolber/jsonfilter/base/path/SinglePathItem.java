@@ -1,28 +1,22 @@
-package com.github.skjolber.jsonfilter.base.match;
+package com.github.skjolber.jsonfilter.base.path;
 
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class SinglePathItem implements PathItem {
+public class SinglePathItem extends PathItem {
 
-	private final int index;
-	private final PathItem parent;
-	
 	private final String fieldName;
 	public final byte[] fieldNameBytes;
 	public final char[] fieldNameChars;
 
 	private PathItem next;
 
-	public SinglePathItem(int index, String fieldName, PathItem previous) {
-		super();
-		this.index = index;
+	public SinglePathItem(int level, String fieldName, PathItem parent) {
+		super(level, parent);
 		this.fieldName = fieldName;
 		this.fieldNameBytes = fieldName.getBytes(StandardCharsets.UTF_8);
 		this.fieldNameChars = fieldName.toCharArray();
-		this.parent = previous;
 	}
 	
 	public void setNext(PathItem next) {
@@ -37,31 +31,8 @@ public class SinglePathItem implements PathItem {
 		return this;
 	}
 
-	@Override
-	public PathItem constrain(int level) {
-		if(index <= level) {
-			return this;
-		}
-		return parent.constrain(level);
-	}
-	
 	public boolean hasNext() {
 		return next != null;
-	}
-
-	@Override
-	public FilterType getType() {
-		return null;
-	}
-	
-	@Override
-	public int getIndex() {
-		return index;
-	}
-	
-	@Override
-	public boolean hasType() {
-		return false;
 	}
 
 	@Override
@@ -70,7 +41,7 @@ public class SinglePathItem implements PathItem {
 			return next;
 		}
 		
-		return null;
+		return this;
 	}
 
 	@Override
@@ -78,11 +49,13 @@ public class SinglePathItem implements PathItem {
 		if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes)) {
 			return next;
 		}
-		return null;
+		return this;
 	}
 
 	@Override
-	public PathItem getParent() {
-		return parent;
+	public String toString() {
+		return "SinglePathItem [level=" + level + ", fieldName=" + fieldName + "]";
 	}
+
+	
 }

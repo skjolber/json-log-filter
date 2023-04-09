@@ -1,9 +1,11 @@
-package com.github.skjolber.jsonfilter.base.match;
+package com.github.skjolber.jsonfilter.base.path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
@@ -34,16 +36,6 @@ public class PathItemFactory {
 			return new ArrayList<>(keys);
 		}
 
-		public List<ExpressionNode> getChildren(String key) {
-			List<ExpressionNode> children = new ArrayList<>();
-			for (ExpressionNode child : this.children) {
-				if(key.equals(child.path)) {
-					children.add(child);
-				}
-			}
-			return children;
-		}
-
 		@Override
 		public String toString() {
 			return "ExpressionNode [path=" + path + ", index=" + index + ", filterType=" + filterType + ", children=" + getKeys() +"]";
@@ -55,6 +47,10 @@ public class PathItemFactory {
 	// /one/two/*/three1
 	
 	public PathItem create(String[] expressions, FilterType[] types) {
+		Map<String, FilterType> map = new HashMap<>();
+		for(int i = 0; i < expressions.length; i++) {
+			map.put(expressions[i], types[i]);
+		}
 		List<String> filteredExpressions = filter(expressions);
 		
 		ExpressionNode root = new ExpressionNode();
@@ -87,34 +83,31 @@ public class PathItemFactory {
 				
 				current = next;
 			}
-			current.filterType = types[i];
+			current.filterType = map.get(filteredExpressions.get(i));
 		}
 		
-		return create(null, root, 0);
+		// index 1 ... n so that easier to use in filters
+		return create(null, root, 1);
 	}
 	
-	public PathItem create(PathItem parent, ExpressionNode node, int index) {
-		for(int i = 0; i < index; i++) {
-			System.out.print(' ');
-		}
-		System.out.println("Create " + node + " " + index);
+	public PathItem create(PathItem parent, ExpressionNode node, int level) {
 		if(node.filterType != null) {
-			return new EndPathItem(index, parent, node.filterType);
+			return new EndPathItem(level, parent, node.filterType);
 		}
 		if(node.children.size() == 1) {
 			ExpressionNode childNode = node.children.get(0);
 			
 			if(childNode.path.equals(AbstractPathJsonFilter.STAR)) {
-				AnyPathItem anyPathItem = new AnyPathItem(index, parent);
+				AnyPathItem anyPathItem = new AnyPathItem(level, parent);
 				
-				PathItem childPathItem = create(anyPathItem, childNode, index + 1);
+				PathItem childPathItem = create(anyPathItem, childNode, level + 1);
 				anyPathItem.setNext(childPathItem);
 				
 				return anyPathItem;
 			}
-			SinglePathItem singlePathItem = new SinglePathItem(index, childNode.path, parent);
+			SinglePathItem singlePathItem = new SinglePathItem(level, childNode.path, parent);
 			
-			PathItem childPathItem = create(singlePathItem, childNode, index + 1);
+			PathItem childPathItem = create(singlePathItem, childNode, level + 1);
 			singlePathItem.setNext(childPathItem);
 			
 			return singlePathItem;
@@ -130,27 +123,27 @@ public class PathItemFactory {
 			
 			ExpressionNode anyNode = node.children.remove(anyIndex);
 			
-			AnyMultiPathItem multiPathItem = new AnyMultiPathItem(keys, index, parent);
+			AnyMultiPathItem multiPathItem = new AnyMultiPathItem(keys, level, parent);
 
 			for(int k = 0; k < node.children.size(); k++) {
 				ExpressionNode childNode = node.children.get(k);
 				
-				PathItem childPathItem = create(multiPathItem, childNode, index + 1);
+				PathItem childPathItem = create(multiPathItem, childNode, level + 1);
 				
 				multiPathItem.setNext(childPathItem, k);
 			}
 			
-			multiPathItem.setAny(create(parent, anyNode, index + 1));
+			multiPathItem.setAny(create(parent, anyNode, level + 1));
 			
 			return multiPathItem;
 			
 		}
 		
-		MultiPathItem multiPathItem = new MultiPathItem(keys, index, parent);
+		MultiPathItem multiPathItem = new MultiPathItem(keys, level, parent);
 		for(int k = 0; k < node.children.size(); k++) {
 			ExpressionNode childNode = node.children.get(k);
 			
-			PathItem childPathItem = create(multiPathItem, childNode, index + 1);
+			PathItem childPathItem = create(multiPathItem, childNode, level + 1);
 			
 			multiPathItem.setNext(childPathItem, k);
 		}
@@ -203,5 +196,8 @@ public class PathItemFactory {
 		return elementPath;
 	}
 
+	public PathItem create(List<String> pathsList, List<FilterType> typesList) {
+		return create(pathsList.toArray(new String[pathsList.size()]), typesList.toArray(new FilterType[typesList.size()]));
+	}
 	
 }

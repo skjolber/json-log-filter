@@ -3,12 +3,13 @@ package com.github.skjolber.jsonfilter.base.match;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.base.path.EndPathItem;
+import com.github.skjolber.jsonfilter.base.path.MultiPathItem;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.SinglePathItem;
 
 public class PathItemTest {
 

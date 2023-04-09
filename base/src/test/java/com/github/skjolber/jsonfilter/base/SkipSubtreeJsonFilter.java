@@ -1,10 +1,6 @@
 package com.github.skjolber.jsonfilter.base;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.ByteArrayOutputStream;
-
-import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
