@@ -135,10 +135,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static boolean matchPath(final char[] chars, int start, int end, final char[] attribute) {
-		// check if wildcard
-		if(attribute == STAR_CHARS) {
-			return true;
-		}
 		int l = end - start;
 		if(l < attribute.length) {
 			return false;
@@ -194,10 +190,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public static boolean matchPath(final byte[] source, int start, int end, final byte[] attribute) {
-		// check if wildcard
-		if(attribute == STAR_BYTES) {
-			return true;
-		}
 		int l = end - start;
 		if(l < attribute.length) {
 			return false;

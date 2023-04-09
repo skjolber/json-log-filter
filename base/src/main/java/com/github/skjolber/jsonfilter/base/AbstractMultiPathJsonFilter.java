@@ -25,23 +25,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter {
-
-	protected static class AbsolutePathItem {
-		
-		public final byte[][] pathBytes;
-		public final char[][] pathChars;
-		public final String[] pathStrings;
-		public final FilterType filterType;
-		
-		public final AbsolutePathItem[] next;
-		public final AbsolutePathItem[] previous;
-		
-		public final int index;
-	}
-
-	protected static class AbsolutePathAdapter {
-		
-	}
 	
 	protected static class AbsolutePathFilter {
 		
@@ -288,7 +271,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		
 		for(int i = elementFilterStart[level]; i < elementMatches.length; i++) {
 			if(elementMatches[i] == level - 1) {
-				if(matchPath(chars, start, end, elementFilters[i].pathBytes[elementMatches[i]])) {
+				byte[] path = elementFilters[i].pathBytes[elementMatches[i]];
+				if(path == STAR_BYTES || matchPath(chars, start, end, path)) {
 					elementMatches[i]++;
 					
 					if(elementMatches[i] == elementFilterEnd[level]) {

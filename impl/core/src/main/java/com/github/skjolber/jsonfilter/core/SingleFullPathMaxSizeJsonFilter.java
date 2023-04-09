@@ -147,7 +147,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					matches = level - 1;
 
 					// was a field name
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;
@@ -393,7 +393,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					matches = level - 1;
 
 					// was a field name
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;

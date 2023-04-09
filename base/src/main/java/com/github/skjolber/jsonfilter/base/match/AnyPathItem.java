@@ -5,13 +5,13 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 public class AnyPathItem implements PathItem {
 
 	private final int index;
-	private final PathItem previous;
+	private final PathItem parent;
 	private PathItem next;
 
 	public AnyPathItem(int index, PathItem previous) {
 		super();
 		this.index = index;
-		this.previous = previous;
+		this.parent = previous;
 	}
 	
 	public void setNext(PathItem next) {
@@ -25,10 +25,10 @@ public class AnyPathItem implements PathItem {
 
 	@Override
 	public PathItem constrain(int level) {
-		if(index >= level) {
+		if(index <= level) {
 			return this;
 		}
-		return previous;
+		return parent.constrain(level);
 	}
 
 	@Override
@@ -39,6 +39,26 @@ public class AnyPathItem implements PathItem {
 	@Override
 	public int getIndex() {
 		return index;
+	}
+
+	@Override
+	public boolean hasType() {
+		return false;
+	}
+
+	@Override
+	public PathItem matchPath(char[] source, int start, int end) {
+		return next;
+	}
+
+	@Override
+	public PathItem matchPath(byte[] source, int start, int end) {
+		return next;
+	}
+
+	@Override
+	public PathItem getParent() {
+		return parent;
 	}
 
 }

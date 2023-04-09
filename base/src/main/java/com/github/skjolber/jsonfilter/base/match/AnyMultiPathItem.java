@@ -2,36 +2,35 @@ package com.github.skjolber.jsonfilter.base.match;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
-public class MultiPathItem implements PathItem {
-	
+public class AnyMultiPathItem implements PathItem {
+
 	public final String[] fieldNames;
 	public final byte[][] fieldNameBytes;
 	public final char[][] fieldNameChars;
-	
+
 	public PathItem[] next;
 	public final PathItem parent;
 	
+	private PathItem any;
 	public final int index;
 
-	public MultiPathItem(List<String> fieldNames, int index, PathItem previous) {
+	public AnyMultiPathItem(List<String> fieldNames, int index, PathItem previous) {
 		this(fieldNames.toArray(new String[fieldNames.size()]), index, previous);
 	}
 	
-	public MultiPathItem(String[] fieldNames, int index, PathItem previous) {
+	public AnyMultiPathItem(String[] fieldNames, int index, PathItem previous) {
 		this.fieldNames = fieldNames;
 		this.fieldNameBytes = new byte[fieldNames.length][];
 		this.fieldNameChars = new char[fieldNames.length][];
 		for(int i = 0; i < fieldNames.length; i++) {
 			fieldNameBytes[i] = fieldNames[i].getBytes(StandardCharsets.UTF_8);
 			fieldNameChars[i] = fieldNames[i].toCharArray();
-		}		
+		}
 		this.next = new PathItem[fieldNames.length];
 		
 		this.index = index;
@@ -51,7 +50,7 @@ public class MultiPathItem implements PathItem {
 			}
 		}
 		
-		return this;
+		return any;
 	}
 
 	@Override
@@ -83,7 +82,11 @@ public class MultiPathItem implements PathItem {
 	public String[] getFieldNames() {
 		return fieldNames;
 	}
-
+	
+	public void setAny(PathItem any) {
+		this.any = any;
+	}
+	
 	@Override
 	public boolean hasType() {
 		return false;
@@ -97,7 +100,7 @@ public class MultiPathItem implements PathItem {
 				return next[i];
 			}
 		}
-		return this;
+		return any;
 	}
 	
 	@Override
@@ -108,11 +111,12 @@ public class MultiPathItem implements PathItem {
 				return next[i];
 			}
 		}
-		return this;
+		return any;
 	}
 
 	@Override
 	public PathItem getParent() {
 		return parent;
 	}
+
 }
