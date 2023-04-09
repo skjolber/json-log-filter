@@ -2,7 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
@@ -23,29 +23,27 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final int[] elementFilterStart = this.elementFilterStart;
-		
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		final int[] elementMatches = new int[elementFilters.length];
-
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
+		final PathItem pathItem = this.pathItem;
+		
 		try {
-			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
+			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, pathItem, filter);
 		} catch(Exception e) {
 			return null;
 		}		
 	}
 
-	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final CharArrayRangesFilter filter) {
+	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem, final CharArrayRangesFilter filter) {
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 
 					level++;
 					
-					if(anyElementFilters == null && level >= elementFilterStart.length) {
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
 
 						level--;
@@ -55,11 +53,9 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					
 					break;
 				case '}' :
+					pathItem = pathItem.constrain(level);
+
 					level--;
-					
-					if(level < elementFilterStart.length) {
-						constrainMatches(elementMatches, level);
-					}
 					
 					break;
 				case '"' :
@@ -100,8 +96,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					FilterType type = null;
 					
 					// match again any higher filter
-					if(level < elementFilterStart.length) {
-						type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
+					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+					if(pathItem.hasType()) {
+						// matched
+						type = pathItem.getType();
+						
+						pathItem = pathItem.constrain(level);
 					}
 					
 					if(anyElementFilters != null && type == null) {
@@ -145,8 +145,6 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 								break loop;
 							}
 						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
 					} else {
 						offset = nextOffset;
 					}
@@ -169,36 +167,40 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final int[] elementFilterStart = this.elementFilterStart;
-		
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
-		
-		final int[] elementMatches = new int[elementFilters.length];
 
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
 
+		final PathItem pathItem = this.pathItem;
+
 		try {
-			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, elementMatches, elementFilterStart, filter);
+			return rangesMultiPathMaxStringLength(chars, offset, offset + length, maxStringLength, pathMatches, 0, pathItem, filter);
 		} catch(Exception e) {
 			return null;
 		}		
 	}
 
-	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, final int[] elementMatches, final int[] elementFilterStart, final ByteArrayRangesFilter filter) {
+	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem, final ByteArrayRangesFilter filter) {
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' : 
 					level++;
 					
-					break;
-				case '}' :
-					level--;
-					
-					if(level < elementFilterStart.length) {
-						constrainMatches(elementMatches, level);
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
+						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+
+						level--;
+						
+						continue;
 					}
 					
+					break;
+				case '}' :
+					pathItem = pathItem.constrain(level);
+
+					level--;
+
 					break;
 				case '"' :
 					int nextOffset = offset;
@@ -238,8 +240,12 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					FilterType type = null;
 					
 					// match again any higher filter
-					if(level < elementFilterStart.length) {
-						type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
+					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+					if(pathItem.hasType()) {
+						// matched
+						type = pathItem.getType();
+						
+						pathItem = pathItem.constrain(level);
 					}
 					
 					if(anyElementFilters != null && type == null) {
@@ -282,8 +288,6 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 								break loop;
 							}
 						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
 
 					} else {
 						offset = nextOffset;

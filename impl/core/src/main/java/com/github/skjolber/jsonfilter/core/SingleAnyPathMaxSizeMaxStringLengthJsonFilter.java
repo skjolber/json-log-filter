@@ -164,7 +164,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					}
 					
 					// was a field name
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
+					if(elementPaths == STAR_CHARS ||  matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
 						if(nextOffset >= maxSizeLimit) {
 							break loop;
 						}
@@ -415,7 +415,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					}
 					
 					// was a field name
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
+					if(elementPaths == STAR_BYTES ||matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
 						if(nextOffset >= maxSizeLimit) {
 							break loop;
 						}

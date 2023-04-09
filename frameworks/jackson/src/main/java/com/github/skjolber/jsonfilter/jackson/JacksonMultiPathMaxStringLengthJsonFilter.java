@@ -10,6 +10,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFilter implements JacksonJsonFilter {
 
@@ -79,10 +81,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 		
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
-
 		int level = 0;
+
+		PathItem pathItem = this.pathItem;
 
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
@@ -93,28 +94,28 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			if(nextToken == JsonToken.START_OBJECT) {
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
-				level--;
+				pathItem.constrain(level);
 
-				if(level < elementFilterStart.length) {
-					constrainMatches(elementMatches, level);
-				}
+				level--;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
 				boolean prune = false;
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(level < elementFilterStart.length && matchElements(parser.getCurrentName(), level, elementMatches)) {
-					for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-						if(elementMatches[i] == level) {
-							// matched
-							if(elementFilters[i].filterType == FilterType.ANON) {
-								anon = true;
-							} else {
-								prune = true;
-								
-								break;
-							}
+				// match again any higher filter
+				pathItem = pathItem.constrain(level);
+						
+				if(pathItem.getLevel() == level) {
+					pathItem = pathItem.matchPath(parser.getCurrentName());
+
+					if(pathItem.hasType()) {
+						// matched
+						if(pathItem.getType() == FilterType.ANON) {
+							anon = true;
+						} else {
+							prune = true;
 						}
+						pathItem = pathItem.constrain(level);
 					}
 				}
 				
@@ -148,10 +149,6 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 							parser.skipChildren(); // skip children
 						}
-					}
-					
-					if(level < elementMatches.length) {
-						constrainMatches(elementMatches, level);
 					}
 
 					continue;
@@ -227,11 +224,10 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-		
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
 
 		int level = 0;
+
+		PathItem pathItem = this.pathItem;
 
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
@@ -242,29 +238,22 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			if(nextToken == JsonToken.START_OBJECT) {
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
-				level--;
+				pathItem.constrain(level);
 
-				if(level < elementFilterStart.length) {
-					constrainMatches(elementMatches, level);
-				}
+				level--;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
 				boolean prune = false;
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(level < elementFilterStart.length && matchElements(parser.getCurrentName(), level, elementMatches)) {
-					for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-						if(elementMatches[i] == level) {
-							// matched
-							if(elementFilters[i].filterType == FilterType.ANON) {
-								anon = true;
-							} else {
-								prune = true;
-								
-								break;
-							}
-						}
+				if(pathItem.hasType()) {
+					// matched
+					if(pathItem.getType() == FilterType.ANON) {
+						anon = true;
+					} else {
+						prune = true;
 					}
+					pathItem = pathItem.constrain(level);
 				}
 				
 				if(anyElementFilters != null) {
@@ -299,10 +288,6 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 							
 							metrics.onPrune(1);
 						}
-					}
-					
-					if(level < elementMatches.length) {
-						constrainMatches(elementMatches, level);
 					}
 
 					continue;

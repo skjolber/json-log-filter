@@ -1,18 +1,15 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {

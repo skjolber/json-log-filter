@@ -143,8 +143,6 @@ public class AbstractPathJsonFilterTest {
 
 		// stars should match anything
 		assertTrue(AbstractPathJsonFilter.matchPath("abc", AbstractPathJsonFilter.STAR));
-		assertTrue(AbstractPathJsonFilter.matchPath("abc".toCharArray(), 0, 0, AbstractPathJsonFilter.STAR_CHARS));
-		assertTrue(AbstractPathJsonFilter.matchPath("abc".getBytes(), 0, 0, AbstractPathJsonFilter.STAR_BYTES));
 	}
 	
 	@Test

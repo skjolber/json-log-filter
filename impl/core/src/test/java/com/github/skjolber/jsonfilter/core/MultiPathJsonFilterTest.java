@@ -100,5 +100,5 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasPruned(DEEP_PATH3).hasPruneMetrics()
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();		
 	}
-		
+
 }
