@@ -52,7 +52,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<json-path.version>2.7.0</json-path.version>
+		<json-path.version>2.8.0</json-path.version>
 
 		<aalto.version>1.2.2</aalto.version>
 		<xerces.version>2.12.0</xerces.version>
