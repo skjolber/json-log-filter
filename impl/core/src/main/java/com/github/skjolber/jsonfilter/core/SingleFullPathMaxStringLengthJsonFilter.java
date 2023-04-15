@@ -96,12 +96,16 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							continue;
 						}
 					}
-					
+
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was field name
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;
+						
 						continue;
 					}
 
@@ -239,11 +243,15 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							continue;
 						}
 					}
-					
-					if(matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
+
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
+					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset;
+						
 						continue;
 					}
 

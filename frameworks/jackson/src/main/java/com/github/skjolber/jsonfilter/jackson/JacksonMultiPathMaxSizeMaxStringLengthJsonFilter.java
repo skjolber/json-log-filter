@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMultiPathMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
@@ -81,12 +82,11 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
-
 		final long maxSize = this.maxSize;
 
 		int level = 0;
+
+		PathItem pathItem = this.pathItem;
 
         String fieldName = null;
         
@@ -100,11 +100,9 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 			if(nextToken == JsonToken.START_OBJECT) {
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
-				level--;
+				pathItem.constrain(level);
 				
-				if(level < elementFilterStart.length) {
-					constrainMatches(elementMatches, level);
-				}
+				level--;
 			}
 				
 			if(nextToken == JsonToken.VALUE_STRING) {
@@ -118,18 +116,20 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(level < elementFilterStart.length && matchElements(currentName, level, elementMatches)) {
-					for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-						if(elementMatches[i] == level) {
-							// matched
-							if(elementFilters[i].filterType == FilterType.ANON) {
-								anon = true;
-							} else {
-								prune = true;
-								
-								break;
-							}
+				pathItem = pathItem.constrain(level);
+						
+				if(pathItem.getLevel() == level) {
+					pathItem = pathItem.matchPath(currentName);
+					
+					// match again any higher filter
+					if(pathItem.hasType()) {
+						// matched
+						if(pathItem.getType() == FilterType.ANON) {
+							anon = true;
+						} else {
+							prune = true;
 						}
+						pathItem = pathItem.constrain(level);
 					}
 				}
 				
@@ -179,9 +179,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 					}
 					offset = offsetSupplier.getAsLong();
 					
-					if(level < elementMatches.length) {
-						constrainMatches(elementMatches, level);
-					}
+					pathItem = pathItem.constrain(level);
 				} else {
 					fieldName = currentName;
 				}
@@ -286,12 +284,11 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
-
 		final long maxSize = this.maxSize;
 
 		int level = 0;
+
+		PathItem pathItem = this.pathItem;
 
         String fieldName = null;
         
@@ -305,11 +302,9 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 			if(nextToken == JsonToken.START_OBJECT) {
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
+				pathItem.constrain(level);
+
 				level--;
-				
-				if(level < elementFilterStart.length) {
-					constrainMatches(elementMatches, level);
-				}
 			}
 				
 			if(nextToken == JsonToken.VALUE_STRING) {
@@ -323,19 +318,16 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(level < elementFilterStart.length && matchElements(currentName, level, elementMatches)) {
-					for(int i = elementFilterStart[level]; i < elementFilterEnd[level]; i++) {
-						if(elementMatches[i] == level) {
-							// matched
-							if(elementFilters[i].filterType == FilterType.ANON) {
-								anon = true;
-							} else {
-								prune = true;
-								
-								break;
-							}
-						}
+				pathItem = pathItem.constrain(level).matchPath(currentName);
+
+				if(pathItem.hasType()) {
+					// matched
+					if(pathItem.getType() == FilterType.ANON) {
+						anon = true;
+					} else {
+						prune = true;
 					}
+					pathItem = pathItem.constrain(level);
 				}
 				
 				if(anyElementFilters != null) {
@@ -387,10 +379,6 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 						}
 					}
 					offset = offsetSupplier.getAsLong();
-					
-					if(level < elementMatches.length) {
-						constrainMatches(elementMatches, level);
-					}
 				} else {
 					fieldName = currentName;
 				}

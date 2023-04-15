@@ -15,8 +15,8 @@ public abstract class AbstractSingleCharArrayAnyPathJsonFilter extends AbstractS
 		}
 		
 		String key = expression.substring(2);
-		this.pathChars = key.toCharArray();
-		this.pathBytes = key.getBytes(StandardCharsets.UTF_8);
+		this.pathChars = intern(key.toCharArray());
+		this.pathBytes = intern(key.getBytes(StandardCharsets.UTF_8));
 	}
 	
 }

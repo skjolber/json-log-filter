@@ -97,6 +97,10 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 					matches = level;
 				}
 			} else if(nextToken == JsonToken.FIELD_NAME) {
+				if(matches + 1 > level) {
+					matches = level + 1;
+				}
+				
 				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {
 					matches++;
 					
@@ -233,6 +237,10 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 					matches = level;
 				}
 			} else if(nextToken == JsonToken.FIELD_NAME) {
+				if(matches + 1 > level) {
+					matches = level + 1;
+				}
+
 				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {
 					matches++;
 					

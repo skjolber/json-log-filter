@@ -3,14 +3,10 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 

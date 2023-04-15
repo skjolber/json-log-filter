@@ -34,7 +34,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected static final String ANY_PREFIX_SLASHES = "//";
 	protected static final String ANY_PREFIX_DOTS = "..";
 	
-	protected static final String STAR = "*";
+	public static final String STAR = "*";
 	protected static final char[] STAR_CHARS = STAR.toCharArray();
 	protected static final byte[] STAR_BYTES = new byte[] {'*'};
 	
@@ -135,10 +135,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static boolean matchPath(final char[] chars, int start, int end, final char[] attribute) {
-		// check if wildcard
-		if(attribute == STAR_CHARS) {
-			return true;
-		}
 		int l = end - start;
 		if(l < attribute.length) {
 			return false;
@@ -194,10 +190,6 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public static boolean matchPath(final byte[] source, int start, int end, final byte[] attribute) {
-		// check if wildcard
-		if(attribute == STAR_BYTES) {
-			return true;
-		}
 		int l = end - start;
 		if(l < attribute.length) {
 			return false;

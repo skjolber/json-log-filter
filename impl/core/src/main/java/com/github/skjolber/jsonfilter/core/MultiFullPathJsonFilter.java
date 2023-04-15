@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
@@ -12,7 +13,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
 		}
 	}
-	
+
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
 		this(maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
@@ -21,14 +22,13 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	protected CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
-
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
 		length += offset;
 
 		int level = 0;
+		
+		PathItem pathItem = this.pathItem;
 		
 		try {
 			while(offset < length) {
@@ -36,8 +36,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' :
 						level++;
 						
-						if(level >= elementFilterStart.length) {
-							// so other always level < elementFilterStart.length
+						if(level > pathItem.getLevel()) {
 							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
 							
 							level--;
@@ -46,9 +45,9 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 						break;
 					case '}' :
-						level--;
+						pathItem = pathItem.constrain(level);
 						
-						constrainMatches(elementMatches, level);
+						level--;
 						
 						break;
 					case '"' : { 
@@ -89,9 +88,11 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 
 						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
-						if(type != null) {
+						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+
+						if(pathItem.hasType()) {
 							// matched
+							FilterType type = pathItem.getType();
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
 									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
@@ -118,8 +119,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									return filter; // done filtering
 								}
 							}
-							
-							constrainMatches(elementMatches, level - 1);
+							pathItem = pathItem.constrain(level);
 						} else {
 							offset = nextOffset;
 						}
@@ -146,10 +146,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	protected ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		final int[] elementFilterStart = this.elementFilterStart;
-
-		final int[] elementMatches = new int[elementFilters.length];
-
+		PathItem pathItem = this.pathItem;
+		
 		length += offset;
 
 		int level = 0;
@@ -162,7 +160,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' :
 						level++;
 						
-						if(level > elementFilterStart.length) {
+						if(level > pathItem.getLevel()) {
 							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
 							
 							level--;
@@ -171,23 +169,12 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 						break;
 					case '}' :
-						level--;
+						pathItem = pathItem.constrain(level);
 						
-						constrainMatches(elementMatches, level);
+						level--;
 						
 						break;
 					case '"' : { 
-						if(level >= elementFilterStart.length) {
-							// not necessary to check if field or value; missing sub-path
-							// so if this is a key, there will never be a full match
-							do {
-								offset++;
-							} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-							offset++;							
-							
-							continue;
-						}
-						
 						int nextOffset = offset;
 						do {
 							nextOffset++;
@@ -224,10 +211,11 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							nextOffset++;
 						}
 
-						// match again any higher filter
-						FilterType type = matchElements(chars, offset + 1, quoteIndex, level, elementMatches);
-						if(type != null) {
+						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+
+						if(pathItem.hasType()) {
 							// matched
+							FilterType type = pathItem.getType();
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
 									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
@@ -247,7 +235,6 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									filter.addAnon(nextOffset, offset);
 								}
 							}
-
 							
 							if(pathMatches != -1) {
 								pathMatches--;
@@ -255,8 +242,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									return filter; // done filtering
 								}
 							}
-							
-							constrainMatches(elementMatches, level - 1);
+							pathItem = pathItem.constrain(level);
 						} else {
 							offset = nextOffset;
 						}

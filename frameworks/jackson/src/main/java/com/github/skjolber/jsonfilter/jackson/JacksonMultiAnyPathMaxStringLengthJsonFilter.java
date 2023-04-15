@@ -40,10 +40,6 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		super(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		this.jsonFactory = jsonFactory;
 		
-		if(elementFilters.length > 0) {
-			throw new IllegalArgumentException("Only any-element expression expected");
-		}
-		
 		if(anyElementFilters == null) {
 			fields = Collections.emptyMap();
 		} else {
@@ -52,12 +48,18 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		
 		if(prunes != null) {
 			for(int i = 0; i < prunes.length; i++) {
+				if(!hasAnyPrefix(prunes[i])) {
+					throw new IllegalArgumentException("Only any-element expression expected");
+				}
 				fields.put(prunes[i].substring(2), FilterType.PRUNE);
 			}
 		}
 
 		if(anonymizes != null) {
 			for(int i = 0; i < anonymizes.length; i++) {
+				if(!hasAnyPrefix(anonymizes[i])) {
+					throw new IllegalArgumentException("Only any-element expression expected");
+				}
 				fields.put(anonymizes[i].substring(2), FilterType.ANON);
 			}
 		}

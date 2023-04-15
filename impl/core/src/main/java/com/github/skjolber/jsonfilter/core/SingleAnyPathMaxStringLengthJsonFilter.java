@@ -81,7 +81,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					nextOffset++;
 				}
 				
-				if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				if(path == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
@@ -186,7 +186,7 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					nextOffset++;
 				}
 
-				if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				if(path == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
