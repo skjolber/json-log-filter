@@ -130,8 +130,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						continue;
 					}
 
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
-					if(matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset + 1;
@@ -307,8 +310,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						continue;
 					}
 
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
-					if(matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset + 1;

@@ -144,8 +144,11 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 
 					buffer.append(chars, start, endQuoteIndex - start + 1);
 
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
-					if(matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset + 1;
@@ -336,8 +339,11 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 
 					output.write(chars, start, endQuoteIndex - start + 1);
 					
+					// reset match for a sibling field name, if any
+					matches = level - 1;
+
 					// was a field name
-					if(matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
+					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
 						matches++;
 					} else {
 						offset = nextOffset + 1;

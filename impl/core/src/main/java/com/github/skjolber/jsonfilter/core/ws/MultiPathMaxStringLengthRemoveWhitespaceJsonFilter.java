@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -55,8 +56,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 		
 		int bufferLength = buffer.length();
 		
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
+		PathItem pathItem = this.pathItem;
 
 		int level = 0;
 		int pathMatches = 0;
@@ -82,7 +82,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				switch(c) {
 				case '{' :
 					level++;
-					if(anyElementFilters == null && level >= elementFilterStart.length) {
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						filter.setStart(start);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, limit, maxStringLength, buffer, metrics);
@@ -95,11 +95,9 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					}
 					break;
 				case '}' :
+					pathItem = pathItem.constrain(level);
+					
 					level--;
-
-					if(level < elementFilterStart.length) {
-						constrainMatches(elementMatches, level);
-					}
 					
 					break;
 				case '"' :					
@@ -145,8 +143,12 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					FilterType filterType = null;
 					
 					// match again any higher filter
-					if(level < elementFilterStart.length) {
-						filterType = matchElements(chars, offset + 1, endQuoteIndex, level, elementMatches);
+					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
+					if(pathItem.hasType()) {
+						// matched
+						filterType = pathItem.getType();
+						
+						pathItem = pathItem.constrain(level);
 					}
 					
 					if(anyElementFilters != null && filterType == null) {
@@ -221,8 +223,6 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 								return true;
 							}							
 						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
 					} else {
 						start = nextOffset;
 						offset = nextOffset;
@@ -249,12 +249,11 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 		ByteWhitespaceFilter filter = new ByteWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		int bufferLength = output.size();
-		
+
+		PathItem pathItem = this.pathItem;
+
 		int level = 0;
 		int pathMatches = 0;
-
-		final int[] elementFilterStart = this.elementFilterStart;
-		final int[] elementMatches = new int[elementFilters.length];
 
 		try {
 			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
@@ -277,7 +276,8 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				switch(c) {
 				case '{' :
 					level++;
-					if(anyElementFilters == null && level >= elementFilterStart.length) {
+					
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						filter.setStart(start);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, limit, maxStringLength, output, metrics);
@@ -290,11 +290,10 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					}
 					break;
 				case '}' :
-					level--;
 					
-					if(level < elementFilterStart.length) {
-						constrainMatches(elementMatches, level);
-					}
+					pathItem = pathItem.constrain(level);
+					
+					level--;
 					
 					break;
 				case '"' :					
@@ -341,8 +340,12 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					FilterType filterType = null;
 					
 					// match again any higher filter
-					if(level < elementFilterStart.length) {
-						filterType = matchElements(chars, offset + 1, endQuoteIndex, level, elementMatches);
+					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
+					if(pathItem.hasType()) {
+						// matched
+						filterType = pathItem.getType();
+						
+						pathItem = pathItem.constrain(level);
 					}
 					
 					if(anyElementFilters != null && filterType == null) {
@@ -416,10 +419,8 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 								}
 								
 								return true;
-							}							
+							}
 						}
-						
-						constrainMatchesCheckLevel(elementMatches, level - 1);
 					} else {
 						start = nextOffset;
 						offset = nextOffset;
