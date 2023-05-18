@@ -88,7 +88,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		closeStructure(buffer);
 	}
 	
-	public int skipObjectMaxSize(byte[] chars, int offset, int limit) {
+	public int skipObjectOrArrayMaxSize(byte[] chars, int offset, int limit) {
 		int levelLimit = getLevel() - 1;
 		
 		int level = getLevel();
@@ -145,7 +145,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		return offset;
 	}
 	
-	public int skipObjectMaxSizeMaxStringLength(byte[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
+	public int skipObjectOrArrayMaxSizeMaxStringLength(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;
 		
@@ -239,8 +239,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						// increment limit since we removed something
 						maxSizeLimit += getRemovedLength() - removedLength;
 
-						if(maxSizeLimit > limit) {
-							maxSizeLimit = limit;
+						if(maxSizeLimit > maxReadLimit) {
+							maxSizeLimit = maxReadLimit;
 						}
 						
 						if(nextOffset >= maxSizeLimit) {

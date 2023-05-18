@@ -176,6 +176,7 @@ public class JsonMaxSizeFilterInputOutput {
 				return true;
 			}
 			
+			System.out.println(inputFile);
 			System.out.println(outputAsBytesAsString);
 			System.out.println(outputAsString);
 			fail("Expected symmertic result for " + inputFile);

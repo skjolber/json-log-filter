@@ -22,9 +22,9 @@ import java.io.IOException;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 
@@ -54,7 +54,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		int bufferLength = buffer.length();
 		
 		try {
-			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int limit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			processMaxStringLength(chars, offset, limit, offset, buffer, metrics, maxStringLength, truncateStringValue);
 			
@@ -133,7 +133,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		byte[] digit = new byte[11];
 
 		try {
-			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int limit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			processMaxStringLength(chars, offset, limit, offset, output, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 			

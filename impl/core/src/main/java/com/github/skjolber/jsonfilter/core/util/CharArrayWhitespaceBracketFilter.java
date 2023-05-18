@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
+public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter {
 
 	protected int limit;
 
@@ -14,11 +14,11 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 	protected int mark;
 	protected int writtenMark;
 
-	public CharWhitespaceBracketFilter() {
+	public CharArrayWhitespaceBracketFilter() {
 		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public CharWhitespaceBracketFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+	public CharArrayWhitespaceBracketFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
 		super(pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
@@ -93,10 +93,10 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		return truncateMessage;
 	}
 
-	public int skipObjectOrArrayMaxSize(final char[] chars, int offset, int maxLimit, final StringBuilder buffer) {
+	public int skipObjectOrArrayMaxSize(final char[] chars, int offset, int maxReadLimit, final StringBuilder buffer) {
 		int levelLimit = getLevel() - 1;
 
-		int limit = getLimit();
+		int maxSizeLimit = getLimit();
 
 		int level = getLevel();
 		boolean[] squareBrackets = getSquareBrackets();
@@ -106,7 +106,7 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 
 		int start = getStart();
 
-		loop: while(offset < limit) {
+		loop: while(offset < maxSizeLimit) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				if(start <= mark) {
@@ -116,11 +116,11 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 				buffer.append(chars, start, offset - start);
 				do {
 					offset++;
-					limit++;
+					maxSizeLimit++;
 				} while(chars[offset] <= 0x20);
 
-				if(limit >= maxLimit) {
-					limit = maxLimit;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
 				}
 
 				start = offset;
@@ -169,16 +169,16 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		setStart(start);
 		setMark(mark);
 		setLevel(level);
-		setLimit(limit);
+		setLimit(maxSizeLimit);
 		
 		return offset;
 	}
 	
-	public int skipObjectMaxSizeMaxStringLength(final char[] chars, int offset, int maxLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics) {
+	public int skipObjectOrArrayMaxSizeMaxStringLength(final char[] chars, int offset, int maxReadLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
 		int levelLimit = getLevel() - 1;
 
-		int limit = getLimit();
+		int maxSizeLimit = getLimit();
 
 		int level = getLevel();
 		boolean[] squareBrackets = getSquareBrackets();
@@ -188,7 +188,7 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 
 		int start = getStart();
 		
-		loop: while(offset < limit) {
+		loop: while(offset < maxSizeLimit) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				if(start <= mark) {
@@ -198,11 +198,11 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 				buffer.append(chars, start, offset - start);
 				do {
 					offset++;
-					limit++;
+					maxSizeLimit++;
 				} while(chars[offset] <= 0x20);
 
-				if(limit >= maxLimit) {
-					limit = maxLimit;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
 				}
 
 				start = offset;
@@ -260,9 +260,9 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 							}
 							buffer.append(chars, start, endQuoteIndex - start + 1);
 							
-							limit += nextOffset - endQuoteIndex;
-							if(limit >= maxLimit) {
-								limit = maxLimit;
+							maxSizeLimit += nextOffset - endQuoteIndex;
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
 							}
 							
 							start = nextOffset;
@@ -284,9 +284,9 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 							metrics.onMaxStringLength(1);
 						}
 						
-						limit += nextOffset - aligned; // also accounts for skipped whitespace, if any
-						if(limit >= maxLimit) {
-							limit = maxLimit;
+						maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
+						if(maxSizeLimit >= maxReadLimit) {
+							maxSizeLimit = maxReadLimit;
 						}
 						
 						start = nextOffset;
@@ -306,7 +306,7 @@ public class CharWhitespaceBracketFilter extends CharWhitespaceFilter {
 		setStart(start);
 		setMark(mark);
 		setLevel(level);
-		setLimit(limit);
+		setLimit(maxSizeLimit);
 
 		return offset;
 	}

@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
-public class ByteWhitespaceFilter {
+public class ByteArrayWhitespaceFilter {
 
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
 	protected static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
@@ -26,11 +26,11 @@ public class ByteWhitespaceFilter {
 	protected boolean[] squareBrackets = new boolean[32];
 	protected int level;	
 
-	public ByteWhitespaceFilter() {
+	public ByteArrayWhitespaceFilter() {
 		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public ByteWhitespaceFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
+	public ByteArrayWhitespaceFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		this.pruneMessage = pruneMessage;
 		this.anonymizeMessage = anonymizeMessage;
 		this.truncateMessage = truncateMessage;
@@ -396,4 +396,107 @@ public class ByteWhitespaceFilter {
 
 	}
 
+
+	public int skipObjectOrArray(final byte[] chars, int offset, int limit, final ByteArrayOutputStream buffer) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(offset < limit) {
+			if(chars[offset] <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.write(chars, start, offset - start);
+				do {
+					offset++;
+					if(offset >= limit) {
+						start = offset;
+						break loop;
+					}
+				} while(chars[offset] <= 0x20);
+				
+				start = offset;
+			}
+			
+			// 01111011 {
+			// 01011011 [
+			// 01x11011
+			
+			// 01011101 ]
+			// 01111101 }
+			// 01x11101
+			
+			// 01x11xx1 translates to
+			// 01011001 Y (safe to ignore)
+			// 01011011 [
+			// 01011101 ]
+			// 01011111 _ (safe to ignore)
+			// 01111001 y (safe to ignore)
+			// 01111011 {
+			// 01111101 }
+			// 01111111 DEL (safe to ignore)
+			
+			
+			// 00100010 "
+			// 00101100 ,
+			
+			if(chars[offset] == '"') {
+				do {
+					offset++;
+				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				offset++;
+				
+				continue;
+			} 
+			
+			if((chars[offset] & 0b11011001) == 0b01011001) {
+				
+				/*
+				if((chars[offset] & 0x3) == 0x3) {
+					level++;
+				} else {
+					level--;
+					if(level == 0) {
+						offset++;
+						break loop;
+					}
+				}
+*/
+				/*
+				switch(chars[offset]) {
+				case '[':
+				case '{': {
+					level++;
+					break;
+				}
+				default : {
+					level--;
+					if(level == 0) {
+						offset++;
+						break loop;
+					}
+				}
+				}
+				*/
+				
+				
+				if(chars[offset] == '[' || chars[offset] == '{') { // alternatively if((chars[offset] & 0x3) == 0x3)
+					level++;
+				} else {
+					level--;
+					if(level == 0) {
+						offset++;
+						break loop;
+					}
+				}
+				
+			}
+			offset++;
+		}
+		
+		buffer.write(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
 }

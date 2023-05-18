@@ -21,8 +21,8 @@ import java.io.ByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilter {
 
@@ -46,7 +46,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		
 		int bufferLength = buffer.length();
 
-		int limit = offset + maxSize;
+		int maxSizeLimit = offset + maxSize;
 
 		int level = 0;
 
@@ -56,13 +56,13 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(limit >= maxLimit) {
-				limit = maxLimit;
+			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(maxSizeLimit >= maxReadLimit) {
+				maxSizeLimit = maxReadLimit;
 			}
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxSizeLimit) {
 				char c = chars[offset];
 				if(c <= 0x20) {
 					if(start <= mark) {
@@ -72,11 +72,11 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-						limit++;
+						maxSizeLimit++;
 					} while(chars[offset] <= 0x20);
 
-					if(limit >= maxLimit) {
-						limit = maxLimit;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 
 					start = offset;
@@ -136,8 +136,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < maxReadLimit) {
+					metrics.onMaxSize(maxReadLimit - mark - level);
 				}
 				
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -158,7 +158,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		
 		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
 		
-		int limit = offset + maxSize;
+		int maxSizeLimit = offset + maxSize;
 
 		int level = 0;
 
@@ -168,13 +168,13 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(limit >= maxLimit) {
-				limit = maxLimit;
+			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(maxSizeLimit >= maxReadLimit) {
+				maxSizeLimit = maxReadLimit;
 			}
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxSizeLimit) {
 				
 				byte c = chars[offset];
 				if(c <= 0x20) {
@@ -185,11 +185,11 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 					stream.write(chars, start, offset - start);
 					do {
 						offset++;
-						limit++;
+						maxSizeLimit++;
 					} while(chars[offset] <= 0x20);
 
-					if(limit >= maxLimit) {
-						limit = maxLimit;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 				
 					start = offset;
@@ -250,8 +250,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < maxReadLimit) {
+					metrics.onMaxSize(maxReadLimit - mark - level);
 				}
 				
 				metrics.onOutput(output.size() - bufferLength);

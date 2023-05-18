@@ -20,8 +20,8 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 
@@ -41,9 +41,9 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = buffer.length();
 		
 		try {
-			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			CharWhitespaceFilter.process(chars, offset, limit, buffer);
+			CharArrayWhitespaceFilter.process(chars, offset, maxReadLimit, buffer);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -60,9 +60,9 @@ public class RemoveWhitespaceJsonFilter extends AbstractJsonFilter {
 		int bufferLength = output.size();
 		
 		try {
-			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
-			ByteWhitespaceFilter.process(chars, offset, limit, output);
+			ByteArrayWhitespaceFilter.process(chars, offset, maxReadLimit, output);
 			
 			if(metrics != null) {
 				metrics.onInput(length);

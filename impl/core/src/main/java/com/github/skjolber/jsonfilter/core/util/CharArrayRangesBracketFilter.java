@@ -82,7 +82,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		closeStructure(buffer);
 	}
 	
-	public int skipObjectMaxSize(char[] chars, int offset, int limit) {
+	public int skipObjectOrArrayMaxSize(char[] chars, int offset, int limit) {
 		int levelLimit = getLevel() - 1;
 		
 		int level = getLevel();
@@ -139,7 +139,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		return offset;
 	}
 	
-	public int skipObjectMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int limit, int maxStringLength) {
+	public int skipObjectOrArrayMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int maxReadLimit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;
 		
@@ -233,8 +233,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						// increment limit since we removed something
 						maxSizeLimit += getRemovedLength() - removedLength;
 
-						if(maxSizeLimit > limit) {
-							maxSizeLimit = limit;
+						if(maxSizeLimit > maxReadLimit) {
+							maxSizeLimit = maxReadLimit;
 						}
 						
 						if(nextOffset >= maxSizeLimit) {

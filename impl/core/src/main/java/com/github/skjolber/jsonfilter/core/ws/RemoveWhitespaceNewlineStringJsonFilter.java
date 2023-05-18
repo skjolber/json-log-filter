@@ -20,8 +20,8 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 /**
  * 
@@ -43,7 +43,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 		int bufferLength = buffer.length();
 		
 		try {
-			int limit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int limit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int start = offset;
 			
@@ -100,7 +100,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 		int bufferLength = output.size();
 		
 		try {
-			int limit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int limit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int start = offset;
 			

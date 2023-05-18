@@ -6,9 +6,9 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MultiPathMaxStringLengthRemoveWhitespaceJsonFilter {
 
@@ -27,7 +27,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		
 		int bufferLength = buffer.length();
 
-		int limit = offset + maxSize;
+		int maxSizeLimit = offset + maxSize;
 
 		int level = 0;
 
@@ -37,14 +37,14 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = CharWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(limit >= maxLimit) {
-				limit = maxLimit;
+			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(maxSizeLimit >= maxReadLimit) {
+				maxSizeLimit = maxReadLimit;
 			}
 			
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxSizeLimit) {
 				char c = chars[offset];
 				if(c <= 0x20) {
 					if(start <= mark) {
@@ -54,11 +54,11 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					buffer.append(chars, start, offset - start);
 					do {
 						offset++;
-						limit++;
+						maxSizeLimit++;
 					} while(chars[offset] <= 0x20);
 
-					if(limit >= maxLimit) {
-						limit = maxLimit;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 
 					start = offset;
@@ -133,9 +133,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 								}
 								buffer.append(chars, start, endQuoteIndex - start + 1);
 								
-								limit += nextOffset - endQuoteIndex;
-								if(limit >= maxLimit) {
-									limit = maxLimit;
+								maxSizeLimit += nextOffset - endQuoteIndex;
+								if(maxSizeLimit >= maxReadLimit) {
+									maxSizeLimit = maxReadLimit;
 								}
 								
 								start = nextOffset;
@@ -157,9 +157,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 								metrics.onMaxStringLength(1);
 							}
 							
-							limit += nextOffset - aligned; // also accounts for skipped whitespace, if any
-							if(limit >= maxLimit) {
-								limit = maxLimit;
+							maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
 							}
 							
 							start = nextOffset;
@@ -194,8 +194,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < maxReadLimit) {
+					metrics.onMaxSize(maxReadLimit - mark - level);
 				}
 				
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -218,7 +218,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		
 		int bufferLength = output.size();
 
-		int limit = offset + maxSize;
+		int maxSizeLimit = offset + maxSize;
 
 		int level = 0;
 
@@ -228,14 +228,14 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		int writtenMark = 0;
 
 		try {
-			int maxLimit = ByteWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(limit >= maxLimit) {
-				limit = maxLimit;
+			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(maxSizeLimit >= maxReadLimit) {
+				maxSizeLimit = maxReadLimit;
 			}
 
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxSizeLimit) {
 				byte c = chars[offset];
 				if(c <= 0x20) {
 					if(start <= mark) {
@@ -245,11 +245,11 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					stream.write(chars, start, offset - start);
 					do {
 						offset++;
-						limit++;
+						maxSizeLimit++;
 					} while(chars[offset] <= 0x20);
 
-					if(limit >= maxLimit) {
-						limit = maxLimit;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 				
 					start = offset;
@@ -303,9 +303,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 								}
 								stream.write(chars, start, endQuoteIndex - start + 1);
 								
-								limit += nextOffset - endQuoteIndex;
-								if(limit >= maxLimit) {
-									limit = maxLimit;
+								maxSizeLimit += nextOffset - endQuoteIndex;
+								if(maxSizeLimit >= maxReadLimit) {
+									maxSizeLimit = maxReadLimit;
 								}
 								
 								start = nextOffset;
@@ -329,9 +329,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 								metrics.onMaxStringLength(1);
 							}
 							
-							limit += nextOffset - aligned; // also account for skipped whitespace, if any
-							if(limit >= maxLimit) {
-								limit = maxLimit;
+							maxSizeLimit += nextOffset - aligned; // also account for skipped whitespace, if any
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
 							}
 							
 							start = nextOffset;
@@ -369,8 +369,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxLimit) {
-					metrics.onMaxSize(maxLimit - mark - level);
+				if(mark - level < maxReadLimit) {
+					metrics.onMaxSize(maxReadLimit - mark - level);
 				}
 				
 				metrics.onOutput(output.size() - bufferLength);
