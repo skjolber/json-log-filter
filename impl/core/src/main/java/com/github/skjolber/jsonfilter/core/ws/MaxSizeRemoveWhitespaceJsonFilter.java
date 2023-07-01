@@ -39,7 +39,6 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, buffer, metrics);
 		}

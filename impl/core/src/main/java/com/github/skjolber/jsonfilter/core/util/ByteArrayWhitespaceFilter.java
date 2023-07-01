@@ -193,6 +193,8 @@ public class ByteArrayWhitespaceFilter {
 	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
+		// stop processing with level is zero
+		
 		int start = getStart();
 
 		while(true) {

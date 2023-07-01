@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
@@ -482,4 +483,13 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected String[] getPrunes() {
 		return prunes;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "[anonymizes=" + Arrays.toString(anonymizes) + ", prunes="
+				+ Arrays.toString(prunes) + ", maxPathMatches=" + maxPathMatches + ", maxStringLength="
+				+ maxStringLength + ", maxSize=" + maxSize + "]";
+	}
+	
+	
 }

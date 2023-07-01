@@ -198,6 +198,8 @@ public class CharArrayWhitespaceFilter {
 	public int anonymizeObjectOrArray(char[] chars, int offset, int limit, StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
+		// stop processing with level is zero
+
 		int start = getStart();
 
 		while(true) {
@@ -433,6 +435,18 @@ public class CharArrayWhitespaceFilter {
 
 	public int getAnonymizeMessageLength() {
 		return anonymizeMessage.length;
+	}
+	
+	public char[] getAnonymizeMessage() {
+		return anonymizeMessage;
+	}
+	
+	public char[] getPruneMessage() {
+		return pruneMessage;
+	}
+	
+	public char[] getTruncateMessage() {
+		return truncateMessage;
 	}
 		
 

@@ -74,11 +74,11 @@ public abstract class AbstractJsonFilterTest {
 				validate(byteArray);
 			} catch(JsonParseException e) {
 				System.out.println(new String(byteArray));
-				fail(byteArray.length + " vs " + i);
+				fail("Got " + byteArray.length + " vs expected " + i);
 			}
 			if(byteArray.length >= i + 16) {
 				System.out.println(new String(byteArray));
-				fail(byteArray.length + " vs " + i);
+				fail("Got " + byteArray.length + " vs expected " + i);
 			}
 			
 			if(i % 10000 == 0) {

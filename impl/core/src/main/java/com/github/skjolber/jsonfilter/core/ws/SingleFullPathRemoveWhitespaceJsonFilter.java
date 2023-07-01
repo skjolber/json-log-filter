@@ -65,11 +65,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		int pathMatches = 0;
 
 		try {
-			int limit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxReadLimit) {
 				char c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
@@ -89,7 +89,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						filter.setStart(start);
 						
-						offset = filter.skipObject(chars, offset + 1, limit, buffer);
+						offset = filter.skipObject(chars, offset + 1, maxReadLimit, buffer);
 						
 						start = filter.getStart();
 						
@@ -166,7 +166,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							} else {
 								filter.setStart(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 								
 								start = filter.getStart();
 							}
@@ -199,7 +199,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							pathMatches--;
 							if(pathMatches == 0) {
 								// just remove whitespace
-								CharArrayWhitespaceFilter.process(chars, nextOffset, limit, buffer);
+								CharArrayWhitespaceFilter.process(chars, nextOffset, maxReadLimit, buffer);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -245,11 +245,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		int pathMatches = 0;
 
 		try {
-			int limit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			int start = offset;
 
-			while(offset < limit) {
+			while(offset < maxReadLimit) {
 				byte c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
@@ -269,7 +269,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						
 						filter.setStart(start);
 						
-						offset = filter.skipObject(chars, offset + 1, limit, output);
+						offset = filter.skipObject(chars, offset + 1, maxReadLimit, output);
 						
 						start = filter.getStart();
 						
@@ -346,7 +346,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							} else {
 								filter.setStart(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output, metrics);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, output, metrics);
 								
 								start = filter.getStart();
 							}
@@ -381,7 +381,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							pathMatches--;
 							if(pathMatches == 0) {
 								// just remove whitespace
-								ByteArrayWhitespaceFilter.process(chars, nextOffset, limit, output);
+								ByteArrayWhitespaceFilter.process(chars, nextOffset, maxReadLimit, output);
 								
 								if(metrics != null) {
 									metrics.onInput(length);

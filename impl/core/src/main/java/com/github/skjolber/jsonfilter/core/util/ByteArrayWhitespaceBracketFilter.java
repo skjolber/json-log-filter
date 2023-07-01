@@ -94,11 +94,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 	}
 
 	public int skipObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer) {
-		int levelLimit = getLevel() - 1;
-
+		int bracketLevel = getLevel();
+		int levelLimit = bracketLevel - 1;
+		
 		int maxSizeLimit = getLimit();
 
-		int level = getLevel();
 		boolean[] squareBrackets = getSquareBrackets();
 
 		int mark = getMark();
@@ -130,10 +130,10 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			switch(c) {
 			case '{' :
 			case '[' :
-				squareBrackets[level] = c == '[';
+				squareBrackets[bracketLevel] = c == '[';
 
-				level++;
-				if(level >= squareBrackets.length) {
+				bracketLevel++;
+				if(bracketLevel >= squareBrackets.length) {
 					squareBrackets = grow(squareBrackets);
 				}
 				mark = offset;
@@ -141,11 +141,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				break;
 			case '}' :
 			case ']' :
-				level--;
+				bracketLevel--;
 
 				mark = offset;
 
-				if(level == levelLimit) {
+				if(bracketLevel == levelLimit) {
 					offset++;
 					break loop;
 				}
@@ -168,7 +168,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		setWrittenMark(writtenMark);
 		setStart(start);
 		setMark(mark);
-		setLevel(level);
+		setLevel(bracketLevel);
 		setLimit(maxSizeLimit);
 		
 		return offset;
@@ -176,8 +176,8 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 	
 	public int skipObjectOrArrayMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
-		int level = getLevel();
-		int levelLimit = level - 1;
+		int bracketLevel = getLevel();
+		int levelLimit = bracketLevel - 1;
 
 		int maxSizeLimit = getLimit();
 
@@ -212,10 +212,10 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			switch(c) {			
 			case '{' :
 			case '[' :
-				squareBrackets[level] = c == '[';
+				squareBrackets[bracketLevel] = c == '[';
 
-				level++;
-				if(level >= squareBrackets.length) {
+				bracketLevel++;
+				if(bracketLevel >= squareBrackets.length) {
 					squareBrackets = grow(squareBrackets);
 				}
 				mark = offset;
@@ -223,11 +223,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				break;
 			case '}' :
 			case ']' :
-				level--;
+				bracketLevel--;
 
 				mark = offset;
 
-				if(level == levelLimit) {
+				if(bracketLevel == levelLimit) {
 					offset++;
 					break loop;
 				}
@@ -306,18 +306,18 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		setWrittenMark(writtenMark);
 		setStart(start);
 		setMark(mark);
-		setLevel(level);
+		setLevel(bracketLevel);
 		setLimit(maxSizeLimit);
 
 		return offset;
 	}
 	
 	public int anonymizeObjectOrArrayMaxSize(final byte[] chars, int offset, int maxLimit, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		int levelLimit = getLevel() - 1;
+		int levelLimit = getLevel();
+		int bracketLevel = getLevel();
 
 		int limit = getLimit();
 
-		int level = getLevel();
 		boolean[] squareBrackets = getSquareBrackets();
 
 		int mark = getMark();
@@ -349,10 +349,10 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			switch(c) {			
 			case '{' :
 			case '[' :
-				squareBrackets[level] = c == '[';
+				squareBrackets[bracketLevel] = c == '[';
 
-				level++;
-				if(level >= squareBrackets.length) {
+				bracketLevel++;
+				if(bracketLevel >= squareBrackets.length) {
 					squareBrackets = grow(squareBrackets);
 				}
 				mark = offset;
@@ -360,11 +360,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				break;
 			case '}' :
 			case ']' :
-				level--;
+				bracketLevel--;
 
 				mark = offset;
 
-				if(level == levelLimit) {
+				if(bracketLevel == levelLimit) {
 					offset++;
 					break loop;
 				}
@@ -453,7 +453,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				if(metrics != null) {
 					metrics.onAnonymize(1);
 				}
-
+				
 				offset = nextOffset;
 				start = nextOffset;
 				
@@ -467,10 +467,30 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		setWrittenMark(writtenMark);
 		setStart(start);
 		setMark(mark);
-		setLevel(level);
+		setLevel(bracketLevel);
 		setLimit(limit);
 
 		return offset;
+	}
+
+	public int getPruneMessageLength() {
+		return pruneMessage.length;
+	}
+
+	public int getAnonymizeMessageLength() {
+		return anonymizeMessage.length;
+	}
+	
+	public byte[] getAnonymizeMessage() {
+		return anonymizeMessage;
+	}
+	
+	public byte[] getPruneMessage() {
+		return pruneMessage;
+	}
+	
+	public byte[] getTruncateMessage() {
+		return truncateMessage;
 	}
 	
 }
