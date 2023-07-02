@@ -38,7 +38,7 @@ The project is built with [Maven] and is available on the central Maven reposito
 
 Add the property
 ```xml
-<json-log-filter.version>4.0.3</json-log-filter.version>
+<json-log-filter.version>4.0.4</json-log-filter.version>
 ```
 
 then add
@@ -73,7 +73,7 @@ For
 
 ```groovy
 ext {
-  jsonLogFilterVersion = '4.0.3'
+  jsonLogFilterVersion = '4.0.4'
 }
 ```
 
