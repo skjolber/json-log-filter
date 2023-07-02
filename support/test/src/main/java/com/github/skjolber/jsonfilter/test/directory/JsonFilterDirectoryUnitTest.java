@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.test.directory;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;

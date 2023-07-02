@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -119,19 +120,86 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 
 		//String path ="/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/text/single/object1xKeyDeep.json";
 		
-		String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/boolean/mixed/object2xArrayKeyBefore2.json";
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/boolean/mixed/object2xArrayKeyBefore2.json";
+		
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/array/1d/objectValueTextArray.json";
+
+		String path = "/home/skjolber/git/json-log-filter-github/impl/core/src/test/resources/test.json";
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/array/1d/objectValueNumberArray.json";
 		
 		byte[] byteArray = IOUtils.toByteArray(new FileInputStream(new File(path)));
 		System.out.println(new String(byteArray));
 		
-		JsonFilter filter = new SingleFullPathMaxSizeRemoveWhitespaceJsonFilter(128, -1, "/key", FilterType.ANON);
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		bout.write(byteArray);
 		
-		String processChars = filter.process(new String(byteArray, StandardCharsets.UTF_8));
-		//byte[] processBytes = filter.process(byteArray);
+		/*
+		int size = 39;
+		for(int i = byteArray.length; i < size; i++) {
+			bout.write(' ');
+		}
+		*/
+		
+		byte[] byteArrayWithWhitespace = bout.toByteArray();
+		
+		//String other = "{\"key\":[\"aaaaa\",\"bbbbbb\",\"cccccccc\"]}";
+		
+		//JsonFilter filter = new SingleFullPathMaxSizeRemoveWhitespaceJsonFilter(byteArray.length, -1, "/*", FilterType.PRUNE);
+		JsonFilter filter = new SingleFullPathMaxSizeRemoveWhitespaceJsonFilter(25, -1, "/*", FilterType.ANON);
+		
+		//System.out.println("Input: " + new String(byteArrayWithWhitespace));
+		//String processChars = filter.process(other);
+		
+		String processChars = filter.process(new String(byteArrayWithWhitespace, StandardCharsets.UTF_8));
+		//byte[] processBytes = filter.process(byteArrayWithWhitespace);
 		
 		System.out.println(new String(processChars));
 		//System.out.println(new String(processBytes));
+	}
+	
+	@Test
+	public void test2() throws Exception {
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/array/1d/objectValueTextArray.json";
+
+		//String path ="/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/text/single/object1xKeyDeep.json";
 		
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/boolean/mixed/object2xArrayKeyBefore2.json";
+		
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/array/1d/objectValueTextArray.json";
+
+		String path = "/home/skjolber/git/json-log-filter-github/impl/core/src/test/resources/test.json";
+		//String path = "/home/skjolber/git/json-log-filter-github/support/test/target/classes/json/array/1d/objectValueNumberArray.json";
+		
+		byte[] byteArray = IOUtils.toByteArray(new FileInputStream(new File(path)));
+		System.out.println(new String(byteArray));
+		
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		bout.write(byteArray);
+		
+		/*
+		int size = 39;
+		for(int i = byteArray.length; i < size; i++) {
+			bout.write(' ');
+		}
+		*/
+		
+		byte[] byteArrayWithWhitespace = bout.toByteArray();
+		
+		//String other = "{\"key\":[\"aaaaa\",\"bbbbbb\",\"cccccccc\"]}";
+		
+		for(int i = 0; i < 38; i++) {
+			//JsonFilter filter = new SingleFullPathMaxSizeRemoveWhitespaceJsonFilter(byteArray.length, -1, "/*", FilterType.PRUNE);
+			JsonFilter filter = new SingleFullPathMaxSizeRemoveWhitespaceJsonFilter(i, -1, "/*", FilterType.ANON);
+			
+			//System.out.println("Input: " + new String(byteArrayWithWhitespace));
+			//String processChars = filter.process(other);
+			
+			String processChars = filter.process(new String(byteArrayWithWhitespace, StandardCharsets.UTF_8));
+			//byte[] processBytes = filter.process(byteArrayWithWhitespace);
+			
+			System.out.println(new String(processChars));
+			//System.out.println(new String(processBytes));
+		}
 	}
 	
 

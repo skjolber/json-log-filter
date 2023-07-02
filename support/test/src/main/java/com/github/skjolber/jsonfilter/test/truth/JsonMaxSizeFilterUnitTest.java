@@ -83,15 +83,15 @@ public class JsonMaxSizeFilterUnitTest {
 				throw new IllegalStateException();
 			}
 
-			String expectedJonOutput = cache.getFile(outputFile);
+			String expectedJsonOutput = cache.getFile(outputFile);
 			
 			JsonMaxSizeFilterInputOutput jsonFilterInputOutput = JsonMaxSizeFilterInputOutput.newBuilder()
 					.withFilter(adapter)
 					.withInputFile(inputFile)
 					.withMetrics(metrics)
 					.withUnicode(unicode)
-					.withMinimumLengthChars(expectedJonOutput.length())
-					.withMinimumLengthBytes(expectedJonOutput.getBytes(StandardCharsets.UTF_8).length)
+					.withMinimumLengthChars(expectedJsonOutput.length())
+					.withMinimumLengthBytes(expectedJsonOutput.getBytes(StandardCharsets.UTF_8).length)
 					.withWhitespace(whitespace)
 					.build();
 			if(jsonFilterInputOutput == null) {
@@ -103,11 +103,11 @@ public class JsonMaxSizeFilterUnitTest {
 				throw new IllegalStateException();
 			}
 
-			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
+			if(!isEqual(expectedJsonOutput, result.getStringOutput())) {
 				System.out.println("Unexpected result for " + inputFile);
 				System.out.println("Input   :" + result.getStringInput());
 				System.out.println("Output  :" + result.getStringOutput());
-				System.out.println("Expected:" + expectedJonOutput);
+				System.out.println("Expected:" + expectedJsonOutput);
 				throw new IllegalStateException("Unexpected result for " + outputProperties.getProperties());
 			}
 			return new JsonMaxSizeFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput.getFilter(), jsonFilterInputOutput.getResult());

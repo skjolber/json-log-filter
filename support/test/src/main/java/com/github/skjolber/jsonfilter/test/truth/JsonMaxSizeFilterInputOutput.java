@@ -27,10 +27,15 @@ public class JsonMaxSizeFilterInputOutput {
 		// add padding so that the max length code paths are in use
 		private int minimumLengthChars = -1;
 		private int minimumLengthBytes = -1;
-		private JsonCache jsonCache = JsonCache.getInstance();
+		private JsonCache jsonCache;
 		private JsonFilterMetrics metrics;
 		private boolean whitespace = true;
 		private boolean unicode = true;
+		
+		public Builder withJsonCache(JsonCache jsonCache) {
+			this.jsonCache = jsonCache;
+			return this;
+		}
 		
 		public Builder withMinimumLengthChars(int length) {
 			this.minimumLengthChars = length;
@@ -77,17 +82,20 @@ public class JsonMaxSizeFilterInputOutput {
 			if(metrics == null) {
 				throw new IllegalStateException();
 			}
+			if(jsonCache == null) {
+				 jsonCache = JsonCache.getInstance();
+			}
 			
 			JsonInput jsonInput = jsonCache.getJsonInput(inputFile);
 			if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
 				return null;
 			}
 			
-			String contentAsString = jsonInput.getContentAsString(minimumLengthChars+6);
-			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLengthChars+6);
+			String contentAsString = jsonInput.getContentAsString(minimumLengthChars);
+			byte[] contentAsBytes = jsonInput.getContentAsBytes(minimumLengthChars);
 			
-			JsonFilter charFilter = adapter.getMaxSize(minimumLengthChars + 5);
-			JsonFilter byteFilter = adapter.getMaxSize(minimumLengthBytes + 5);
+			JsonFilter charFilter = adapter.getMaxSize(minimumLengthChars);
+			JsonFilter byteFilter = adapter.getMaxSize(minimumLengthBytes);
 			
 			String stringOutput = charFilter.process(contentAsString, metrics);
 			byte[] byteOutput = byteFilter.process(contentAsBytes, metrics);
@@ -113,11 +121,11 @@ public class JsonMaxSizeFilterInputOutput {
 						int stringLength = prettyPrintedAsString.length() - expectedDifference;
 						int byteLength = prettyPrintedAsBytes.length - expectedDifference;
 						
-						prettyPrintCharFilter = adapter.getMaxSize(stringLength + 3);
-						prettyPrintByteFilter = adapter.getMaxSize(byteLength + 3);
+						prettyPrintCharFilter = adapter.getMaxSize(stringLength);
+						prettyPrintByteFilter = adapter.getMaxSize(byteLength);
 						
-						prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, stringLength + 4);
-						prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, byteLength + 4);
+						prettyPrintedAsString = jsonInput.getPrettyPrintedAsString(i, stringLength);
+						prettyPrintedAsBytes = jsonInput.getPrettyPrintedAsBytes(i, byteLength);
 					}
 					
 					String prettyPrintStringOutput = prettyPrintCharFilter.process(prettyPrintedAsString, metrics);
@@ -126,13 +134,18 @@ public class JsonMaxSizeFilterInputOutput {
 					if(checkSymmetric(prettyPrintStringOutput, prettyPrintBytesOutput)) {
 						if(charFilter.isRemovingWhitespace()) {
 							if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
+								System.out.println();
 								System.out.println(inputFile);
+								System.out.println(contentAsString);
 								System.out.println(prettyPrintedAsString);
+								System.out.println(charFilter.getClass().getName() + ": " + charFilter);
 								System.out.println(stringOutput);
+								System.out.println(prettyPrintCharFilter.getClass().getName() + ": " + prettyPrintCharFilter);
 								System.out.println(prettyPrintStringOutput);
 								fail("Expected symmertic pretty-printed string result for " + inputFile + " " + minimumLengthBytes);
 							}
 							if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
+								System.out.println();
 								System.out.println(inputFile);
 								System.out.println(new String(byteOutput, StandardCharsets.UTF_8));
 								System.out.println(new String(prettyPrintBytesOutput, StandardCharsets.UTF_8));
@@ -140,6 +153,7 @@ public class JsonMaxSizeFilterInputOutput {
 							}
 						} else {
 							if(!JsonComparator.isSameEvents(stringOutput, prettyPrintStringOutput)) {
+								System.out.println();
 								System.out.println(prettyPrintedAsString);
 								System.out.println(stringOutput);
 								System.out.println(prettyPrintStringOutput);
@@ -177,7 +191,9 @@ public class JsonMaxSizeFilterInputOutput {
 			}
 			
 			System.out.println(inputFile);
+			System.out.println("Bytes:");
 			System.out.println(outputAsBytesAsString);
+			System.out.println("Chars:");
 			System.out.println(outputAsString);
 			fail("Expected symmertic result for " + inputFile);
 

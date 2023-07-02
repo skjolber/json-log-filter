@@ -107,7 +107,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 				
 			if(nextToken == JsonToken.VALUE_STRING) {
 				parser.getTextLength();
-			} 
+			}
 			
 			if(nextToken == JsonToken.FIELD_NAME) {
 				String currentName = parser.currentName();

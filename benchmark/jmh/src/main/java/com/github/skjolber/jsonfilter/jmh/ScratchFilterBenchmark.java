@@ -32,6 +32,9 @@ import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
 
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter2;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter3;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
@@ -47,13 +50,14 @@ import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLeng
 // for prototyping
 
 @Fork(1)
-public abstract class ScratchFilterBenchmark {
+public class ScratchFilterBenchmark {
 
 	public static final String DEFAULT_XPATH = "/address";
 	public static final String DEFAULT_ANY_XPATH = "//address";
 
 	private BenchmarkRunner<JsonFilter> original;
-	private BenchmarkRunner<JsonFilter> modified;
+	private BenchmarkRunner<JsonFilter> modified1;
+	private BenchmarkRunner<JsonFilter> modified2;
 	
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
 	//@Param(value={"2KB"})
@@ -68,9 +72,12 @@ public abstract class ScratchFilterBenchmark {
 		//String xpath = DEFAULT_XPATH;
 		String xpath = "/CVE_Items/cve/affects/vendor/vendor_data/vendor_name";
 
+		int size = (int) (file.length() - 1);
+		
 		// xml-log-filter
-		original = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true);
-		modified = new BenchmarkRunner<JsonFilter> (file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true);
+		original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
+		modified1 = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter2(10, size), true);
+		modified2 = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter3(10, size), true);
 
 		/*
 		// path - single
@@ -111,8 +118,13 @@ public abstract class ScratchFilterBenchmark {
 	}
 	
 	@Benchmark
-	public long modified() {
-		return modified.benchmarkCharacters();
+	public long modified1() {
+		return modified1.benchmarkCharacters();
+	}	
+	
+	@Benchmark
+	public long modified2() {
+		return modified1.benchmarkCharacters();
 	}	
 
 	public static void main(String[] args) throws RunnerException {

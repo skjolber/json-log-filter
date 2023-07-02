@@ -17,6 +17,19 @@ import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
 
 public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
+	private static class MustContrainMaxSizeJsonFilter extends MaxSizeJsonFilter {
+
+		public MustContrainMaxSizeJsonFilter(int maxSize) {
+			super(maxSize);
+		}
+		
+		@Override
+		protected boolean mustConstrainMaxSize(int length) {
+			return true;
+		}
+		
+	};
+	
 	public MaxSizeJsonFilterTest() throws Exception {
 		super();
 	}
@@ -72,8 +85,8 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	
 	@Test
 	public void maxSize() throws Exception {
-		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxSizeJsonFilter(size);
-		assertThatMaxSize(maxSize, new DefaultJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
+		MaxSizeJsonFilterAdapter maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
+		assertThatMaxSize(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
 	
 }
