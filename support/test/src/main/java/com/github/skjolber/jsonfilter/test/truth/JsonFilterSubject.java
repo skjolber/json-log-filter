@@ -5,8 +5,6 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import java.nio.charset.StandardCharsets;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.google.common.base.Objects;
@@ -19,7 +17,7 @@ import com.google.common.truth.Subject;
 public class JsonFilterSubject extends Subject {
 
 	// User-defined entry point
-	public static JsonFilterSubject assertThat(@NullableDecl JsonFilter result) {
+	public static JsonFilterSubject assertThat(JsonFilter result) {
 		return assertAbout(JSON_SUBJECT_FACTORY).that(result);
 	}
 
@@ -36,13 +34,13 @@ public class JsonFilterSubject extends Subject {
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
 	 */
 
-	private JsonFilterSubject(FailureMetadata metadata, @NullableDecl JsonFilter map) {
+	private JsonFilterSubject(FailureMetadata metadata, JsonFilter map) {
 		super(metadata, map);
 		this.actual = map;
 	}
 
 	@Override
-	public final void isEqualTo(@NullableDecl Object other) {
+	public final void isEqualTo(Object other) {
 		if(other instanceof byte[]) {
 			String otherString = new String((byte[])other, StandardCharsets.UTF_8);
 			if (Objects.equal(actual, otherString)) {

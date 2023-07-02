@@ -5,8 +5,6 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import java.nio.charset.StandardCharsets;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
 import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
@@ -21,11 +19,11 @@ import com.google.common.truth.Subject;
 public class JsonSubject extends Subject {
 
 	// User-defined entry point
-	public static JsonSubject assertThatJson(@NullableDecl String result) {
+	public static JsonSubject assertThatJson(String result) {
 		return assertAbout(JSON_SUBJECT_FACTORY).that(result);
 	}
 	
-	public static JsonSubject assertThatJson(@NullableDecl byte[] result) {
+	public static JsonSubject assertThatJson(byte[] result) {
 		return assertAbout(JSON_SUBJECT_FACTORY).that(new String(result, StandardCharsets.UTF_8));
 	}
 
@@ -49,14 +47,14 @@ public class JsonSubject extends Subject {
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
 	 */
 
-	private JsonSubject(FailureMetadata metadata, @NullableDecl String value) {
+	private JsonSubject(FailureMetadata metadata, String value) {
 		super(metadata, value);
 		this.actual = value;
 		this.normalized = JsonNormalizer.normalize(value);
 	}
 
 	@Override
-	public final void isEqualTo(@NullableDecl Object other) {
+	public final void isEqualTo(Object other) {
 		String otherAsString = toString(other);
 
 		if (Objects.equal(actual, otherAsString)) {
@@ -110,7 +108,7 @@ public class JsonSubject extends Subject {
 		return this;
 	}
 
-	public final void isEqualEventsTo(@NullableDecl Object other) {
+	public final void isEqualEventsTo(Object other) {
 		String otherAsString = toString(other);
 
 		if (JsonComparator.isSameEvents(normalized, otherAsString)) {

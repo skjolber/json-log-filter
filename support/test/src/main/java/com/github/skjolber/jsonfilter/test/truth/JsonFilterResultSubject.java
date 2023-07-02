@@ -6,8 +6,6 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import java.util.Arrays;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
 import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.google.common.base.Objects;
 import com.google.common.truth.FailureMetadata;
@@ -19,7 +17,7 @@ import com.google.common.truth.Subject;
 public class JsonFilterResultSubject extends Subject {
 
 	// User-defined entry point
-	public static JsonFilterResultSubject assertThat(@NullableDecl JsonFilterDirectoryUnitTestCollection result) {
+	public static JsonFilterResultSubject assertThat(JsonFilterDirectoryUnitTestCollection result) {
 		return assertAbout(JSON_FILTER_RESULT_SUBJECT_FACTORY).that(result);
 	}
 
@@ -42,13 +40,13 @@ public class JsonFilterResultSubject extends Subject {
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
 	 */
 
-	private JsonFilterResultSubject(FailureMetadata metadata, @NullableDecl JsonFilterDirectoryUnitTestCollection map) {
+	private JsonFilterResultSubject(FailureMetadata metadata, JsonFilterDirectoryUnitTestCollection map) {
 		super(metadata, map);
 		this.actual = map;
 	}
 
 	@Override
-	public final void isEqualTo(@NullableDecl Object other) {
+	public final void isEqualTo(Object other) {
 		if (Objects.equal(actual, other)) {
 			return;
 		}
@@ -82,7 +80,7 @@ public class JsonFilterResultSubject extends Subject {
 		return this;
 	}
 
-	public final JsonFilterResultSubject hasProperty(@NullableDecl String key, @NullableDecl String value) {
+	public final JsonFilterResultSubject hasProperty(String key, String value) {
 		if (!actual.hasPropertyKeyValue(key, value)) {
 			failWithoutActual(simpleFact("expected " + key + " " + value));
 		}
