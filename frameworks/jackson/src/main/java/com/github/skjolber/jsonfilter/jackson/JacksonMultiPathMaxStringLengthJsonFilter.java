@@ -242,18 +242,27 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 
 				level--;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
+				String currentName = parser.currentName();
+				
 				boolean prune = false;
 				boolean anon = false;
 				
 				// match again any higher filter
-				if(pathItem.hasType()) {
-					// matched
-					if(pathItem.getType() == FilterType.ANON) {
-						anon = true;
-					} else {
-						prune = true;
+				pathItem = pathItem.constrain(level);
+						
+				if(pathItem.getLevel() == level) {
+					pathItem = pathItem.matchPath(currentName);
+					
+					// match again any higher filter
+					if(pathItem.hasType()) {
+						// matched
+						if(pathItem.getType() == FilterType.ANON) {
+							anon = true;
+						} else {
+							prune = true;
+						}
+						pathItem = pathItem.constrain(level);
 					}
-					pathItem = pathItem.constrain(level);
 				}
 				
 				if(anyElementFilters != null) {
