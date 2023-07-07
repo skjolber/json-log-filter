@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.test;
 import java.util.Arrays;
 import java.util.List;
 
+import com.github.skjolber.jsonfilter.test.cache.JsonFileCache;
+
 /**
  * 
  * Default test class.

@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.test.truth;
+package com.github.skjolber.jsonfilter.test.cache;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
 
-public final class JsonInput {
+public final class JsonFile {
 	
 	private final Path source;
 	
@@ -14,7 +14,7 @@ public final class JsonInput {
 	
 	private final List<String> prettyPrinted;
 
-	public JsonInput(Path source, String content, List<String> prettyPrinted) {
+	public JsonFile(Path source, String content, List<String> prettyPrinted) {
 		this.source = source;
 		this.contentAsString = content;
 		this.prettyPrinted = prettyPrinted;
@@ -29,6 +29,14 @@ public final class JsonInput {
 			return padded(contentAsString, length);
 		}
 		return contentAsString;
+	}
+	
+	public String getContentAsString() {
+		return contentAsString;
+	}
+
+	public byte[] getContentAsBytes() {
+		return contentAsString.getBytes(StandardCharsets.UTF_8);
 	}
 
 	private String padded(String content, int length) {
@@ -59,7 +67,7 @@ public final class JsonInput {
 		}
 		return prettyPrintedContentAsString;
 	}
-
+	
 	public byte[] getPrettyPrintedAsBytes(int index, int length) {
 		byte[] prettyPrintedAsBytes = prettyPrinted.get(index).getBytes(StandardCharsets.UTF_8);
 		if(length > prettyPrintedAsBytes.length) {

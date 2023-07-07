@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
-import com.github.skjolber.jsonfilter.test.JsonFileCache;
+import com.github.skjolber.jsonfilter.test.cache.JsonFileCache;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
@@ -19,15 +19,15 @@ public class JsonFilterUnitTest {
 	public static class Builder {
 		
 		private JsonFilter filter;
+		
 		private Path inputFile;
 		private Path outputFile;
-		private JsonFilterProperties outputProperties;
-		private boolean unicode = true;
+		private JsonFilterProperties filterProperties;
 		private boolean literal = true;
-		private int length;
 		private JsonFilterMetrics metrics;
-		private JsonFileCache jsonFileCache = JsonFileCache.getInstance();
+		private JsonFileCache jsonFileCache;
 		private boolean whitespace = true;
+		private boolean unicode = true;
 		
 		public Builder withMetrics(JsonFilterMetrics metrics) {
 			this.metrics = metrics;
@@ -44,8 +44,8 @@ public class JsonFilterUnitTest {
 			return this;
 		}
 
-		public Builder withOutputProperties(JsonFilterProperties properties) {
-			this.outputProperties = properties;
+		public Builder withFilterProperties(JsonFilterProperties properties) {
+			this.filterProperties = properties;
 			return this;
 		}
 
@@ -59,18 +59,12 @@ public class JsonFilterUnitTest {
 			return this;
 		}		
 		
-
 		public Builder withUnicode(boolean enabled) {
 			this.unicode = enabled;
 			return this;
 		}	
-		
-		public Builder withLength(int length) {
-			this.length = length;
-			return this;
-		}
-		
-		public JsonFilterUnitTest build() {
+
+		public void isEqual() {
 			if(inputFile == null) {
 				throw new IllegalStateException();
 			}
@@ -80,39 +74,43 @@ public class JsonFilterUnitTest {
 			if(filter == null) {
 				throw new IllegalStateException();
 			}
-			if(outputProperties == null) {
+			if(filterProperties == null) {
 				throw new IllegalStateException();
 			}
+			if(jsonFileCache == null) {
+				jsonFileCache = JsonFileCache.getInstance();
+			}
 
-			String expectedJonOutput = jsonFileCache.getFile(outputFile);
+			String expectedJsonOutput = jsonFileCache.getFile(outputFile);
 			
-			JsonFilterInputOutput jsonFilterInputOutput = JsonFilterInputOutput.newBuilder()
+			JsonFilterSymmetryAssertion jsonFilterInputOutput = JsonFilterSymmetryAssertion.newInstance()
 					.withFilter(filter)
 					.withInputFile(inputFile)
-					.withMinimumLength(length)
 					.withMetrics(metrics)
 					.withUnicode(unicode)
 					.withWhitespace(whitespace)
 					.build();
+			
 			if(jsonFilterInputOutput == null) {
-				return null;
+				return;
 			}
-			JsonInputOutput result = jsonFilterInputOutput.getResult();
+			
+			JsonFilterResult result = jsonFilterInputOutput.getResult();
 			if(!result.hasStringOutput()) {
 				throw new IllegalStateException();
 			}
-			if(!isEqual(expectedJonOutput, result.getStringOutput())) {
+			if(!isEqual(expectedJsonOutput, result.getStringOutput())) {
 				System.out.println(inputFile);
 				System.out.println(outputFile);
-				System.out.println(outputProperties.getProperties());
+				System.out.println(filterProperties.getProperties());
 				System.out.println("         " + result.getStringInput());
-				System.out.println("Expected " + expectedJonOutput);
+				System.out.println("Expected " + expectedJsonOutput);
 				System.out.println("Got      " + result.getStringOutput());
 
 				throw new IllegalStateException();
 			}
 			
-			return new JsonFilterUnitTest(outputProperties, result.getStringOutput(), jsonFilterInputOutput);
+			return new JsonFilterUnitTest(filterProperties, result.getStringOutput(), jsonFilterInputOutput);
 		}
 
 		private boolean isEqual(String expectedJsonOutput, String stringOutput) {
@@ -148,27 +146,13 @@ public class JsonFilterUnitTest {
 
 	private JsonFilterProperties outputProperties;
 	private String output;
-	private JsonFilterInputOutput inputOutput;
+	private JsonFilterSymmetryAssertion inputOutput;
 	
-	public JsonFilterUnitTest(JsonFilterProperties outputProperties, String output, JsonFilterInputOutput inputOutput) {
+	public JsonFilterUnitTest(JsonFilterProperties outputProperties, String output, JsonFilterSymmetryAssertion inputOutput) {
 		super();
 		this.outputProperties = outputProperties;
 		this.output = output;
 		this.inputOutput = inputOutput;
 	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }

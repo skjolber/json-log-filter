@@ -1,5 +1,7 @@
-package com.github.skjolber.jsonfilter.test.truth;
+package com.github.skjolber.jsonfilter.test.cache;
 
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -7,25 +9,26 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import com.github.skjolber.jsonfilter.test.JsonFileCache;
+import org.apache.commons.io.IOUtils;
+
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
 import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
 
-public class JsonCache {
+public class JsonFileCache {
 	
-	private static final JsonCache instance = new JsonCache();
+	private static final JsonFileCache instance = new JsonFileCache();
 	
-	public static JsonInput get(Path file) {
+	public static JsonFile get(Path file) {
 		return instance.get(file);
 	}
 	
-	protected Map<Path, JsonInput> cache = new ConcurrentHashMap<>();
+	protected Map<Path, JsonFile> cache = new ConcurrentHashMap<>();
 
-	public JsonInput getJsonInput(Path file) {
+	public JsonFile getJsonInput(Path file) {
 		try {
-			JsonInput item = cache.get(file);
+			JsonFile item = cache.get(file);
 			if(item == null) {
-				String string = JsonFileCache.getInstance().getFile(file);
+				String string = getFile(file);
 
 				List<String> prettyPrinted;
 				if(JsonValidator.isWellformed(string)) {
@@ -33,7 +36,7 @@ public class JsonCache {
 				} else {
 					prettyPrinted = Collections.emptyList();
 				}
-				item = new JsonInput(file, string, prettyPrinted);
+				item = new JsonFile(file, string, prettyPrinted);
 				
 				cache.put(file, item);
 			}
@@ -43,11 +46,21 @@ public class JsonCache {
 		}
 	}
 	
+	public String getFile(Path path) {
+		try {
+			try (InputStream in = Files.newInputStream(path)) {
+				return IOUtils.toString(in, "UTF-8");
+			}
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public void clear() {
 		cache.clear();
 	}
 
-	public static JsonCache getInstance() {
+	public static JsonFileCache getInstance() {
 		return instance;
 	}
 }

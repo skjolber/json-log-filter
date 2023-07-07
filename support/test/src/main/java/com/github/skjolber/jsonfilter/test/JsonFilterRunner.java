@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.cache.JsonFileCache;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTestFactory;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest;
-import com.github.skjolber.jsonfilter.test.truth.JsonMaxSizeFilterUnitTest;
+import com.github.skjolber.jsonfilter.test.truth.JsonMaxSizeFilterAssertion;
 
 public class JsonFilterRunner {
 
@@ -50,7 +51,7 @@ public class JsonFilterRunner {
 							.withInputFile(path)
 							.withOutputFile(path)
 							.withUnicode(unicode)
-							.withOutputProperties(properties)
+							.withFilterProperties(properties)
 							.withLiteral(literal)
 							.withMetrics(metrics)
 							.withWhitespace(whitespace)
@@ -64,7 +65,7 @@ public class JsonFilterRunner {
 							.withFilter(filter)
 							.withInputFile(entry.getKey())
 							.withOutputFile(entry.getValue())
-							.withOutputProperties(properties)
+							.withFilterProperties(properties)
 							.withLiteral(literal)
 							.withUnicode(unicode)
 							.withWhitespace(whitespace)
@@ -80,7 +81,7 @@ public class JsonFilterRunner {
 		return result;
 	}
 
-	public JsonFilterDirectoryUnitTestCollection process(MaxSizeJsonFilterAdapter maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+	public JsonFilterDirectoryUnitTestCollection process(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 
@@ -91,11 +92,11 @@ public class JsonFilterRunner {
 			if(filterProperties.isNoop()) {
 				JsonFilterProperties properties = new JsonFilterProperties(maxSizeFunction.getMaxSize(-1), directoryTest.getProperties());
 				for (Path path : directoryTest.getFiles().keySet()) {
-					JsonMaxSizeFilterUnitTest test = JsonMaxSizeFilterUnitTest.newBuilder()
-							.withAdapter(maxSizeFunction)
+					JsonMaxSizeFilterAssertion test = JsonMaxSizeFilterAssertion.newBuilder()
+							.withMaxSizeJsonFilterFunction(maxSizeFunction)
 							.withInputFile(path)
 							.withOutputFile(path)
-							.withOutputProperties(properties)
+							.withFilterProperties(properties)
 							.withWhitespace(whitespace)
 							.withUnicode(unicode)
 							.withLiteral(literal)
@@ -106,11 +107,11 @@ public class JsonFilterRunner {
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
 				JsonFilterProperties properties = new JsonFilterProperties(maxSizeFunction.getMaxSize(-1), directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
-					JsonMaxSizeFilterUnitTest test = JsonMaxSizeFilterUnitTest.newBuilder()
-							.withAdapter(maxSizeFunction)
+					JsonMaxSizeFilterAssertion test = JsonMaxSizeFilterAssertion.newBuilder()
+							.withMaxSizeJsonFilterFunction(maxSizeFunction)
 							.withInputFile(entry.getKey())
 							.withOutputFile(entry.getValue())
-							.withOutputProperties(properties)
+							.withFilterProperties(properties)
 							.withWhitespace(whitespace)
 							.withUnicode(unicode)
 							.withLiteral(literal)

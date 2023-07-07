@@ -13,7 +13,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
-import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterFunction;
 
 public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
@@ -85,7 +85,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	
 	@Test
 	public void maxSize() throws Exception {
-		MaxSizeJsonFilterAdapter maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThatMaxSize(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
 	

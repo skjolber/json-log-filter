@@ -12,7 +12,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
-import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterAdapter;
+import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterFunction;
 
 public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 
@@ -71,7 +71,7 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	
 	@Test
 	public void maxSize() throws Exception {
-		MaxSizeJsonFilterAdapter maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
 		assertThatMaxSize(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
 	}
 	

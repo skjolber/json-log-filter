@@ -49,7 +49,7 @@ public abstract class AbstractJsonFilterTest {
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
-	protected JsonFilterResultSubject assertThatMaxSize(MaxSizeJsonFilterAdapter maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+	protected JsonFilterResultSubject assertThatMaxSize(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
 		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSizeFunction, infiniteSize);
 			
 		return JsonFilterResultSubject.assertThat(process);

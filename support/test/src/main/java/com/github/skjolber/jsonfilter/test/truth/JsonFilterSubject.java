@@ -71,6 +71,6 @@ public class JsonFilterSubject extends Subject {
 		return otherAsString;
 	}
 
-
+	
 
 }

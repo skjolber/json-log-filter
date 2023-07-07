@@ -2,12 +2,12 @@ package com.github.skjolber.jsonfilter.test.truth;
 
 import java.util.Objects;
 
-public class JsonInputOutput {
+public class JsonFilterResult {
 
 	private final String stringInput;
 	private final String stringOutput;
 	
-	public JsonInputOutput(String stringInput, String stringOutput) {
+	public JsonFilterResult(String stringInput, String stringOutput) {
 		this.stringInput = stringInput;
 		this.stringOutput = stringOutput;
 	}
@@ -33,7 +33,7 @@ public class JsonInputOutput {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		JsonInputOutput other = (JsonInputOutput) obj;
+		JsonFilterResult other = (JsonFilterResult) obj;
 		return Objects.equals(stringInput, other.stringInput) && Objects.equals(stringOutput, other.stringOutput);
 	}
 
