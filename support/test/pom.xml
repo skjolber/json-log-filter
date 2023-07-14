@@ -4,7 +4,7 @@
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
 		<version>4.0.5-SNAPSHOT</version>
-		<relativePath>../../</relativePath>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>test</artifactId>
 	<packaging>jar</packaging>

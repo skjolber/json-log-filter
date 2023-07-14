@@ -13,7 +13,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
-import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 

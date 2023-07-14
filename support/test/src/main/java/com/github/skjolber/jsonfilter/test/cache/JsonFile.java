@@ -1,110 +1,34 @@
 package com.github.skjolber.jsonfilter.test.cache;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
-
-public final class JsonFile {
+public class JsonFile extends JsonPermutation {
 	
 	private final Path source;
+	private final List<MaxSizeJsonCollection> maxSizePermutations;
 	
-	private final String contentAsString;
-	
-	private final List<String> prettyPrinted;
-
-	public JsonFile(Path source, String content, List<String> prettyPrinted) {
+	public JsonFile(Path source, String content, List<String> prettyPrinted, List<MaxSizeJsonCollection> maxSizePermutations) {
+		super(content, prettyPrinted);
 		this.source = source;
-		this.contentAsString = content;
-		this.prettyPrinted = prettyPrinted;
-	}
-
-	public int getContentAsStringSize() {
-		return contentAsString.length();
-	}
-
-	public String getContentAsString(int length) {
-		if(length > contentAsString.length()) {
-			return padded(contentAsString, length);
-		}
-		return contentAsString;
-	}
-	
-	public String getContentAsString() {
-		return contentAsString;
-	}
-
-	public byte[] getContentAsBytes() {
-		return contentAsString.getBytes(StandardCharsets.UTF_8);
-	}
-
-	private String padded(String content, int length) {
-		StringBuilder builder = new StringBuilder(content.length() + length);
-		builder.append(content);
-		for(int i = 0; i < length; i++) {
-			builder.append(' ');
-		}
-		return builder.toString();
-	}
-
-	public byte[] getContentAsBytes(int length) {
-		byte[] bytes = contentAsString.getBytes(StandardCharsets.UTF_8);
-		if(length > bytes.length) {
-			return padded(bytes, length);
-		}
-		return bytes;
-	}
-
-	public int getPrettyPrintedSize() {
-		return prettyPrinted.size();
-	}
-	
-	public String getPrettyPrintedAsString(int index, int length) {
-		String prettyPrintedContentAsString = prettyPrinted.get(index);
-		if(length > prettyPrintedContentAsString.length()) {
-			return padded(prettyPrintedContentAsString, length);
-		}
-		return prettyPrintedContentAsString;
-	}
-	
-	public byte[] getPrettyPrintedAsBytes(int index, int length) {
-		byte[] prettyPrintedAsBytes = prettyPrinted.get(index).getBytes(StandardCharsets.UTF_8);
-		if(length > prettyPrintedAsBytes.length) {
-			return padded(prettyPrintedAsBytes, length);
-		}
-		return prettyPrintedAsBytes;
-	}
-
-	public String getPrettyPrintedAsString(int index) {
-		return prettyPrinted.get(index);
-	}
-
-	public byte[] getPrettyPrintedAsBytes(int index) {
-		return prettyPrinted.get(index).getBytes(StandardCharsets.UTF_8);
+		this.maxSizePermutations = maxSizePermutations;
 	}
 	
 	public Path getSource() {
 		return source;
 	}
 	
-	private byte[] padded(byte[] content, int length) {
-		byte[] c = new byte[content.length + length];
+	public List<MaxSizeJsonCollection> getMaxSizeCollections() {
+		return maxSizePermutations;
+	}
+	
+	public int getMaxPrettyPrintedContentLength() {
+		MaxSizeJsonCollection maxSizeJsonPermutation = maxSizePermutations.get(maxSizePermutations.size() - 1);
 		
-		System.arraycopy(content, 0, c, 0, content.length);
-		for(int i = 0; i < length; i++) {
-			c[content.length + i] = ' ';
-		}
-		
-		return c;
+		return maxSizeJsonPermutation.getMaxLength();
 	}
 
-	public boolean hasUnicode() {
-		return JsonNormalizer.isHighSurrogate(contentAsString);
+	public int getContentLength() {
+		return contentAsString.length();
 	}
-
-	public boolean hasEscapeSequence() {
-		return JsonNormalizer.isEscape(contentAsString);
-	}
-
 }

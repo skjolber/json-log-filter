@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
 import static com.google.common.truth.Fact.simpleFact;
+import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import java.nio.charset.StandardCharsets;
@@ -29,11 +30,6 @@ public class JsonSubject extends Subject {
 
 	public static Factory<JsonSubject, String> jsonFilterResults() {
 		return JsonSubject::new;
-	}	
-
-	// Static method for getting the subject factory (for use with assertAbout())
-	public static Subject.Factory<JsonSubject, String> employees() {
-		return JSON_SUBJECT_FACTORY;
 	}
 
 	// Boiler-plate Subject.Factory for EmployeeSubject
@@ -61,8 +57,14 @@ public class JsonSubject extends Subject {
 			return;
 		}
 		
-		printDiff(actual, otherAsString);
-		failWithActual(simpleFact("expected to be equal"));
+		String otherAsNormalizedString = JsonNormalizer.normalize(otherAsString);
+		if (Objects.equal(otherAsNormalizedString, normalized)) {
+			return;
+		}
+		
+		String printDiff = JsonComparator.printDiff(normalized, otherAsNormalizedString);
+		
+		failWithActual(fact("expected to be equal", printDiff));
 	}
 
 	private String toString(Object other) {
@@ -111,25 +113,18 @@ public class JsonSubject extends Subject {
 	public final void isEqualEventsTo(Object other) {
 		String otherAsString = toString(other);
 
-		if (JsonComparator.isSameEvents(normalized, otherAsString)) {
+		if(JsonComparator.isEventsEqual(actual, otherAsString)) {
 			return;
 		}
-
-		printDiff(normalized, otherAsString);
-		failWithActual(simpleFact("expected to be equal events"));
-	}
-
-	public static void printDiff(String result, String expected) {
-		System.out.println("Expected (size " + expected.length() + "):\n" + expected);
-		System.out.println("Actual (size " + result.length() + "):\n" + result);
-
-		for(int k = 0; k < Math.min(expected.length(), result.length()); k++) {
-			if(expected.charAt(k) != result.charAt(k)) {
-				System.out.println("Diff at " + k + ": " + expected.charAt(k) + " vs + " + result.charAt(k));
-
-				break;
-			}
+		
+		String otherAsNormalizedString = JsonNormalizer.normalize(otherAsString);
+		if(JsonComparator.isEventsEqual(normalized, otherAsNormalizedString)) {
+			return;
 		}
+		
+		String printDiff = JsonComparator.printDiff(normalized, otherAsNormalizedString);
+		
+		failWithActual(fact("expected to be equal events", printDiff));
 	}
 
 }

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTestFactory;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 
-public class PrettyPrintTransformer implements Function<String, String>{
+public class PrettyPrintTransformer implements Function<String, String> {
 
 	public static final List<PrettyPrintTransformer> ALL;
 	

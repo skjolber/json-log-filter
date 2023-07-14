@@ -11,7 +11,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
-import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class MultiPathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends DefaultJsonFilterTest {
 

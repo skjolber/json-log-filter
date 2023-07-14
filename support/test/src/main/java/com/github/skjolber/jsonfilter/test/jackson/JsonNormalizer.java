@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.test.jackson;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,11 @@ public class JsonNormalizer {
     private final static char BYTE_BACKSLASH = '\\';
 
     private final static char[] HEX_CHARS = CharTypes.copyHexChars();
-    
+
+    public static String normalize(byte[] value) {
+    	return normalize(new String(value, StandardCharsets.UTF_8));
+    }
+
     public static String normalize(String value) {
 		if(isHighSurrogate(value) || isEscape(value)) {
 			String filtered = filterMaxStringLength(value);

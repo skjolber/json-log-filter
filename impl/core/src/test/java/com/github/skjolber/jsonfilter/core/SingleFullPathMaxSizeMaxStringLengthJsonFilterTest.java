@@ -16,7 +16,7 @@ import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
-import com.github.skjolber.jsonfilter.test.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class SingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
 

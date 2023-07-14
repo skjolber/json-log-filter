@@ -1,16 +1,18 @@
 package com.github.skjolber.jsonfilter.test.cache;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 
+import com.github.skjolber.jsonfilter.test.jackson.JsonCharSizeIterator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
 import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
 
@@ -30,13 +32,30 @@ public class JsonFileCache {
 			if(item == null) {
 				String string = getFile(file);
 
-				List<String> prettyPrinted;
 				if(JsonValidator.isWellformed(string)) {
-					prettyPrinted = PrettyPrintTransformer.ALL.stream().map((t) -> t.apply(string)).collect(Collectors.toList());
+					List<MaxSizeJsonCollection> maxSizePermutations = new ArrayList<>();
+					
+					JsonCharSizeIterator maxSizeIterator = new JsonCharSizeIterator(null, string);
+					
+					List<String> prettyPrinted = new ArrayList<>();
+					
+					while(maxSizeIterator.hasNext()) {
+						MaxSizeJsonItem next = maxSizeIterator.next();
+						String maxSizeValue = next.getContentAsString();
+						
+						List<MaxSizeJsonItem> items = new ArrayList<>(PrettyPrintTransformer.ALL.size());
+
+						for(PrettyPrintTransformer transformer : PrettyPrintTransformer.ALL) {
+							items.add(maxSizeIterator.next(transformer.getPrettyPrinter().createInstance()));
+						}
+						maxSizePermutations.add(new MaxSizeJsonCollection(maxSizeValue, next.getMark(), items));
+						
+						prettyPrinted.add(maxSizeValue);
+					}
+					item = new JsonFile(file, string, prettyPrinted, maxSizePermutations);
 				} else {
-					prettyPrinted = Collections.emptyList();
+					item = new JsonFile(file, string, Collections.emptyList(), Collections.emptyList());
 				}
-				item = new JsonFile(file, string, prettyPrinted);
 				
 				cache.put(file, item);
 			}
@@ -49,7 +68,7 @@ public class JsonFileCache {
 	public String getFile(Path path) {
 		try {
 			try (InputStream in = Files.newInputStream(path)) {
-				return IOUtils.toString(in, "UTF-8");
+				return IOUtils.toString(in, StandardCharsets.UTF_8);
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);
