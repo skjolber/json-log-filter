@@ -358,13 +358,19 @@ public class ByteArrayWhitespaceFilter {
 					} else {
 						// was a value
 						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						output.write(chars, start, aligned - start);
-						output.write(truncateMessage, 0, truncateMessage.length);
-						ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
-						output.write('"');
-
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
+						
+						int skipped = endQuoteIndex - aligned;
+						
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+						if(remove > 0) {
+							output.write(chars, start, aligned - start);
+							output.write(truncateMessage, 0, truncateMessage.length);
+							ByteArrayRangesFilter.writeInt(output, skipped, digit);
+							output.write('"');
+	
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
 						}
 					}
 

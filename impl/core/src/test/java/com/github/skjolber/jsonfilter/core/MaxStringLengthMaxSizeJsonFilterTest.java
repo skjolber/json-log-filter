@@ -51,4 +51,18 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
 
+	@Test
+	public void test() {
+		//String string = "[[\"a0123456789\",\"b012345678\"]]\n";
+		
+		MaxStringLengthMaxSizeJsonFilter maxStringLengthMaxSizeJsonFilter = new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, 53);
+		
+		String string = "[[\"a0123456789\",\"b012345678\",\"c01234567\"]]";
+		
+		String process = maxStringLengthMaxSizeJsonFilter.process(string);
+		
+		System.out.println(process);
+		
+	}
+	
 }

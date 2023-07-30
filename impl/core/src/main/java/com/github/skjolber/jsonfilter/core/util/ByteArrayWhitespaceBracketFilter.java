@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter {
 
@@ -249,49 +250,58 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 
-					if(chars[nextOffset] == ':') {
-						
-						// was a key
-						if(endQuoteIndex != nextOffset) {
-							// did skip whitespace
+					if(chars[nextOffset] != ':') {
+						// was a value
+						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 
+						int skipped = endQuoteIndex - aligned;
+						
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+
+						if(remove > 0) {
 							if(start <= mark) {
 								writtenMark = buffer.size() + mark - start; 
 							}
-							buffer.write(chars, start, endQuoteIndex - start + 1);
 							
-							maxSizeLimit += nextOffset - endQuoteIndex;
+							buffer.write(chars, start, aligned - start);
+							byte[] truncateString = getTruncateString();
+							buffer.write(truncateString, 0, truncateString.length);
+							buffer.write(skipped);
+							buffer.write('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							
+							maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
 							if(maxSizeLimit >= maxReadLimit) {
 								maxSizeLimit = maxReadLimit;
 							}
 							
 							start = nextOffset;
 							offset = nextOffset;
+
 							continue;
 						}
-					} else {
-						// was a value
+					}
+					// value or not long enough value to be filtered
+					if(endQuoteIndex != nextOffset) {
+						// did skip whitespace
+
 						if(start <= mark) {
 							writtenMark = buffer.size() + mark - start; 
 						}
-						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						buffer.write(chars, start, aligned - start);
-						byte[] truncateString = getTruncateString();
-						buffer.write(truncateString, 0, truncateString.length);
-						buffer.write(endQuoteIndex - aligned);
-						buffer.write('"');
+						buffer.write(chars, start, endQuoteIndex - start + 1);
 						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
-						}
-						
-						maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
+						maxSizeLimit += nextOffset - endQuoteIndex;
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}
 						
 						start = nextOffset;
-					}
+						offset = nextOffset;
+						continue;
+					}							
 				} else {
 					nextOffset++;
 				}

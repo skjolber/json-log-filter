@@ -5,11 +5,17 @@ import java.util.Objects;
 public class MaxSizeJsonItem {
 
 	protected final int mark;
+	protected final int level;
 	protected final String contentAsString;
 	
-	public MaxSizeJsonItem(int mark, String content) {
+	public MaxSizeJsonItem(int mark, int level, String content) {
 		this.contentAsString = content;
 		this.mark = mark;
+		this.level = level;
+	}
+	
+	public int getLevel() {
+		return level;
 	}
 
 	public int getMark() {

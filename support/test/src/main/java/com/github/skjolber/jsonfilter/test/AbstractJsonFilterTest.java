@@ -74,8 +74,10 @@ public abstract class AbstractJsonFilterTest {
 			try {
 				validate(byteArray);
 			} catch(JsonParseException e) {
+				e.printStackTrace();
+				System.out.println(new String(bs));
 				System.out.println(new String(byteArray));
-				fail("Got " + byteArray.length + " vs expected " + i);
+				fail("Parse failed, got " + byteArray.length + " vs expected " + i);
 			}
 			if(byteArray.length >= i + 16) {
 				System.out.println(new String(byteArray));
@@ -150,7 +152,7 @@ public abstract class AbstractJsonFilterTest {
 	
 			try {
 				validate(process);
-				assertTrue(process.length + " > " + (i + levels) + new String(process, StandardCharsets.UTF_8), process.length <= i + levels);
+				assertTrue(process.length + " > " + i + " " + new String(process, StandardCharsets.UTF_8), process.length <= i);
 			} catch(Throwable e) {
 				System.out.println(new String(generateDeepStructure));
 				System.out.println("Processed " + process.length + " for max size " + i);

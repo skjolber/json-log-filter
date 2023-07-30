@@ -18,6 +18,8 @@ public class JsonCompactor {
 			if(b == '\n') {
 				bout.write('\\');
 				bout.write('n');
+			} else {
+				bout.write(b);
 			}
 		}
 		
@@ -32,6 +34,8 @@ public class JsonCompactor {
 			if(b == '\n') {
 				writer.append('\\');
 				writer.append('n');
+			} else {
+				writer.append(b);
 			}
 		}
 		

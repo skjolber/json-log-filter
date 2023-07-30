@@ -7,6 +7,7 @@ import java.util.Iterator;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -70,6 +71,7 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 	public MaxSizeJsonItem next(PrettyPrinter prettyPrinter) {
 		StringWriter bout = new StringWriter(input.length());
 		
+		int level = 0;
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(bout);
 			StringReader bin = new StringReader(input);
@@ -80,6 +82,12 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			int count = events;
 			while(jsonParser.nextToken() != null) {
 				generator.copyCurrentEvent(jsonParser);
+				if(jsonParser.getCurrentToken().isStructStart()) {
+					level++;
+				} else if(jsonParser.getCurrentToken().isStructEnd()) {
+					level--;
+				}
+
 				if(jsonParser.getCurrentToken() != JsonToken.FIELD_NAME) {
 					count--;
 					if(count == 0) {
@@ -87,15 +95,16 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 						int length = bout.getBuffer().length();
 						
 						generator.close();
-						
-						return new MaxSizeJsonItem(length, bout.toString());
+
+						String string = bout.toString();
+						return new MaxSizeJsonItem(length, level, string);
 					}
 				}
 			}
 			generator.close();
 
 			String string = bout.toString();
-			return new MaxSizeJsonItem(string.length(), string);
+			return new MaxSizeJsonItem(string.length(), 0, string);
 		} catch (Exception e) {
 			throw new RuntimeException();
 		}
@@ -116,9 +125,18 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			StringReader bin = new StringReader(input);
 			JsonParser jsonParser = jsonFactory.createParser(bin);
 			) {
+			int level = 0;
+			
 			int count = events;
 			while(jsonParser.nextToken() != null) {
 				generator.copyCurrentEvent(jsonParser);
+				
+				if(jsonParser.getCurrentToken().isStructStart()) {
+					level++;
+				} else if(jsonParser.getCurrentToken().isStructEnd()) {
+					level--;
+				}
+
 				if(jsonParser.getCurrentToken() != JsonToken.FIELD_NAME) {
 					count--;
 					if(count == 0) {
@@ -127,7 +145,8 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 						
 						generator.close();
 						
-						return new MaxSizeJsonItem(length, bout.toString());
+						String string = bout.toString();
+						return new MaxSizeJsonItem(length, level, string);
 					}
 				}
 			}
@@ -136,9 +155,9 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			inputExhausted = true;
 			
 			String string = bout.toString();
-			return new MaxSizeJsonItem(string.length(), string);
+			return new MaxSizeJsonItem(string.length(), 0, string);
 		} catch (Exception e) {
-			throw new RuntimeException();
+			throw new RuntimeException(e);
 		}
 	}
 

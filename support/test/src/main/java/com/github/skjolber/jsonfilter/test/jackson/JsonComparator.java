@@ -23,7 +23,7 @@ public class JsonComparator {
 	*/
 	
 	public static void assertEventsEqual(Path source, String input, String actualOutput, String expectedOutput) {
-		assertEventsEqual(source, input, actualOutput, expectedOutput);
+		assertEventsEqual(source, input, input, actualOutput, expectedOutput);
 	}
 
 	public static void assertEventsEqual(Path source, byte[] input, byte[] actualOutput, byte[] expectedOutput) {
@@ -199,10 +199,11 @@ public class JsonComparator {
 		
 		String compactResult = JsonCompactor.compact(result);
 		String compactExpected = JsonCompactor.compact(expected);
-		
-		builder.append(compactResult);
-		builder.append("\n");
+
+		builder.append("Expected vs actual:\n");
 		builder.append(compactExpected);
+		builder.append("\n");
+		builder.append(compactResult);
 		builder.append("\n");
 
 		for(int k = 0; k < Math.min(compactResult.length(), compactExpected.length()); k++) {

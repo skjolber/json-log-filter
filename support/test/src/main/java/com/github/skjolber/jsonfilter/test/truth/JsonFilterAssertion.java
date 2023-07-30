@@ -5,6 +5,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
+import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
 
 public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 
@@ -35,16 +36,12 @@ public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 		this.metrics = metrics;
 		return this;
 	}
-
-	public void isEqualTo(JsonFile outputFile) {
-		isEqualTo(outputFile, true);
-	}
 	
 	public void isJsonEventsEqualTo(JsonFile outputFile) {
-		isEqualTo(outputFile, false);
+		isEqualTo(outputFile, JsonComparisonType.LITERAL);
 	}
 	
-	private void isEqualTo(JsonFile outputFile, boolean literal) {
+	public void isEqualTo(JsonFile outputFile, JsonComparisonType comparison) {
 		if(inputFile == null) {
 			throw new IllegalStateException();
 		}
@@ -64,7 +61,7 @@ public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 		byte[] byteOutput = filter.process(inputContentAsBytes, metrics);
 		String stringOutput = filter.process(inputContentAsString, metrics);
 		
-		if(literal) {
+		if(comparison == JsonComparisonType.LITERAL) {
 			assertEquals(inputFile.getSource(), inputContentAsString, stringOutput, expectedOutputContentAsString);
 			assertEquals(inputFile.getSource(), inputContentAsBytes, byteOutput, expectedOutputContentAsBytes);
 		} else {
@@ -77,11 +74,11 @@ public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 			for(int i = 0; i < inputFile.getPrettyPrintedSize(); i++) {
 				String prettyPrintedAsString = inputFile.getPrettyPrintedAsString(i);
 				byte[] prettyPrintedAsBytes = inputFile.getPrettyPrintedAsBytes(i);
-				
+
 				byteOutput = filter.process(prettyPrintedAsBytes, metrics);
 				stringOutput = filter.process(prettyPrintedAsString, metrics);
 				
-				if(literal) {
+				if(comparison == JsonComparisonType.LITERAL) {
 					assertEquals(inputFile.getSource(), inputContentAsString, prettyPrintedAsString, stringOutput, expectedOutputContentAsString);
 					assertEquals(inputFile.getSource(), inputContentAsBytes, prettyPrintedAsBytes, byteOutput, expectedOutputContentAsBytes);
 				} else {
@@ -101,7 +98,7 @@ public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 				byteOutput = filter.process(prettyPrintedInputAsBytes, metrics);
 				stringOutput = filter.process(prettyPrintedInputAsString, metrics);
 				
-				if(literal) {
+				if(comparison == JsonComparisonType.LITERAL) {
 					assertEquals(inputFile.getSource(), prettyPrintedInputAsString, stringOutput, expectedPrettyPrintedOutputAsString);
 					assertEquals(inputFile.getSource(), prettyPrintedInputAsBytes, byteOutput, expectedPrettyPrintedOutputAsBytes);
 				} else {

@@ -28,6 +28,7 @@ public class PrettyPrinterIteratorTest {
 			PrettyPrintTransformer transformer = new PrettyPrintTransformer(prettyPrinter);
 			String transformed = transformer.apply(json);
 			all.add(transformed);
+			System.out.println(transformed);
 		}
 		assertTrue(all.size() > 1);
 	}

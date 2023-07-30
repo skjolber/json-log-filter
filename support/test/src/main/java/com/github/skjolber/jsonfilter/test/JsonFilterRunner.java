@@ -7,12 +7,12 @@ import java.util.Map.Entry;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.cache.JsonFileCache;
-import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTestFactory;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
-import com.github.skjolber.jsonfilter.test.truth.JsonFilterUnitTest;
-import com.github.skjolber.jsonfilter.test.truth.MaxSizeJsonFilterAssertion;
+import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilterSubject;
 
 public class JsonFilterRunner {
 
@@ -27,7 +27,6 @@ public class JsonFilterRunner {
 	private List<JsonFilterDirectoryUnitTest> directoryTests;
 	private JsonFilterDirectoryUnitTestFactory factory;
 	
-
 	public JsonFilterRunner(List<?> nullable, boolean literal, boolean whitespace, boolean unicode, JsonFileCache cache) throws Exception {
 		this.factory = JsonFilterDirectoryUnitTestFactory.fromResource("/json", nullable);
 		this.literal = literal;
@@ -55,31 +54,22 @@ public class JsonFilterRunner {
 						continue;
 					}
 					
-					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
-							.withFilter(filter)
-							.withInputFile(path)
-							.withOutputFile(path)
-							.withUnicode(unicode)
-							.withFilterProperties(properties)
-							.withLiteral(literal)
-							.withMetrics(metrics)
-							.withWhitespace(whitespace)
-							.build();
+					JsonFilterSubject.assertThat(filter).withMetrics(metrics).withInputFile(jsonInput).isPassthrough();
 				}
 				result.addPassthrough(directoryTest);
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
 				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
-					JsonFilterUnitTest test = JsonFilterUnitTest.newBuilder()
-							.withFilter(filter)
-							.withInputFile(entry.getKey())
-							.withOutputFile(entry.getValue())
-							.withFilterProperties(properties)
-							.withLiteral(literal)
-							.withUnicode(unicode)
-							.withWhitespace(whitespace)
-							.withMetrics(metrics)
-							.build();
+					
+					JsonFile jsonInput = cache.getJsonInput(entry.getKey());
+					
+					if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
+						continue;
+					}
+
+					JsonFile jsonOutput = cache.getJsonInput(entry.getValue());
+					
+					JsonFilterSubject.assertThat(filter).withMetrics(metrics).withInputFile(jsonInput).filtersTo(jsonOutput, literal ? JsonComparisonType.LITERAL : JsonComparisonType.EVENTS);
 				}
 				result.addFiltered(directoryTest);
 			}
@@ -99,33 +89,40 @@ public class JsonFilterRunner {
 		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection(); 
 		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
 			if(filterProperties.isNoop()) {
-				JsonFilterProperties properties = new JsonFilterProperties(maxSizeFunction.getMaxSizeJsonFilter(-1), directoryTest.getProperties());
+				JsonFilterProperties properties = new JsonFilterProperties(infiniteSize, directoryTest.getProperties());
 				for (Path path : directoryTest.getFiles().keySet()) {
-					MaxSizeJsonFilterAssertion test = MaxSizeJsonFilterAssertion.newBuilder()
-							.withMaxSizeJsonFilterFunction(maxSizeFunction)
-							.withInputFile(path)
-							.withOutputFile(path)
-							.withFilterProperties(properties)
-							.withWhitespace(whitespace)
-							.withUnicode(unicode)
-							.withLiteral(literal)
-							.withMetrics(metrics)
-							.build();
+					JsonFile jsonInput = cache.getJsonInput(path);
+					
+					if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
+						continue;
+					}
+					
+					JsonFilterSubject.assertThat(infiniteSize)
+						.withInputFile(jsonInput)
+						.withMaxSizeJsonFilterFunction(maxSizeFunction)
+						.withMetrics(metrics)
+						.withInputFile(jsonInput)
+						.isPassthrough();
 				}
 				result.addPassthrough(directoryTest);
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
-				JsonFilterProperties properties = new JsonFilterProperties(maxSizeFunction.getMaxSizeJsonFilter(-1), directoryTest.getProperties());
+				JsonFilterProperties properties = new JsonFilterProperties(infiniteSize, directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
-					MaxSizeJsonFilterAssertion test = MaxSizeJsonFilterAssertion.newBuilder()
-							.withMaxSizeJsonFilterFunction(maxSizeFunction)
-							.withInputFile(entry.getKey())
-							.withOutputFile(entry.getValue())
-							.withFilterProperties(properties)
-							.withWhitespace(whitespace)
-							.withUnicode(unicode)
-							.withLiteral(literal)
-							.withMetrics(metrics)
-							.build();
+					
+					JsonFile jsonInput = cache.getJsonInput(entry.getKey());
+					
+					if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {
+						continue;
+					}
+
+					JsonFile jsonOutput = cache.getJsonInput(entry.getValue());
+					
+					JsonFilterSubject.assertThat(infiniteSize)
+						.withMaxSizeJsonFilterFunction(maxSizeFunction)
+						.withMetrics(metrics)
+						.withInputFile(jsonInput)
+						.filtersTo(jsonOutput, literal ? JsonComparisonType.LITERAL : JsonComparisonType.EVENTS);
+
 				}
 				result.addFiltered(directoryTest);
 			}

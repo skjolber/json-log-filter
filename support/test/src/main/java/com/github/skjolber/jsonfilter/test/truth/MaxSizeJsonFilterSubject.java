@@ -7,6 +7,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair;
+import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
 import com.google.common.base.Objects;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
@@ -28,7 +29,9 @@ public class MaxSizeJsonFilterSubject extends Subject {
 	private static final Subject.Factory<MaxSizeJsonFilterSubject, MaxSizeJsonFilterPair> JSON_SUBJECT_FACTORY = MaxSizeJsonFilterSubject::new;	
 
 	protected final MaxSizeJsonFilterPair actual;
-	protected JsonFilterMetrics metrics; 
+	protected JsonFilterMetrics metrics;
+
+	private JsonFile input; 
 	/**
 	 * Constructor for use by subclasses. If you want to create an instance of this class itself, call
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
@@ -53,8 +56,22 @@ public class MaxSizeJsonFilterSubject extends Subject {
 		return this;
 	}
 	
-	public MaxSizeJsonFilterSubject isNoop(JsonFile input) {
-		MaxSizeJsonFilterNoopAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withMetrics(metrics).isNoop();
+	public MaxSizeJsonFilterSubject withInputFile(JsonFile input) {
+		this.input = input;
+		return this;
+	}
+	
+	public MaxSizeJsonFilterSubject isPassthrough() {
+		MaxSizeJsonFilterNoopAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withInput(input).withMetrics(metrics).isPassthrough();
+		return this;
+	}
+
+	public MaxSizeJsonFilterSubject filtersTo(JsonFile output) {
+		return filtersTo(output, JsonComparisonType.LITERAL);
+	}
+
+	public MaxSizeJsonFilterSubject filtersTo(JsonFile output, JsonComparisonType type) {
+		MaxSizeJsonFilterAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withMetrics(metrics).withInputFile(input).filters(output, type);
 		return this;
 	}
 

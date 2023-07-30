@@ -390,13 +390,20 @@ public class CharArrayWhitespaceFilter {
 					} else {
 						// was a value
 						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						buffer.append(chars, start, aligned - start);
-						buffer.append(truncateMessage);
-						buffer.append(endQuoteIndex - aligned);
-						buffer.append('"');
 						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
+						int skipped = endQuoteIndex - aligned;
+						
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+						if(remove > 0) {
+							buffer.append(chars, start, aligned - start);
+							buffer.append(truncateMessage);
+							buffer.append(skipped);
+							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							
 						}
 					}
 

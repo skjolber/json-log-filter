@@ -7,6 +7,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 	protected boolean[] squareBrackets = new boolean[32];
 	protected int mark;
 	protected int level;
+	protected int maxSizeLimit = -1;
 
 	public CharArrayRangesBracketFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
 			char[] truncateMessage) {
@@ -436,4 +437,11 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		return offset;
 	}
 
+	public void setMaxSizeLimit(int maxSizeLimit) {
+		this.maxSizeLimit = maxSizeLimit;
+	}
+	
+	public int getMaxSizeLimit() {
+		return maxSizeLimit;
+	}
 }

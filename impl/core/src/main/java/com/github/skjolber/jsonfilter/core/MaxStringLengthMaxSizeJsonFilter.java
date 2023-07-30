@@ -48,8 +48,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < maxReadLimit){
 				// max size reached before end of document
-				int markLimit = filter.markToLimit(chars);
-				
+				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
+
 				// filter rest of document
 				filter.addDelete(markLimit, maxReadLimit);
 			}
@@ -76,7 +76,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < maxReadLimit){
 				// max size reached before end of document
-				int markLimit = filter.markToLimit(chars);
+				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
 				
 				// filter rest of document
 				filter.addDelete(markLimit, maxReadLimit);
@@ -95,35 +95,28 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		loop:
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
+				case '[' :
 				case '{' :
-					squareBrackets[bracketLevel] = false;
+					// check corner case
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+
+					squareBrackets[bracketLevel] = chars[offset] == '[';
 					bracketLevel++;
 					
 					if(bracketLevel >= squareBrackets.length) {
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
-					mark = offset;
 					break;
 				case '}' :	
-					bracketLevel--;
-
-					mark = offset;
-
-					break;
-				case '[' : {
-					squareBrackets[bracketLevel] = true;
-					bracketLevel++;
-
-					if(bracketLevel >= squareBrackets.length) {
-						squareBrackets = filter.grow(squareBrackets);
-					}
-					mark = offset;
-
-					break;
-				}
 				case ']' :
 					bracketLevel--;
+					maxSizeLimit++;
 					
 					mark = offset;
 
@@ -183,7 +176,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
 
-							if(nextOffset >= maxSizeLimit) {
+							if(nextOffset > maxSizeLimit) {
 								filter.removeLastFilter();
 								
 								offset = nextOffset;
@@ -209,6 +202,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 		filter.setLevel(bracketLevel);
 		filter.setMark(mark);
+		filter.setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
@@ -221,8 +215,16 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		loop:
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
+				case '[' : 
 				case '{' :
-					squareBrackets[bracketLevel] = false;
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+
+					squareBrackets[bracketLevel] = chars[offset] == '[';
 					bracketLevel++;
 					
 					if(bracketLevel >= squareBrackets.length) {
@@ -231,26 +233,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 					mark = offset;
 					break;
+				case ']' :
 				case '}' :	
 					bracketLevel--;
-
-					mark = offset;
-
-					break;
-				case '[' : {
-					squareBrackets[bracketLevel] = true;
-					bracketLevel++;
-
-					if(bracketLevel >= squareBrackets.length) {
-						squareBrackets = filter.grow(squareBrackets);
-					}
-					mark = offset;
-
-					break;
-				}
-				case ']' :
-					bracketLevel--;
-					
+					maxSizeLimit++;
 					mark = offset;
 
 					break;
@@ -309,7 +295,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
 
-							if(nextOffset >= maxSizeLimit) {
+							if(nextOffset > maxSizeLimit) {
 								filter.removeLastFilter();
 								
 								offset = nextOffset;
@@ -335,6 +321,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		filter.setLevel(bracketLevel);
 		filter.setMark(mark);
+		filter.setMaxSizeLimit(maxSizeLimit);
 		
 		return offset;
 	}

@@ -82,7 +82,7 @@ public abstract class AbstractRangesFilter {
 		return maxLength - removedLength;
 	}
 	
-	protected int lengthToDigits(int number) {
+	public static int lengthToDigits(int number) {
 		if (number < 100000) {
 		    if (number < 100) {
 		        if (number < 10) {

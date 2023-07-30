@@ -9,6 +9,7 @@ import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
 import com.google.common.base.Objects;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
@@ -31,6 +32,7 @@ public class JsonFilterSubject extends Subject {
 
 	protected final JsonFilter actual;
 	protected JsonFilterMetrics metrics; 
+	protected JsonFile input;
 
 	/**
 	 * Constructor for use by subclasses. If you want to create an instance of this class itself, call
@@ -56,7 +58,13 @@ public class JsonFilterSubject extends Subject {
 		return this;
 	}
 	
-	public JsonFilterSubject isNoop(JsonFile input) {
+	public JsonFilterSubject withInputFile(JsonFile input) {
+		this.input = input;
+		return this;
+	}
+
+	
+	public JsonFilterSubject isPassthrough() {
 		JsonFilterNoopAssertion.newInstance().withFilter(actual).withInput(input).withMetrics(metrics).isNoop();
 		return this;
 	}
@@ -64,7 +72,11 @@ public class JsonFilterSubject extends Subject {
 	public MaxSizeJsonFilterSubject withMaxSizeJsonFilterFunction(MaxSizeJsonFilterFunction delegate) {
 		MaxSizeJsonFilterPair pair = new MaxSizeJsonFilterPair(actual, delegate);
 		
-		return MaxSizeJsonFilterSubject.assertThatJson(pair);
+		return MaxSizeJsonFilterSubject.assertThatJson(pair).withInputFile(input).withMetrics(metrics);
+	}
+
+	public void filtersTo(JsonFile jsonOutput, JsonComparisonType comparison) {
+		JsonFilterAssertion.newBuilder().withFilter(actual).withInputFile(input).withMetrics(metrics).isEqualTo(jsonOutput, comparison);
 	}
 
 }

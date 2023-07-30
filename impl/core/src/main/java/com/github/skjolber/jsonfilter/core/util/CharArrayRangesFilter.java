@@ -486,9 +486,13 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		
 		length += start - alignedStart;
 		
-		super.addMaxLength(alignedStart, end, length);
-		
-		this.removedLength += end - alignedStart - truncateMessage.length - lengthToDigits(length); // max integer
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = end - alignedStart - truncateMessage.length - lengthToDigits(length);
+		if(remove > 0) {
+			super.addMaxLength(alignedStart, end, length);
+			
+			this.removedLength += remove;
+		}
 	}
 	
 	public void addAnon(int start, int end) {

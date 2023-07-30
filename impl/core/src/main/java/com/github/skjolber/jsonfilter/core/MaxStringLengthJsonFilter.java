@@ -177,7 +177,7 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			} else {
 				offset++;
 			}
-		}				
+		}
 
 		return offset;
 	}

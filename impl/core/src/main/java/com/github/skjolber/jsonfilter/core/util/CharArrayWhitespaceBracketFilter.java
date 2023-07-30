@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter {
 
@@ -249,48 +250,59 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 
-					if(chars[nextOffset] == ':') {
-						
-						// was a key
-						if(endQuoteIndex != nextOffset) {
-							// did skip whitespace
+					if(chars[nextOffset] != ':') {
+						// was a value
+						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 
+						int skipped = endQuoteIndex - aligned;
+
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+
+						if(remove > 0) {
 							if(start <= mark) {
 								writtenMark = buffer.length() + mark - start; 
 							}
-							buffer.append(chars, start, endQuoteIndex - start + 1);
 							
-							maxSizeLimit += nextOffset - endQuoteIndex;
+							buffer.append(chars, start, aligned - start);
+							buffer.append(getTruncateString());
+							buffer.append(endQuoteIndex - aligned);
+							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							
+							maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
 							if(maxSizeLimit >= maxReadLimit) {
 								maxSizeLimit = maxReadLimit;
 							}
 							
 							start = nextOffset;
+							
 							offset = nextOffset;
+
 							continue;
 						}
-					} else {
-						// was a value
+					}
+					// key or not long enough value
+					if(endQuoteIndex != nextOffset) {
+						// did skip whitespace
+
 						if(start <= mark) {
 							writtenMark = buffer.length() + mark - start; 
 						}
-						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						buffer.append(chars, start, aligned - start);
-						buffer.append(getTruncateString());
-						buffer.append(endQuoteIndex - aligned);
-						buffer.append('"');
+						buffer.append(chars, start, endQuoteIndex - start + 1);
 						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
-						}
-						
-						maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
+						maxSizeLimit += nextOffset - endQuoteIndex;
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}
 						
 						start = nextOffset;
+						offset = nextOffset;
+						continue;
 					}
+
 				} else {
 					nextOffset++;
 				}

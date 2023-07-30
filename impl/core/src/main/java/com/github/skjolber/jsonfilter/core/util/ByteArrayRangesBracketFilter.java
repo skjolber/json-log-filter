@@ -9,6 +9,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 	private boolean[] squareBrackets = new boolean[32];
 	private int mark;
 	private int level;
+	private int maxSizeLimit = -1;
 	
 	public ByteArrayRangesBracketFilter(int initialCapacity, int length) {
 		super(initialCapacity, length);
@@ -438,4 +439,11 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		return offset;
 	}
 
+	public void setMaxSizeLimit(int maxSizeLimit) {
+		this.maxSizeLimit = maxSizeLimit;
+	}
+	
+	public int getMaxSizeLimit() {
+		return maxSizeLimit;
+	}
 }

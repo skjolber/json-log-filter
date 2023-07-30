@@ -185,23 +185,23 @@ public class AbstractJsonFilterSymmetryAssertion {
 	}
 
 
-	protected static void assertEquals(Path source, byte[] inputContentAsBytes, byte[] byteOutput1, byte[] byteOutput2) {
-		if(byteOutput1 == null && byteOutput2 == null) {
+	protected static void assertEquals(Path source, byte[] inputContentAsBytes, byte[] byteOutput1, byte[] expectedByteOutput2) {
+		if(byteOutput1 == null && expectedByteOutput2 == null) {
 			return;
 		}
-		if(byteOutput1 != null && byteOutput2 == null) {
+		if(byteOutput1 != null && expectedByteOutput2 == null) {
 			fail("Expected result for " + source + ", but there was no output 2");
 		}
-		if(byteOutput1 == null && byteOutput2 != null) {
+		if(byteOutput1 == null && expectedByteOutput2 != null) {
 			fail("Expected result for " + source + ", but there was no output 1");
 		}
 		
-		if(Arrays.equals(byteOutput1, byteOutput2)) {
+		if(Arrays.equals(byteOutput1, expectedByteOutput2)) {
 			return;
 		}
 		
 		String outputAsStringAsNormalizedString1 = JsonNormalizer.normalize(byteOutput1);
-		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(byteOutput2);
+		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(expectedByteOutput2);
 		
 		if(outputAsStringAsNormalizedString1.equals(outputAsStringAsNormalizedString2)) {
 			return;
@@ -212,39 +212,114 @@ public class AbstractJsonFilterSymmetryAssertion {
 		builder.append(new String(inputContentAsBytes, StandardCharsets.UTF_8));
 		builder.append("\n");
 		
-		builder.append(JsonComparator.printDiff(byteOutput1, byteOutput2));
+		builder.append(JsonComparator.printDiff(byteOutput1, expectedByteOutput2));
 		
 		fail(builder.toString());
 	}
 
-	protected static void assertEquals(Path source, String inputContentAsString, String outputAsString1, String outputAsString2) {
-		if(outputAsString1 == null && outputAsString2 == null) {
+	protected static void assertEventsEquals(Path source, byte[] inputContentAsBytes, byte[] byteOutput1, byte[] expectedByteOutput2) {
+		if(byteOutput1 == null && expectedByteOutput2 == null) {
 			return;
 		}
-		if(outputAsString1 != null && outputAsString2 == null) {
+		if(byteOutput1 != null && expectedByteOutput2 == null) {
 			fail("Expected result for " + source + ", but there was no output 2");
 		}
-		if(outputAsString1 == null && outputAsString2 != null) {
+		if(byteOutput1 == null && expectedByteOutput2 != null) {
 			fail("Expected result for " + source + ", but there was no output 1");
 		}
 		
-		if(outputAsString1.equals(outputAsString2)) {
+		if(Arrays.equals(byteOutput1, expectedByteOutput2)) {
+			return;
+		}
+		
+		String outputAsStringAsNormalizedString1 = JsonNormalizer.normalize(byteOutput1);
+		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(expectedByteOutput2);
+		
+		if(outputAsStringAsNormalizedString1.equals(outputAsStringAsNormalizedString2)) {
+			return;
+		}
+
+		if(JsonComparator.isEventsEqual(outputAsStringAsNormalizedString1, outputAsStringAsNormalizedString2)) {
+			return;
+		}
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("Expected equal events result\n");
+		builder.append(new String(inputContentAsBytes, StandardCharsets.UTF_8));
+		builder.append("\n");
+		
+		builder.append(JsonComparator.printDiff(byteOutput1, expectedByteOutput2));
+		
+		fail(builder.toString());
+	}
+
+	protected static void assertEventsEquals(Path source, String inputContentAsString, String outputAsString1, String expectedOutputAsString2) {
+		if(outputAsString1 == null && expectedOutputAsString2 == null) {
+			return;
+		}
+		if(outputAsString1 != null && expectedOutputAsString2 == null) {
+			fail("Expected result for " + source + ", but there was no output 2");
+		}
+		if(outputAsString1 == null && expectedOutputAsString2 != null) {
+			fail("Expected result for " + source + ", but there was no output 1");
+		}
+		
+		if(outputAsString1.equals(expectedOutputAsString2)) {
 			return;
 		}
 		
 		String outputAsStringAsNormalizedString1 = JsonNormalizer.normalize(outputAsString1);
-		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(outputAsString2);
+		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(expectedOutputAsString2);
+		
+		if(outputAsStringAsNormalizedString1.equals(outputAsStringAsNormalizedString2)) {
+			return;
+		}
+
+		if(JsonComparator.isEventsEqual(outputAsStringAsNormalizedString1, outputAsStringAsNormalizedString2)) {
+			return;
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("Expected equal events result\n");
+		builder.append(inputContentAsString);
+		builder.append("\n");
+		
+		builder.append(JsonComparator.printDiff(outputAsString1, expectedOutputAsString2));
+		
+		fail(builder.toString());
+
+	}
+
+	protected static void assertEquals(Path source, String inputContentAsString, String outputAsString1, String expectedOutputAsString2) {
+		if(outputAsString1 == null && expectedOutputAsString2 == null) {
+			return;
+		}
+		if(outputAsString1 != null && expectedOutputAsString2 == null) {
+			fail("Expected result for " + source + ", but there was no output 2");
+		}
+		if(outputAsString1 == null && expectedOutputAsString2 != null) {
+			fail("Expected result for " + source + ", but there was no output 1");
+		}
+		
+		if(outputAsString1.equals(expectedOutputAsString2)) {
+			return;
+		}
+		
+		String outputAsStringAsNormalizedString1 = JsonNormalizer.normalize(outputAsString1);
+		String outputAsStringAsNormalizedString2 = JsonNormalizer.normalize(expectedOutputAsString2);
 		
 		if(outputAsStringAsNormalizedString1.equals(outputAsStringAsNormalizedString2)) {
 			return;
 		}
 		
 		StringBuilder builder = new StringBuilder();
+		builder.append(source.toString());
+		builder.append("\n");
 		builder.append("Expected equal result\n");
 		builder.append(inputContentAsString);
 		builder.append("\n");
 		
-		builder.append(JsonComparator.printDiff(outputAsString1, outputAsString2));
+		builder.append(JsonComparator.printDiff(outputAsString1, expectedOutputAsString2));
 		
 		fail(builder.toString());
 	}

@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * 
- * A single JSON and all its whitespace variants.
+ * A single JSON and all its pretty-printed variants.
  * 
  */
 
@@ -13,8 +13,8 @@ public class MaxSizeJsonCollection extends MaxSizeJsonItem {
 	// pretty-printing variants
 	protected final List<MaxSizeJsonItem> prettyPrinted;
 
-	public MaxSizeJsonCollection(String content, int mark, List<MaxSizeJsonItem> prettyPrinted) {
-		super(mark, content);
+	public MaxSizeJsonCollection(String content, int mark, int level, List<MaxSizeJsonItem> prettyPrinted) {
+		super(mark, level, content);
 		this.prettyPrinted = prettyPrinted;
 	}
 	
@@ -30,7 +30,6 @@ public class MaxSizeJsonCollection extends MaxSizeJsonItem {
 		return prettyPrinted.size();
 	}
 	
-
 	public int getMaxLength() {
 		int max = contentAsString.length();
 		for (MaxSizeJsonItem item: prettyPrinted) {
