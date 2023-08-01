@@ -172,7 +172,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
-	public void addMaxLength(byte[] chars, int start, int end, int length) {
+	public boolean addMaxLength(byte[] chars, int start, int end, int length) {
 		// account for code points and escaping
 		if(length < 0) {
 			throw new IllegalArgumentException("Negative length " + length);
@@ -188,7 +188,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			super.addMaxLength(alignedStart, end, length);
 			
 			this.removedLength += remove;
+			
+			return true;
 		}
+		return false;
 	}
 
 	

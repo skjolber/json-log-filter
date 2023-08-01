@@ -285,7 +285,7 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 						}
 					}
 					// key or not long enough value
-					if(endQuoteIndex != nextOffset) {
+					if(endQuoteIndex + 1 != nextOffset) {
 						// did skip whitespace
 
 						if(start <= mark) {

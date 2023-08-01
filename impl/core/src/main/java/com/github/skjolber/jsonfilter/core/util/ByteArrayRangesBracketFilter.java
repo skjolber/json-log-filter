@@ -236,20 +236,21 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						}
 
 						int removedLength = getRemovedLength();
-						addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1));
-						// increment limit since we removed something
-						maxSizeLimit += getRemovedLength() - removedLength;
-
-						if(maxSizeLimit > maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
-						
-						if(nextOffset >= maxSizeLimit) {
-							removeLastFilter();
+						if(addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1))) {
+							// increment limit since we removed something
+							maxSizeLimit += getRemovedLength() - removedLength;
+	
+							if(maxSizeLimit > maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
+							}
 							
-							offset = maxSizeLimit;
-							
-							break loop;
+							if(nextOffset >= maxSizeLimit) {
+								removeLastFilter();
+								
+								offset = maxSizeLimit;
+								
+								break loop;
+							}
 						}
 						
 						offset = nextOffset;

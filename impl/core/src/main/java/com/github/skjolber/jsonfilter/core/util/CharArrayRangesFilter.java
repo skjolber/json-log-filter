@@ -479,7 +479,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	
-	public void addMaxLength(char[] chars, int start, int end, int length) {
+	public boolean addMaxLength(char[] chars, int start, int end, int length) {
 		// account for code points and escaping
 		
 		int alignedStart = getStringAlignment(chars, start);
@@ -492,7 +492,10 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			super.addMaxLength(alignedStart, end, length);
 			
 			this.removedLength += remove;
+			
+			return true;
 		}
+		return false;
 	}
 	
 	public void addAnon(int start, int end) {

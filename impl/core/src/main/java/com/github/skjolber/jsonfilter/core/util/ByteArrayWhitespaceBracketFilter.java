@@ -284,8 +284,8 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 							continue;
 						}
 					}
-					// value or not long enough value to be filtered
-					if(endQuoteIndex != nextOffset) {
+					// key or not long enough value
+					if(endQuoteIndex + 1 != nextOffset) {
 						// did skip whitespace
 
 						if(start <= mark) {

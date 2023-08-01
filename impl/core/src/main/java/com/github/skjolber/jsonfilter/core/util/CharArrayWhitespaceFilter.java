@@ -383,11 +383,7 @@ public class CharArrayWhitespaceFilter {
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 
-					// TODO avoid flushing if no whitespace? this is a bit unusual place to see a whitespace 
-					if(chars[nextOffset] == ':') {
-						// was a field name
-						buffer.append(chars, start, endQuoteIndex - start + 1);
-					} else {
+					if(chars[nextOffset] != ':') {
 						// was a value
 						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 						
@@ -403,11 +399,19 @@ public class CharArrayWhitespaceFilter {
 							if(metrics != null) {
 								metrics.onMaxStringLength(1);
 							}
-							
+							start = nextOffset;
+							offset = nextOffset + 1;
+
+							continue;
 						}
 					}
 
-					start = nextOffset;
+					// was a field name or not long enough string
+					if(nextOffset != endQuoteIndex + 1) {
+						buffer.append(chars, start, endQuoteIndex - start + 1);
+						start = nextOffset;
+					}
+
 				}
 				offset = nextOffset + 1;
 
