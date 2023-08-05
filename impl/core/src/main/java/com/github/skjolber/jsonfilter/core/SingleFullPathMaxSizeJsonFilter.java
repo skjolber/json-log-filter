@@ -172,7 +172,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
 							if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
-								offset = maxSizeLimit;
 								break loop;
 							}
 
@@ -417,7 +416,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 							
 							// is there space within max size?
 							if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
-								offset = maxSizeLimit;
 								break loop;
 							}
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {

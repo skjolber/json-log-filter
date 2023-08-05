@@ -60,6 +60,7 @@ public class JsonFilterRunner {
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
 				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
+					System.out.println(entry.getKey() + " " + entry.getValue());
 					
 					JsonFile jsonInput = cache.getJsonInput(entry.getKey());
 					

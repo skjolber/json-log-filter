@@ -317,6 +317,12 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.removedLength += end - start - pruneMessage.length;
 	}
 	
+	public void addDelete(int start, int end) {
+		super.addDelete(start, end);
+		
+		this.removedLength += end - start;
+	}
+	
 	public final void writeInt(ByteArrayOutputStream out, int v) {
 		writeInt(out, v, digit);
 	}
@@ -360,6 +366,12 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
 		return offset + 1;
+	}
+	
+	public static final int scanQuotedValue(final byte[] chars, int offset) {
+		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
+
+		return offset;
 	}
 
 	public static final int scanUnquotedValue(final byte[] chars, int offset) {

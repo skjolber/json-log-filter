@@ -184,9 +184,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				}
 				previousOffset--;
 			}
-			markLimit = markToLimit(mark, chars);
+			markLimit = mark;
 		} else {
-			markLimit = markToLimit(mark, chars);
+			markLimit = mark;
 		}
 		return markLimit;
 	}
@@ -341,9 +341,9 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				}
 				previousOffset--;
 			}
-			markLimit = markToLimit(mark, chars);
+			markLimit = mark; // markToLimit(mark, chars);
 		} else {
-			markLimit = markToLimit(mark, chars);
+			markLimit = mark; // markToLimit(mark, chars);
 		}
 		return markLimit;
 	}

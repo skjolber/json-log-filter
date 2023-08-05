@@ -230,9 +230,10 @@ public class JsonComparator {
 		byte[] compactResult = JsonCompactor.compact(result);
 		byte[] compactExpected = JsonCompactor.compact(expected);
 		
-		builder.append(new String(compactResult, StandardCharsets.UTF_8));
-		builder.append("\n");
+		builder.append("Expected vs actual:\n");
 		builder.append(new String(compactExpected, StandardCharsets.UTF_8));
+		builder.append("\n");
+		builder.append(new String(compactResult, StandardCharsets.UTF_8));
 		builder.append("\n");
 
 		for(int k = 0; k < Math.min(compactResult.length, compactExpected.length); k++) {

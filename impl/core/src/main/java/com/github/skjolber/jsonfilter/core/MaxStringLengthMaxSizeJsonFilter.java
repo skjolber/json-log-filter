@@ -99,9 +99,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 				case '{' :
 					// check corner case
 					maxSizeLimit--;
-					if(offset < maxSizeLimit) {
-						mark = offset;
-					} else {
+					if(offset >= maxSizeLimit) {
 						break loop;
 					}
 
@@ -112,15 +110,19 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
-					break;
+					offset++;
+					mark = offset;
+
+					continue;
 				case '}' :	
 				case ']' :
 					bracketLevel--;
 					maxSizeLimit++;
 					
+					offset++;
 					mark = offset;
 
-					break;
+					continue;
 				case ',' :
 					mark = offset;
 					break;
@@ -164,7 +166,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							}
 							
 							if(offset + maxStringLength > maxSizeLimit) {
-								offset = maxSizeLimit;
+								offset = nextOffset;
 								
 								break loop;
 							}
@@ -190,6 +192,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								
 								return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
 							}
+							
+							mark = nextOffset;
 						}
 					}
 					offset = nextOffset;
@@ -218,9 +222,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 				case '[' : 
 				case '{' :
 					maxSizeLimit--;
-					if(offset < maxSizeLimit) {
-						mark = offset;
-					} else {
+					if(offset >= maxSizeLimit) {
 						break loop;
 					}
 
@@ -231,15 +233,18 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
+					offset++;
 					mark = offset;
-					break;
+					continue;
 				case ']' :
 				case '}' :	
 					bracketLevel--;
 					maxSizeLimit++;
+					
+					offset++;
 					mark = offset;
 
-					break;
+					continue;
 				case ',' :
 					mark = offset;
 					break;
@@ -283,7 +288,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							}
 							
 							if(offset + maxStringLength > maxSizeLimit) {
-								offset = maxSizeLimit;
+								offset = nextOffset;
 								
 								break loop;
 							}
@@ -309,6 +314,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 								
 								return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
 							}
+							
+							mark = nextOffset;
 						}
 					}
 					offset = nextOffset;

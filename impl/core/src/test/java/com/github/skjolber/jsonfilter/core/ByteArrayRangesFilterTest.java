@@ -108,7 +108,7 @@ public class ByteArrayRangesFilterTest {
 
 		for(String unicode : unicodes) {
 			String prefix = "abcdefghi";
-			String postfix = "ghijkl";
+			String postfix = "ghijklmnopqrstuvwxyz";
 
 			byte[] unicodeBytes = unicode.getBytes(StandardCharsets.UTF_8);
 			
@@ -178,32 +178,32 @@ public class ByteArrayRangesFilterTest {
 	
 	@Test
 	public void testNoUnicodeAlignmentForSingleEscapeCharacters() throws IOException {
-		String str = "abcdefghiF678g\\n\\naaa";
-		assertEquals("abcdefghiF678...TRUNCATED BY 8", splitAt(str, 13));
-		assertEquals("abcdefghiF678g...TRUNCATED BY 7", splitAt(str, 14));
-		assertEquals("abcdefghiF678g...TRUNCATED BY 7", splitAt(str, 15));
-		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 5", splitAt(str, 16));
-		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 5", splitAt(str, 17));
-		assertEquals("abcdefghiF678g\\n\\n...TRUNCATED BY 3", splitAt(str, 18));
-		assertEquals("abcdefghiF678g\\n\\na...TRUNCATED BY 2", splitAt(str, 19));
-		assertEquals("abcdefghiF678g\\n\\naa...TRUNCATED BY 1", splitAt(str, 20));
+		String str = "abcdefghiF678g\\n\\naaa01234567890123456789";
+		assertEquals("abcdefghiF678...TRUNCATED BY 28", splitAt(str, 13));
+		assertEquals("abcdefghiF678g...TRUNCATED BY 27", splitAt(str, 14));
+		assertEquals("abcdefghiF678g...TRUNCATED BY 27", splitAt(str, 15));
+		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 25", splitAt(str, 16));
+		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 25", splitAt(str, 17));
+		assertEquals("abcdefghiF678g\\n\\n...TRUNCATED BY 23", splitAt(str, 18));
+		assertEquals("abcdefghiF678g\\n\\na...TRUNCATED BY 22", splitAt(str, 19));
+		assertEquals("abcdefghiF678g\\n\\naa...TRUNCATED BY 21", splitAt(str, 20));
 	}
 	
 	@Test
 	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() throws IOException {
-		String str = "abcdefghiF678ghijkluuuu\\\\uF678xxx";
-		assertEquals("abcdefghiF678ghijkluu...TRUNCATED BY 12", splitAt(str, 21));
-		assertEquals("abcdefghiF678ghijkluuu...TRUNCATED BY 11", splitAt(str, 22));
-		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 10", splitAt(str, 23));
-		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 10", splitAt(str, 24));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\...TRUNCATED BY 8", splitAt(str, 25));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\u...TRUNCATED BY 7", splitAt(str, 26));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF...TRUNCATED BY 6", splitAt(str, 27));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF6...TRUNCATED BY 5", splitAt(str, 28));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF67...TRUNCATED BY 4", splitAt(str, 29));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678...TRUNCATED BY 3", splitAt(str, 30));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678x...TRUNCATED BY 2", splitAt(str, 31));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678xx...TRUNCATED BY 1", splitAt(str, 32));
+		String str = "abcdefghiF678ghijkluuuu\\\\uF678xxx01234567890123456789";
+		assertEquals("abcdefghiF678ghijkluu...TRUNCATED BY 32", splitAt(str, 21));
+		assertEquals("abcdefghiF678ghijkluuu...TRUNCATED BY 31", splitAt(str, 22));
+		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 30", splitAt(str, 23));
+		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 30", splitAt(str, 24));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\...TRUNCATED BY 28", splitAt(str, 25));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\u...TRUNCATED BY 27", splitAt(str, 26));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF...TRUNCATED BY 26", splitAt(str, 27));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF6...TRUNCATED BY 25", splitAt(str, 28));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF67...TRUNCATED BY 24", splitAt(str, 29));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678...TRUNCATED BY 23", splitAt(str, 30));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678x...TRUNCATED BY 22", splitAt(str, 31));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678xx...TRUNCATED BY 21", splitAt(str, 32));
 	}
 	
 

@@ -75,7 +75,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		List<MaxSizeJsonCollection> charsOutputs = outputFile.getMaxSizeCollections();
 		List<MaxSizeJsonCollection> byteOutputs = outputFile.getMaxSizeCollections();
 
-		for(int i = 0; i < charsInputs.size() - 1; i++) {
+		for(int i = 0; i < charsInputs.size() - 1 && i < charsOutputs.size(); i++) {
 			MaxSizeJsonCollection inputCurrent = charsInputs.get(i);
 			MaxSizeJsonCollection inputNext = charsInputs.get(i + 1);
 

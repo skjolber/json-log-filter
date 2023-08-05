@@ -83,7 +83,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		closeStructure(buffer);
 	}
 	
-	public int skipObjectOrArrayMaxSize(char[] chars, int offset, int limit) {
+	public int skipObjectOrArrayMaxSize(char[] chars, int offset, int maxSizeLimit) {
 		int levelLimit = getLevel() - 1;
 		
 		int level = getLevel();
@@ -92,26 +92,33 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		int mark = getMark();
 
 		loop:
-		while(offset < limit) {
+		while(offset < maxSizeLimit) {
 
 			switch(chars[offset]) {
 				case '{' :
 				case '[' :
 				{
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
 					
 					break;
 				}
 				case ']' :
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 
 					if(level == levelLimit) {
@@ -136,6 +143,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
@@ -153,20 +161,27 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				case '{' :
 				case '[' :
 				{
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
 					
 					break;
 				}
 				case ']' :
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 
 					if(level == levelLimit) {
@@ -224,7 +239,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						}
 						
 						if(offset + maxStringLength >= maxSizeLimit) {
-							offset = maxSizeLimit;
+							offset = nextOffset;
 							
 							break loop;
 						}
@@ -242,7 +257,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 							if(nextOffset >= maxSizeLimit) {
 								removeLastFilter();
 								
-								offset = maxSizeLimit;
+								offset = nextOffset;
 								
 								break loop;
 							}
@@ -262,11 +277,12 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
 
-	public int anonymizeSubtree(char[] chars, int offset, int limit) {
+	public int anonymizeSubtree(char[] chars, int offset, int maxSizeLimit) {
 		int levelLimit = getLevel();
 		
 		int level = getLevel();
@@ -277,25 +293,31 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		// TODO identify scalar or tree value, pass flow accordingly
 		
 		loop:
-		while(offset < limit) {
+		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '[' : 
 				case '{' : {
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
 					
 					break;
 				}
-	
 				case ']' : 
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 					
 					if(level == levelLimit) {
@@ -303,6 +325,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
 						// level same as before
 						setMark(mark);
+						setMaxSizeLimit(maxSizeLimit);
 
 						return offset;
 					}
@@ -342,19 +365,16 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						
 						if(chars[nextOffset] > 0x20) {						
 							// was a value
-							if(offset + getAnonymizeMessageLength() < limit) {
+							if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 								
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
-								limit += getRemovedLength() - removedLength;
+								maxSizeLimit += getRemovedLength() - removedLength;
 								
-								if(nextOffset < limit) {
-									mark = nextOffset;
-								}
+								mark = nextOffset;
 							} else {
 								// make sure to stop scanning here
-								offset = limit;
-
+								offset = nextOffset;
 								break loop;
 							}
 
@@ -378,18 +398,16 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 								offset = nextOffset + 1;
 							} else {
 								// value
-								if(offset + getAnonymizeMessageLength() < limit) {
+								if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 									
 									int removedLength = getRemovedLength();
 									addAnon(offset, end);
-									limit += getRemovedLength() - removedLength;
+									maxSizeLimit += getRemovedLength() - removedLength;
 									
-									if(end < limit) {
-										mark = end;
-									}
+									mark = end;
 								} else {
 									// make sure to stop scanning here
-									offset = limit;
+									offset = nextOffset;
 
 									break loop;
 								}
@@ -405,22 +423,18 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
 
-					if(offset + getAnonymizeMessageLength() < limit) {
+					if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
+						maxSizeLimit += getRemovedLength() - removedLength;
 						
-						limit += getRemovedLength() - removedLength;
-						
-						if(nextOffset < limit) {
-							mark = nextOffset;
-						}
-
+						mark = nextOffset;
 					} else {
 						// make sure to stop scanning here
-						offset = limit;
+						offset = nextOffset;
 
 						break loop;
 					}
@@ -435,6 +449,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}

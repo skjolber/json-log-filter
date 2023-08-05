@@ -57,6 +57,7 @@ public class JsonFilterAssertion extends AbstractJsonFilterSymmetryAssertion {
 
 		String expectedOutputContentAsString = outputFile.getContentAsString();
 		byte[] expectedOutputContentAsBytes = outputFile.getContentAsBytes();
+		System.out.println(outputFile.getSource());
 		
 		byte[] byteOutput = filter.process(inputContentAsBytes, metrics);
 		String stringOutput = filter.process(inputContentAsString, metrics);

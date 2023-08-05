@@ -89,7 +89,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		closeStructure(buffer);
 	}
 	
-	public int skipObjectOrArrayMaxSize(byte[] chars, int offset, int limit) {
+	public int skipObjectOrArrayMaxSize(byte[] chars, int offset, int maxSizeLimit) {
 		int levelLimit = getLevel() - 1;
 		
 		int level = getLevel();
@@ -98,26 +98,33 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		int mark = getMark();
 
 		loop:
-		while(offset < limit) {
+		while(offset < maxSizeLimit) {
 
 			switch(chars[offset]) {
 				case '{' :
 				case '[' :
 				{
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
 					
 					break;
 				}
 				case ']' :
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 
 					if(level == levelLimit) {
@@ -142,6 +149,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
@@ -159,20 +167,27 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 				case '{' :
 				case '[' :
 				{
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
 					
 					break;
 				}
 				case ']' :
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 
 					if(level == levelLimit) {
@@ -230,7 +245,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						}
 						
 						if(offset + maxStringLength >= maxSizeLimit) {
-							offset = maxSizeLimit;
+							offset = nextOffset;;
 							
 							break loop;
 						}
@@ -247,7 +262,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 							if(nextOffset >= maxSizeLimit) {
 								removeLastFilter();
 								
-								offset = maxSizeLimit;
+								offset = nextOffset;
 								
 								break loop;
 							}
@@ -267,11 +282,12 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
 
-	public int anonymizeSubtree(byte[] chars, int offset, int limit) {
+	public int anonymizeSubtree(byte[] chars, int offset, int maxSizeLimit) {
 		int levelLimit = getLevel();
 		
 		int level = getLevel();
@@ -280,25 +296,31 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 		int mark = getMark();
 
 		loop:
-		while(offset < limit) {
+		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '[' : 
 				case '{' : {
+					maxSizeLimit--;
+					if(offset < maxSizeLimit) {
+						mark = offset;
+					} else {
+						break loop;
+					}
+					
 					squareBrackets[level] = chars[offset] == '[';
 					
 					level++;
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					mark = offset;
-					
 					break;
 				}
 	
 				case ']' : 
 				case '}' : {
 					level--;
-
+					maxSizeLimit++;
+					
 					mark = offset;
 
 					if(level == levelLimit) {
@@ -306,7 +328,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 						// level same as before
 						setMark(mark);
-
+						setMaxSizeLimit(maxSizeLimit);
+						
 						return offset;
 					}
 					break;
@@ -345,19 +368,17 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						
 						if(chars[nextOffset] > 0x20) {						
 							// was a value
-							if(offset + getAnonymizeMessageLength() < limit) {
+							if(offset + getAnonymizeMessageLength() < maxSizeLimit) {
 								
 								int removedLength = getRemovedLength();
 								addAnon(offset, nextOffset);
-								limit += getRemovedLength() - removedLength;
+								maxSizeLimit += getRemovedLength() - removedLength;
 
-								if(nextOffset < limit) {
-									mark = nextOffset;
-								}
+								mark = nextOffset;
 							} else {
 								// make sure to stop scanning here
-								offset = limit;
-
+								offset = nextOffset;
+								
 								break loop;
 							}
 
@@ -381,18 +402,16 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								offset = nextOffset + 1;
 							} else {
 								// value
-								if(offset + getAnonymizeMessageLength() < limit) {
+								if(offset + getAnonymizeMessageLength() < maxSizeLimit) {
 									
 									int removedLength = getRemovedLength();
 									addAnon(offset, end);
-									limit += getRemovedLength() - removedLength;
+									maxSizeLimit += getRemovedLength() - removedLength;
 	
-									if(end < limit) {
-										mark = end;
-									}
+									mark = end;
 								} else {
 									// make sure to stop scanning here
-									offset = limit;
+									offset = nextOffset;
 
 									break loop;
 								}
@@ -408,21 +427,19 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 					int nextOffset = offset;
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']' && chars[nextOffset] > 0x20);
+					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
 
-					if(offset + getAnonymizeMessageLength() < limit) {
+					if(offset + getAnonymizeMessageLength() < maxSizeLimit) {
 						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
-						limit += getRemovedLength() - removedLength;
+						maxSizeLimit += getRemovedLength() - removedLength;
 
-						if(nextOffset < limit) {
-							mark = nextOffset;
-						}
+						mark = nextOffset;
 					} else {
 						// make sure to stop scanning here
-						offset = limit;
-
+						offset = nextOffset;
+						
 						break loop;
 					}
 
@@ -436,6 +453,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 
 		setLevel(level);
 		setMark(mark);
+		setMaxSizeLimit(maxSizeLimit);
 		
 		return offset;
 	}
