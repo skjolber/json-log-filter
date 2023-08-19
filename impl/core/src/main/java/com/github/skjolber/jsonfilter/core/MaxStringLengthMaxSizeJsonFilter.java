@@ -172,27 +172,25 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							}
 							
 							int removedLength = filter.getRemovedLength();
-
-							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1));
-
-							// increment limit since we removed something
-							maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-							if(nextOffset > maxSizeLimit) {
-								filter.removeLastFilter();
+							if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1))) {
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+	
+								if(nextOffset > maxSizeLimit) {
+									filter.removeLastFilter();
+									
+									offset = nextOffset;
+									
+									break loop;
+								}
 								
-								offset = nextOffset;
-								
-								break loop;
+								if(maxSizeLimit >= maxReadLimit) {
+									// filter only for max string length
+									filter.setLevel(0);
+									
+									return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+								}
 							}
-							
-							if(maxSizeLimit >= maxReadLimit) {
-								// filter only for max string length
-								filter.setLevel(0);
-								
-								return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
-							}
-							
 							mark = nextOffset;
 						}
 					}
@@ -295,27 +293,28 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							
 							int removedLength = filter.getRemovedLength();
 
-							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1));
-
-							// increment limit since we removed something
-							maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-							if(nextOffset > maxSizeLimit) {
-								filter.removeLastFilter();
+							if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1))) {
+	
+								// increment limit since we removed something
+								maxSizeLimit += filter.getRemovedLength() - removedLength;
+	
+								if(nextOffset > maxSizeLimit) {
+									filter.removeLastFilter();
+									
+									offset = nextOffset;
+									
+									break loop;
+								}
 								
-								offset = nextOffset;
+								if(maxSizeLimit >= maxReadLimit) {
+									// filter only for max string length
+									filter.setLevel(0);
+									
+									return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+								}
 								
-								break loop;
+								mark = nextOffset;
 							}
-							
-							if(maxSizeLimit >= maxReadLimit) {
-								// filter only for max string length
-								filter.setLevel(0);
-								
-								return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
-							}
-							
-							mark = nextOffset;
 						}
 					}
 					offset = nextOffset;

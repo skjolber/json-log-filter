@@ -269,7 +269,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public static final int scanUnquotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']');
+		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
 
 		return offset;
 	}

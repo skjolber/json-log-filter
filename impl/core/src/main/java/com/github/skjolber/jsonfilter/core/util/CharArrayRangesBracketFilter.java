@@ -55,20 +55,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		}
 	}
 
-	public int markToLimit(char[] chars) {
-		switch(chars[mark]) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
-	}
-	
 	@Override
 	public void filter(char[] chars, int offset, int length, StringBuilder buffer, JsonFilterMetrics metrics) {
 		super.filter(chars, offset, length, buffer, metrics);
@@ -99,9 +85,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				case '[' :
 				{
 					maxSizeLimit--;
-					if(offset < maxSizeLimit) {
-						mark = offset;
-					} else {
+					if(offset >= maxSizeLimit) {
 						break loop;
 					}
 					
@@ -111,21 +95,24 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					
-					break;
+
+					offset++;
+					mark = offset;
+
+					continue;
 				}
 				case ']' :
 				case '}' : {
 					level--;
 					maxSizeLimit++;
 					
+					offset++;
 					mark = offset;
 
 					if(level == levelLimit) {
-						offset++;
 						break loop;
 					}
-					break;
+					continue;
 				}
 				case ',' :
 					mark = offset;
@@ -162,9 +149,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				case '[' :
 				{
 					maxSizeLimit--;
-					if(offset < maxSizeLimit) {
-						mark = offset;
-					} else {
+					if(offset >= maxSizeLimit) {
 						break loop;
 					}
 					
@@ -174,21 +159,24 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					
-					break;
+
+					offset++;
+					mark = offset;
+
+					continue;
 				}
 				case ']' :
 				case '}' : {
 					level--;
 					maxSizeLimit++;
-					
+
+					offset++;
 					mark = offset;
 
 					if(level == levelLimit) {
-						offset++;
 						break loop;
 					}
-					break;
+					continue;
 				}
 				case ',' :
 					mark = offset;
@@ -245,7 +233,6 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 						}
 
 						int removedLength = getRemovedLength();
-						
 						if(addMaxLength(chars, offset + maxStringLength - 1, end, -(offset + maxStringLength - end - 1))) {
 							// increment limit since we removed something
 							maxSizeLimit += getRemovedLength() - removedLength;
@@ -290,17 +277,13 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 		boolean[] squareBrackets = getSquareBrackets();
 		int mark = getMark();
 
-		// TODO identify scalar or tree value, pass flow accordingly
-		
 		loop:
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
 				case '[' : 
 				case '{' : {
 					maxSizeLimit--;
-					if(offset < maxSizeLimit) {
-						mark = offset;
-					} else {
+					if(offset >= maxSizeLimit) {
 						break loop;
 					}
 					
@@ -310,26 +293,28 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					if(level >= squareBrackets.length) {
 						squareBrackets = grow(squareBrackets);
 					}
-					
-					break;
+
+					offset++;
+					mark = offset;
+
+					continue;
 				}
 				case ']' : 
 				case '}' : {
 					level--;
 					maxSizeLimit++;
 					
+					offset++;
 					mark = offset;
 					
 					if(level == levelLimit) {
-						offset++;
-
 						// level same as before
 						setMark(mark);
 						setMaxSizeLimit(maxSizeLimit);
 
 						return offset;
 					}
-					break;
+					continue;
 				}
 				case ',' : {
 					mark = offset;
@@ -371,7 +356,12 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 								addAnon(offset, nextOffset);
 								maxSizeLimit += getRemovedLength() - removedLength;
 								
-								mark = nextOffset;
+								if(nextOffset <= maxSizeLimit) {
+									mark = nextOffset;
+								} else {
+									removeLastFilter();
+									break loop;
+								}
 							} else {
 								// make sure to stop scanning here
 								offset = nextOffset;
@@ -404,7 +394,12 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 									addAnon(offset, end);
 									maxSizeLimit += getRemovedLength() - removedLength;
 									
-									mark = end;
+									if(end <= maxSizeLimit) {
+										mark = end;
+									} else {
+										removeLastFilter();
+										break loop;
+									}
 								} else {
 									// make sure to stop scanning here
 									offset = nextOffset;
@@ -420,18 +415,20 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				}
 				default : {
 					// scalar value
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != ',' && chars[nextOffset] != '}' && chars[nextOffset] != ']');
-
+					int nextOffset = scanUnquotedValue(chars, offset);
+					
 					if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 						
 						int removedLength = getRemovedLength();
 						addAnon(offset, nextOffset);
 						maxSizeLimit += getRemovedLength() - removedLength;
 						
-						mark = nextOffset;
+						if(nextOffset <= maxSizeLimit) {
+							mark = nextOffset;
+						} else {
+							removeLastFilter();
+							break loop;
+						}
 					} else {
 						// make sure to stop scanning here
 						offset = nextOffset;

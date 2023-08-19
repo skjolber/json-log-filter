@@ -92,4 +92,25 @@ public class SingleFullPathJsonFilterTest extends DefaultJsonFilterTest {
 		assertThat(new SingleFullPathJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
 	}
 	
+	@Test
+	public void test() {
+		String string = "[{\"key\":[\"a\"]}]";
+		
+		int size = 12;
+		SingleFullPathMaxSizeJsonFilter filter = new SingleFullPathMaxSizeJsonFilter(size, -1, DEFAULT_PATH, FilterType.ANON);
+		
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+
+	}
+		
+	
+	
 }

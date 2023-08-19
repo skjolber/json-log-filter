@@ -75,6 +75,12 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		List<MaxSizeJsonCollection> charsOutputs = outputFile.getMaxSizeCollections();
 		List<MaxSizeJsonCollection> byteOutputs = outputFile.getMaxSizeCollections();
 
+		for(int i = 0; i < charsOutputs.size(); i++) {
+			MaxSizeJsonCollection outputCurrent = charsOutputs.get(i);
+			
+			System.out.println(outputCurrent.getContentAsString());
+		}
+
 		for(int i = 0; i < charsInputs.size() - 1 && i < charsOutputs.size(); i++) {
 			MaxSizeJsonCollection inputCurrent = charsInputs.get(i);
 			MaxSizeJsonCollection inputNext = charsInputs.get(i + 1);
@@ -93,12 +99,17 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 			while(k < inputNext.getMark()) {
 				String charsValue = inputNext.getContentAsString();
 				
+				System.out.println(new String(charsValue));
+				
 				int maxByteSize = charsValue.substring(0, k).getBytes(StandardCharsets.UTF_8).length;
 				int maxCharSize = k;
 
 				String expectedMaxSizeCharsOutput = outputCurrent.getContentAsString();
 				byte[] expectedMaxSizeBytesOutput = expectedMaxSizeCharsOutput.getBytes(StandardCharsets.UTF_8);
 
+				System.out.println(charsValue);
+				System.out.println(expectedMaxSizeCharsOutput);
+				
 				maxCharSize = expectedMaxSizeCharsOutput.length();
 				maxByteSize = expectedMaxSizeBytesOutput.length;
 

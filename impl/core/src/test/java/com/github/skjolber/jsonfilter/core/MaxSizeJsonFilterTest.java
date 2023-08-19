@@ -87,5 +87,24 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThatMaxSize(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
+	
+	@Test
+	public void test() {
+		String string = "[\"a0\",[\"a1\",[]]]";
+		
+		int size = 6;
+		MustContrainMaxSizeJsonFilter filter = new MustContrainMaxSizeJsonFilter(size);
+		
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+
+	}
 		
 }
