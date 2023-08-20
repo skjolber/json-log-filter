@@ -23,9 +23,13 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 		
 		buffer.ensureCapacity(buffer.length() + copy.getMaxOutputLength()); 
 
-		copy.filter(chars, offset, length, buffer);
-		
-		return true;
+		try {
+			copy.filter(chars, offset, length, buffer);
+			
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
 	}
 	
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
@@ -36,9 +40,13 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 			return false;
 		}
 		
-		copy.filter(chars, offset, length, buffer);
-		
-		return true;
+		try {
+			copy.filter(chars, offset, length, buffer);
+			
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
 	}
 	
 	
@@ -48,9 +56,13 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 			return false;
 		}
 		
-		copy.filter(chars, offset, length, buffer, metrics);
-		
-		return true;
+		try {
+			copy.filter(chars, offset, length, buffer, metrics);
+			
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
@@ -58,12 +70,16 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 		if(copy == null) {
 			return false;
 		}
-		
-		buffer.ensureCapacity(buffer.length() + copy.getMaxOutputLength()); 
 
-		copy.filter(chars, offset, length, buffer, metrics);
-		
-		return true;
+		try {
+			buffer.ensureCapacity(buffer.length() + copy.getMaxOutputLength()); 
+	
+			copy.filter(chars, offset, length, buffer, metrics);
+			
+			return true;
+		} catch(Exception e) {
+			return false;
+		}			
 	}
 	
 	protected abstract ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length);

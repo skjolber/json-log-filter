@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.github.skjolber.jsonfilter.test.jackson.JsonCompactor;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
 
@@ -217,7 +218,7 @@ public class AbstractJsonFilterSymmetryAssertion {
 		fail(builder.toString());
 	}
 
-	protected static void assertEventsEquals(Path source, byte[] inputContentAsBytes, byte[] byteOutput1, byte[] expectedByteOutput2) {
+	protected static void assertEventsEquals(String assertMessage, Path source, byte[] inputContentAsBytes, byte[] byteOutput1, byte[] expectedByteOutput2) {
 		if(byteOutput1 == null && expectedByteOutput2 == null) {
 			return;
 		}
@@ -244,7 +245,11 @@ public class AbstractJsonFilterSymmetryAssertion {
 		}
 
 		StringBuilder builder = new StringBuilder();
-		builder.append("Expected equal events result\n");
+		builder.append("Expected equal events result: ");
+		if(assertMessage != null) {
+			builder.append(assertMessage);
+		}
+
 		builder.append(new String(inputContentAsBytes, StandardCharsets.UTF_8));
 		builder.append("\n");
 		
@@ -253,15 +258,43 @@ public class AbstractJsonFilterSymmetryAssertion {
 		fail(builder.toString());
 	}
 
-	protected static void assertEventsEquals(Path source, String inputContentAsString, String outputAsString1, String expectedOutputAsString2) {
+	protected static void assertEventsEquals(String assertMessage, Path source, String inputContentAsString, String outputAsString1, String expectedOutputAsString2) {
 		if(outputAsString1 == null && expectedOutputAsString2 == null) {
 			return;
 		}
 		if(outputAsString1 != null && expectedOutputAsString2 == null) {
-			fail("Expected result for " + source + ", but there was no output 2");
+			StringBuilder builder = new StringBuilder();
+			builder.append(source.toString());
+			builder.append("\n");
+			builder.append("Expected equal events result\n");
+			builder.append(inputContentAsString);
+			builder.append("\n");
+
+			builder.append("Expected result for " + source + ", but there was no output 2");
+			
+			String compactOutput = JsonCompactor.compact(outputAsString1);
+
+			builder.append("Actual:\n");
+			builder.append(compactOutput);
+			
+			fail(builder.toString());
 		}
 		if(outputAsString1 == null && expectedOutputAsString2 != null) {
-			fail("Expected result for " + source + ", but there was no output 1");
+			StringBuilder builder = new StringBuilder();
+			builder.append(source.toString());
+			builder.append("\n");
+			builder.append("Expected equal events result\n");
+			builder.append(inputContentAsString);
+			builder.append("\n");
+
+			builder.append("Expected result for " + source + ", but there was no output 1");
+			
+			String compactExpected = JsonCompactor.compact(expectedOutputAsString2);
+
+			builder.append("Expected:\n");
+			builder.append(compactExpected);
+			
+			fail(builder.toString());
 		}
 		
 		if(outputAsString1.equals(expectedOutputAsString2)) {
@@ -280,7 +313,11 @@ public class AbstractJsonFilterSymmetryAssertion {
 		}
 		
 		StringBuilder builder = new StringBuilder();
-		builder.append("Expected equal events result\n");
+		builder.append("Expected equal events result: ");
+		if(assertMessage != null) {
+			builder.append(assertMessage);
+		}
+		builder.append("\n");
 		builder.append(inputContentAsString);
 		builder.append("\n");
 		
@@ -295,10 +332,38 @@ public class AbstractJsonFilterSymmetryAssertion {
 			return;
 		}
 		if(outputAsString1 != null && expectedOutputAsString2 == null) {
-			fail("Expected result for " + source + ", but there was no output 2");
+			StringBuilder builder = new StringBuilder();
+			builder.append(source.toString());
+			builder.append("\n");
+			builder.append("Expected equal result\n");
+			builder.append(inputContentAsString);
+			builder.append("\n");
+
+			builder.append("Expected result for " + source + ", but there was no output 2");
+			
+			String compactOutput = JsonCompactor.compact(outputAsString1);
+
+			builder.append("Actual:\n");
+			builder.append(compactOutput);
+			
+			fail(builder.toString());
 		}
 		if(outputAsString1 == null && expectedOutputAsString2 != null) {
-			fail("Expected result for " + source + ", but there was no output 1");
+			StringBuilder builder = new StringBuilder();
+			builder.append(source.toString());
+			builder.append("\n");
+			builder.append("Expected equal result\n");
+			builder.append(inputContentAsString);
+			builder.append("\n");
+
+			builder.append("Expected result for " + source + ", but there was no output 1");
+			
+			String compactExpected = JsonCompactor.compact(expectedOutputAsString2);
+
+			builder.append("Expected:\n");
+			builder.append(compactExpected);
+			
+			fail(builder.toString());
 		}
 		
 		if(outputAsString1.equals(expectedOutputAsString2)) {

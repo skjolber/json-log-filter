@@ -7,11 +7,10 @@ import java.util.Iterator;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonItem;
+import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
 
 /**
  * 
@@ -97,6 +96,14 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 						generator.close();
 
 						String string = bout.toString();
+						
+						if(input.contains("\\u")) {
+							StringBuilder builder = new StringBuilder(string.length() + 16);
+							PrettyPrintTransformer.escape(string, builder);
+							
+							return new MaxSizeJsonItem(length + (builder.length() - string.length()), level, builder.toString());
+						}
+						
 						return new MaxSizeJsonItem(length, level, string);
 					}
 				}
@@ -104,6 +111,14 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			generator.close();
 
 			String string = bout.toString();
+			
+			if(input.contains("\\u")) {
+				StringBuilder builder = new StringBuilder(string.length() + 16);
+				PrettyPrintTransformer.escape(string, builder);
+				
+				return new MaxSizeJsonItem(builder.length(), 0, builder.toString());
+			}
+			
 			return new MaxSizeJsonItem(string.length(), 0, string);
 		} catch (Exception e) {
 			throw new RuntimeException();
@@ -146,6 +161,14 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 						generator.close();
 						
 						String string = bout.toString();
+						
+						if(input.contains("\\u")) {
+							StringBuilder builder = new StringBuilder(string.length() + 16);
+							PrettyPrintTransformer.escape(string, builder);
+							
+							return new MaxSizeJsonItem(length + (builder.length() - string.length()), level, builder.toString());
+						}
+						
 						return new MaxSizeJsonItem(length, level, string);
 					}
 				}
@@ -155,6 +178,14 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			inputExhausted = true;
 			
 			String string = bout.toString();
+			
+			if(input.contains("\\u")) {
+				StringBuilder builder = new StringBuilder(string.length() + 16);
+				PrettyPrintTransformer.escape(string, builder);
+				
+				return new MaxSizeJsonItem(builder.length(), 0, builder.toString());
+			}
+			
 			return new MaxSizeJsonItem(string.length(), 0, string);
 		} catch (Exception e) {
 			throw new RuntimeException(e);

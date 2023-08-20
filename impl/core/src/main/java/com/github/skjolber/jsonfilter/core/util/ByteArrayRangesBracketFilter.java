@@ -248,6 +248,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 							}
 							
 							if(nextOffset >= maxSizeLimit) {
+								maxSizeLimit -= getRemovedLength() - removedLength;
+
 								removeLastFilter();
 								
 								offset = nextOffset;
@@ -366,7 +368,10 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								if(nextOffset <= maxSizeLimit) {
 									mark = nextOffset;
 								} else {
+									maxSizeLimit -= getRemovedLength() - removedLength;
+									
 									removeLastFilter();
+									
 									break loop;
 								}
 							} else {
@@ -404,6 +409,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 									if(end <= maxSizeLimit) {
 										mark = end;
 									} else {
+										maxSizeLimit -= getRemovedLength() - removedLength;
+										
 										removeLastFilter();
 										break loop;
 									}
@@ -433,6 +440,8 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 						if(nextOffset <= maxSizeLimit) {
 							mark = nextOffset;
 						} else {
+							maxSizeLimit -= getRemovedLength() - removedLength;
+
 							removeLastFilter();
 							break loop;
 						}

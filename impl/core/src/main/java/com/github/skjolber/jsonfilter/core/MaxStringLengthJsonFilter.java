@@ -65,118 +65,131 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 	
 	public static int ranges(final char[] chars, int offset, int limit, int maxStringLength, CharArrayRangesFilter filter) {
 		while(offset < limit) {
-			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-				nextOffset++;
-				
-				if(nextOffset - offset > maxStringLength) {
-					// is this a field name or a value? A field name must be followed by a colon
-					
-					// special case: no whitespace
-					if(chars[nextOffset] == ':') {
-						// key
-						offset = nextOffset + 1;
-						
-						continue;
-					} else {
-						// most likely there is now no whitespace, but a comma, end array or end object
-						
-						// legal whitespaces are:
-						// space: 0x20
-						// tab: 0x09
-						// carriage return: 0x0D
-						// newline: 0x0A
-
-						if(chars[nextOffset] > 0x20) {
-							// was a value
-							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
-						} else {
-							// fast-forward over whitespace
-							// optimization: scan for highest value
-
-							int end = nextOffset;
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
-
-							if(chars[nextOffset] == ':') {
-								// was a key
-								offset = nextOffset + 1;
-								
-								continue;
-							} else {
-								// value
-								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
-							}
-						}
-					}
-				}
-				offset = nextOffset;
-			} else {
+			if(chars[offset] != '"') {
 				offset++;
+				
+				continue;
 			}
-		}				
+			int nextOffset = offset;
+			do {
+				nextOffset++;
+			} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+			
+			if(nextOffset - offset < maxStringLength) {
+				offset = nextOffset + 1;
+				
+				continue;
+			}
+
+			nextOffset++;
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			
+			// special case: no whitespace
+			if(chars[nextOffset] == ':') {
+				// key
+				offset = nextOffset + 1;
+				
+				continue;
+			}
+			// most likely there is now no whitespace, but a comma, end array or end object
+			
+			// legal whitespaces are:
+			// space: 0x20
+			// tab: 0x09
+			// carriage return: 0x0D
+			// newline: 0x0A
+
+			if(chars[nextOffset] > 0x20) {
+				// no whitespace, and not a colon, was a value
+				filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+				offset = nextOffset;
+				
+				continue;
+			}
+			// fast-forward over whitespace
+			// optimization: scan for highest value
+
+			int end = nextOffset;
+			do {
+				nextOffset++;
+			} while(chars[nextOffset] <= 0x20);
+
+			if(chars[nextOffset] == ':') {
+				// was a key
+				offset = nextOffset + 1;
+				
+				continue;
+			}
+			// value
+			filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+			offset = nextOffset;
+		}
 		return offset;
 	}
 	
 	public static int ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
-			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-				nextOffset++;
-				
-				if(nextOffset - offset > maxStringLength) {
-					// is this a field name or a value? A field name must be followed by a colon
-					
-					// special case: no whitespace
-					if(chars[nextOffset] == ':') {
-						// key
-						offset = nextOffset + 1;
-					} else {
-						// most likely there is now no whitespace, but a comma, end array or end object
-						
-						// legal whitespaces are:
-						// space: 0x20
-						// tab: 0x09
-						// carriage return: 0x0D
-						// newline: 0x0A
-
-						if(chars[nextOffset] > 0x20) {
-							// was a value
-							filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
-							offset = nextOffset;
-						} else {
-							// fast-forward over whitespace
-							
-							// optimization: scan for highest value
-
-							int end = nextOffset;
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
-
-							if(chars[nextOffset] == ':') {
-								// was a key
-								offset = nextOffset + 1;
-							} else {
-								// value
-								filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
-								offset = nextOffset;
-							}
-						}
-					}
-				} else {
-					offset = nextOffset;
-				}
-			} else {
+			if(chars[offset] != '"') {
 				offset++;
+				
+				continue;
 			}
+			int nextOffset = offset;
+			do {
+				nextOffset++;
+			} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+			
+			if(nextOffset - offset < maxStringLength) {
+				offset = nextOffset + 1;
+				
+				continue;
+			}
+			
+			nextOffset++;
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			
+			// special case: no whitespace
+			if(chars[nextOffset] == ':') {
+				// key
+				offset = nextOffset + 1;
+				
+				continue;
+			}
+			// most likely there is now no whitespace, but a comma, end array or end object
+			
+			// legal whitespaces are:
+			// space: 0x20
+			// tab: 0x09
+			// carriage return: 0x0D
+			// newline: 0x0A
+
+			if(chars[nextOffset] > 0x20) {
+				// no whitespace, and not a colon, was a value
+				filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+				offset = nextOffset;
+				
+				continue;
+			}
+			// fast-forward over whitespace
+			
+			// optimization: scan for highest value
+
+			int end = nextOffset;
+			do {
+				nextOffset++;
+			} while(chars[nextOffset] <= 0x20);
+
+			if(chars[nextOffset] == ':') {
+				// was a key
+				offset = nextOffset + 1;
+				
+				continue;
+			} 
+			// value
+			filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+			offset = nextOffset;
 		}
 
 		return offset;

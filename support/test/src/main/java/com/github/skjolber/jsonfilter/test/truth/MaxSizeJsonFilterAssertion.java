@@ -7,6 +7,7 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonCollection;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonCollectionInputOutputAlignment;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
@@ -74,18 +75,31 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 
 		List<MaxSizeJsonCollection> charsOutputs = outputFile.getMaxSizeCollections();
 		List<MaxSizeJsonCollection> byteOutputs = outputFile.getMaxSizeCollections();
-
-		for(int i = 0; i < charsOutputs.size(); i++) {
-			MaxSizeJsonCollection outputCurrent = charsOutputs.get(i);
+		
+		// output might not correlate directly to input, as output might reduce the number
+		// of events because of filtering. But each output has one or more inputs.
+		
+		MaxSizeJsonCollectionInputOutputAlignment alignment = MaxSizeJsonCollectionInputOutputAlignment.create(charsInputs, charsOutputs, infiniteJsonFilter);
+		
+		/*
+		for(int i = 0; i < alignment.size(); i++) {
+			String input = alignment.getInput(i).getContentAsString();
 			
-			System.out.println(outputCurrent.getContentAsString());
+			System.out.println(input);
 		}
+		
+		for(int i = 0; i < alignment.size(); i++) {
+			String output = alignment.getOutput(i).getContentAsString();
+			
+			System.out.println(output);
+		}
+		*/
 
 		for(int i = 0; i < charsInputs.size() - 1 && i < charsOutputs.size(); i++) {
-			MaxSizeJsonCollection inputCurrent = charsInputs.get(i);
-			MaxSizeJsonCollection inputNext = charsInputs.get(i + 1);
+			MaxSizeJsonCollection inputCurrent = alignment.getInput(i);
+			MaxSizeJsonCollection inputNext = alignment.getInput(i + 1);
 
-			MaxSizeJsonCollection outputCurrent = charsOutputs.get(i);
+			MaxSizeJsonCollection outputCurrent = alignment.getOutput(i);
 
 			// Check only the range that was added between items, i.e. when going from
 			//
@@ -99,17 +113,12 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 			while(k < inputNext.getMark()) {
 				String charsValue = inputNext.getContentAsString();
 				
-				System.out.println(new String(charsValue));
-				
 				int maxByteSize = charsValue.substring(0, k).getBytes(StandardCharsets.UTF_8).length;
 				int maxCharSize = k;
 
 				String expectedMaxSizeCharsOutput = outputCurrent.getContentAsString();
 				byte[] expectedMaxSizeBytesOutput = expectedMaxSizeCharsOutput.getBytes(StandardCharsets.UTF_8);
 
-				System.out.println(charsValue);
-				System.out.println(expectedMaxSizeCharsOutput);
-				
 				maxCharSize = expectedMaxSizeCharsOutput.length();
 				maxByteSize = expectedMaxSizeBytesOutput.length;
 

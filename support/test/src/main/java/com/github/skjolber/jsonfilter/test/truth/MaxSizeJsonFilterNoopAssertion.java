@@ -143,10 +143,10 @@ public class MaxSizeJsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAs
 					JsonFilter bytesFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxByteSize);
 					
 					String stringOutput2 = charsFilter.process(prettyPrintedAsString, metrics);
-					assertEventsEquals(input.getSource(), prettyPrintedAsString, stringOutput2, prettyPrintedAsString);
+					assertEventsEquals("Max size " + maxCharSize, input.getSource(), prettyPrintedAsString, stringOutput2, prettyPrintedAsString);
 					
 					byte[] byteOutput2 = bytesFilter.process(prettyPrintedAsBytes, metrics);
-					assertEventsEquals(input.getSource(), prettyPrintedAsBytes, byteOutput2, prettyPrintedAsBytes);
+					assertEventsEquals("Max size " + maxByteSize, input.getSource(), prettyPrintedAsBytes, byteOutput2, prettyPrintedAsBytes);
 				}
 			}
 		}

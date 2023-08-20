@@ -50,7 +50,7 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void passthrough_success() throws Exception {
-		MaxSizeJsonFilterFunction maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, -1, ANY_PASSTHROUGH_XPATH, FilterType.ANON);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleAnyPathMaxSizeJsonFilter(size, -1, ANY_PASSTHROUGH_XPATH, FilterType.ANON);
 		
 		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(-1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE)).hasPassthrough();
 	}
@@ -87,7 +87,7 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		
 		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, "//key3", FilterType.PRUNE)).hasPruned("//key3").hasPruneMetrics();
 		
-		maxSize = (size) -> new SingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.PRUNE);
+		maxSize = (size) -> new MustContrainSingleAnyPathMaxSizeJsonFilter(size, 1, DEFAULT_ANY_PATH, FilterType.PRUNE);
 		assertThatMaxSize(maxSize, new SingleAnyPathJsonFilter(1, DEFAULT_ANY_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
 
 	}
@@ -102,11 +102,17 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void test() {
 		// String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
-		String string = "{\"key\":[{\"a\":1,\"b\":2,\"c\":3}]}";
-		int size = 35;
-		SingleAnyPathMaxSizeJsonFilter filter2 =  new MustContrainSingleAnyPathMaxSizeJsonFilter(size, 1, "//key", FilterType.ANON);
+		String string = "{\n"
+				+ "  \"key\" : [\n"
+				+ "    \"aaaaaaaaaaaaaaaaaaaa\"\n"
+				+ "  ]\n"
+				+ "}";
 		
-		SingleAnyPathMaxSizeJsonFilter filter =  new MustContrainSingleAnyPathMaxSizeJsonFilter(size, -1, DEFAULT_ANY_PATH, FilterType.ANON);
+		System.out.println("Input size is ");
+		
+		int size = 42;
+		
+		SingleAnyPathMaxSizeJsonFilter filter = new MustContrainSingleAnyPathMaxSizeJsonFilter(size, 1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE);
 		
 		System.out.println("Original:");
 		System.out.println(string);
@@ -117,6 +123,8 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		
 		byte[] filteredBytes = filter.process(string.getBytes());
 		System.out.println(new String(filteredBytes));
+		
+		System.out.println(filtered.length());
 
 	}
 }

@@ -242,6 +242,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 							}
 							
 							if(nextOffset >= maxSizeLimit) {
+								maxSizeLimit -= getRemovedLength() - removedLength;
+										
 								removeLastFilter();
 								
 								offset = nextOffset;
@@ -359,6 +361,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 								if(nextOffset <= maxSizeLimit) {
 									mark = nextOffset;
 								} else {
+									maxSizeLimit -= getRemovedLength() - removedLength;
+									
 									removeLastFilter();
 									break loop;
 								}

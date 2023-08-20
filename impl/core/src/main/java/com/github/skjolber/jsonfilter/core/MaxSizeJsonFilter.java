@@ -105,9 +105,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						do {
 							offset++;
 						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
 						
-						continue;
 					default : {
 						// some kind of value
 						// do nothing
@@ -138,10 +136,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static int markToLimit(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
-		int markLimit;
-		
-		tail:
-		if(offset <= maxSizeLimit) {
+		if(mark < maxSizeLimit) {
 			// see whether we can include the last value,
 			// which might otherwise be excluded by size exceeded due to whitespace
 			// or as a corner case. 
@@ -172,8 +167,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 								case ']':
 								case '}': {
 									// chars[nextOffset] must be a value of some sorts
-									markLimit = previousOffset + 1;
-									break tail;
+									return previousOffset + 1;
 								}
 								default : {
 									// do nothing
@@ -190,11 +184,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				}
 				previousOffset--;
 			}
-			markLimit = mark;
-		} else {
-			markLimit = mark;
 		}
-		return markLimit;
+		return mark;
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
@@ -269,9 +260,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						do {
 							offset++;
 						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
-						
-						continue;
 						
 					default : // do nothing
 				}
@@ -300,10 +288,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static int markToLimit(byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
-		int markLimit;
-		
-		tail:
-		if(offset <= maxSizeLimit) {
+		if(mark < maxSizeLimit) {
 			// see whether we can include the last value,
 			// which might otherwise be excluded by size exceeded due to whitespace
 			// or as a corner case. 
@@ -334,8 +319,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 								case ']':
 								case '}': {
 									// chars[nextOffset] must be a value of some sorts
-									markLimit = previousOffset + 1;
-									break tail;
+									return previousOffset + 1;
 								}
 								default : {
 									// do nothing
@@ -352,11 +336,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				}
 				previousOffset--;
 			}
-			markLimit = mark;
-		} else {
-			markLimit = mark;
 		}
-		return markLimit;
+		return mark;
 	}
 
 	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {

@@ -57,9 +57,8 @@ public class PrettyPrintTransformer implements Function<String, String> {
 			String string = writer.toString();
 
 			if(t.contains("\\u")) {
-				StringBuilder builder = new StringBuilder();
+				StringBuilder builder = new StringBuilder(t.length() + 16);
 				escape(string, builder);
-				
 				return builder.toString();
 			}
 			
@@ -81,6 +80,7 @@ public class PrettyPrintTransformer implements Function<String, String> {
 	 *            - Must not be null.
 	 * @param out
 	 */
+	
 	public static void escape(String s, Appendable out) {
 		try {
 			int len = s.length();

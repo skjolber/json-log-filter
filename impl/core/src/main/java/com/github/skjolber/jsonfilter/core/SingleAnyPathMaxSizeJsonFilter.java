@@ -89,46 +89,40 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int quoteIndex = nextOffset;
+					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
 					
 					// is this a field name or a value? A field name must be followed by a colon
-					if(chars[nextOffset] != ':') {
-						// skip over whitespace
-
-						// optimization: scan for highest value
-						// space: 0x20
-						// tab: 0x09
-						// carriage return: 0x0D
-						// newline: 0x0A
-
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] != ':') {
-							// was a text value
-							offset = nextOffset;
-							
-							continue;
-						}
-					}
 					
-					nextOffset++;
-					
-					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
+					// skip over whitespace
+					// optimization: scan for highest value
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
+
+					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 						nextOffset++;
 					}
 					
+					if(chars[nextOffset] != ':') {
+						// was a text value
+						offset = nextOffset;
+						
+						continue;
+					}
 					// was a field name
-					if(elementPaths == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
-						if(nextOffset >= maxSizeLimit) {
-							break loop;
-						}
-
+					
+					// skip colon
+					nextOffset++;
+					
+					if(elementPaths == STAR_CHARS || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
 						int removedLength = filter.getRemovedLength();
+						
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
+						}
 						
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
@@ -140,7 +134,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanQuotedValue(chars, nextOffset);
+									
+									offset = CharArrayRangesFilter.scanUnquotedValue(chars, offset);
 								} else {
 									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
@@ -180,7 +176,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanQuotedValue(chars, nextOffset);
+									
+									offset = CharArrayRangesFilter.scanUnquotedValue(chars, offset);
 								} else {
 									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
@@ -364,46 +362,38 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					int quoteIndex = nextOffset;
+					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
 					
 					// is this a field name or a value? A field name must be followed by a colon
-					if(chars[nextOffset] != ':') {
-						// skip over whitespace
+					// optimization: scan for highest value
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
 
-						// optimization: scan for highest value
-						// space: 0x20
-						// tab: 0x09
-						// carriage return: 0x0D
-						// newline: 0x0A
-
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] != ':') {
-							// was a text value
-							offset = nextOffset;
-							
-							continue;
-						}
-					}
-
-					nextOffset++;
-
-					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
+					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
 						nextOffset++;
 					}
 					
+					if(chars[nextOffset] != ':') {
+						// was a text value
+						offset = nextOffset;
+						
+						continue;
+					}
 					// was a field name
-					if(elementPaths == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths)) {
-						if(nextOffset >= maxSizeLimit) {
-							break loop;
-						}
 
+					// skip colon
+					nextOffset++;
+
+					if(elementPaths == STAR_BYTES || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
 						int removedLength = filter.getRemovedLength();
+						
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
+						}
 						
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
@@ -415,7 +405,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									offset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
+									
+									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, offset);
 								} else {
 									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
@@ -455,7 +447,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 
 								if(chars[nextOffset] == '"') {
 									// quoted value
-									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+									offset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
+									
+									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, offset);
 								} else {
 									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 								}
