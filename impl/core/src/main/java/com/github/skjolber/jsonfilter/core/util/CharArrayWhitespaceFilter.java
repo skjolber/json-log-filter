@@ -85,9 +85,14 @@ public class CharArrayWhitespaceFilter {
 			// 00101100 ,
 			
 			if(chars[offset] == '"') {
+				
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
+
 				offset++;
 				
 				continue;
@@ -165,9 +170,13 @@ public class CharArrayWhitespaceFilter {
 			
 			switch(c) {
 			case '"': {
+				
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
 				offset++;
 				
 				continue;
@@ -246,8 +255,11 @@ public class CharArrayWhitespaceFilter {
 					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 
 					nextOffset++;
 					int postQuoteIndex = nextOffset;
@@ -317,8 +329,11 @@ public class CharArrayWhitespaceFilter {
 			char c = chars[offset];
 			if(c == '"') {
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.append(chars, start, offset - start);
@@ -369,8 +384,11 @@ public class CharArrayWhitespaceFilter {
 				
 				int nextOffset = offset;
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 				
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;

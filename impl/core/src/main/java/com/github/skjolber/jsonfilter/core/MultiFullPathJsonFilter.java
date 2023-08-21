@@ -52,9 +52,15 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						break;
 					case '"' : { 
 						int nextOffset = offset;
+						// avoid escaped double quotes
+						// also avoid to count escaped double slash as an escape character
 						do {
+							if(chars[nextOffset] == '\\') {
+								nextOffset++;
+							}
 							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						} while(chars[nextOffset] != '"');
+						
 						int quoteIndex = nextOffset;
 
 						nextOffset++;							
@@ -176,9 +182,15 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						break;
 					case '"' : { 
 						int nextOffset = offset;
+						// avoid escaped double quotes
+						// also avoid to count escaped double slash as an escape character
 						do {
+							if(chars[nextOffset] == '\\') {
+								nextOffset++;
+							}
 							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						} while(chars[nextOffset] != '"');
+						
 						int quoteIndex = nextOffset;
 						
 						nextOffset++;							

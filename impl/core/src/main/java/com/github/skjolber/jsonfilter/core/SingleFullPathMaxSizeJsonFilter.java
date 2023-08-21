@@ -136,8 +136,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -407,8 +410,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							

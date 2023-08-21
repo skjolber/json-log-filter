@@ -154,14 +154,13 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			case ',' :
 				mark = offset;
 				break;				
-			case '"': {
+			case '"': 
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-				offset++;
-				
-				continue;
-			}
+				} while(chars[offset] != '"');
 			}
 			offset++;
 		}
@@ -239,9 +238,13 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			case '"': {
 				
 				int nextOffset = offset;
+				
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
@@ -386,8 +389,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				
 				int nextOffset = offset;
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 
 				nextOffset++;
 				int endQuoteIndex = nextOffset;

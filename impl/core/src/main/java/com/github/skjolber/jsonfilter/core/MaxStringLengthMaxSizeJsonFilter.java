@@ -137,8 +137,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						continue;
 					}
 
-					nextOffset++;
-					
+					nextOffset++;					
 					
 					// is this a field name or a value? A field name must be followed by a colon
 					
@@ -156,7 +155,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					int quoteIndex = nextOffset - 1;
+					int quoteIndex = nextOffset;
 					if(chars[nextOffset] <= 0x20) {
 						// fast-forward over whitespace
 						// optimization: scan for highest value
@@ -178,7 +177,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					}
 					
 					int removedLength = filter.getRemovedLength();
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1))) {
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
 
@@ -282,7 +281,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					int quoteIndex = nextOffset - 1;
+					int quoteIndex = nextOffset;
 					if(chars[nextOffset] <= 0x20) {
 						// fast-forward over whitespace
 						// optimization: scan for highest value
@@ -305,7 +304,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					
 					int removedLength = filter.getRemovedLength();
 
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1))) {
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
 
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;

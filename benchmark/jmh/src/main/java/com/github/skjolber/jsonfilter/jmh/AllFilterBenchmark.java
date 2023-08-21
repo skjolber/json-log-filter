@@ -242,6 +242,7 @@ public class AllFilterBenchmark {
 		return singlePathLogbookJsonPathJsonFilter.benchmarkCharacters();
 	}
 
+	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(AllFilterBenchmark.class.getSimpleName())

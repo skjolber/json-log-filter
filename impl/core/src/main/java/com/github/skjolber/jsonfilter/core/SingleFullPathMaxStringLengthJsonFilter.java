@@ -26,12 +26,12 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		int matches = 0;
 
 		final char[][] elementPaths = this.pathChars;
-		
+
+		int level = 0;
+
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(pathMatches, length);
 
 		int limit = length + offset;
-
-		int level = 0;
 
 		try {
 			rangesFullPathMaxStringLength(chars, offset, limit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
@@ -66,8 +66,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 				case '"' :
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;
@@ -214,8 +217,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 				case '"' :
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;

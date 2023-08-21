@@ -43,8 +43,11 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;
@@ -148,8 +151,11 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 			if(chars[offset] == '"') {
 				int nextOffset = offset;
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;

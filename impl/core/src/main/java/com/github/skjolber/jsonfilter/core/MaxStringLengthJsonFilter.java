@@ -71,9 +71,14 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 				continue;
 			}
 			int nextOffset = offset;
+			// avoid escaped double quotes
+			// also avoid to count escaped double slash as an escape character
 			do {
+				if(chars[nextOffset] == '\\') {
+					nextOffset++;
+				}
 				nextOffset++;
-			} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+			} while(chars[nextOffset] != '"');
 			
 			if(nextOffset - offset < maxStringLength) {
 				offset = nextOffset + 1;
@@ -100,8 +105,9 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			// carriage return: 0x0D
 			// newline: 0x0A
 
+			// special case: no whitespace and no colon
 			if(chars[nextOffset] > 0x20) {
-				// no whitespace, and not a colon, was a value
+				// value
 				filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
 				offset = nextOffset;
 				
@@ -136,9 +142,15 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 				continue;
 			}
 			int nextOffset = offset;
+			
+			// avoid escaped double quotes
+			// also avoid to count escaped double slash as an escape character
 			do {
+				if(chars[nextOffset] == '\\') {
+					nextOffset++;
+				}
 				nextOffset++;
-			} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+			} while(chars[nextOffset] != '"');
 			
 			if(nextOffset - offset < maxStringLength) {
 				offset = nextOffset + 1;
@@ -165,15 +177,15 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			// carriage return: 0x0D
 			// newline: 0x0A
 
+			// special case: no whitespace and no colon
 			if(chars[nextOffset] > 0x20) {
-				// no whitespace, and not a colon, was a value
+				// value
 				filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
 				offset = nextOffset;
 				
 				continue;
 			}
 			// fast-forward over whitespace
-			
 			// optimization: scan for highest value
 
 			int end = nextOffset;

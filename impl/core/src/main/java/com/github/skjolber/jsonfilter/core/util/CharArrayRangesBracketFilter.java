@@ -119,9 +119,11 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					break;
 				case '"' : {
 					do {
+						if(chars[offset] == '\\') {
+							offset++;
+						}
 						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					break;
+					} while(chars[offset] != '"');
 				}
 				default : // do nothing
 			}
@@ -185,8 +187,11 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					nextOffset++;
 
 					if(nextOffset - offset <= maxStringLength) {
@@ -331,8 +336,11 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				case '"' : {
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					nextOffset++;
 	
 					// is this a field name or a value? A field name must be followed by a colon

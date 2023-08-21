@@ -50,8 +50,11 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '"' :  
 						int nextOffset = offset;
 						do {
+							if(chars[nextOffset] == '\\') {
+								nextOffset++;
+							}
 							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						} while(chars[nextOffset] != '"');
 						int quoteIndex = nextOffset;
 						
 						nextOffset++;
@@ -186,8 +189,11 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '"' :  
 						int nextOffset = offset;
 						do {
+							if(chars[nextOffset] == '\\') {
+								nextOffset++;
+							}
 							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						} while(chars[nextOffset] != '"');
 						int quoteIndex = nextOffset;
 						
 						nextOffset++;

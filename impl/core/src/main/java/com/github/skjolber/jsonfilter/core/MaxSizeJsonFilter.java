@@ -102,9 +102,15 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :
+						
+						// avoid escaped double quotes
+						// also avoid to count escaped double slash an escape character
 						do {
+							if(chars[offset] == '\\') {
+								offset++;
+							}
 							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						} while(chars[offset] != '"');
 						
 					default : {
 						// some kind of value
@@ -257,9 +263,14 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :
+						// avoid escaped double quotes
+						// also avoid to count escaped double slash an escape character
 						do {
+							if(chars[offset] == '\\') {
+								offset++;
+							}
 							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+						} while(chars[offset] != '"');
 						
 					default : // do nothing
 				}

@@ -87,8 +87,11 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -293,11 +296,11 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					break;
 				case '"' :					
 					do {
+						if(chars[offset] == '\\') {
+							offset++;
+						}
 						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
-					
-					continue;
+					} while(chars[offset] != '"');
 
 				default : // do nothing
 			}
@@ -360,8 +363,11 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -560,13 +566,13 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
+				case '"' :
 					do {
+						if(chars[offset] == '\\') {
+							offset++;
+						}
 						offset++;
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-					offset++;
-					
-					continue;
+					} while(chars[offset] != '"');
 					
 				default : // do nothing
 			}

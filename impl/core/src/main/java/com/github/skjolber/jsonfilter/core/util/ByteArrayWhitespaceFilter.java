@@ -122,8 +122,11 @@ public class ByteArrayWhitespaceFilter {
 			byte c = chars[offset];
 			if(c == '"') {
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.write(chars, start, offset - start);
@@ -161,8 +164,12 @@ public class ByteArrayWhitespaceFilter {
 			switch(c) {
 			case '"': {
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
+
 				offset++;
 				
 				continue;
@@ -241,8 +248,11 @@ public class ByteArrayWhitespaceFilter {
 					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					} while(chars[nextOffset] != '"');
 
 					nextOffset++;
 					int postQuoteIndex = nextOffset;
@@ -337,8 +347,11 @@ public class ByteArrayWhitespaceFilter {
 				
 				int nextOffset = offset;
 				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
 					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				} while(chars[nextOffset] != '"');
 				
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
@@ -452,9 +465,13 @@ public class ByteArrayWhitespaceFilter {
 			// 00101100 ,
 			
 			if(chars[offset] == '"') {
+				
 				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
 					offset++;
-				} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+				} while(chars[offset] != '"');
 				offset++;
 				
 				continue;
