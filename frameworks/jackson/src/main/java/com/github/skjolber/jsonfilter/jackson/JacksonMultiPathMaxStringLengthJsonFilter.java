@@ -78,90 +78,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-		
-		int level = 0;
-
-		PathItem pathItem = this.pathItem;
-
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-
-			if(nextToken == JsonToken.START_OBJECT) {
-				level++;
-			} else if(nextToken == JsonToken.END_OBJECT) {
-				pathItem.constrain(level);
-
-				level--;
-			} else if(nextToken == JsonToken.FIELD_NAME) {
-				boolean prune = false;
-				boolean anon = false;
-				
-				// match again any higher filter
-				// match again any higher filter
-				pathItem = pathItem.constrain(level);
-						
-				if(pathItem.getLevel() == level) {
-					pathItem = pathItem.matchPath(parser.getCurrentName());
-
-					if(pathItem.hasType()) {
-						// matched
-						if(pathItem.getType() == FilterType.ANON) {
-							anon = true;
-						} else {
-							prune = true;
-						}
-						pathItem = pathItem.constrain(level);
-					}
-				}
-				
-				if(anyElementFilters != null) {
-					FilterType filterType = matchAnyElements(parser.getCurrentName());
-					if(filterType == FilterType.ANON) {
-						anon = true;
-					} else if(filterType == FilterType.PRUNE) {
-						prune = true;
-					}
-				}
-				
-				if(prune || anon) {
-					generator.copyCurrentEvent(parser);
-
-					nextToken = parser.nextToken();
-					if(nextToken.isScalarValue()) {
-						if(anon) {
-							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
-						} else {
-							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-						}
-					} else {
-						// array or object
-						if(anon) {
-							generator.copyCurrentEvent(parser);
-
-							// keep structure, but mark all values
-							anonymizeChildren(parser, generator);
-						} else {
-							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-							parser.skipChildren(); // skip children
-						}
-					}
-
-					continue;
-				}
-			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-				
-				continue;
-			}
-			
-			generator.copyCurrentEvent(parser);
-		}
-
-		return true;
+		return process(parser, generator, null);
 	}	
 
 	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator) throws IOException {
@@ -222,6 +139,15 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		
+		if(getClass() != JacksonMultiPathMaxStringLengthJsonFilter.class) {
+			try {
+				throw new RuntimeException(getClass().getName());
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
 		int level = 0;
@@ -294,7 +220,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 							parser.skipChildren(); // skip children
 							
-							metrics.onPrune(1);
+							if(metrics != null) {
+								metrics.onPrune(1);
+							}
 						}
 					}
 
@@ -303,7 +231,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 				
 				continue;
 			}
@@ -327,7 +257,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			} else if(nextToken.isScalarValue()) {
 				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 				
 				continue;
 			}

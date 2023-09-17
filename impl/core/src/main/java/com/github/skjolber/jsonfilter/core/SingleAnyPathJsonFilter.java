@@ -93,6 +93,9 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							// quoted value
 							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
+							
+							// is this a null value?
+							
 							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 						}
 						if(filterType == FilterType.PRUNE) {

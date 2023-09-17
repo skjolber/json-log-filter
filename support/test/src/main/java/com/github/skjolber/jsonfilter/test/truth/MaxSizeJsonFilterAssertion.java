@@ -151,6 +151,8 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 								
 				System.out.println(maxByteSize + " " + maxCharSize);
 				System.out.println(outputFile.getSource().toString());
+				System.out.println(new String(charsValue));
+				System.out.println(maxCharSize + " vs " + charsValue.length());
 				
 				assertEquals(inputFile.getSource(), charsValue, maxSizeCharsOutput, expectedMaxSizeCharsOutput);
 				assertEquals(inputFile.getSource(), bytesValue, maxSizeBytesOutput, expectedMaxSizeBytesOutput);

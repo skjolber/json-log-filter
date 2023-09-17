@@ -127,11 +127,11 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void test() {
 		// String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
-		String string = "{\"a\":{\"b\":{}}}";
+		String string = "{\"first\":[false]}";
 		
 		System.out.println("Input size is ");
 		
-		int size = 8;
+		int size = 12;
 		
 		SingleFullPathMaxSizeJsonFilter filter = new MustContrainSingleFullPathMaxSizeJsonFilter(size, -1, DEFAULT_PATH, FilterType.ANON);
 		

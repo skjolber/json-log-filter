@@ -47,20 +47,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
-						
-						continue;
-					}
 					level++;
 					
 					break;
 				case '}' :
 					level--;
-					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
 					
 					break;
 				case '"' :
@@ -100,17 +91,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
 					// was field name
-					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
+					boolean matched = elementPaths[level] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
 
 					nextOffset++;
 					
@@ -119,7 +101,19 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(!matched) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = CharArrayRangesFilter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, filter);
+						} else if(chars[nextOffset] == '{') {
+							offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, filter);
+						} else {
+							offset = nextOffset;
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
@@ -151,8 +145,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 								break loop;
 							}
 						}
-						
-						matches--;
 					} else {
 						offset = nextOffset;
 					}
@@ -165,8 +157,9 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		}
 
 		if(level != 0) {
-			throw new IllegalStateException();
+			throw new IllegalStateException("Level " + level);
 		}
+		
 		return offset;
 	}
 	
@@ -199,19 +192,11 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
-						
-						continue;
-					}
 					level++;
 
 					break;
 				case '}' :
 					level--;
-					
-					matches = level;
 					
 					break;
 				case '"' :
@@ -251,16 +236,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
-					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
+					// was field name
+					boolean matched = elementPaths[level] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
 
 					nextOffset++;
 					
@@ -269,7 +246,19 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(!matched) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = ByteArrayRangesFilter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, filter);
+						} else if(chars[nextOffset] == '{') {
+							offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, filter);
+						} else {
+							offset = nextOffset;
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
@@ -299,8 +288,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 								break loop;
 							}
 						}
-						
-						matches--;
 					} else {
 						offset = nextOffset;
 					}

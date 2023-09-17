@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -96,13 +97,22 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					} else {
 						// was a value
 						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						buffer.append(chars, start, aligned - start);
-						buffer.append(truncateStringValue);
-						buffer.append(endQuoteIndex - aligned);
-						buffer.append('"');
 						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
+						int removed = endQuoteIndex - aligned;
+						
+						// if truncate message + digits is smaller than the actual payload, trim it.
+						int remove = removed - truncateStringValue.length - AbstractRangesFilter.lengthToDigits(removed);
+						if(remove > 0) {
+							buffer.append(chars, start, aligned - start);
+							buffer.append(truncateStringValue);
+							buffer.append(endQuoteIndex - aligned);
+							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+						} else {
+							buffer.append(chars, start, endQuoteIndex - start + 1);
 						}
 					}
 
@@ -173,16 +183,24 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 						// was a key
 						output.write(chars, start, endQuoteIndex - start + 1);
 					} else {
-
 						// was a value
 						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						output.write(chars, start, aligned - start);
-						output.write(truncateStringValueAsBytes);
-						ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
-						output.write('"');
 						
-						if(metrics != null) {
-							metrics.onMaxStringLength(1);
+						int removed = endQuoteIndex - aligned;
+						
+						// if truncate message + digits is smaller than the actual payload, trim it.
+						int remove = removed - truncateStringValueAsBytes.length - AbstractRangesFilter.lengthToDigits(removed);
+						if(remove > 0) {
+							output.write(chars, start, aligned - start);
+							output.write(truncateStringValueAsBytes);
+							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, digit);
+							output.write('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+						} else {
+							output.write(chars, start, endQuoteIndex - start + 1);							
 						}
 					}
 

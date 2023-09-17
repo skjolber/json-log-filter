@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.core.MaxStringLengthMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -75,4 +76,16 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		assertThatMaxSize(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
 	}
 	
+	@Test
+	public void test() {
+		String string = "{\"f0\":{\"f1\":{\"deep\":\"value\"}}}";
+		System.out.println(string);
+		System.out.println("Length " + string.length());
+		MaxSizeRemoveWhitespaceJsonFilter maxStringLengthMaxSizeJsonFilter = new MaxSizeRemoveWhitespaceJsonFilter(24);
+		
+		String process = maxStringLengthMaxSizeJsonFilter.process(string);
+		
+		System.out.println(process);
+		
+	}
 }

@@ -164,6 +164,36 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		}
 	}
 
+	public static void quoteAsString(char[] input, int inPtr, int inputLen, StringBuilder output) {
+		final int[] escCodes = OUTPUT_ESCAPES_128;
+
+		while (inPtr < inputLen) {
+			while (true) {
+				char c = input[inPtr];
+				if (c < OUTPUT_ESCAPE_128_LENGTH && escCodes[c] != 0) {
+					break;
+				}
+				output.append(c);
+				if (++inPtr >= inputLen) {
+					return;
+				}
+			}
+			// something to escape; 2 or 6-char variant?
+			char d = input[inPtr++];
+			int escCode = escCodes[d];
+			if(escCode < 0) {
+				// \\u00XX
+				output.append(NUMERIC_PREFIX); // 0-3:
+				output.append(HC[d >> 4]); // 4
+				output.append(HC[d & 0xF]); // 5
+			} else {
+				output.append('\\'); // 0
+				output.append((char) escCode); // 1:
+			}
+		}
+	}
+	
+	
 	/**
 	 * Lookup table used for determining which output characters in
 	 * 7-bit ASCII range need to be quoted.
@@ -218,6 +248,47 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 
 	public int getMaxSize() {
 		return maxSize;
+	}
+	
+
+	public static int lengthToDigits(int number) {
+		if (number < 100000) {
+		    if (number < 100) {
+		        if (number < 10) {
+		            return 1;
+		        } else {
+		            return 2;
+		        }
+		    } else {
+		        if (number < 1000) {
+		            return 3;
+		        } else {
+		            if (number < 10000) {
+		                return 4;
+		            } else {
+		                return 5;
+		            }
+		        }
+		    }
+		} else {
+		    if (number < 10000000) {
+		        if (number < 1000000) {
+		            return 6;
+		        } else {
+		            return 7;
+		        }
+		    } else {
+		        if (number < 100000000) {
+		            return 8;
+		        } else {
+		            if (number < 1000000000) {
+		                return 9;
+		            } else {
+		                return 10;
+		            }
+		        }
+		    }
+		}
 	}
 	
 }

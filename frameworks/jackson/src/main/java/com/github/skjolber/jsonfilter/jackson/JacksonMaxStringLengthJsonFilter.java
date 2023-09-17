@@ -15,26 +15,70 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 
 	public static void writeMaxStringLength(final JsonParser parser, JsonGenerator generator, StringBuilder builder, int maxStringLength, char[] truncateStringValue)
 			throws IOException {
-		String text = parser.getText();
+		
+		char[] textCharacters = parser.getTextCharacters();
+		int textOffset = parser.getTextOffset();
 		
 		// A high surrogate precedes a low surrogate.
 		// check last include character
-		builder.append('"');
 
-		int max;
-		if(Character.isLowSurrogate(text.charAt(maxStringLength))) {
-			max = maxStringLength - 1;
+		int keepLength;
+		if(Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
+			keepLength = maxStringLength - 1;
 		} else {
-			max = maxStringLength;
+			keepLength = maxStringLength;
 		}
-
-		quoteAsString(text.substring(0, max), builder);
-		builder.append(truncateStringValue);
-		builder.append(text.length() - max);
-		builder.append('"');
 		
-		generator.writeRawValue(builder.toString());
-		builder.setLength(0);
+		int removeLength = parser.getTextLength() - keepLength;
+
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
+		if(actualReductionLength > 0) {
+			builder.append('"');
+			quoteAsString(textCharacters, textOffset, textOffset + keepLength, builder);
+			builder.append(truncateStringValue);
+			builder.append(removeLength);
+			builder.append('"');
+			
+			generator.writeRawValue(builder.toString());
+			builder.setLength(0);
+		} else {
+			generator.writeString(textCharacters, textOffset, parser.getTextLength());
+		}
+	}
+	
+	public static void skipMaxStringLength(final JsonParser parser, JsonGenerator generator, int maxStringLength, StringBuilder builder, JsonFilterMetrics metrics, char[] truncateStringValue) throws IOException {
+		int level = 1;
+		
+		while(level > 0) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				break;
+			}
+			
+			switch(nextToken) {
+			case START_OBJECT:
+			case START_ARRAY:
+				level++;
+				break;
+			case END_OBJECT:
+			case END_ARRAY:
+				level--;
+				break;
+			case VALUE_STRING:
+				if(parser.getTextLength() > maxStringLength) {
+					writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+					
+					if(metrics != null) {
+						metrics.onMaxStringLength(1);
+					}
+					
+					continue;
+				}
+			}
+			
+			generator.copyCurrentEvent(parser);
+		}
 	}
 	
 	protected final JsonFactory jsonFactory;

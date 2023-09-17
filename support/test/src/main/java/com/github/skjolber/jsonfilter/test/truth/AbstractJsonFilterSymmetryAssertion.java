@@ -356,7 +356,7 @@ public class AbstractJsonFilterSymmetryAssertion {
 			builder.append(inputContentAsString);
 			builder.append("\n");
 
-			builder.append("Expected result for " + source + ", but there was no output 1");
+			builder.append("Expected result for " + source + ", but there was no output 1\n");
 			
 			String compactExpected = JsonCompactor.compact(expectedOutputAsString2);
 

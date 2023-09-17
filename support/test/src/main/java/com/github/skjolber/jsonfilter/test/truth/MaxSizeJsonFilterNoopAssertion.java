@@ -104,23 +104,23 @@ public class MaxSizeJsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAs
 			for(int i = 0; i < charsInputs.size() - 1; i++) {
 				MaxSizeJsonCollection current = charsInputs.get(i);
 
-				contentAsString = input.getContentAsString();
-				contentAsBytes = input.getContentAsBytes();
+				contentAsString = current.getContentAsString();
+				contentAsBytes = contentAsString.getBytes(StandardCharsets.UTF_8);
 				
 				// pretty-printed inputs is going to exceed the current max byte/char size
 				// so just use max size same as the input length
 				for (MaxSizeJsonItem maxSizeJsonItem : current.getPrettyPrinted()) {
 					String prettyPrintedAsString = maxSizeJsonItem.getContentAsString();
 					byte[] prettyPrintedAsBytes = prettyPrintedAsString.getBytes(StandardCharsets.UTF_8);
-
+					
 					JsonFilter charsFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(contentAsString.length());
 					JsonFilter bytesFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(contentAsBytes.length);
 					
 					String stringOutput2 = charsFilter.process(prettyPrintedAsString, metrics);
-					assertEquals(input.getSource(), prettyPrintedAsString, contentAsString, stringOutput2);
+					assertEquals(input.getSource(), prettyPrintedAsString, stringOutput2, contentAsString);
 					
 					byte[] byteOutput2 = bytesFilter.process(prettyPrintedAsBytes, metrics);
-					assertEquals(input.getSource(), prettyPrintedAsBytes, contentAsBytes, byteOutput2);
+					assertEquals(input.getSource(), prettyPrintedAsBytes, byteOutput2, contentAsBytes);
 				}
 			}
 		} else {

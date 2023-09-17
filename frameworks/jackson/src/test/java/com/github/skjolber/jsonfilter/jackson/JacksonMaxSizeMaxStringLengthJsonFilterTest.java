@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.function.Function;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
@@ -25,18 +23,18 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJackson
 	
 	@Test
 	public void testMaxSize() throws IOException {
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(-1, size));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(-1, size));
 	}
 
 	@Test
 	public void passthrough_success() throws Exception {
-		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(-1, size);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(-1, size);
 		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
-		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	

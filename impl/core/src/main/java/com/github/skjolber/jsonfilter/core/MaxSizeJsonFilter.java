@@ -120,19 +120,26 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+			if(level > 0) {
+				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+				
+				buffer.append(chars, startOffset, markLimit - startOffset);
+				
+				closeStructure(level, squareBrackets, buffer);
 			
-			buffer.append(chars, startOffset, markLimit - startOffset);
-			
-			closeStructure(level, squareBrackets, buffer);
-		
-			if(metrics != null) {
-				metrics.onInput(length);
-				int charsLimit = startOffset + length;
-				if(markLimit < charsLimit) {
-					metrics.onMaxSize(charsLimit - markLimit);
+				if(metrics != null) {
+					metrics.onInput(length);
+					int charsLimit = startOffset + length;
+					if(markLimit < charsLimit) {
+						metrics.onMaxSize(charsLimit - markLimit);
+					}
+					metrics.onOutput(buffer.length() - bufferLength);
 				}
-				metrics.onOutput(buffer.length() - bufferLength);
+			} else {
+				if(metrics != null) {
+					metrics.onInput(length);
+					metrics.onOutput(buffer.length() - bufferLength);
+				}				
 			}
 
 			return true;
@@ -277,19 +284,26 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 
-			int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
-			
-			output.write(chars, startOffset, markLimit - startOffset);
-			
-			closeStructure(level, squareBrackets, output);
-			
-			if(metrics != null) {
-				metrics.onInput(length);
-				int charsLimit = startOffset + length;
-				if(markLimit < charsLimit) {
-					metrics.onMaxSize(charsLimit - markLimit);
+			if(level > 0) {
+				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+				
+				output.write(chars, startOffset, markLimit - startOffset);
+				
+				closeStructure(level, squareBrackets, output);
+				
+				if(metrics != null) {
+					metrics.onInput(length);
+					int charsLimit = startOffset + length;
+					if(markLimit < charsLimit) {
+						metrics.onMaxSize(charsLimit - markLimit);
+					}
+					metrics.onOutput(output.size() - bufferLength);
 				}
-				metrics.onOutput(output.size() - bufferLength);
+			} else {
+				if(metrics != null) {
+					metrics.onInput(length);
+					metrics.onOutput(output.size() - bufferLength);
+				}				
 			}
 	
 			return true;

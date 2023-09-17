@@ -4,6 +4,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
@@ -126,5 +129,10 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		
 		System.out.println(filtered.length());
 
+		long epochSecond = Instant.EPOCH.plus(51 * 365L, ChronoUnit.DAYS).getEpochSecond(); // 1970 + almost 51 years
+
+		Instant.EPOCH.plus(51 * 365L, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+		
+		System.out.println(epochSecond);
 	}
 }

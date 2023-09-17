@@ -12,21 +12,21 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengthJsonFilter implements JacksonJsonFilter {
+public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
-	public JacksonMaxSizeMaxStringSizeJsonFilter(int maxStringLength, int maxSize) {
+	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize) {
 		this(maxStringLength, maxSize, new JsonFactory());
 	}
 
-	public JacksonMaxSizeMaxStringSizeJsonFilter(int maxStringLength, int maxSize, JsonFactory jsonFactory) {
+	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, JsonFactory jsonFactory) {
 		this(maxStringLength, maxSize, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE, jsonFactory);
 	}
 
-	public JacksonMaxSizeMaxStringSizeJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
 	}
 
-	public JacksonMaxSizeMaxStringSizeJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 	
@@ -78,115 +78,7 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 	}
 	
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
-		// estimate output size based on input size
-		// if size limit is reached, do a more accurate output measurement
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-
-		final long maxSize = this.maxSize;
-
-        String fieldName = null;
-        
-        long offset = offsetSupplier.getAsLong();
-        
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-			if(nextToken == JsonToken.FIELD_NAME) {
-				fieldName = parser.currentName();
-				
-				continue;
-			} 
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
-				parser.getTextLength();
-			} 
-
-			long nextOffset = offsetSupplier.getAsLong();
-			
-			long size;
-			if(nextToken == JsonToken.VALUE_STRING) {
-				size = 2;
-				if(fieldName != null) {
-					size += fieldName.length() + 2;
-				}
-				if(parser.getTextLength() > maxStringLength) {
-					size += maxStringLength + truncateStringValue.length + lengthToDigits(parser.getTextLength() - maxStringLength);
-				} else {
-					size += parser.getTextLength();
-				}
-			} else {
-				size = nextOffset - offset; // i.e. this includes whitespace
-			}
-			
-			long outputSize = outputSizeSupplier.getAsLong();
-			
-			if(outputSize + size >= maxSize) {
-				break;
-			}
-
-			if(fieldName != null) {
-				generator.writeFieldName(fieldName);
-				fieldName = null;
-			}
-
-			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-
-				offset = nextOffset;
-
-				continue;
-			}
-			
-			generator.copyCurrentEvent(parser);
-			
-			offset = nextOffset;
-		}
-		generator.flush();
-		
-		return true;
-	}
-	
-	
-	protected static int lengthToDigits(int number) {
-		if (number < 100000) {
-		    if (number < 100) {
-		        if (number < 10) {
-		            return 1;
-		        } else {
-		            return 2;
-		        }
-		    } else {
-		        if (number < 1000) {
-		            return 3;
-		        } else {
-		            if (number < 10000) {
-		                return 4;
-		            } else {
-		                return 5;
-		            }
-		        }
-		    }
-		} else {
-		    if (number < 10000000) {
-		        if (number < 1000000) {
-		            return 6;
-		        } else {
-		            return 7;
-		        }
-		    } else {
-		        if (number < 100000000) {
-		            return 8;
-		        } else {
-		            if (number < 1000000000) {
-		                return 9;
-		            } else {
-		                return 10;
-		            }
-		        }
-		    }
-		}
+		return process(parser, generator, offsetSupplier, outputSizeSupplier, null);
 	}
 	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
@@ -241,7 +133,7 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 
-		final long maxSize = this.maxSize;
+		int maxSize = this.maxSize;
 
         String fieldName = null;
         
@@ -252,41 +144,44 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			if(nextToken == null) {
 				break;
 			}
-			if(nextToken == JsonToken.FIELD_NAME) {
+
+			switch(nextToken) {
+			case START_ARRAY:
+			case START_OBJECT:
+				maxSize--;
+				break;
+			case END_ARRAY:
+			case END_OBJECT:
+				maxSize++;
+				break;
+			case FIELD_NAME:
 				fieldName = parser.currentName();
-				
 				continue;
-			} 
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
+			case VALUE_STRING:
 				parser.getTextLength();
-			} 
+				break;
+				default: // do nothing
+			}
 
 			long nextOffset = offsetSupplier.getAsLong();
 			
-			long size;
-			if(nextToken == JsonToken.VALUE_STRING) {
-				size = 2;
-				if(fieldName != null) {
-					size += fieldName.length() + 2;
-				}
-				if(parser.getTextLength() > maxStringLength) {
-					size += maxStringLength + truncateStringValue.length + lengthToDigits(parser.getTextLength() - maxStringLength);
-				} else {
-					size += parser.getTextLength();
-				}
-			} else {
-				size = nextOffset - offset; // i.e. this includes whitespace
-			}
-			
+			long size = nextOffset - offset; // i.e. this includes whitespace
+
 			long outputSize = outputSizeSupplier.getAsLong();
-			
-			if(outputSize + size >= maxSize) {
+
+			if(outputSize + size > maxSize) {
+
+				// do more accurate size calculation
+				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
 				
-				metrics.onMaxSize(-1);
-				
-				break;
-			}
+				if(outputSize + accurateSize > maxSize) {
+					if(metrics != null) {
+						metrics.onMaxSize(-1);
+					}
+					
+					break;
+				}
+			}			
 
 			if(fieldName != null) {
 				generator.writeFieldName(fieldName);
@@ -296,7 +191,9 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 				
 				offset = nextOffset;
 
@@ -311,5 +208,148 @@ public class JacksonMaxSizeMaxStringSizeJsonFilter extends JacksonMaxStringLengt
 		
 		return true;
 	}
+
+	protected static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue) throws IOException {
+		int accurateSize;
+		if(fieldName != null) {
+			accurateSize = fieldName.length() + 2;
+		} else {
+			accurateSize = 0;
+		}
+		
+		if(parser.getParsingContext().getCurrentIndex() >= 2) {
+			accurateSize++;
+		}
+		
+		if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+			
+			char[] textCharacters = parser.getTextCharacters();
+			int textOffset = parser.getTextOffset();
+			
+			// A high surrogate precedes a low surrogate.
+			// check last include character
+
+			int keepLength;
+			if(Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
+				keepLength = maxStringLength - 1;
+			} else {
+				keepLength = maxStringLength;
+			}
+			
+			int removeLength = parser.getTextLength() - keepLength;
+
+			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
+			if(actualReductionLength > 0) {
+				accurateSize += parser.getTextLength() - actualReductionLength + 2;
+			} else {
+				accurateSize += parser.getTextLength() + 2;
+			}
+		} else {
+			
+			switch(nextToken) {
+			case VALUE_STRING: {
+				accurateSize += parser.getTextLength() + 2;
+				break;
+			}
+			case VALUE_NUMBER_FLOAT:
+			case VALUE_NUMBER_INT: {
+				accurateSize += parser.getNumberValue().toString().length();
+				break;
+			}
+			case VALUE_TRUE: 
+			case VALUE_NULL: {
+				accurateSize += 4;
+				break;
+			}
+			case VALUE_FALSE: {
+				accurateSize += 5;
+				break;
+			}
+			}
+		}
+		return accurateSize;
+	}
+	
+	public static boolean skipMaxSizeMaxStringLength(final JsonParser parser, JsonGenerator generator, int maxSize, int maxStringLength, char[] truncateStringValue, StringBuilder builder, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+		// estimate output size based on input size
+		// if size limit is reached, do a more accurate output measurement
+        String fieldName = null;
+        
+        long offset = offsetSupplier.getAsLong();
+        
+        int level = 1;
+        
+		while(level > 0) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				break;
+			}
+
+			switch(nextToken) {
+			case START_ARRAY:
+			case START_OBJECT:
+				maxSize--;
+				level++;
+				break;
+			case END_ARRAY:
+			case END_OBJECT:
+				maxSize++;
+				level--;
+				break;
+			case FIELD_NAME:
+				fieldName = parser.currentName();
+				continue;
+			case VALUE_STRING:
+				parser.getTextLength();
+				break;
+				default: // do nothing
+			}
+
+			long nextOffset = offsetSupplier.getAsLong();
+			
+			long size = nextOffset - offset; // i.e. this includes whitespace
+
+			long outputSize = outputSizeSupplier.getAsLong();
+
+			if(outputSize + size > maxSize) {
+
+				// do more accurate size calculation
+				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				
+				if(outputSize + accurateSize > maxSize) {
+					if(metrics != null) {
+						metrics.onMaxSize(-1);
+					}
+					
+					return false;
+				}
+			}			
+
+			if(fieldName != null) {
+				generator.writeFieldName(fieldName);
+				fieldName = null;
+			}
+
+			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
+				
+				offset = nextOffset;
+
+				continue;
+			}
+			
+			generator.copyCurrentEvent(parser);
+			
+			offset = nextOffset;
+		}
+		generator.flush();
+		
+		return true;
+	}
+
 	
 }

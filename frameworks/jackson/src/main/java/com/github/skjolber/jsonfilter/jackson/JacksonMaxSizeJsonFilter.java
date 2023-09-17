@@ -88,58 +88,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
-		// estimate output size based on input size
-		// if size limit is reached, do a more accurate output measurement
-		final long maxSize = this.maxSize;
-
-        String fieldName = null;
-        
-        long offset = offsetSupplier.getAsLong();
-        
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-			if(nextToken == JsonToken.FIELD_NAME) {
-				fieldName = parser.currentName();
-				
-				continue;
-			} 
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
-				parser.getTextLength();
-			} 
-
-			long nextOffset = offsetSupplier.getAsLong();
-			
-			long size;
-			if(nextToken == JsonToken.VALUE_STRING) {
-				size = parser.getTextLength() + 2;
-				if(fieldName != null) {
-					size += fieldName.length() + 2;
-				}
-			} else {
-				size = nextOffset - offset; // i.e. this includes whitespace
-			}
-			long outputSize = outputSizeSupplier.getAsLong();
-
-			if(outputSize + size >= maxSize) {
-				break;
-			}
-
-			if(fieldName != null) {
-				generator.writeFieldName(fieldName);
-				fieldName = null;
-			}
-
-			generator.copyCurrentEvent(parser);
-			
-			offset = nextOffset;
-		}
-		generator.flush();
-		
-		return true;
+		return process(parser, generator, offsetSupplier, outputSizeSupplier, null);
 	}
 	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
@@ -203,7 +152,10 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
 		// if size limit is reached, do a more accurate output measurement
-		final long maxSize = this.maxSize;
+		
+		// TODO optimize while output size < 50%, simplify copy operation
+
+		int maxSize = this.maxSize;
 
         String fieldName = null;
         
@@ -214,34 +166,44 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 			if(nextToken == null) {
 				break;
 			}
-			if(nextToken == JsonToken.FIELD_NAME) {
+
+			switch(nextToken) {
+			case START_ARRAY:
+			case START_OBJECT:
+				maxSize--;
+				break;
+			case END_ARRAY:
+			case END_OBJECT:
+				maxSize++;
+				break;
+			case FIELD_NAME:
 				fieldName = parser.currentName();
-				
 				continue;
-			} 
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
+			case VALUE_STRING:
 				parser.getTextLength();
-			} 
+				break;
+				default: // do nothing
+			}
 
 			long nextOffset = offsetSupplier.getAsLong();
 			
-			long size;
-			if(nextToken == JsonToken.VALUE_STRING) {
-				size = parser.getTextLength() + 2;
-				if(fieldName != null) {
-					size += fieldName.length() + 2;
-				}
-			} else {
-				size = nextOffset - offset; // i.e. this includes whitespace
-			}
+			long size = nextOffset - offset; // i.e. this includes whitespace
+			
 			long outputSize = outputSizeSupplier.getAsLong();
 
-			if(outputSize + size >= maxSize) {
+			if(outputSize + size > maxSize) {
+
+				// do more accurate size calculation
 				
-				metrics.onMaxSize(-1);
-				
-				break;
+				int accurateSize = getAccurateSize(parser, fieldName, nextToken);
+
+				if(outputSize + accurateSize > maxSize) {
+					if(metrics != null) {
+						metrics.onMaxSize(-1);
+					}
+					
+					break;
+				}
 			}
 
 			if(fieldName != null) {
@@ -256,6 +218,41 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 		generator.flush();
 		
 		return true;
+	}
+
+	protected static int getAccurateSize(final JsonParser parser, String fieldName, JsonToken nextToken) throws IOException {
+		int accurateSize;
+		if(fieldName != null) {
+			accurateSize = fieldName.length() + 2;
+		} else {
+			accurateSize = 0;
+		}
+		
+		if(parser.getParsingContext().hasCurrentIndex()) {
+			accurateSize++;
+		}
+		
+		switch(nextToken) {
+		case VALUE_STRING: {
+			accurateSize += parser.getTextLength() + 2;
+			break;
+		}
+		case VALUE_NUMBER_FLOAT:
+		case VALUE_NUMBER_INT: {
+			accurateSize += parser.getNumberValue().toString().length();
+			break;
+		}
+		case VALUE_TRUE: 
+		case VALUE_NULL: {
+			accurateSize += 4;
+			break;
+		}
+		case VALUE_FALSE: {
+			accurateSize += 5;
+			break;
+		}
+		}
+		return accurateSize;
 	}
 
 }

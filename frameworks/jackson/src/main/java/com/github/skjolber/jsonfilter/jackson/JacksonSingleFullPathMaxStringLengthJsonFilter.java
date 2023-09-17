@@ -75,74 +75,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-		
-		final String[] elementPaths = this.paths;
-
-		int level = 0;
-		int matches = 0;
-		
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-
-			if(nextToken == JsonToken.START_OBJECT) {
-				level++;
-			} else if(nextToken == JsonToken.END_OBJECT) {
-				level--;
-
-				if(matches >= level) {
-					matches = level;
-				}
-			} else if(nextToken == JsonToken.FIELD_NAME) {
-				if(matches + 1 > level) {
-					matches = level + 1;
-				}
-				
-				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {
-					matches++;
-					
-					if(matches == elementPaths.length) {
-						generator.copyCurrentEvent(parser);
-
-						nextToken = parser.nextToken();
-						if(nextToken.isScalarValue()) {
-							if(filterType == FilterType.ANON) {
-								generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
-							} else {
-								generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-							}
-						} else {
-							// array or object
-							if(filterType == FilterType.ANON) {
-								generator.copyCurrentEvent(parser);
-
-								// keep structure, but mark all values
-								anonymizeChildren(parser, generator);
-							} else {
-								generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-								parser.skipChildren(); // skip children
-							}
-						}
-
-						matches--;
-						
-						continue;
-					}
-				}
-			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-				
-				continue;
-			}
-
-			generator.copyCurrentEvent(parser);
-		}
-		generator.flush(); // don't close
-
-		return true;
+		return process(parser, generator, null);
 	}	
 
 	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator) throws IOException {
@@ -215,6 +148,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
 		
 		final String[] elementPaths = this.paths;
@@ -229,19 +163,22 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			}
 
 			if(nextToken == JsonToken.START_OBJECT) {
+				if(level > matches) {
+					generator.copyCurrentEvent(parser);
+					JacksonMaxStringLengthJsonFilter.skipMaxStringLength(parser, generator, matches, builder, metrics, truncateStringValue);
+					
+					continue;
+				}
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
 				level--;
 
-				if(matches >= level) {
-					matches = level;
-				}
+				matches = level;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
-				if(matches + 1 > level) {
-					matches = level + 1;
-				}
+				// reset match for a sibling field name, if any
+				matches = level - 1;
 
-				if(matches + 1 == level && matches < elementPaths.length && matchPath(parser.getCurrentName(), elementPaths[matches])) {
+				if(matchPath(parser.getCurrentName(), elementPaths[matches])) {
 					matches++;
 					
 					if(matches == elementPaths.length) {
@@ -265,7 +202,9 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 								generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 								parser.skipChildren(); // skip children
 								
-								metrics.onPrune(1);
+								if(metrics != null) {
+									metrics.onPrune(1);
+								}
 							}
 						}
 
@@ -277,7 +216,9 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 
 				continue;
 			}

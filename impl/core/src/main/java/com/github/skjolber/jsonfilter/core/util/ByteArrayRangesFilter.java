@@ -363,6 +363,36 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 	
+	public static int skipArray(byte[] chars, int offset) {
+		int level = 1;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '[' : {
+					level++;
+					break;
+				}
+				case ']' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' :
+					do {
+						if(chars[offset] == '\\') {
+							offset++;
+						}
+						offset++;
+					} while(chars[offset] != '"');
+				default :
+			}
+			offset++;
+		}
+	}
+	
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"' || chars[offset - 1] == '\\');
 
@@ -632,7 +662,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	
 	
 	public static int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayRangesFilter filter) {
-		int level = 0;
+		int level = 1;
 
 		while(true) {
 			switch(chars[offset]) {
@@ -641,6 +671,85 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '}' : {
+					level--;
+					
+					if(level == 0) {
+						return offset + 1;
+					}
+					break;
+				}
+				case '"' : {
+					int nextOffset = offset;
+					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
+						nextOffset++;
+					} while(chars[nextOffset] != '"');
+					nextOffset++;
+					
+					if(nextOffset - offset > maxStringLength) {
+						// is this a field name or a value? A field name must be followed by a colon
+						
+						// special case: no whitespace
+						if(chars[nextOffset] == ':') {
+							// key
+							offset = nextOffset + 1;
+							
+							continue;
+						} else {
+							// most likely there is now no whitespace, but a comma, end array or end object
+							
+							// legal whitespaces are:
+							// space: 0x20
+							// tab: 0x09
+							// carriage return: 0x0D
+							// newline: 0x0A
+
+							if(chars[nextOffset] > 0x20) {
+								// was a value
+								filter.addMaxLength(chars, offset + maxStringLength - 1, nextOffset - 1, -(offset + maxStringLength - nextOffset));
+							} else {
+								// fast-forward over whitespace
+								// optimization: scan for highest value
+
+								int end = nextOffset;
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);
+
+								if(chars[nextOffset] == ':') {
+									// was a key
+									offset = nextOffset + 1;
+									
+									continue;
+								} else {
+									// value
+									filter.addMaxLength(chars, offset + maxStringLength - 1, end - 1, -(offset + maxStringLength - end));
+								}
+							}
+						}
+					}
+					offset = nextOffset;
+					
+					continue;
+				}
+				default :
+			}
+			offset++;
+		}
+	}
+
+	public static int skipArrayMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayRangesFilter filter) {
+		int level = 1;
+
+		while(true) {
+			switch(chars[offset]) {
+				case '[' : {
+					level++;
+					break;
+				}
+				case ']' : {
 					level--;
 					
 					if(level == 0) {

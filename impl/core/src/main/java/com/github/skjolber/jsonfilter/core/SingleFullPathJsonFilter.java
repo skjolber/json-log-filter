@@ -50,24 +50,15 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 	}
 
 	protected static int rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
+		
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
-						
-						continue;
-					}
-					
 					level++;
 					
 					break;
 				case '}' :
 					level--;
-					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
 					
 					break;
 				case '"' :					
@@ -104,17 +95,8 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
 					// was field name
-					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
+					boolean matched = elementPaths[level] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
 
 					nextOffset++;
 
@@ -123,7 +105,19 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(!matched) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '{') {
+							offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else {
+							offset = nextOffset;
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
@@ -151,8 +145,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								return limit; // done filtering
 							}							
 						}
-						
-						matches = level - 1;
 					} else {
 						offset = nextOffset;
 					}
@@ -174,20 +166,11 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
-						
-						continue;
-					}
 					level++;
 					
 					break;
 				case '}' :
 					level--;
-					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
 					
 					break;
 				case '"' :
@@ -224,16 +207,8 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
-					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
+					// was field name
+					boolean matched = elementPaths[level] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
 
 					nextOffset++;
 
@@ -242,7 +217,19 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(!matched) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '{') {
+							offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else {
+							offset = nextOffset;
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
@@ -270,8 +257,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								return limit; // done filtering
 							}							
 						}
-						
-						matches--;
 					} else {
 						offset = nextOffset;
 					}

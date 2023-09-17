@@ -163,12 +163,13 @@ public class ByteArrayWhitespaceFilter {
 			
 			switch(c) {
 			case '"': {
-				do {
+				offset++;
+				while(chars[offset] != '"') {
 					if(chars[offset] == '\\') {
 						offset++;
 					}
 					offset++;
-				} while(chars[offset] != '"');
+				}
 
 				offset++;
 				
