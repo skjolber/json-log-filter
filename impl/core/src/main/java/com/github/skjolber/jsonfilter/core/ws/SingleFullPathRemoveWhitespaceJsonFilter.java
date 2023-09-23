@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -60,7 +61,6 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		
 		int level = 0;
 		final char[][] elementPaths = this.pathChars;
-		int matches = 0;
 		FilterType filterType = this.filterType;
 		int pathMatches = 0;
 
@@ -84,74 +84,90 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 				
 				switch(c) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						
-						filter.setStart(start);
-						
-						offset = filter.skipObject(chars, offset + 1, maxReadLimit, buffer);
-						
-						start = filter.getStart();
-						
-						continue;
-					}
 					level++;
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
+					} while(chars[nextOffset] != '"');
+					
 					int endQuoteIndex = nextOffset;
 					
 					// key or value, might be whitespace
+					nextOffset++;
+					
+					if(chars[nextOffset] != ':') {
 
-					// skip whitespace
-					// optimization: scan for highest value
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
+						}
+						
+						if(chars[nextOffset] != ':') {
+							// was a value
+							buffer.append(chars, start, endQuoteIndex - start + 1);			
+							
+							offset = nextOffset;
+							start = nextOffset;
+							
+							continue;
+						}
+					}
+
+					buffer.append(chars, start, endQuoteIndex - start + 1);
+					buffer.append(':');
+
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
-
-					buffer.append(chars, start, endQuoteIndex - start + 1);
 					
-					if(chars[nextOffset] != ':') {
-						// was a value
-						offset = nextOffset;
-						start = nextOffset;
-						
-						continue;
-					}
-
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
-					// was a field name
-					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset + 1;
-						start = nextOffset;
-						
-						continue;
-					}
-					
-					if(matches == elementPaths.length) {
-						buffer.append(':');
-						
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
+					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '{') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '[') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '"') {
+							
+							start = offset = nextOffset;
+							do {
+								if(chars[nextOffset] == '\\') {
+									nextOffset++;
+								}
+								nextOffset++;
+							} while(chars[nextOffset] != '"');
+							
+							endQuoteIndex = nextOffset;
+							
+							buffer.append(chars, start, endQuoteIndex - start + 1);								
+							
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
 
+							offset = nextOffset;
+							start = nextOffset;
+						} else {
+							start = nextOffset;
+							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
+						continue;
+					}
+
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
@@ -189,7 +205,6 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								if(metrics != null) {
 									metrics.onAnonymize(1);
 								}
-
 							}
 							
 							start = offset;
@@ -198,8 +213,8 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								// just remove whitespace
-								CharArrayWhitespaceFilter.process(chars, nextOffset, maxReadLimit, buffer);
+								// remove whitespace + max string length
+								buffer.append(chars, start, maxReadLimit - start);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -209,8 +224,6 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								return true;
 							}							
 						}
-						
-						matches--;
 					} else {
 						start = nextOffset;
 						offset = nextOffset;
@@ -232,7 +245,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 			return false;
 		}
 	}
-	
+
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
@@ -240,7 +253,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		
 		int level = 0;
 		final byte[][] elementPaths = this.pathBytes;
-		int matches = 0;
+		
 		FilterType filterType = this.filterType;
 		int pathMatches = 0;
 
@@ -264,74 +277,89 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 				
 				switch(c) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						
-						filter.setStart(start);
-						
-						offset = filter.skipObject(chars, offset + 1, maxReadLimit, output);
-						
-						start = filter.getStart();
-						
-						continue;
-					}
 					level++;
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
+					} while(chars[nextOffset] != '"');
+					
 					int endQuoteIndex = nextOffset;
 					
 					// key or value, might be whitespace
+					nextOffset++;
+					
+					if(chars[nextOffset] != ':') {
 
-					// skip whitespace
-					// optimization: scan for highest value
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
+						}
+						
+						if(chars[nextOffset] != ':') {
+							// was a value
+							output.write(chars, start, endQuoteIndex - start + 1);								
+
+							offset = nextOffset;
+							start = nextOffset;
+							
+							continue;
+						}
+					}
+
+					output.write(chars, start, endQuoteIndex - start + 1);
+					output.write(':');
+
 					do {
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
-
-					output.write(chars, start, endQuoteIndex - start + 1);
 					
-					if(chars[nextOffset] != ':') {
-						// was a value
-						offset = nextOffset;
-						start = nextOffset;
-						
-						continue;
-					}
-
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
-					// was a field name
-					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset + 1;
-						start = nextOffset;
-						
-						continue;
-					}
-					
-					if(matches == elementPaths.length) {
-						output.write(':');
-						
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
+					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '{') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '[') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '"') {
+							start = offset = nextOffset;
+							do {
+								if(chars[nextOffset] == '\\') {
+									nextOffset++;
+								}
+								nextOffset++;
+							} while(chars[nextOffset] != '"');
+							
+							endQuoteIndex = nextOffset;
+							
+							output.write(chars, start, endQuoteIndex - start + 1);								
+							
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
 
+							offset = nextOffset;
+							start = nextOffset;							
+						} else {
+							start = nextOffset;
+							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
+						continue;
+					}
+
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
@@ -380,8 +408,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								// just remove whitespace
-								ByteArrayWhitespaceFilter.process(chars, nextOffset, maxReadLimit, output);
+								output.write(chars, start, maxReadLimit - start);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -391,8 +418,6 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								return true;
 							}							
 						}
-						
-						matches--;
 					} else {
 						start = nextOffset;
 						offset = nextOffset;
@@ -414,6 +439,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 			return false;
 		}
 	}
+
 
 	@Override
 	public boolean isRemovingWhitespace() {

@@ -123,30 +123,5 @@ public class SingleFullPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
-	
-	@Test
-	public void test() {
-		// String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
-		String string = "{\"first\":[false]}";
-		
-		System.out.println("Input size is ");
-		
-		int size = 12;
-		
-		SingleFullPathMaxSizeJsonFilter filter = new MustContrainSingleFullPathMaxSizeJsonFilter(size, -1, DEFAULT_PATH, FilterType.ANON);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
-
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		System.out.println(new String(filteredBytes));
-		
-		System.out.println(filtered.length());
-
-	}
 
 }

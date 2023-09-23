@@ -146,11 +146,8 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						offset = nextOffset;
 						continue;
 					}
-					
-					// reset match for a sibling field name, if any
 
 					// was field name
-					boolean matched = elementPaths[level] == STAR_CHARS || matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level]);
 
 					nextOffset++;
 
@@ -163,7 +160,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						break loop;
 					}
 					
-					if(!matched) {
+					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							maxSizeLimit--;
@@ -431,9 +428,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						continue;
 					}
 					
-					// was field name
-					boolean matched = elementPaths[level] == STAR_BYTES || matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level]);
-
 					nextOffset++;
 
 					// skip whitespace
@@ -445,7 +439,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						break loop;
 					}
 					
-					if(!matched) {
+					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							maxSizeLimit--;

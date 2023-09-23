@@ -142,7 +142,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 	public void pruneAny() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, null, new String[]{DEFAULT_ANY_PATH});
 		assertThatMaxSize(maxSize, new MultiPathMaxStringLengthJsonFilter(-1, -1, null, new String[]{DEFAULT_ANY_PATH})).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
-	}	
+	}
 
 	@Test
 	public void maxStringLength() throws Exception {

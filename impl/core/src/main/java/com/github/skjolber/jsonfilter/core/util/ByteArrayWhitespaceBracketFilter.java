@@ -131,29 +131,44 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			switch(c) {
 			case '{' :
 			case '[' :
-				squareBrackets[bracketLevel] = c == '[';
+				// check corner case
+				maxSizeLimit--;
+				if(offset >= maxSizeLimit) {
+					break loop;
+				}
 
+				squareBrackets[bracketLevel] = c == '[';
+				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					squareBrackets = grow(squareBrackets);
+					boolean[] next = new boolean[squareBrackets.length + 32];
+					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+					squareBrackets = next;
 				}
+				
+				offset++;
 				mark = offset;
 
-				break;
+				continue;
 			case '}' :
 			case ']' :
 				bracketLevel--;
-
+				maxSizeLimit++;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				offset++;
 				mark = offset;
 
 				if(bracketLevel == levelLimit) {
-					offset++;
 					break loop;
 				}
-				break;
+
+				continue;
 			case ',' :
 				mark = offset;
-				break;				
+				break;			
 			case '"': 
 				do {
 					if(chars[offset] == '\\') {
@@ -325,11 +340,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		return offset;
 	}
 	
-	public int anonymizeObjectOrArrayMaxSize(final byte[] chars, int offset, int maxLimit, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public int anonymizeObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int levelLimit = getLevel();
 		int bracketLevel = getLevel();
 
-		int limit = getLimit();
+		int maxSizeLimit = getLimit();
 
 		boolean[] squareBrackets = getSquareBrackets();
 
@@ -338,7 +353,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 
 		int start = getStart();
 		
-		loop: while(offset < limit) {
+		loop: while(offset < maxSizeLimit) {
 			byte c = chars[offset];
 			if(c <= 0x20) {
 				if(start <= mark) {
@@ -348,11 +363,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				buffer.write(chars, start, offset - start);
 				do {
 					offset++;
-					limit++;
+					maxSizeLimit++;
 				} while(chars[offset] <= 0x20);
 
-				if(limit >= maxLimit) {
-					limit = maxLimit;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
 				}
 
 				start = offset;
@@ -362,31 +377,45 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 			switch(c) {			
 			case '{' :
 			case '[' :
-				squareBrackets[bracketLevel] = c == '[';
+				// check corner case
+				maxSizeLimit--;
+				if(offset >= maxSizeLimit) {
+					break loop;
+				}
 
+				squareBrackets[bracketLevel] = c == '[';
+				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					squareBrackets = grow(squareBrackets);
+					boolean[] next = new boolean[squareBrackets.length + 32];
+					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+					squareBrackets = next;
 				}
+				
+				offset++;
 				mark = offset;
 
-				break;
+				continue;
 			case '}' :
 			case ']' :
 				bracketLevel--;
-
+				maxSizeLimit++;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				offset++;
 				mark = offset;
 
 				if(bracketLevel == levelLimit) {
-					offset++;
 					break loop;
 				}
-				break;
+
+				continue;
 			case ',' :
 				mark = offset;
-				break;				
+				break;
 			case '"': {
-				
 				int nextOffset = offset;
 				do {
 					if(chars[nextOffset] == '\\') {
@@ -418,9 +447,9 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 						buffer.write(chars, start, endQuoteIndex - start);
 						buffer.write(':');
 						
-						limit += nextOffset - endQuoteIndex;
-						if(limit >= maxLimit) {
-							limit = maxLimit;
+						maxSizeLimit += nextOffset - endQuoteIndex;
+						if(maxSizeLimit >= maxReadLimit) {
+							maxSizeLimit = maxReadLimit;
 						}
 						
 						start = offset;			
@@ -434,9 +463,9 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				buffer.write(chars, start, offset - start);
 				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
 				
-				limit += nextOffset - offset - anonymizeMessage.length;
-				if(limit >= maxLimit) {
-					limit = maxLimit;
+				maxSizeLimit += nextOffset - offset - anonymizeMessage.length;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
 				}					
 				
 				if(metrics != null) {
@@ -461,9 +490,9 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 
 				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
 
-				limit += nextOffset - offset - anonymizeMessage.length;
-				if(limit >= maxLimit) {
-					limit = maxLimit;
+				maxSizeLimit += nextOffset - offset - anonymizeMessage.length;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
 				}					
 				
 				if(metrics != null) {
@@ -484,7 +513,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		setStart(start);
 		setMark(mark);
 		setLevel(bracketLevel);
-		setLimit(limit);
+		setLimit(maxSizeLimit);
 
 		return offset;
 	}

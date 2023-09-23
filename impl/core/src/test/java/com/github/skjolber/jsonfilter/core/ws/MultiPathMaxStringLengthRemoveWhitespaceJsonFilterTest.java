@@ -25,7 +25,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilterTest extends Defa
 		MultiPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new MultiPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
-	}	
+	}
 	
 	@Test
 	public void anonymize() throws Exception {
@@ -75,7 +75,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilterTest extends Defa
 	@Test
 	public void pruneAny() throws Exception {
 		assertThat(new MultiPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, null, new String[]{DEFAULT_ANY_PATH})).hasPruned(DEFAULT_ANY_PATH).hasPruneMetrics();
-	}	
+	}
 
 	@Test
 	public void maxStringLength() throws Exception {

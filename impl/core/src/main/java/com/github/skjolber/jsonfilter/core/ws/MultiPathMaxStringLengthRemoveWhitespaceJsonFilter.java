@@ -81,18 +81,16 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				
 				switch(c) {
 				case '{' :
-					level++;
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						filter.setStart(start);
 						
-						offset = filter.skipObjectMaxStringLength(chars, offset + 1, limit, maxStringLength, buffer, metrics);
+						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, buffer, metrics);
 						
 						start = filter.getStart();
 
-						level--;
-						
 						continue;
 					}
+					level++;
 					break;
 				case '}' :
 					pathItem = pathItem.constrain(level);
@@ -119,14 +117,23 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					if(chars[nextOffset] != ':') {
 						// was a value
 						if(endQuoteIndex - offset - 1 > maxStringLength) {
-							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							buffer.append(chars, start, aligned - start);
-							buffer.append(truncateStringValue);
-							buffer.append(endQuoteIndex - aligned);
-							buffer.append('"');
 							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
+							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+							
+							int removeLength = endQuoteIndex - aligned;
+							
+							// if truncate message + digits is smaller than the actual payload, trim it.
+							if(removeLength > truncateStringValue.length + lengthToDigits(removeLength)) {
+								buffer.append(chars, start, aligned - start);
+								buffer.append(truncateStringValue);
+								buffer.append(removeLength);
+								buffer.append('"');
+								
+								if(metrics != null) {
+									metrics.onMaxStringLength(1);
+								}
+							} else {
+								buffer.append(chars, start, endQuoteIndex - start + 1);
 							}
 						} else {
 							buffer.append(chars, start, endQuoteIndex - start + 1);
@@ -275,19 +282,17 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				
 				switch(c) {
 				case '{' :
-					level++;
-					
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						filter.setStart(start);
 						
-						offset = filter.skipObjectMaxStringLength(chars, offset + 1, limit, maxStringLength, output, metrics);
+						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, output, metrics);
 						
 						start = filter.getStart();
-
-						level--;
 						
 						continue;
 					}
+					level++;
+
 					break;
 				case '}' :
 					
@@ -315,15 +320,23 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					if(chars[nextOffset] != ':') {
 						// was a value
 						if(endQuoteIndex - offset - 1 > maxStringLength) {
-							// was a value
+
 							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, filter.getDigit());
-							output.write('"');							
 							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
+							int removeLength = endQuoteIndex - aligned;
+							
+							// if truncate message + digits is smaller than the actual payload, trim it.
+							if(removeLength > truncateStringValue.length + lengthToDigits(removeLength)) {
+								output.write(chars, start, aligned - start);
+								output.write(truncateStringValueAsBytes);
+								ByteArrayRangesFilter.writeInt(output, removeLength, filter.getDigit());
+								output.write('"');							
+								
+								if(metrics != null) {
+									metrics.onMaxStringLength(1);
+								}
+							} else {
+								output.write(chars, start, endQuoteIndex - start + 1);
 							}
 						} else {
 							output.write(chars, start, endQuoteIndex - start + 1);

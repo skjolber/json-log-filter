@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -80,5 +82,36 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		
 		assertThatMaxSize(maxSize, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
 	}
+	
+	
+	@Test
+	public void test() {
+		String string = "{\n"
+				+ "  \"f0\" : {\n"
+				+ "    \"f1\" : {\n"
+				+ "      \"deep\" : \"value\"\n"
+				+ "    }\n"
+				+ "  }\n"
+				+ "}";
+		
+		int size = 7;
+		
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size);
+		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
+		
+		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON);
+		
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+
+	}
+	
 	
 }

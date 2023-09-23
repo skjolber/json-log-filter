@@ -145,20 +145,27 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			}				
 		
 			if(level > 0) {
-				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
-				if(markLimit > writtenOffset) {
-					buffer.append(chars, writtenOffset, markLimit - writtenOffset);
-				} else {
+				
+				markLimit:
+				if(mark <= maxSizeLimit) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
+					if(markLimit <= maxSizeLimit) {
+						if(markLimit >= writtenOffset) {
+							buffer.append(chars, writtenOffset, markLimit - writtenOffset);
+							break markLimit;
+						}
+					}
 					buffer.setLength(writtenMark);
 				}
 				MaxSizeJsonFilter.closeStructure(level, squareBrackets, buffer);
 
 				if(metrics != null) {
 					metrics.onInput(length);
-					int charsLimit = startOffset + length;
-					if(markLimit < charsLimit) {
-						metrics.onMaxSize(charsLimit - markLimit);
+					int written = buffer.length() - bufferLength;
+					if(written < length) {
+						metrics.onMaxSize(length - written);
 					}
+					
 					metrics.onOutput(buffer.length() - bufferLength);
 				}
 			} else {
@@ -282,11 +289,15 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			}
 
 			if(level > 0) {
-				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
-				
-				if(markLimit > writtenOffset) {
-					stream.write(chars, writtenOffset, markLimit - writtenOffset);
-				} else {
+				markLimit:
+				if(mark <= maxSizeLimit) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
+					if(markLimit <= maxSizeLimit) {
+						if(markLimit >= writtenOffset) {
+							stream.write(chars, writtenOffset, markLimit - writtenOffset);
+							break markLimit;
+						}
+					}
 					stream.setCount(writtenMark);
 				}
 				MaxSizeJsonFilter.closeStructure(level, squareBrackets, stream);
@@ -295,10 +306,11 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				
 				if(metrics != null) {
 					metrics.onInput(length);
-					int charsLimit = startOffset + length;
-					if(markLimit < charsLimit) {
-						metrics.onMaxSize(charsLimit - markLimit);
-					}
+					int written = output.size() - bufferLength;
+					int totalSize = length;
+					if(written < totalSize) {
+						metrics.onMaxSize(totalSize - totalSize);
+					}					
 					metrics.onOutput(output.size() - bufferLength);
 				}
 			} else {

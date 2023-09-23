@@ -95,5 +95,28 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilterTest extends
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics()
 			.hasPruned(DEFAULT_PATH).hasPruneMetrics();
 	}
+	
+	@Test
+	public void test() {
+		String string = "{\"key\":[\"aaaaaaaaaaaaaaaaaaaa\",\"bbbbbbbbbbbbbbbbbbbbbbbb\",\"cccccccccccccccccccccccccccccccc\"]}";
+		
+		SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
+		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
+		
+		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON);
+		
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+
+	}
+	
+	
 
 }

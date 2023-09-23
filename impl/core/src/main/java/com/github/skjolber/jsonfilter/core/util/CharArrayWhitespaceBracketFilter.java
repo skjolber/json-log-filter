@@ -131,29 +131,44 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 			switch(c) {
 			case '{' :
 			case '[' :
-				squareBrackets[bracketLevel] = c == '[';
+				// check corner case
+				maxSizeLimit--;
+				if(offset >= maxSizeLimit) {
+					break loop;
+				}
 
+				squareBrackets[bracketLevel] = c == '[';
+				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					squareBrackets = grow(squareBrackets);
+					boolean[] next = new boolean[squareBrackets.length + 32];
+					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+					squareBrackets = next;
 				}
+				
+				offset++;
 				mark = offset;
 
-				break;
+				continue;
 			case '}' :
 			case ']' :
 				bracketLevel--;
-
+				maxSizeLimit++;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				offset++;
 				mark = offset;
 
 				if(bracketLevel == levelLimit) {
-					offset++;
 					break loop;
 				}
-				break;
+
+				continue;
 			case ',' :
 				mark = offset;
-				break;				
+				break;
 			case '"':
 				do {
 					if(chars[offset] == '\\') {
@@ -363,29 +378,44 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 			switch(c) {			
 			case '{' :
 			case '[' :
-				squareBrackets[bracketLevel] = c == '[';
+				// check corner case
+				maxSizeLimit--;
+				if(offset >= maxSizeLimit) {
+					break loop;
+				}
 
+				squareBrackets[bracketLevel] = c == '[';
+				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					squareBrackets = grow(squareBrackets);
+					boolean[] next = new boolean[squareBrackets.length + 32];
+					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+					squareBrackets = next;
 				}
+				
+				offset++;
 				mark = offset;
 
-				break;
+				continue;
 			case '}' :
 			case ']' :
 				bracketLevel--;
-
+				maxSizeLimit++;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				offset++;
 				mark = offset;
 
 				if(bracketLevel == levelLimit) {
-					offset++;
 					break loop;
 				}
-				break;
+
+				continue;
 			case ',' :
 				mark = offset;
-				break;				
+				break;
 			case '"': {
 				
 				int nextOffset = offset;

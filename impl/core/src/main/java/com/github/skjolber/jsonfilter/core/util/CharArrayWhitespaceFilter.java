@@ -150,12 +150,12 @@ public class CharArrayWhitespaceFilter {
 		return offset;
 	}
 
-	public int skipObject(final char[] chars, int offset, int limit, final StringBuilder buffer) {
+	public int skipObject(final char[] chars, int offset, final StringBuilder buffer) {
 		int level = 1;
 
 		int start = getStart();
 
-		loop: while(offset < limit) {
+		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
@@ -203,6 +203,61 @@ public class CharArrayWhitespaceFilter {
 		
 		return offset;
 	}
+	
+	public int skipArray(final char[] chars, int offset, final StringBuilder buffer) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(true) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
+			case '"': {
+				
+				do {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
+					offset++;
+				} while(chars[offset] != '"');
+				offset++;
+				
+				continue;
+			}
+			case '[' :
+				level++;
+
+				break;
+			case ']' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		buffer.append(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
+
 	
 	public int anonymizeObjectOrArray(char[] chars, int offset, int limit, StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
@@ -361,12 +416,12 @@ public class CharArrayWhitespaceFilter {
 		return limit + 1;
 	}
 	
-	public int skipObjectMaxStringLength(final char[] chars, int offset, int limit, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
+	public int skipObjectMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int start = getStart();
 
-		loop: while(offset < limit) {
+		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
@@ -418,7 +473,7 @@ public class CharArrayWhitespaceFilter {
 								metrics.onMaxStringLength(1);
 							}
 							start = nextOffset;
-							offset = nextOffset + 1;
+							offset = nextOffset;
 
 							continue;
 						}
@@ -457,6 +512,104 @@ public class CharArrayWhitespaceFilter {
 		
 		return offset;
 	}
+	
+	public int skipArrayMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(true) {
+			char c = chars[offset];
+			if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.append(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
+			case '"': {
+				
+				int nextOffset = offset;
+				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
+					nextOffset++;
+				} while(chars[nextOffset] != '"');
+				
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// field name or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					if(chars[nextOffset] != ':') {
+						// was a value
+						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						
+						int skipped = endQuoteIndex - aligned;
+						
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+						if(remove > 0) {
+							buffer.append(chars, start, aligned - start);
+							buffer.append(truncateMessage);
+							buffer.append(skipped);
+							buffer.append('"');
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							start = nextOffset;
+							offset = nextOffset;
+
+							continue;
+						}
+					}
+
+					// was a field name or not long enough string
+					if(nextOffset != endQuoteIndex + 1) {
+						buffer.append(chars, start, endQuoteIndex - start + 1);
+						start = nextOffset;
+					}
+
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			}
+			case '[' :
+				level++;
+
+				break;
+			case ']' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		buffer.append(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
+
 	
 	public int getPruneMessageLength() {
 		return pruneMessage.length;

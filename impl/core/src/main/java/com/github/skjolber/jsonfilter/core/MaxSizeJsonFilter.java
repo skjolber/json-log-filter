@@ -58,7 +58,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		int maxSizeLimit = offset + maxSize;
 		
-		int level = 0;
+		int bracketLevel = 0;
 		
 		boolean[] squareBrackets = new boolean[32];
 
@@ -76,10 +76,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 							break loop;
 						}
 
-						squareBrackets[level] = chars[offset] == '[';
+						squareBrackets[bracketLevel] = chars[offset] == '[';
 						
-						level++;
-						if(level >= squareBrackets.length) {
+						bracketLevel++;
+						if(bracketLevel >= squareBrackets.length) {
 							boolean[] next = new boolean[squareBrackets.length + 32];
 							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
 							squareBrackets = next;
@@ -91,7 +91,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						continue;
 					case '}' :
 					case ']' :
-						level--;
+						bracketLevel--;
 						maxSizeLimit++;
 						
 						offset++;
@@ -120,12 +120,12 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
-			if(level > 0) {
+			if(bracketLevel > 0) {
 				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
 				
 				buffer.append(chars, startOffset, markLimit - startOffset);
 				
-				closeStructure(level, squareBrackets, buffer);
+				closeStructure(bracketLevel, squareBrackets, buffer);
 			
 				if(metrics != null) {
 					metrics.onInput(length);
@@ -226,7 +226,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		int maxSizeLimit = offset + maxSize;
 
-		int level = 0;
+		int bracketLevel = 0;
 		
 		boolean[] squareBrackets = new boolean[32];
 
@@ -244,10 +244,10 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 							break loop;
 						}
 
-						squareBrackets[level] = chars[offset] == '[';
+						squareBrackets[bracketLevel] = chars[offset] == '[';
 						
-						level++;
-						if(level >= squareBrackets.length) {
+						bracketLevel++;
+						if(bracketLevel >= squareBrackets.length) {
 							boolean[] next = new boolean[squareBrackets.length + 32];
 							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
 							squareBrackets = next;
@@ -259,7 +259,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						continue;
 					case '}' :
 					case ']' :
-						level--;
+						bracketLevel--;
 						maxSizeLimit++;
 						
 						offset++;
@@ -284,12 +284,12 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 
-			if(level > 0) {
+			if(bracketLevel > 0) {
 				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
 				
 				output.write(chars, startOffset, markLimit - startOffset);
 				
-				closeStructure(level, squareBrackets, output);
+				closeStructure(bracketLevel, squareBrackets, output);
 				
 				if(metrics != null) {
 					metrics.onInput(length);

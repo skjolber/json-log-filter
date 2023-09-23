@@ -26,8 +26,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 		
 		int pathMatches = this.maxPathMatches;
 
-		int matches = 0;
-
 		final char[][] elementPaths = this.pathChars;
 
 		final CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
@@ -62,21 +60,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							squareBrackets = filter.grow(squareBrackets);
 						}
 
-						if(level > matches) {
-							// so always level < elementPaths.length
-							filter.setLevel(bracketLevel);
-							filter.setMark(offset);
-							
-							offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, offset, maxSizeLimit, maxReadLimit, maxStringLength);
-
-							squareBrackets = filter.getSquareBrackets();
-							mark = filter.getMark();
-							bracketLevel = filter.getLevel();
-							maxSizeLimit = filter.getMaxSizeLimit();
-
-							continue;
-						}
-						
 						mark = offset;
 						level++;
 						
@@ -89,9 +72,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						offset++;
 						mark = offset;
 
-						// always skips start object if not on a matching level, so must always constrain here
-						matches = level;
-						
 						continue;
 					case '[' : {
 						// check corner case
@@ -178,7 +158,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									// filtering only for full path and max string length, i.e. keep the rest of the document
 									filter.setLevel(0);
 									
-									SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, maxReadLimit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+									SingleFullPathMaxStringLengthJsonFilter.rangesFullPathMaxStringLength(chars, nextOffset, maxReadLimit, pathMatches, maxStringLength, level, elementPaths, 0, filterType, filter);
 									
 									return filter;
 								}
@@ -188,26 +168,52 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							continue;
 						}
 
-						// reset match for a sibling field name, if any
-						matches = level - 1;
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
 						
-						// was field name
-						if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteEndIndex, elementPaths[matches])) {
-							matches++;
-						} else {
-							offset = nextOffset;
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
+						
+						if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level])) {
+							// skip here
 							
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								maxSizeLimit--;
+								if(nextOffset >= maxSizeLimit) {
+									break loop;
+								}
+								
+								squareBrackets[bracketLevel] = chars[nextOffset] == '[';
+								bracketLevel++;
+								
+								if(bracketLevel >= squareBrackets.length) {
+									squareBrackets = filter.grow(squareBrackets);
+								}
+								
+								nextOffset++;
+								
+								// so always level < elementPaths.length
+								filter.setLevel(bracketLevel);
+								filter.setMark(nextOffset);
+								
+								offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, nextOffset, maxSizeLimit, maxReadLimit, maxStringLength);
+
+								squareBrackets = filter.getSquareBrackets();
+								mark = filter.getMark();
+								bracketLevel = filter.getLevel();
+								maxSizeLimit = filter.getMaxSizeLimit();
+							} else if(chars[nextOffset] == '"') {
+								offset = nextOffset;
+							} else {
+								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
 							continue;
 						}
-
-						nextOffset++;
 						
-						if(matches == elementPaths.length) {
+						if(level + 1 == elementPaths.length) {
 							int removedLength = filter.getRemovedLength();
-
-							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-								nextOffset++;
-							}
 
 							if(filterType == FilterType.PRUNE) {
 								// is there space within max size?
@@ -314,13 +320,11 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 								}
 							}
 
-							matches--;
-
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path, i.e. keep the rest of the document
 								bracketLevel = 0;
 								filter.setLevel(0);
-								 rangesFullPathMaxStringLength(chars, offset, maxReadLimit, pathMatches, maxStringLength, level, elementPaths, matches, filterType, filter);
+								 rangesFullPathMaxStringLength(chars, offset, maxReadLimit, pathMatches, maxStringLength, level, elementPaths, 0, filterType, filter);
 								
 								return filter;
 							}
@@ -399,21 +403,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						if(bracketLevel >= squareBrackets.length) {
 							squareBrackets = filter.grow(squareBrackets);
 						}
-
-						if(level > matches) {
-							// so always level < elementPaths.length
-							filter.setLevel(bracketLevel);
-							filter.setMark(offset);
-							
-							offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, offset, maxSizeLimit, maxReadLimit, maxStringLength);
-
-							squareBrackets = filter.getSquareBrackets();
-							mark = filter.getMark();
-							bracketLevel = filter.getLevel();
-							maxSizeLimit = filter.getMaxSizeLimit();
-
-							continue;
-						}
 						
 						mark = offset;
 						level++;
@@ -426,9 +415,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						
 						offset++;
 						mark = offset;
-
-						// always skips start object if not on a matching level, so must always constrain here
-						matches = level;
 						
 						continue;
 					case '[' : {
@@ -526,22 +512,53 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							
 							continue;
 						}
+
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
 						
-						// reset match for a sibling field name, if any
-						matches = level - 1;
+						if(nextOffset >= maxSizeLimit) {
+							break loop;
+						}
 						
-						// was field name
-						if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteEndIndex, elementPaths[matches])) {
-							matches++;
-						} else {
-							offset = nextOffset;
+						if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteEndIndex, elementPaths[level])) {
+							// skip here
 							
+							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+								maxSizeLimit--;
+								if(nextOffset >= maxSizeLimit) {
+									break loop;
+								}
+								
+								squareBrackets[bracketLevel] = chars[nextOffset] == '[';
+								bracketLevel++;
+								
+								if(bracketLevel >= squareBrackets.length) {
+									squareBrackets = filter.grow(squareBrackets);
+								}
+								
+								nextOffset++;
+								
+								// so always level < elementPaths.length
+								filter.setLevel(bracketLevel);
+								filter.setMark(nextOffset);
+								
+								offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, nextOffset, maxSizeLimit, maxReadLimit, maxStringLength);
+
+								squareBrackets = filter.getSquareBrackets();
+								mark = filter.getMark();
+								bracketLevel = filter.getLevel();
+								maxSizeLimit = filter.getMaxSizeLimit();
+							} else if(chars[nextOffset] == '"') {
+								offset = nextOffset;
+							} else {
+								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							}
 							continue;
 						}
-
-						nextOffset++;
 						
-						if(matches == elementPaths.length) {
+						if(level + 1 == elementPaths.length) {				
+						
 							int removedLength = filter.getRemovedLength();
 
 							while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
@@ -650,8 +667,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 									break loop;
 								}
 							}
-
-							matches--;
 
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path, i.e. keep the rest of the document

@@ -252,7 +252,7 @@ public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
 								maxSizeLimit = maxReadLimit;
 							}
 							
-							if(nextOffset >= maxSizeLimit) {
+							if(nextOffset > maxSizeLimit) {
 								maxSizeLimit -= getRemovedLength() - removedLength;
 
 								removeLastFilter();

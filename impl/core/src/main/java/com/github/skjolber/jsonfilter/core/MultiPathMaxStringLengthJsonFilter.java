@@ -45,7 +45,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					level++;
 					
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
 						
@@ -192,7 +192,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					level++;
 					
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
 						

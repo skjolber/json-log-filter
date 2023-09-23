@@ -197,6 +197,62 @@ public class ByteArrayWhitespaceFilter {
 		
 		return offset;
 	}
+	
+	public int skipArray(final byte[] chars, int offset, final ByteArrayOutputStream buffer) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(offset < limit) {
+			byte c = chars[offset];
+			if(c <= 0x20) {
+				// skip this char and any other whitespace
+				buffer.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
+			case '"': {
+				offset++;
+				while(chars[offset] != '"') {
+					if(chars[offset] == '\\') {
+						offset++;
+					}
+					offset++;
+				}
+
+				offset++;
+				
+				continue;
+			}
+			case '[' :
+				level++;
+
+				break;
+			case ']' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		buffer.write(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+	}
+
 
 	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;
@@ -325,12 +381,12 @@ public class ByteArrayWhitespaceFilter {
 		return limit + 1;
 	}
 
-	public int skipObjectMaxStringLength(byte[] chars, int offset, int limit, int maxStringLength, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int start = getStart();
 
-		loop: while(offset < limit) {
+		loop: while(true) {
 			byte c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
@@ -382,7 +438,7 @@ public class ByteArrayWhitespaceFilter {
 								metrics.onMaxStringLength(1);
 							}
 							start = nextOffset;
-							offset = nextOffset + 1;
+							offset = nextOffset;
 							
 							continue;
 						}
@@ -403,6 +459,103 @@ public class ByteArrayWhitespaceFilter {
 
 				break;
 			case '}' :
+				level--;
+
+				if(level == 0) {
+					offset++;
+					break loop;
+				}
+				break;
+			}
+			offset++;
+		}
+		
+		output.write(chars, start, offset - start);
+		
+		setStart(offset);
+		
+		return offset;
+
+	}
+
+	public int skipArrayMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		int level = 1;
+
+		int start = getStart();
+
+		loop: while(true) {
+			byte c = chars[offset];
+			if(c <= 0x20) {
+				// skip this char and any other whitespace
+				output.write(chars, start, offset - start);
+				do {
+					offset++;
+				} while(chars[offset] <= 0x20);
+
+				start = offset;
+				c = chars[offset];
+			}
+			
+			switch(c) {
+			case '"': {
+				
+				int nextOffset = offset;
+				do {
+					if(chars[nextOffset] == '\\') {
+						nextOffset++;
+					}
+					nextOffset++;
+				} while(chars[nextOffset] != '"');
+				
+				if(nextOffset - offset - 1 > maxStringLength) {
+					int endQuoteIndex = nextOffset;
+					
+					// field name or value, might be whitespace
+
+					// skip whitespace
+					// optimization: scan for highest value
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+
+					if(chars[nextOffset] != ':') {
+						// was a value
+						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+						
+						int skipped = endQuoteIndex - aligned;
+						
+						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
+						if(remove > 0) {
+							output.write(chars, start, aligned - start);
+							output.write(truncateMessage, 0, truncateMessage.length);
+							ByteArrayRangesFilter.writeInt(output, skipped, digit);
+							output.write('"');
+	
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+							start = nextOffset;
+							offset = nextOffset;
+							
+							continue;
+						}
+					}
+					
+					// was a field name or not long enough string
+					if(nextOffset != endQuoteIndex + 1) {
+						output.write(chars, start, endQuoteIndex - start + 1);
+						start = nextOffset;
+					}
+				}
+				offset = nextOffset + 1;
+
+				continue;
+			}
+			case '[' :
+				level++;
+
+				break;
+			case ']' :
 				level--;
 
 				if(level == 0) {

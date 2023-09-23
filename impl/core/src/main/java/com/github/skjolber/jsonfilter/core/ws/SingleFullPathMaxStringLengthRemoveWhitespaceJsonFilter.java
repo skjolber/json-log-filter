@@ -19,6 +19,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
@@ -60,7 +61,6 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 		
 		int level = 0;
 		final char[][] elementPaths = this.pathChars;
-		int matches = 0;
 		FilterType filterType = this.filterType;
 		int pathMatches = 0;
 
@@ -84,88 +84,99 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 				
 				switch(c) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						
-						filter.setStart(start);
-						
-						offset = filter.skipObject(chars, offset + 1, limit, buffer);
-						
-						start = filter.getStart();
-						
-						continue;
-					}
 					level++;
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
+					} while(chars[nextOffset] != '"');
+					
 					int endQuoteIndex = nextOffset;
 					
 					// key or value, might be whitespace
-
-					// skip whitespace
-					// optimization: scan for highest value
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
-
+					nextOffset++;
+					
 					if(chars[nextOffset] != ':') {
-						// was a value
-						if(endQuoteIndex - offset - 1 > maxStringLength) {
-							int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							buffer.append(chars, start, aligned - start);
-							buffer.append(truncateStringValue);
-							buffer.append(endQuoteIndex - aligned);
-							buffer.append('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-						} else {
-							buffer.append(chars, start, endQuoteIndex - start + 1);
+
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
 						}
 						
-						offset = nextOffset;
-						start = nextOffset;
-						
-						continue;
+						if(chars[nextOffset] != ':') {
+							// was a value
+
+							if(endQuoteIndex - offset >= maxStringLength) {
+								addMaxLength(chars, offset, buffer, start, endQuoteIndex, metrics);
+							} else {
+								buffer.append(chars, start, endQuoteIndex - start + 1);			
+							}
+							
+							offset = nextOffset;
+							start = nextOffset;
+							
+							continue;
+						}
 					}
 
 					buffer.append(chars, start, endQuoteIndex - start + 1);
+					buffer.append(':');
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+					
+					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '{') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '[') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '"') {
+							
+							start = offset = nextOffset;
+							do {
+								if(chars[nextOffset] == '\\') {
+									nextOffset++;
+								}
+								nextOffset++;
+							} while(chars[nextOffset] != '"');
+							
+							endQuoteIndex = nextOffset;
+							
+							if(endQuoteIndex - offset >= maxStringLength) {
+								addMaxLength(chars, offset, buffer, start, endQuoteIndex, metrics);
+							} else {
+								buffer.append(chars, start, endQuoteIndex - start + 1);								
+							}
+							
+							nextOffset++;
 
-					// was a field name
-					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset + 1;
-						start = nextOffset;
-						
+							offset = nextOffset;
+							start = nextOffset;
+						} else {
+							start = nextOffset;
+							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
 						continue;
 					}
-					
-					if(matches == elementPaths.length) {
-						buffer.append(':');
-						
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
 
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
@@ -203,7 +214,6 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								if(metrics != null) {
 									metrics.onAnonymize(1);
 								}
-
 							}
 							
 							start = offset;
@@ -223,8 +233,6 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								return true;
 							}							
 						}
-						
-						matches--;
 					} else {
 						start = nextOffset;
 						offset = nextOffset;
@@ -246,7 +254,51 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 			return false;
 		}
 	}
+
+	private void addMaxLength(final char[] chars, int offset, final StringBuilder buffer, int start, int endQuoteIndex, JsonFilterMetrics metrics) {
+		// was a value
+		int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+		
+		int removed = endQuoteIndex - aligned;
+		
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = removed - truncateStringValue.length - AbstractRangesFilter.lengthToDigits(removed);
+		if(remove > 0) {
+			buffer.append(chars, start, aligned - start);
+			buffer.append(truncateStringValue);
+			buffer.append(endQuoteIndex - aligned);
+			buffer.append('"');
+			
+			if(metrics != null) {
+				metrics.onMaxStringLength(1);
+			}
+		} else {
+			buffer.append(chars, start, endQuoteIndex - start + 1);
+		}
+	}
 	
+	private void addMaxLength(final byte[] chars, int offset, final ByteArrayOutputStream output, int start, int endQuoteIndex, byte[] digit, JsonFilterMetrics metrics) {
+		// was a value
+		int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+		
+		int removed = endQuoteIndex - aligned;
+		
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = removed - truncateStringValue.length - AbstractRangesFilter.lengthToDigits(removed);
+		if(remove > 0) {
+			output.write(chars, start, aligned - start);
+			output.write(truncateStringValueAsBytes, 0, truncateStringValueAsBytes.length);
+			ByteArrayRangesFilter.writeInt(output, removed, digit);
+			output.write('"');
+			
+			if(metrics != null) {
+				metrics.onMaxStringLength(1);
+			}
+		} else {
+			output.write(chars, start, endQuoteIndex - start + 1);
+		}
+	}
+
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
@@ -254,7 +306,9 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 		
 		int level = 0;
 		final byte[][] elementPaths = this.pathBytes;
-		int matches = 0;
+		
+		byte[] digit = new byte[11];
+		
 		FilterType filterType = this.filterType;
 		int pathMatches = 0;
 
@@ -278,89 +332,97 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 				
 				switch(c) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						
-						filter.setStart(start);
-						
-						offset = filter.skipObject(chars, offset + 1, limit, output);
-						
-						start = filter.getStart();
-						
-						continue;
-					}
 					level++;
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
 				case '"' :					
 					int nextOffset = offset;
 					do {
+						if(chars[nextOffset] == '\\') {
+							nextOffset++;
+						}
 						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-
+					} while(chars[nextOffset] != '"');
+					
 					int endQuoteIndex = nextOffset;
 					
 					// key or value, might be whitespace
-
-					// skip whitespace
-					// optimization: scan for highest value
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
-
+					nextOffset++;
+					
 					if(chars[nextOffset] != ':') {
-						// was a value
-						if(endQuoteIndex - offset - 1 > maxStringLength) {
-							// was a value
-							int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-							output.write(chars, start, aligned - start);
-							output.write(truncateStringValueAsBytes);
-							ByteArrayRangesFilter.writeInt(output, endQuoteIndex - aligned, filter.getDigit());
-							output.write('"');							
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-						} else {
-							output.write(chars, start, endQuoteIndex - start + 1);
+
+						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+							nextOffset++;
 						}
 						
-						offset = nextOffset;
-						start = nextOffset;
-						
-						continue;
+						if(chars[nextOffset] != ':') {
+							// was a value
+							if(endQuoteIndex - offset >= maxStringLength) {
+								addMaxLength(chars, offset, output, start, endQuoteIndex, digit, metrics);
+							} else {
+								output.write(chars, start, endQuoteIndex - start + 1);								
+							}
+
+							offset = nextOffset;
+							start = nextOffset;
+							
+							continue;
+						}
 					}
 
 					output.write(chars, start, endQuoteIndex - start + 1);
-					
-					// reset match for a sibling field name, if any
-					matches = level - 1;
+					output.write(':');
 
-					// was a field name
-					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset + 1;
-						start = nextOffset;
-						
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+					
+					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '{') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '[') {
+							filter.setStart(nextOffset);
+							
+							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
+							
+							start = filter.getStart();
+						} else if(chars[nextOffset] == '"') {
+							start = offset = nextOffset;
+							do {
+								if(chars[nextOffset] == '\\') {
+									nextOffset++;
+								}
+								nextOffset++;
+							} while(chars[nextOffset] != '"');
+							
+							endQuoteIndex = nextOffset;
+							
+							if(endQuoteIndex - offset >= maxStringLength) {
+								addMaxLength(chars, offset, output, start, endQuoteIndex, digit, metrics);
+							} else {
+								output.write(chars, start, endQuoteIndex - start + 1);								
+							}
+							
+							nextOffset++;
+
+							offset = nextOffset;
+							start = nextOffset;							
+						} else {
+							start = nextOffset;
+							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+						}
 						continue;
 					}
-					
-					if(matches == elementPaths.length) {
-						output.write(':');
-						
-						// skip whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
 
+					if(level + 1 == elementPaths.length) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
@@ -420,8 +482,6 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								return true;
 							}							
 						}
-						
-						matches--;
 					} else {
 						start = nextOffset;
 						offset = nextOffset;

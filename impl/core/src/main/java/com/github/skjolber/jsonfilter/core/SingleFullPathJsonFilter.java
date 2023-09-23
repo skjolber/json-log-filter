@@ -96,8 +96,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					}
 
 					// was field name
-					boolean matched = elementPaths[level] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
-
 					nextOffset++;
 
 					// skip whitespace
@@ -105,14 +103,16 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(!matched) {
+					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[') {
 							offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1);
 						} else if(chars[nextOffset] == '{') {
 							offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '"') {
+							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = nextOffset;
+							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
@@ -208,7 +208,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					}
 
 					// was field name
-					boolean matched = elementPaths[level] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[level]);
 
 					nextOffset++;
 
@@ -217,14 +216,16 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(!matched) {
+					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[') {
 							offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1);
 						} else if(chars[nextOffset] == '{') {
 							offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '"') {
+							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = nextOffset;
+							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
