@@ -30,7 +30,7 @@ public class ByteArrayRangesFilterTest {
 		for(char terminator : terminators) {
 			String terminatedValue = booleanValue + terminator;
 					
-			assertThat(ByteArrayRangesFilter.scanUnquotedValue(terminatedValue.getBytes(), 0)).isEqualTo(terminatedValue.length() - 1);
+			assertThat(ByteArrayRangesFilter.scanBeyondUnquotedValue(terminatedValue.getBytes(), 0)).isEqualTo(terminatedValue.length() - 1);
 		}
 	}
 

@@ -78,14 +78,23 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	
 	@Test
 	public void test() {
-		String string = "{\"f0\":{\"f1\":{\"deep\":\"value\"}}}";
+		String string = "[ ]";
 		System.out.println(string);
 		System.out.println("Length " + string.length());
-		MaxSizeRemoveWhitespaceJsonFilter maxStringLengthMaxSizeJsonFilter = new MaxSizeRemoveWhitespaceJsonFilter(24);
+		int size = 2;
+		MaxSizeRemoveWhitespaceJsonFilter filter = new MaxSizeRemoveWhitespaceJsonFilter(size);
 		
-		String process = maxStringLengthMaxSizeJsonFilter.process(string);
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		System.out.println(filtered.length());
 		
-		System.out.println(process);
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+		System.out.println(filteredBytes.length);
 		
 	}
 }

@@ -48,10 +48,16 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < maxReadLimit) {
 				// max size reached before end of document
-				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
-
-				// filter rest of document
-				filter.addDelete(markLimit, maxReadLimit);
+				if(filter.getMark() < filter.getMaxSizeLimit()) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
+					if(markLimit != -1) {
+						// filter rest of document
+						filter.addDelete(markLimit, maxReadLimit);
+						
+						return filter;
+					}
+				}
+				filter.addDelete(filter.getMark(), maxReadLimit);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -76,10 +82,16 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			
 			if(offset < maxReadLimit) {
 				// max size reached before end of document
-				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
-				
-				// filter rest of document
-				filter.addDelete(markLimit, maxReadLimit);
+				if(filter.getMark() < filter.getMaxSizeLimit()) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
+					if(markLimit != -1) {
+						// filter rest of document
+						filter.addDelete(markLimit, maxReadLimit);
+						
+						return filter;
+					}
+				}
+				filter.addDelete(filter.getMark(), maxReadLimit);
 			}
 			return filter;
 		} catch(Exception e) {

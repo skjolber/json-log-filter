@@ -112,7 +112,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						} else if(chars[nextOffset] == '"') {
 							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
@@ -130,7 +130,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								// quoted value
 								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);
@@ -225,7 +225,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						} else if(chars[nextOffset] == '"') {
 							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
@@ -243,7 +243,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								// quoted value
 								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);

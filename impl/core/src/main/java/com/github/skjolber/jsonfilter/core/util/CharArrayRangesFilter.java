@@ -106,12 +106,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanBeyondQuotedValue(chars, offset);
+					continue;
 				}
 				default :
 			}
@@ -137,12 +133,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' :
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanBeyondQuotedValue(chars, offset);
+					continue;
 				default :
 			}
 			offset++;
@@ -167,14 +159,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 					
 					if(nextOffset - offset > maxStringLength) {
 						// is this a field name or a value? A field name must be followed by a colon
@@ -247,14 +232,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 					
 					if(nextOffset - offset > maxStringLength) {
 						// is this a field name or a value? A field name must be followed by a colon
@@ -329,42 +307,58 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' :
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanBeyondQuotedValue(chars, offset);
+					
+					continue;
 				default :
 			}
 			offset++;
 		}
 	}
 	
-	
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
-		do {
-			if(chars[offset] == '\\') {
+		while(true) {
+			do {
 				offset++;
-			}
-			offset++;
-		} while(chars[offset] != '"');
+			} while(chars[offset] != '"');
 
-		return offset + 1;
+			if(chars[offset - 1] != '\\') {
+				return offset + 1;
+			}
+
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset + 1;
+			}
+		}
 	}
-	
+
 	public static final int scanQuotedValue(final char[] chars, int offset) {
-		do {
-			if(chars[offset] == '\\') {
+		while(true) {
+			do {
 				offset++;
-			}
-			offset++;
-		} while(chars[offset] != '"');
+			} while(chars[offset] != '"');
 
-		return offset;
+			if(chars[offset - 1] != '\\') {
+				return offset;
+			}
+
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset;
+			}
+		}
 	}
-	
-	public static final int scanUnquotedValue(final char[] chars, int offset) {
+
+	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
 
 		return offset;
@@ -405,14 +399,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 	
 					// is this a field name or a value? A field name must be followed by a colon
 					
@@ -511,14 +498,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 	
 					// is this a field name or a value? A field name must be followed by a colon
 					

@@ -211,9 +211,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 									// quoted value
 									offset = CharArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 									
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, offset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, offset);
 								} else {
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 							}
 							
@@ -254,9 +254,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 									// quoted value
 									offset = CharArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 									
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, offset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, offset);
 								} else {
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 								
 								filter.addAnon(nextOffset, offset);
@@ -322,10 +322,17 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
-			int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
-			
-			// filter rest of document
-			filter.addDelete(markLimit, maxReadLimit);
+			if(mark < maxSizeLimit) {
+				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
+				if(markLimit != -1) {
+					// filter rest of document
+					filter.addDelete(markLimit, maxReadLimit);
+					
+					return filter;
+				}
+			}
+			filter.addDelete(mark, maxReadLimit);
+
 		}
 		
 		return filter;
@@ -490,9 +497,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 									// quoted value
 									offset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 									
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, offset);
+									offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, offset);
 								} else {
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 							}
 							
@@ -531,9 +538,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 									// quoted value
 									offset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 									
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, offset);
+									offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, offset);
 								} else {
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 								
 								filter.addAnon(nextOffset, offset);
@@ -600,10 +607,17 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
-			int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
-			
-			// filter rest of document
-			filter.addDelete(markLimit, maxReadLimit);
+			if(mark < maxSizeLimit) {
+				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
+				if(markLimit != -1) {
+					// filter rest of document
+					filter.addDelete(markLimit, maxReadLimit);
+					
+					return filter;
+				}
+			}
+			filter.addDelete(mark, maxReadLimit);
+
 		}
 		
 		return filter;

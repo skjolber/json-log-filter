@@ -73,13 +73,14 @@ public abstract class AbstractJsonFilterTest {
 			
 			try {
 				validate(byteArray);
-			} catch(JsonParseException e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 				System.out.println(new String(bs));
 				System.out.println(new String(byteArray));
 				fail("Parse failed, got " + byteArray.length + " vs expected " + i);
 			}
 			if(byteArray.length >= i + 16) {
+				System.out.println(new String(bs, 0, bs.length));
 				System.out.println(new String(byteArray));
 				fail("Got " + byteArray.length + " vs expected " + i);
 			}
@@ -87,7 +88,6 @@ public abstract class AbstractJsonFilterTest {
 			if(i % 10000 == 0) {
 				System.out.println("Bytes " + i);
 			}
-
 		}
 		
 		char[] charArray = new String(bs).toCharArray();

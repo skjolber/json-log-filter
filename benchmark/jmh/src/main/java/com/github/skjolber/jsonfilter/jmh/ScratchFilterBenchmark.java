@@ -22,6 +22,8 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.core.FasterMaxSizeJsonFilter;
+import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 
 import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
@@ -72,8 +74,11 @@ public class ScratchFilterBenchmark {
 
 		int size = (int) (file.length() - 1);
 		
+		original = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), false);
+		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new FasterMaxSizeJsonFilter(size), false);
+
 		// xml-log-filter
-		original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
+		//original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
 		//modified1 = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter2(10, size), true);
 		//modified2 = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter3(10, size), true);
 
@@ -119,12 +124,12 @@ public class ScratchFilterBenchmark {
 	public long modified1() {
 		return modified1.benchmarkCharacters();
 	}	
-	
+	/*
 	@Benchmark
 	public long modified2() {
 		return modified1.benchmarkCharacters();
 	}	
-
+*/
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(ScratchFilterBenchmark.class.getSimpleName())

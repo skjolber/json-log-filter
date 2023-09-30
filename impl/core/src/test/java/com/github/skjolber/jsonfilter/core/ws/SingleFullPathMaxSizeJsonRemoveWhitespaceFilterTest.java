@@ -6,10 +6,8 @@ import static org.junit.Assert.assertNull;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
@@ -183,11 +180,17 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 	
 	@Test
 	public void test() {
-		String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
+		String string = "{\n"
+				+ "  \"f0\" : {\n"
+				+ "    \"f1\" : {\n"
+				+ "      \"deep\" : \"value\"\n"
+				+ "    }\n"
+				+ "  }\n"
+				+ "}";
 		
-		int size = 16;
+		int size = 25;
 		
-		SingleFullPathMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 1, "/key1", FilterType.ANON);
+		SingleFullPathMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEEP_PATH, FilterType.ANON);
 		
 		System.out.println("Original:");
 		System.out.println(string);
@@ -195,9 +198,11 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 
 		String filtered = filter.process(string);
 		System.out.println(filtered);
+		System.out.println(filtered.length());
 		
 		byte[] filteredBytes = filter.process(string.getBytes());
 		System.out.println(new String(filteredBytes));
+		System.out.println(filteredBytes.length);
 
 	}
 	

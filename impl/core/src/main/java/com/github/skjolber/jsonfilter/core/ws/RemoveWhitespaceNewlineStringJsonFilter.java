@@ -45,7 +45,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 		try {
 			int limit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			int start = offset;
+			int flushOffset = offset;
 			
 			while(offset < limit) {
 				char c = chars[offset];
@@ -58,32 +58,32 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 						} while(chars[offset] > '"');
 						
 						if(chars[offset] == '\n') {
-							buffer.append(chars, start, offset - start); // not including last char (newline)
+							buffer.append(chars, flushOffset, offset - flushOffset); // not including last char (newline)
 							buffer.append(' '); // convert newline to space
-							start = offset + 1;
+							flushOffset = offset + 1;
 							continue;
 						}
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					offset++;
-					buffer.append(chars, start, offset - start);
+					buffer.append(chars, flushOffset, offset - flushOffset);
 					
-					start = offset;
+					flushOffset = offset;
 					
 					continue;
 				} else if(c <= 0x20) {
 					// skip this char and any other whitespace
-					buffer.append(chars, start, offset - start);
+					buffer.append(chars, flushOffset, offset - flushOffset);
 					do {
 						offset++;
 					} while(chars[offset] <= 0x20);
 					
-					start = offset;
+					flushOffset = offset;
 					
 					continue;
 				}
 				offset++;
 			}
-			buffer.append(chars, start, offset - start);
+			buffer.append(chars, flushOffset, offset - flushOffset);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -102,7 +102,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 		try {
 			int limit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			int start = offset;
+			int flushOffset = offset;
 			
 			while(offset < limit) {
 				byte c = chars[offset];
@@ -115,32 +115,32 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 						} while(chars[offset] > '"');
 						
 						if(chars[offset] == '\n') {
-							output.write(chars, start, offset - start); // not including last char (newline)
+							output.write(chars, flushOffset, offset - flushOffset); // not including last char (newline)
 							output.write(' '); // convert newline to space
-							start = offset + 1;
+							flushOffset = offset + 1;
 							continue;
 						}
 					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
 					offset++;
-					output.write(chars, start, offset - start);
+					output.write(chars, flushOffset, offset - flushOffset);
 					
-					start = offset;
+					flushOffset = offset;
 					
 					continue;
 				} else if(c <= 0x20) {
 					// skip this char and any other whitespace
-					output.write(chars, start, offset - start);
+					output.write(chars, flushOffset, offset - flushOffset);
 					do {
 						offset++;
 					} while(chars[offset] <= 0x20);
 					
-					start = offset;
+					flushOffset = offset;
 					
 					continue;
 				}
 				offset++;
 			}
-			output.write(chars, start, offset - start);
+			output.write(chars, flushOffset, offset - flushOffset);
 			
 			if(metrics != null) {
 				metrics.onInput(length);

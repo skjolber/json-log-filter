@@ -22,6 +22,8 @@ import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
@@ -102,15 +104,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :
-						
-						// avoid escaped double quotes
-						// also avoid to count escaped double slash an escape character
-						do {
-							if(chars[offset] == '\\') {
-								offset++;
-							}
-							offset++;
-						} while(chars[offset] != '"');
+						offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+						continue;
 						
 					default : {
 						// some kind of value
@@ -122,8 +117,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			
 			if(bracketLevel > 0) {
 				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
-				
-				buffer.append(chars, startOffset, markLimit - startOffset);
+				if(markLimit != -1) {
+					buffer.append(chars, startOffset, markLimit - startOffset);
+				} else {
+					buffer.append(chars, startOffset, mark - startOffset);
+				}
 				
 				closeStructure(bracketLevel, squareBrackets, buffer);
 			
@@ -149,56 +147,54 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static int markToLimit(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
-		if(mark < maxSizeLimit) {
-			// see whether we can include the last value,
-			// which might otherwise be excluded by size exceeded due to whitespace
-			// or as a corner case. 
-			// note: offset is never in the middle of a field name or string value
-			//
-			// | Overview:                                                 
-			// |-----------------------------------------------------------|
-			// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
-			// |                     ^           ^   ^                     | 
-			// |                mark ╯           |   |                     |
-			// |                    desired mark ╯   ╰  max reached        |
-			// |-----------------------------------------------------------|
-			
-			int previousOffset = offset - 1;
-			
-			while(mark < previousOffset) {
-				if(chars[previousOffset] > 0x20) {
-					if(previousOffset < maxSizeLimit) {
-						// check if there is a proper terminator
-						// after the current offset
-						
-						int nextOffset = offset;
-						
-						while(nextOffset < maxReadLimit) {
-							if(chars[nextOffset] > 0x20) {
-								switch(chars[nextOffset]) {
-								case ',':
-								case ']':
-								case '}': {
-									// chars[nextOffset] must be a value of some sorts
-									return previousOffset + 1;
-								}
-								default : {
-									// do nothing
-								}
-								
-								}
-								break;
-							}
-							nextOffset++;
-						}									
-					}
+		// see whether we can include the last value,
+		// which might otherwise be excluded by size exceeded due to whitespace
+		// or as a corner case. 
+		// note: offset is never in the middle of a field name or string value
+		//
+		// | Overview:                                                 
+		// |-----------------------------------------------------------|
+		// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
+		// |                     ^           ^   ^                     | 
+		// |                mark ╯           |   |                     |
+		// |                    desired mark ╯   ╰  max reached        |
+		// |-----------------------------------------------------------|
+		
+		int previousOffset = offset - 1;
+		
+		while(mark < previousOffset) {
+			if(chars[previousOffset] > 0x20) {
+				if(previousOffset < maxSizeLimit) {
+					// check if there is a proper terminator
+					// after the current offset
 					
-					break;
+					int nextOffset = offset;
+					
+					while(nextOffset < maxReadLimit) {
+						if(chars[nextOffset] > 0x20) {
+							switch(chars[nextOffset]) {
+							case ',':
+							case ']':
+							case '}': {
+								// chars[nextOffset] must be a value of some sorts
+								return previousOffset + 1;
+							}
+							default : {
+								// do nothing
+							}
+							
+							}
+							break;
+						}
+						nextOffset++;
+					}									
 				}
-				previousOffset--;
+				
+				break;
 			}
+			previousOffset--;
 		}
-		return mark;
+		return -1;
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
@@ -270,15 +266,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						mark = offset;
 						break;
 					case '"' :
-						// avoid escaped double quotes
-						// also avoid to count escaped double slash an escape character
-						do {
-							if(chars[offset] == '\\') {
-								offset++;
-							}
-							offset++;
-						} while(chars[offset] != '"');
-						
+						offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+						continue;
 					default : // do nothing
 				}
 				offset++;
@@ -286,8 +275,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 			if(bracketLevel > 0) {
 				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
-				
-				output.write(chars, startOffset, markLimit - startOffset);
+				if(markLimit != -1) {
+					output.write(chars, startOffset, markLimit - startOffset);
+				} else {
+					output.write(chars, startOffset, mark - startOffset);
+				}
 				
 				closeStructure(bracketLevel, squareBrackets, output);
 				
@@ -313,56 +305,54 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public static int markToLimit(byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
-		if(mark < maxSizeLimit) {
-			// see whether we can include the last value,
-			// which might otherwise be excluded by size exceeded due to whitespace
-			// or as a corner case. 
-			// note: offset is never in the middle of a field name or string value
-			//
-			// | Overview:                                                 
-			// |-----------------------------------------------------------|
-			// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
-			// |                     ^           ^   ^                     | 
-			// |                mark ╯           |   |                     |
-			// |                    desired mark ╯   ╰  max reached        |
-			// |-----------------------------------------------------------|
-			
-			int previousOffset = offset - 1;
-			
-			while(mark < previousOffset) {
-				if(chars[previousOffset] > 0x20) {
-					if(previousOffset < maxSizeLimit) {
-						// check if there is a proper terminator
-						// after the current offset
-						
-						int nextOffset = offset;
-						
-						while(nextOffset < maxReadLimit) {
-							if(chars[nextOffset] > 0x20) {
-								switch(chars[nextOffset]) {
-								case ',':
-								case ']':
-								case '}': {
-									// chars[nextOffset] must be a value of some sorts
-									return previousOffset + 1;
-								}
-								default : {
-									// do nothing
-								}
-								
-								}
-								break;
-							}
-							nextOffset++;
-						}									
-					}
+		// see whether we can include the last value,
+		// which might otherwise be excluded by size exceeded due to whitespace
+		// or as a corner case. 
+		// note: offset is never in the middle of a field name or string value
+		//
+		// | Overview:                                                 
+		// |-----------------------------------------------------------|
+		// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
+		// |                     ^           ^   ^                     | 
+		// |                mark ╯           |   |                     |
+		// |                    desired mark ╯   ╰  max reached        |
+		// |-----------------------------------------------------------|
+		
+		int previousOffset = offset - 1;
+		
+		while(mark < previousOffset) {
+			if(chars[previousOffset] > 0x20) {
+				if(previousOffset < maxSizeLimit) {
+					// check if there is a proper terminator
+					// after the current offset
 					
-					break;
+					int nextOffset = offset;
+					
+					while(nextOffset < maxReadLimit) {
+						if(chars[nextOffset] > 0x20) {
+							switch(chars[nextOffset]) {
+							case ',':
+							case ']':
+							case '}': {
+								// chars[nextOffset] must be a value of some sorts
+								return previousOffset + 1;
+							}
+							default : {
+								// do nothing
+							}
+							
+							}
+							break;
+						}
+						nextOffset++;
+					}									
 				}
-				previousOffset--;
+				
+				break;
 			}
+			previousOffset--;
 		}
-		return mark;
+		return -1;
 	}
 
 	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {

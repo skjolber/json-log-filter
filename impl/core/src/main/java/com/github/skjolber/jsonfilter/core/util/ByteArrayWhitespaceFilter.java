@@ -16,7 +16,7 @@ public class ByteArrayWhitespaceFilter {
 	protected final byte[] anonymizeMessage;
 	protected final byte[] truncateMessage;
 
-	protected int start;
+	protected int flushOffset;
 	protected int mark;
 	protected int writtenMark;
 	protected byte[] digit = new byte[11];
@@ -37,11 +37,11 @@ public class ByteArrayWhitespaceFilter {
 	}
 	
 	public void setStart(int start) {
-		this.start = start;
+		this.flushOffset = start;
 	}
 	
 	public int getStart() {
-		return start;
+		return flushOffset;
 	}
 	
 	public int getWrittenMark() {
@@ -116,7 +116,7 @@ public class ByteArrayWhitespaceFilter {
 	}
 	
 	public static void process(byte[] chars, int offset, int limit, ByteArrayOutputStream output) {
-		int start = offset;
+		int flushOffset = offset;
 		
 		while(offset < limit) {
 			byte c = chars[offset];
@@ -129,18 +129,18 @@ public class ByteArrayWhitespaceFilter {
 				} while(chars[offset] != '"');
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
-				output.write(chars, start, offset - start);
+				output.write(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 				
-				start = offset;
+				flushOffset = offset;
 				
 				continue;
 			}
 			offset++;
 		}
-		output.write(chars, start, offset - start);
+		output.write(chars, flushOffset, offset - flushOffset);
 	}
 	
 	public int skipObject(final byte[] chars, int offset, int limit, final ByteArrayOutputStream buffer) {
@@ -163,15 +163,7 @@ public class ByteArrayWhitespaceFilter {
 			
 			switch(c) {
 			case '"': {
-				offset++;
-				while(chars[offset] != '"') {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				}
-
-				offset++;
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				
 				continue;
 			}
@@ -218,15 +210,7 @@ public class ByteArrayWhitespaceFilter {
 			
 			switch(c) {
 			case '"': {
-				offset++;
-				while(chars[offset] != '"') {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				}
-
-				offset++;
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				
 				continue;
 			}
@@ -402,13 +386,7 @@ public class ByteArrayWhitespaceFilter {
 			switch(c) {
 			case '"': {
 				
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 				
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
@@ -498,14 +476,7 @@ public class ByteArrayWhitespaceFilter {
 			
 			switch(c) {
 			case '"': {
-				
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 				
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
@@ -619,14 +590,7 @@ public class ByteArrayWhitespaceFilter {
 			// 00101100 ,
 			
 			if(chars[offset] == '"') {
-				
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
-				offset++;
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				
 				continue;
 			} 
@@ -681,5 +645,30 @@ public class ByteArrayWhitespaceFilter {
 		setStart(offset);
 		
 		return offset;
+	}
+	
+	public static int addMaxLength(final byte[] chars, int offset, final ByteArrayOutputStream output, int start, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
+		// was a value
+		int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+		
+		int removed = endQuoteIndex - aligned;
+		
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = removed - truncateStringValueAsBytes.length - AbstractRangesFilter.lengthToDigits(removed);
+		if(remove > 0) {
+			output.write(chars, start, aligned - start);
+			output.write(truncateStringValueAsBytes, 0, truncateStringValueAsBytes.length);
+			ByteArrayRangesFilter.writeInt(output, removed, digit);
+			output.write('"');
+			
+			if(metrics != null) {
+				metrics.onMaxStringLength(1);
+			}
+			return remove;
+		} else {
+			output.write(chars, start, endQuoteIndex - start + 1);
+			
+			return 0;
+		}
 	}
 }

@@ -13,7 +13,7 @@ public class CharArrayWhitespaceFilter {
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
 
-	protected int start;
+	protected int flushOffset;
 	protected byte[] digit = new byte[11];
 	
 	public CharArrayWhitespaceFilter() {
@@ -27,11 +27,11 @@ public class CharArrayWhitespaceFilter {
 	}
 	
 	public void setStart(int start) {
-		this.start = start;
+		this.flushOffset = start;
 	}
 	
 	public int getStart() {
-		return start;
+		return flushOffset;
 	}
 
 	public byte[] getDigit() {
@@ -45,21 +45,21 @@ public class CharArrayWhitespaceFilter {
 	public int skipObjectOrArray(final char[] chars, int offset, int limit, final StringBuilder buffer) {
 		int level = 1;
 
-		int start = getStart();
+		int flushOffset = getStart();
 
 		loop: while(offset < limit) {
 			if(chars[offset] <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 					if(offset >= limit) {
-						start = offset;
+						flushOffset = offset;
 						break loop;
 					}
 				} while(chars[offset] <= 0x20);
 				
-				start = offset;
+				flushOffset = offset;
 			}
 			
 			// 01111011 {
@@ -85,15 +85,7 @@ public class CharArrayWhitespaceFilter {
 			// 00101100 ,
 			
 			if(chars[offset] == '"') {
-				
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
-
-				offset++;
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				
 				continue;
 			} 
@@ -143,7 +135,7 @@ public class CharArrayWhitespaceFilter {
 			offset++;
 		}
 		
-		buffer.append(chars, start, offset - start);
+		buffer.append(chars, flushOffset, offset - flushOffset);
 		
 		setStart(offset);
 		
@@ -153,31 +145,24 @@ public class CharArrayWhitespaceFilter {
 	public int skipObject(final char[] chars, int offset, final StringBuilder buffer) {
 		int level = 1;
 
-		int start = getStart();
+		int flushOffset = getStart();
 
 		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 
-				start = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			
 			switch(c) {
 			case '"': {
-				
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
-				offset++;
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				
 				continue;
 			}
@@ -197,7 +182,7 @@ public class CharArrayWhitespaceFilter {
 			offset++;
 		}
 		
-		buffer.append(chars, start, offset - start);
+		buffer.append(chars, flushOffset, offset - flushOffset);
 		
 		setStart(offset);
 		
@@ -207,32 +192,24 @@ public class CharArrayWhitespaceFilter {
 	public int skipArray(final char[] chars, int offset, final StringBuilder buffer) {
 		int level = 1;
 
-		int start = getStart();
+		int flushOffset = getStart();
 
 		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 
-				start = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			
 			switch(c) {
 			case '"': {
-				
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
-				offset++;
-				
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				continue;
 			}
 			case '[' :
@@ -251,7 +228,7 @@ public class CharArrayWhitespaceFilter {
 			offset++;
 		}
 		
-		buffer.append(chars, start, offset - start);
+		buffer.append(chars, flushOffset, offset - flushOffset);
 		
 		setStart(offset);
 		
@@ -307,16 +284,8 @@ public class CharArrayWhitespaceFilter {
 					break;
 				}
 				case '"' : {
+					int nextOffset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-
-					nextOffset++;
 					int postQuoteIndex = nextOffset;
 					
 					// key or value
@@ -383,12 +352,8 @@ public class CharArrayWhitespaceFilter {
 		while(offset < limit) {
 			char c = chars[offset];
 			if(c == '"') {
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+				continue;
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.append(chars, start, offset - start);
@@ -419,32 +384,25 @@ public class CharArrayWhitespaceFilter {
 	public int skipObjectMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
-		int start = getStart();
+		int flushOffset = getStart();
 
 		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 
-				start = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			
 			switch(c) {
 			case '"': {
-				
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
-				
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
 					
@@ -464,7 +422,7 @@ public class CharArrayWhitespaceFilter {
 						
 						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
 						if(remove > 0) {
-							buffer.append(chars, start, aligned - start);
+							buffer.append(chars, flushOffset, aligned - flushOffset);
 							buffer.append(truncateMessage);
 							buffer.append(skipped);
 							buffer.append('"');
@@ -472,7 +430,7 @@ public class CharArrayWhitespaceFilter {
 							if(metrics != null) {
 								metrics.onMaxStringLength(1);
 							}
-							start = nextOffset;
+							flushOffset = nextOffset;
 							offset = nextOffset;
 
 							continue;
@@ -481,8 +439,8 @@ public class CharArrayWhitespaceFilter {
 
 					// was a field name or not long enough string
 					if(nextOffset != endQuoteIndex + 1) {
-						buffer.append(chars, start, endQuoteIndex - start + 1);
-						start = nextOffset;
+						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+						flushOffset = nextOffset;
 					}
 
 				}
@@ -506,7 +464,7 @@ public class CharArrayWhitespaceFilter {
 			offset++;
 		}
 		
-		buffer.append(chars, start, offset - start);
+		buffer.append(chars, flushOffset, offset - flushOffset);
 		
 		setStart(offset);
 		
@@ -516,31 +474,24 @@ public class CharArrayWhitespaceFilter {
 	public int skipArrayMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
-		int start = getStart();
+		int flushOffset = getStart();
 
 		loop: while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 
-				start = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			
 			switch(c) {
 			case '"': {
-				
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 				
 				if(nextOffset - offset - 1 > maxStringLength) {
 					int endQuoteIndex = nextOffset;
@@ -561,7 +512,7 @@ public class CharArrayWhitespaceFilter {
 						
 						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
 						if(remove > 0) {
-							buffer.append(chars, start, aligned - start);
+							buffer.append(chars, flushOffset, aligned - flushOffset);
 							buffer.append(truncateMessage);
 							buffer.append(skipped);
 							buffer.append('"');
@@ -569,7 +520,7 @@ public class CharArrayWhitespaceFilter {
 							if(metrics != null) {
 								metrics.onMaxStringLength(1);
 							}
-							start = nextOffset;
+							flushOffset = nextOffset;
 							offset = nextOffset;
 
 							continue;
@@ -578,8 +529,8 @@ public class CharArrayWhitespaceFilter {
 
 					// was a field name or not long enough string
 					if(nextOffset != endQuoteIndex + 1) {
-						buffer.append(chars, start, endQuoteIndex - start + 1);
-						start = nextOffset;
+						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+						flushOffset = nextOffset;
 					}
 
 				}
@@ -603,7 +554,7 @@ public class CharArrayWhitespaceFilter {
 			offset++;
 		}
 		
-		buffer.append(chars, start, offset - start);
+		buffer.append(chars, flushOffset, offset - flushOffset);
 		
 		setStart(offset);
 		
@@ -631,5 +582,29 @@ public class CharArrayWhitespaceFilter {
 		return truncateMessage;
 	}
 		
+	public static int addMaxLength(final char[] chars, int offset, final StringBuilder buffer, int flushOffset, int endQuoteIndex, char[] truncateStringValue, int maxStringLength, JsonFilterMetrics metrics) {
+		// was a value
+		int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+		
+		int removed = endQuoteIndex - aligned;
+		
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = removed - truncateStringValue.length - AbstractRangesFilter.lengthToDigits(removed);
+		if(remove > 0) {
+			buffer.append(chars, flushOffset, aligned - flushOffset);
+			buffer.append(truncateStringValue);
+			buffer.append(endQuoteIndex - aligned);
+			buffer.append('"');
+			
+			if(metrics != null) {
+				metrics.onMaxStringLength(1);
+			}
+			return remove;
+		} else {
+			buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+			
+			return 0;
+		}
+	}
 
 }

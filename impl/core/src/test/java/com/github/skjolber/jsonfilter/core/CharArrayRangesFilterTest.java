@@ -30,7 +30,7 @@ public class CharArrayRangesFilterTest {
 		for(char terminator : terminators) {
 			String terminatedValue = booleanValue + terminator;
 					
-			assertThat(CharArrayRangesFilter.scanUnquotedValue(terminatedValue.toCharArray(), 0)).isEqualTo(terminatedValue.length() - 1);
+			assertThat(CharArrayRangesFilter.scanBeyondUnquotedValue(terminatedValue.toCharArray(), 0)).isEqualTo(terminatedValue.length() - 1);
 		}
 		
 	}

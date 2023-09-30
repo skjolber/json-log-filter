@@ -80,20 +80,6 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		// of events because of filtering. But each output has one or more inputs.
 		
 		MaxSizeJsonCollectionInputOutputAlignment alignment = MaxSizeJsonCollectionInputOutputAlignment.create(charsInputs, charsOutputs, infiniteJsonFilter);
-		
-		/*
-		for(int i = 0; i < alignment.size(); i++) {
-			String input = alignment.getInput(i).getContentAsString();
-			
-			System.out.println(input);
-		}
-		
-		for(int i = 0; i < alignment.size(); i++) {
-			String output = alignment.getOutput(i).getContentAsString();
-			
-			System.out.println(output);
-		}
-		*/
 
 		for(int i = 0; i < charsInputs.size() - 1 && i < charsOutputs.size(); i++) {
 			MaxSizeJsonCollection inputCurrent = alignment.getInput(i);
@@ -119,10 +105,6 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 				String expectedMaxSizeCharsOutput = outputCurrent.getContentAsString();
 				byte[] expectedMaxSizeBytesOutput = expectedMaxSizeCharsOutput.getBytes(StandardCharsets.UTF_8);
 
-				maxCharSize = expectedMaxSizeCharsOutput.length();
-				maxByteSize = expectedMaxSizeBytesOutput.length;
-
-				/*
 				if(expectedMaxSizeCharsOutput.length() > charsValue.length()) {
 					
 					// Output exceeds input
@@ -135,31 +117,32 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 					// add to the max limit to allow the filter to arrive at the same result
 					maxByteSize = expectedMaxSizeCharsOutput.length();
 					maxCharSize = expectedMaxSizeBytesOutput.length;
+					
 				} else if(expectedMaxSizeCharsOutput.length() > maxCharSize) {
+					
 					maxCharSize = expectedMaxSizeCharsOutput.length();
 					maxByteSize = expectedMaxSizeBytesOutput.length;
+					
+					byte[] bytesValue = charsValue.getBytes(StandardCharsets.UTF_8);
+					
+					JsonFilter bytesFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxByteSize);
+					JsonFilter charsFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxCharSize);
+					
+					byte[] maxSizeBytesOutput = bytesFilter.process(bytesValue, metrics);
+					String maxSizeCharsOutput = charsFilter.process(charsValue, metrics);
+									
+					System.out.println(maxByteSize + " " + maxCharSize);
+					System.out.println(outputFile.getSource().toString());
+					System.out.println(new String(charsValue));
+					System.out.println(expectedMaxSizeCharsOutput);
+					System.out.println("Got");
+					System.out.println(maxSizeCharsOutput);
+					System.out.println(maxCharSize + " vs " + charsValue.length());
+					
+					assertEquals(inputFile.getSource(), charsValue, maxSizeCharsOutput, expectedMaxSizeCharsOutput);
+					assertEquals(inputFile.getSource(), bytesValue, maxSizeBytesOutput, expectedMaxSizeBytesOutput);
 				}
-				*/
 
-				byte[] bytesValue = charsValue.getBytes(StandardCharsets.UTF_8);
-				
-				JsonFilter bytesFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxByteSize);
-				JsonFilter charsFilter = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxCharSize);
-				
-				byte[] maxSizeBytesOutput = bytesFilter.process(bytesValue, metrics);
-				String maxSizeCharsOutput = charsFilter.process(charsValue, metrics);
-								
-				System.out.println(maxByteSize + " " + maxCharSize);
-				System.out.println(outputFile.getSource().toString());
-				System.out.println(new String(charsValue));
-				System.out.println(maxCharSize + " vs " + charsValue.length());
-				
-				assertEquals(inputFile.getSource(), charsValue, maxSizeCharsOutput, expectedMaxSizeCharsOutput);
-				assertEquals(inputFile.getSource(), bytesValue, maxSizeBytesOutput, expectedMaxSizeBytesOutput);
-				
-				// if the filter is removing whitespace, filter the input with various
-				// variations of pretty-printing and compare to the output from the filtering
-				// of the original input
 				
 				k = inputNext.nextCodePoint(k);
 			}

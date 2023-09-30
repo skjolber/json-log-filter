@@ -67,18 +67,18 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
-			int start = offset;
+			int flushOffset = offset;
 
 			while(offset < maxReadLimit) {
 				char c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
-					buffer.append(chars, start, offset - start);
+					buffer.append(chars, flushOffset, offset - flushOffset);
 					do {
 						offset++;
 					} while(chars[offset] <= 0x20);
 
-					start = offset;
+					flushOffset = offset;
 					c = chars[offset];
 				}
 				
@@ -91,37 +91,37 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					
 					break;
 				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+
 					int endQuoteIndex = nextOffset;
 					
 					// key or value, might be whitespace
 					nextOffset++;
-					
+
+					buffer.append(chars, flushOffset, nextOffset - flushOffset);								
+
+					colon:
 					if(chars[nextOffset] != ':') {
 
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] != ':') {
-							// was a value
-							buffer.append(chars, start, endQuoteIndex - start + 1);			
-							
-							offset = nextOffset;
-							start = nextOffset;
-							
-							continue;
-						}
-					}
+						if(chars[nextOffset] <= 0x20) {
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
 
-					buffer.append(chars, start, endQuoteIndex - start + 1);
+							if(chars[nextOffset] == ':') {
+								break colon;
+							}
+						}
+							
+						// was a value
+						offset = nextOffset;
+						flushOffset = nextOffset;
+						
+						continue;
+					}					
+
+					// was a field name
+					
 					buffer.append(':');
 
 					do {
@@ -135,34 +135,30 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							
 							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
 							
-							start = filter.getStart();
+							flushOffset = filter.getStart();
 						} else if(chars[nextOffset] == '[') {
 							filter.setStart(nextOffset);
 							
 							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
 							
-							start = filter.getStart();
+							flushOffset = filter.getStart();
 						} else if(chars[nextOffset] == '"') {
 							
-							start = offset = nextOffset;
-							do {
-								if(chars[nextOffset] == '\\') {
-									nextOffset++;
-								}
-								nextOffset++;
-							} while(chars[nextOffset] != '"');
+							flushOffset = offset = nextOffset;
+							
+							nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 							
 							endQuoteIndex = nextOffset;
 							
-							buffer.append(chars, start, endQuoteIndex - start + 1);								
+							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
 							
 							nextOffset++;
 
 							offset = nextOffset;
-							start = nextOffset;
+							flushOffset = nextOffset;
 						} else {
-							start = nextOffset;
-							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							flushOffset = nextOffset;
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
@@ -178,20 +174,20 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 									metrics.onPrune(1);
 								}
 
-								start = offset;
+								flushOffset = offset;
 							} else {
 								filter.setStart(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 								
-								start = filter.getStart();
+								flushOffset = filter.getStart();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
 								// quoted value
 								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 
 							if(filterType == FilterType.PRUNE) {
@@ -207,14 +203,15 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								}
 							}
 							
-							start = offset;
+							flushOffset = offset;
 						}
 						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								// remove whitespace + max string length
-								buffer.append(chars, start, maxReadLimit - start);
+								buffer.append(chars, flushOffset, offset - flushOffset);
+								
+								CharArrayWhitespaceFilter.process(chars, offset, maxReadLimit, buffer);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -225,7 +222,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							}							
 						}
 					} else {
-						start = nextOffset;
+						flushOffset = nextOffset;
 						offset = nextOffset;
 					}
 
@@ -233,7 +230,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 				}
 				offset++;
 			}
-			buffer.append(chars, start, offset - start);
+			buffer.append(chars, flushOffset, offset - flushOffset);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -260,18 +257,18 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
-			int start = offset;
+			int flushOffset = offset;
 
 			while(offset < maxReadLimit) {
 				byte c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
-					output.write(chars, start, offset - start);
+					output.write(chars, flushOffset, offset - flushOffset);
 					do {
 						offset++;
 					} while(chars[offset] <= 0x20);
 
-					start = offset;
+					flushOffset = offset;
 					c = chars[offset];
 				}
 				
@@ -283,38 +280,37 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					level--;
 					
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					
+				case '"' :
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
 					int endQuoteIndex = nextOffset;
-					
+
 					// key or value, might be whitespace
 					nextOffset++;
-					
+
+					output.write(chars, flushOffset, nextOffset - flushOffset);								
+
+					colon:
 					if(chars[nextOffset] != ':') {
 
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
-						
-						if(chars[nextOffset] != ':') {
-							// was a value
-							output.write(chars, start, endQuoteIndex - start + 1);								
+						if(chars[nextOffset] <= 0x20) {
+							do {
+								nextOffset++;
+							} while(chars[nextOffset] <= 0x20);
 
-							offset = nextOffset;
-							start = nextOffset;
+							if(chars[nextOffset] == ':') {
+								break colon;
+							}
+						}
 							
-							continue;
-						}
+						// was a value
+						offset = nextOffset;
+						flushOffset = nextOffset;
+						
+						continue;
 					}
-
-					output.write(chars, start, endQuoteIndex - start + 1);
+					
+					// was a field name
 					output.write(':');
 
 					do {
@@ -328,33 +324,29 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							
 							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
 							
-							start = filter.getStart();
+							flushOffset = filter.getStart();
 						} else if(chars[nextOffset] == '[') {
 							filter.setStart(nextOffset);
 							
 							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
 							
-							start = filter.getStart();
+							flushOffset = filter.getStart();
 						} else if(chars[nextOffset] == '"') {
-							start = offset = nextOffset;
-							do {
-								if(chars[nextOffset] == '\\') {
-									nextOffset++;
-								}
-								nextOffset++;
-							} while(chars[nextOffset] != '"');
+							flushOffset = offset = nextOffset;
 							
+							nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
+
 							endQuoteIndex = nextOffset;
 							
-							output.write(chars, start, endQuoteIndex - start + 1);								
+							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
 							
 							nextOffset++;
 
 							offset = nextOffset;
-							start = nextOffset;							
+							flushOffset = nextOffset;							
 						} else {
-							start = nextOffset;
-							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							flushOffset = nextOffset;
+							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						continue;
 					}
@@ -370,20 +362,20 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 									metrics.onPrune(1);
 								}
 								
-								start = offset;
+								flushOffset = offset;
 							} else {
 								filter.setStart(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, output, metrics);
 								
-								start = filter.getStart();
+								flushOffset = filter.getStart();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
 								// quoted value
 								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 
 							if(filterType == FilterType.PRUNE) {
@@ -392,23 +384,24 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
-
 							} else {
 								output.write(anonymizeJsonValueAsBytes);
 								
 								if(metrics != null) {
 									metrics.onAnonymize(1);
 								}
-
 							}
 							
-							start = offset;
+							flushOffset = offset;
 						}
 						
 						if(pathMatches != -1) {
 							pathMatches--;
 							if(pathMatches == 0) {
-								output.write(chars, start, maxReadLimit - start);
+								
+								output.write(chars, flushOffset, offset - flushOffset);
+								
+								ByteArrayWhitespaceFilter.process(chars, offset, maxReadLimit, output);
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -419,7 +412,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							}							
 						}
 					} else {
-						start = nextOffset;
+						flushOffset = nextOffset;
 						offset = nextOffset;
 					}
 
@@ -427,7 +420,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 				}
 				offset++;
 			}
-			output.write(chars, start, offset - start);
+			output.write(chars, flushOffset, offset - flushOffset);
 			
 			if(metrics != null) {
 				metrics.onInput(length);

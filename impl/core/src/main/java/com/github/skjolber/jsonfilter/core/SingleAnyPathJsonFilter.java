@@ -96,7 +96,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							
 							// is this a null value?
 							
-							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset);
@@ -177,7 +177,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							// quoted value
 							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset);

@@ -70,15 +70,8 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 				
 				continue;
 			}
-			int nextOffset = offset;
-			// avoid escaped double quotes
-			// also avoid to count escaped double slash as an escape character
-			do {
-				if(chars[nextOffset] == '\\') {
-					nextOffset++;
-				}
-				nextOffset++;
-			} while(chars[nextOffset] != '"');
+			
+			int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);;
 			
 			if(nextOffset - offset < maxStringLength) {
 				offset = nextOffset + 1;
@@ -141,17 +134,9 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 				
 				continue;
 			}
-			int nextOffset = offset;
 			
-			// avoid escaped double quotes
-			// also avoid to count escaped double slash as an escape character
-			do {
-				if(chars[nextOffset] == '\\') {
-					nextOffset++;
-				}
-				nextOffset++;
-			} while(chars[nextOffset] != '"');
-			
+			int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);;
+
 			if(nextOffset - offset < maxStringLength) {
 				offset = nextOffset + 1;
 				

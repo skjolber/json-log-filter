@@ -118,12 +118,8 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					mark = offset;
 					break;
 				case '"' : {
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanBeyondQuotedValue(chars, offset);
+					continue;
 				}
 				default : // do nothing
 			}
@@ -184,15 +180,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					mark = offset;
 					break;
 				case '"' : {
-					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 
 					if(nextOffset - offset <= maxStringLength) {
 						offset = nextOffset;
@@ -334,14 +322,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 					break;
 				}
 				case '"' : {
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
-					nextOffset++;
+					int nextOffset = scanBeyondQuotedValue(chars, offset);
 	
 					// is this a field name or a value? A field name must be followed by a colon
 					
@@ -427,7 +408,7 @@ public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
 				}
 				default : {
 					// scalar value
-					int nextOffset = scanUnquotedValue(chars, offset);
+					int nextOffset = scanBeyondUnquotedValue(chars, offset);
 					
 					if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 						
