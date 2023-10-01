@@ -75,26 +75,5 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
 		assertThatMaxSize(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
 	}
-	
-	@Test
-	public void test() {
-		String string = "[ ]";
-		System.out.println(string);
-		System.out.println("Length " + string.length());
-		int size = 2;
-		MaxSizeRemoveWhitespaceJsonFilter filter = new MaxSizeRemoveWhitespaceJsonFilter(size);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
 
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		System.out.println(filtered.length());
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		System.out.println(new String(filteredBytes));
-		System.out.println(filteredBytes.length);
-		
-	}
 }

@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
@@ -41,7 +40,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 			
 			CharArrayWhitespaceBracketFilter filter = new CharArrayWhitespaceBracketFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 
-			filter.setLimit(maxSizeLimit);
+			filter.setMaxSizeLimit(maxSizeLimit);
 			
 			processMaxSize(chars, offset, maxReadLimit, 0, buffer, maxPathMatches, filter, metrics);
 			
@@ -63,9 +62,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceBracketFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
-		int maxSizeLimit = filter.getLimit();
+		int maxSizeLimit = filter.getMaxSizeLimit();
 
-		int flushOffset = filter.getStart();
+		int flushOffset = filter.getFlushOffset();
 		int mark = filter.getMark();
 		int streamMark = filter.getWrittenMark();
 		int bracketLevel = filter.getLevel();
@@ -162,7 +161,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				break;
 			case '"' :
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
-
+				
 				int endQuoteIndex = nextOffset;
 
 				nextOffset++;
@@ -209,6 +208,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 
 				FilterType filterType = null;
 				
+				PathItem previousPathItem = pathItem;
+				
 				// match again any higher filter
 				pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
@@ -233,21 +234,22 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
 					}
-				}				
+				}
+				
+				flushOffset = nextOffset;
 				
 				if(filterType == null) {
-					if(anyElementFilters != null) {
-						flushOffset = nextOffset;
+					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;
 					}
+					
 					// skip here
 					if(chars[nextOffset] == '{' || chars[nextOffset] == '[') {
 						maxSizeLimit--;
 						if(nextOffset >= maxSizeLimit) {
 							offset = nextOffset;
-							flushOffset = nextOffset;
 
 							break loop;
 						}
@@ -259,34 +261,27 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						filter.setLevel(bracketLevel);
-						filter.setMark(mark);
+						filter.setMark(nextOffset + 1);
 
-						filter.setLimit(maxSizeLimit);
-						filter.setStart(nextOffset);
+						filter.setMaxSizeLimit(maxSizeLimit);
+						filter.setFlushOffset(nextOffset);
 						filter.setWrittenMark(streamMark);
-						
-						System.out.println("Skip at " + buffer + " mark at " + mark);
 						
 						offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, nextOffset + 1, maxReadLimit, buffer, maxStringLength, metrics);
 
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 
-						flushOffset = filter.getStart();
+						flushOffset = filter.getFlushOffset();
 						streamMark = filter.getWrittenMark();
 						
 						squareBrackets = filter.getSquareBrackets();
-						maxSizeLimit = filter.getLimit();						
+						maxSizeLimit = filter.getMaxSizeLimit();
 					} else if(chars[nextOffset] == '"') {
 						flushOffset = nextOffset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+						
+						nextOffset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 
-						nextOffset++;
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;
@@ -342,20 +337,20 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						filter.setLimit(maxSizeLimit);
-						filter.setStart(nextOffset);
+						filter.setMaxSizeLimit(maxSizeLimit);
+						filter.setFlushOffset(nextOffset);
 						filter.setLevel(bracketLevel);
 						filter.setMark(nextOffset + 1);
 						filter.setWrittenMark(streamMark);
 						
 						offset = filter.anonymizeObjectOrArrayMaxSize(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 						
-						flushOffset = filter.getStart();
+						flushOffset = filter.getFlushOffset();
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 						streamMark = filter.getWrittenMark();
 						squareBrackets = filter.getSquareBrackets();
-						maxSizeLimit = filter.getLimit();
+						maxSizeLimit = filter.getMaxSizeLimit();
 					} else {
 						if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 							offset = nextOffset;
@@ -391,8 +386,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathMatches--;
 					if(pathMatches == 0) {
 						// just remove whitespace
-						
-						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, level, squareBrackets, mark, streamMark, maxStringLength, truncateStringValue, metrics);
+						buffer.append(chars, flushOffset, offset - flushOffset);
+
+						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, truncateStringValue, metrics);
 
 						return;
 					}							
@@ -404,27 +400,20 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		}
 		
 		if(bracketLevel > 0) {
-			if(flushOffset <= mark) {
-				streamMark = buffer.length() + mark - flushOffset; 
-			}
-			buffer.append(chars, flushOffset, offset - flushOffset);
-			flushOffset = offset;
-			
-			
-			System.out.println("Flushed at " + buffer);
-			System.out.println("Mark at " + mark);
-			System.out.println(new String(chars, 0, mark));
-			
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
-				System.out.println("Mark lmit " + markLimit);
-				System.out.println("Max size limit " + maxSizeLimit);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
 					if(markLimit >= flushOffset) {
 						buffer.append(chars, flushOffset, markLimit - flushOffset);
 					}
 					break markLimit;
+				} else {
+					if(mark >= flushOffset) {
+						streamMark = buffer.length() + mark - flushOffset; 
+						
+						buffer.append(chars, flushOffset, mark - flushOffset);
+					}
 				}
 				buffer.setLength(streamMark);
 			}
@@ -480,7 +469,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 
 		int maxSizeLimit = filter.getLimit();
 
-		int flushOffset = filter.getStart();
+		int flushOffset = filter.getFlushOffset();
 		int mark = filter.getMark();
 		int streamMark = filter.getWrittenMark();
 		int bracketLevel = filter.getLevel();
@@ -624,6 +613,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 
 				FilterType filterType = null;
 				
+				PathItem previousPathItem = pathItem;
+				
 				// match again any higher filter
 				pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
@@ -648,11 +639,12 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
 					}
-				}				
+				}
 				
+				flushOffset = nextOffset;
+
 				if(filterType == null) {
-					if(anyElementFilters != null) {
-						flushOffset = nextOffset;
+					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;
@@ -662,7 +654,6 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						maxSizeLimit--;
 						if(nextOffset >= maxSizeLimit) {
 							offset = nextOffset;
-							flushOffset = nextOffset;
 
 							break loop;
 						}
@@ -677,7 +668,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						filter.setMark(nextOffset + 1);
 
 						filter.setLimit(maxSizeLimit);
-						filter.setStart(nextOffset);
+						filter.setFlushOffset(flushOffset);
 						filter.setWrittenMark(streamMark);
 						
 						offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, nextOffset + 1, maxReadLimit, stream, maxStringLength, metrics);
@@ -685,21 +676,16 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 
-						flushOffset = filter.getStart();
+						flushOffset = filter.getFlushOffset();
 						streamMark = filter.getWrittenMark();
 						
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getLimit();						
 					} else if(chars[nextOffset] == '"') {
 						flushOffset = nextOffset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
-
-						nextOffset++;
+						
+						nextOffset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;
@@ -711,6 +697,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				if(filterType == FilterType.PRUNE) {
 					if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 						offset = nextOffset;
+						flushOffset = nextOffset;
 						break loop;
 					}
 					
@@ -756,14 +743,14 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						}
 						
 						filter.setLimit(maxSizeLimit);
-						filter.setStart(nextOffset);
+						filter.setFlushOffset(flushOffset);
 						filter.setLevel(bracketLevel);
 						filter.setMark(nextOffset + 1);
 						filter.setWrittenMark(streamMark);
 						
 						offset = filter.anonymizeObjectOrArrayMaxSize(chars, nextOffset + 1, maxReadLimit, stream, metrics);
 						
-						flushOffset = filter.getStart();
+						flushOffset = filter.getFlushOffset();
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 						streamMark = filter.getWrittenMark();
@@ -796,7 +783,6 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						
 						mark = offset;
 						flushOffset = offset;
-						
 					}
 				}
 
@@ -804,8 +790,9 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathMatches--;
 					if(pathMatches == 0) {
 						// just remove whitespace
-						
-						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, level, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
+						stream.write(chars, flushOffset, offset - flushOffset);
+
+						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, bracketLevel, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
 
 						return;
 					}							
@@ -817,12 +804,6 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		}
 		
 		if(bracketLevel > 0) {
-			if(flushOffset <= mark) {
-				streamMark = stream.size() + mark - flushOffset; 
-			}
-			stream.write(chars, flushOffset, offset - flushOffset);
-			flushOffset = offset;
-			
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
@@ -831,6 +812,12 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						stream.write(chars, flushOffset, markLimit - flushOffset);
 					}
 					break markLimit;
+				} else {
+					if(mark >= flushOffset) {
+						streamMark = stream.size() + mark - flushOffset; 
+						
+						stream.write(chars, flushOffset, mark - flushOffset);
+					}
 				}
 				stream.setCount(streamMark);
 			}

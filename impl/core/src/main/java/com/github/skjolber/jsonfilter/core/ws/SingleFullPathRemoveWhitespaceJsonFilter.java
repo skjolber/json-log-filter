@@ -131,17 +131,17 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '{') {
-							filter.setStart(nextOffset);
+							filter.setFlushOffset(nextOffset);
 							
 							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
 							
-							flushOffset = filter.getStart();
+							flushOffset = filter.getFlushOffset();
 						} else if(chars[nextOffset] == '[') {
-							filter.setStart(nextOffset);
+							filter.setFlushOffset(nextOffset);
 							
 							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, buffer, metrics);
 							
-							flushOffset = filter.getStart();
+							flushOffset = filter.getFlushOffset();
 						} else if(chars[nextOffset] == '"') {
 							
 							flushOffset = offset = nextOffset;
@@ -176,11 +176,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 
 								flushOffset = offset;
 							} else {
-								filter.setStart(nextOffset);
+								filter.setFlushOffset(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 								
-								flushOffset = filter.getStart();
+								flushOffset = filter.getFlushOffset();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -320,17 +320,17 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '{') {
-							filter.setStart(nextOffset);
+							filter.setFlushOffset(nextOffset);
 							
 							offset = filter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
 							
-							flushOffset = filter.getStart();
+							flushOffset = filter.getFlushOffset();
 						} else if(chars[nextOffset] == '[') {
-							filter.setStart(nextOffset);
+							filter.setFlushOffset(nextOffset);
 							
 							offset = filter.skipArrayMaxStringLength(chars, nextOffset + 1, maxStringLength, output, metrics);
 							
-							flushOffset = filter.getStart();
+							flushOffset = filter.getFlushOffset();
 						} else if(chars[nextOffset] == '"') {
 							flushOffset = offset = nextOffset;
 							
@@ -364,11 +364,11 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								
 								flushOffset = offset;
 							} else {
-								filter.setStart(nextOffset);
+								filter.setFlushOffset(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, output, metrics);
 								
-								flushOffset = filter.getStart();
+								flushOffset = filter.getFlushOffset();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -432,7 +432,6 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 			return false;
 		}
 	}
-
 
 	@Override
 	public boolean isRemovingWhitespace() {

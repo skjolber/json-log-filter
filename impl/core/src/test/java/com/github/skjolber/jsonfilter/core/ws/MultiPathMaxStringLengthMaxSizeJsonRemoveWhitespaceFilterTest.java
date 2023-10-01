@@ -172,28 +172,4 @@ public class MultiPathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest exten
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
 	}
 	
-	
-	@Test
-	public void test() {
-		String string = "{\"f0\":{\"f1\":{\"deep\":\"value\"}}}";
-		
-		int size = 15;
-		
-		MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(20, size, -1, new String[] {DEEP_PATH}, null);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
-
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		System.out.println(filtered.length());
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		System.out.println(new String(filteredBytes));
-		System.out.println(filteredBytes.length);
-
-	}
-	
-	
 }

@@ -26,11 +26,11 @@ public class CharArrayWhitespaceFilter {
 		this.truncateMessage = truncateMessage;
 	}
 	
-	public void setStart(int start) {
+	public void setFlushOffset(int start) {
 		this.flushOffset = start;
 	}
 	
-	public int getStart() {
+	public int getFlushOffset() {
 		return flushOffset;
 	}
 
@@ -45,7 +45,7 @@ public class CharArrayWhitespaceFilter {
 	public int skipObjectOrArray(final char[] chars, int offset, int limit, final StringBuilder buffer) {
 		int level = 1;
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(offset < limit) {
 			if(chars[offset] <= 0x20) {
@@ -137,7 +137,7 @@ public class CharArrayWhitespaceFilter {
 		
 		buffer.append(chars, flushOffset, offset - flushOffset);
 		
-		setStart(offset);
+		setFlushOffset(offset);
 		
 		return offset;
 	}
@@ -145,7 +145,7 @@ public class CharArrayWhitespaceFilter {
 	public int skipObject(final char[] chars, int offset, final StringBuilder buffer) {
 		int level = 1;
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(true) {
 			char c = chars[offset];
@@ -184,7 +184,7 @@ public class CharArrayWhitespaceFilter {
 		
 		buffer.append(chars, flushOffset, offset - flushOffset);
 		
-		setStart(offset);
+		setFlushOffset(offset);
 		
 		return offset;
 	}
@@ -192,7 +192,7 @@ public class CharArrayWhitespaceFilter {
 	public int skipArray(final char[] chars, int offset, final StringBuilder buffer) {
 		int level = 1;
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(true) {
 			char c = chars[offset];
@@ -230,7 +230,7 @@ public class CharArrayWhitespaceFilter {
 		
 		buffer.append(chars, flushOffset, offset - flushOffset);
 		
-		setStart(offset);
+		setFlushOffset(offset);
 		
 		return offset;
 	}
@@ -241,18 +241,18 @@ public class CharArrayWhitespaceFilter {
 
 		// stop processing with level is zero
 
-		int start = getStart();
+		int flushOffset = getFlushOffset();
 
 		while(true) {
 			char c = chars[offset];
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
-				buffer.append(chars, start, offset - start);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 				} while(chars[offset] <= 0x20);
 
-				start = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			
@@ -268,7 +268,7 @@ public class CharArrayWhitespaceFilter {
 					level--;
 					
 					if(level == 0) {
-						setStart(start);
+						setFlushOffset(flushOffset);
 						
 						return offset + 1;
 					}
@@ -301,15 +301,15 @@ public class CharArrayWhitespaceFilter {
 						offset = nextOffset + 1;
 
 						if(nextOffset != postQuoteIndex) {
-							buffer.append(chars, start, postQuoteIndex - start);
+							buffer.append(chars, flushOffset, postQuoteIndex - flushOffset);
 							buffer.append(':');
 							
-							start = offset;			
+							flushOffset = offset;			
 						}
 						continue;
 					} 
 					// was a value
-					buffer.append(chars, start, offset - start);
+					buffer.append(chars, flushOffset, offset - flushOffset);
 					buffer.append(anonymizeMessage);
 					
 					if(metrics != null) {
@@ -317,13 +317,13 @@ public class CharArrayWhitespaceFilter {
 					}
 					
 					offset = nextOffset;
-					start = nextOffset;
+					flushOffset = nextOffset;
 					
 					continue;
 				}
 				default : {
 					// scalar value
-					buffer.append(chars, start, offset - start);
+					buffer.append(chars, flushOffset, offset - flushOffset);
 
 					int nextOffset = offset;
 					do {
@@ -337,7 +337,7 @@ public class CharArrayWhitespaceFilter {
 					}
 
 					offset = nextOffset;
-					start = nextOffset;
+					flushOffset = nextOffset;
 					
 					continue;
 				}
@@ -384,7 +384,7 @@ public class CharArrayWhitespaceFilter {
 	public int skipObjectMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(true) {
 			char c = chars[offset];
@@ -402,50 +402,49 @@ public class CharArrayWhitespaceFilter {
 			switch(c) {
 			case '"': {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+				
+				int endQuoteIndex = nextOffset;
+				
+				// key or value, might be whitespace
+				nextOffset++;
+				
+				colon:
+				if(chars[nextOffset] != ':') {
 
-				if(nextOffset - offset - 1 > maxStringLength) {
-					int endQuoteIndex = nextOffset;
-					
-					// field name or value, might be whitespace
+					if(chars[nextOffset] <= 0x20) {
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
 
-					// skip whitespace
-					// optimization: scan for highest value
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
-
-					if(chars[nextOffset] != ':') {
-						// was a value
-						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						
-						int skipped = endQuoteIndex - aligned;
-						
-						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
-						if(remove > 0) {
-							buffer.append(chars, flushOffset, aligned - flushOffset);
-							buffer.append(truncateMessage);
-							buffer.append(skipped);
-							buffer.append('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-							flushOffset = nextOffset;
-							offset = nextOffset;
-
-							continue;
+						if(chars[nextOffset] == ':') {
+							break colon;
 						}
 					}
+					// was a value
 
-					// was a field name or not long enough string
-					if(nextOffset != endQuoteIndex + 1) {
-						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-						flushOffset = nextOffset;
+					if(endQuoteIndex - offset >= maxStringLength) {
+						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
+					} else {
+						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
 					}
-
+					
+					offset = nextOffset;
+					flushOffset = nextOffset;
+					
+					continue;
 				}
-				offset = nextOffset + 1;
 
+				// was a key
+				buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+				buffer.append(':');
+
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] <= 0x20);				
+				
+				offset = nextOffset;
+				flushOffset = nextOffset;
+				
 				continue;
 			}
 			case '{' :
@@ -466,7 +465,7 @@ public class CharArrayWhitespaceFilter {
 		
 		buffer.append(chars, flushOffset, offset - flushOffset);
 		
-		setStart(offset);
+		setFlushOffset(offset);
 		
 		return offset;
 	}
@@ -474,7 +473,7 @@ public class CharArrayWhitespaceFilter {
 	public int skipArrayMaxStringLength(final char[] chars, int offset, int maxStringLength, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(true) {
 			char c = chars[offset];
@@ -493,49 +492,48 @@ public class CharArrayWhitespaceFilter {
 			case '"': {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 				
-				if(nextOffset - offset - 1 > maxStringLength) {
-					int endQuoteIndex = nextOffset;
-					
-					// field name or value, might be whitespace
+				int endQuoteIndex = nextOffset;
+				
+				// key or value, might be whitespace
+				nextOffset++;
+				
+				colon:
+				if(chars[nextOffset] != ':') {
 
-					// skip whitespace
-					// optimization: scan for highest value
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					if(chars[nextOffset] <= 0x20) {
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
 
-					if(chars[nextOffset] != ':') {
-						// was a value
-						int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
-						
-						int skipped = endQuoteIndex - aligned;
-						
-						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
-						if(remove > 0) {
-							buffer.append(chars, flushOffset, aligned - flushOffset);
-							buffer.append(truncateMessage);
-							buffer.append(skipped);
-							buffer.append('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-							flushOffset = nextOffset;
-							offset = nextOffset;
-
-							continue;
+						if(chars[nextOffset] == ':') {
+							break colon;
 						}
 					}
+					// was a value
 
-					// was a field name or not long enough string
-					if(nextOffset != endQuoteIndex + 1) {
-						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-						flushOffset = nextOffset;
+					if(endQuoteIndex - offset >= maxStringLength) {
+						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
+					} else {
+						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
 					}
-
+					
+					offset = nextOffset;
+					flushOffset = nextOffset;
+					
+					continue;
 				}
-				offset = nextOffset + 1;
 
+				// was a key
+				buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+				buffer.append(':');
+
+				do {
+					nextOffset++;
+				} while(chars[nextOffset] <= 0x20);				
+				
+				offset = nextOffset;
+				flushOffset = nextOffset;
+				
 				continue;
 			}
 			case '[' :
@@ -556,7 +554,7 @@ public class CharArrayWhitespaceFilter {
 		
 		buffer.append(chars, flushOffset, offset - flushOffset);
 		
-		setStart(offset);
+		setFlushOffset(offset);
 		
 		return offset;
 	}

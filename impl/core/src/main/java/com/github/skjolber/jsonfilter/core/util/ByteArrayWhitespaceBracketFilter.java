@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 
 public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter {
 
@@ -105,7 +106,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		int mark = getMark();
 		int writtenMark = getWrittenMark();
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 
 		loop: while(offset < maxSizeLimit) {
 			byte c = chars[offset];
@@ -181,7 +182,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		}
 		
 		setWrittenMark(writtenMark);
-		setStart(flushOffset);
+		setFlushOffset(flushOffset);
 		setMark(mark);
 		setLevel(bracketLevel);
 		setLimit(maxSizeLimit);
@@ -199,15 +200,15 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		boolean[] squareBrackets = getSquareBrackets();
 
 		int mark = getMark();
-		int writtenMark = getWrittenMark();
+		int streamMark = getWrittenMark();
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 		
 		loop: while(offset < maxSizeLimit) {
 			byte c = chars[offset];
 			if(c <= 0x20) {
 				if(flushOffset <= mark) {
-					writtenMark = buffer.size() + mark - flushOffset; 
+					streamMark = buffer.size() + mark - flushOffset; 
 				}
 				// skip this char and any other whitespace
 				buffer.write(chars, flushOffset, offset - flushOffset);
@@ -224,115 +225,131 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				c = chars[offset];
 			}
 			
-			switch(c) {			
+			switch(c) {
 			case '{' :
 			case '[' :
-				squareBrackets[bracketLevel] = c == '[';
+				// check corner case
+				maxSizeLimit--;
+				if(offset >= maxSizeLimit) {
+					break loop;
+				}
 
+				squareBrackets[bracketLevel] = c == '[';
+				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					squareBrackets = grow(squareBrackets);
+					boolean[] next = new boolean[squareBrackets.length + 32];
+					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+					squareBrackets = next;
 				}
+				
+				offset++;
 				mark = offset;
 
-				break;
+				continue;
 			case '}' :
 			case ']' :
 				bracketLevel--;
-
+				maxSizeLimit++;
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				offset++;
 				mark = offset;
 
 				if(bracketLevel == levelLimit) {
-					offset++;
 					break loop;
 				}
-				break;
+
+				continue;
 			case ',' :
 				mark = offset;
 				break;				
 			case '"': {
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
+				int endQuoteIndex = nextOffset;
 				
-				int nextOffset = offset;
-				
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				nextOffset++;
 
-				if(nextOffset - offset - 1 > maxStringLength) {
-					int endQuoteIndex = nextOffset;
+				if(endQuoteIndex - offset < maxStringLength) {
+					offset = nextOffset;
 
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					continue;
+				}
 
-					if(chars[nextOffset] != ':') {
-						// was a value
-						int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
+				colon:
+				if(chars[nextOffset] != ':') {
 
-						int skipped = endQuoteIndex - aligned;
+					if(chars[nextOffset] <= 0x20) {
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
 						
-						int remove = skipped - truncateMessage.length - AbstractRangesFilter.lengthToDigits(skipped);
-
-						if(remove > 0) {
-							if(flushOffset <= mark) {
-								writtenMark = buffer.size() + mark - flushOffset; 
-							}
-							
-							buffer.write(chars, flushOffset, aligned - flushOffset);
-							byte[] truncateString = getTruncateString();
-							buffer.write(truncateString, 0, truncateString.length);
-							buffer.write(skipped);
-							buffer.write('"');
-							
-							if(metrics != null) {
-								metrics.onMaxStringLength(1);
-							}
-							
-							maxSizeLimit += nextOffset - aligned; // also accounts for skipped whitespace, if any
-							if(maxSizeLimit >= maxReadLimit) {
-								maxSizeLimit = maxReadLimit;
-							}
-							
-							flushOffset = nextOffset;
-							offset = nextOffset;
-
-							continue;
-						}
-					}
-					// key or not long enough value
-					if(endQuoteIndex + 1 != nextOffset) {
-						// did skip whitespace
-
-						if(flushOffset <= mark) {
-							writtenMark = buffer.size() + mark - flushOffset; 
-						}
-						buffer.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-						
-						maxSizeLimit += nextOffset - endQuoteIndex;
+						maxSizeLimit += nextOffset - endQuoteIndex - 1;
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}
-						
-						flushOffset = nextOffset;
-						offset = nextOffset;
-						continue;
-					}							
-				} else {
-					nextOffset++;
-				}
-				offset = nextOffset;
 
+						if(chars[nextOffset] == ':') {
+							break colon;
+						}
+					}
+					
+					if(flushOffset <= mark) {
+						streamMark = buffer.size() + mark - flushOffset; 
+					}
+					
+					// was a value
+					maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
+					}
+					
+					offset = nextOffset;
+					flushOffset = nextOffset;
+
+					continue;
+				}
+
+				// was a key
+				if(flushOffset <= mark) {
+					streamMark = buffer.size() + mark - flushOffset; 
+				}
+				buffer.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+				buffer.write(':');
+
+				nextOffset++; 
+				
+				offset = nextOffset;
+				
+				if(chars[nextOffset] <= 0x20) {
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);
+					
+					maxSizeLimit += nextOffset - endQuoteIndex - 1;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
+					}
+				}
+					
+				if(maxSizeLimit >= maxReadLimit) {
+					maxSizeLimit = maxReadLimit;
+				}
+				
+				flushOffset = nextOffset;
+				offset = nextOffset;
+				
 				continue;
 			}
 			}
 			offset++;
 		}
 		
-		setWrittenMark(writtenMark);
-		setStart(flushOffset);
+		setWrittenMark(streamMark);
+		setFlushOffset(flushOffset);
 		setMark(mark);
 		setLevel(bracketLevel);
 		setLimit(maxSizeLimit);
@@ -351,7 +368,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		int mark = getMark();
 		int streamMark = getWrittenMark();
 
-		int flushOffset = getStart();
+		int flushOffset = getFlushOffset();
 		
 		loop: while(offset < maxSizeLimit) {
 			byte c = chars[offset];
@@ -516,7 +533,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 		}
 		
 		setWrittenMark(streamMark);
-		setStart(flushOffset);
+		setFlushOffset(flushOffset);
 		setMark(mark);
 		setLevel(bracketLevel);
 		setLimit(maxSizeLimit);

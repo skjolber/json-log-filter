@@ -82,11 +82,11 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				switch(c) {
 				case '{' :
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						filter.setStart(start);
+						filter.setFlushOffset(start);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, buffer, metrics);
 						
-						start = filter.getStart();
+						start = filter.getFlushOffset();
 
 						continue;
 					}
@@ -164,11 +164,11 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 
 								start = offset;
 							} else {
-								filter.setStart(nextOffset);
+								filter.setFlushOffset(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
 								
-								start = filter.getStart();
+								start = filter.getFlushOffset();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -262,11 +262,11 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				switch(c) {
 				case '{' :
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						filter.setStart(start);
+						filter.setFlushOffset(start);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, output, metrics);
 						
-						start = filter.getStart();
+						start = filter.getFlushOffset();
 						
 						continue;
 					}
@@ -346,11 +346,11 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 								
 								start = offset;
 							} else {
-								filter.setStart(nextOffset);
+								filter.setFlushOffset(nextOffset);
 
 								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output, metrics);
 								
-								start = filter.getStart();
+								start = filter.getFlushOffset();
 							}
 						} else {
 							if(chars[nextOffset] == '"') {

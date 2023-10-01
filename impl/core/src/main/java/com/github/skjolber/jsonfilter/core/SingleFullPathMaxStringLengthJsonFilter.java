@@ -38,7 +38,6 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 			
 			return filter;
 		} catch(Exception e) {
-			e.printStackTrace();
 			return null;
 		}
 	}

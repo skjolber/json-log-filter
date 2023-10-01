@@ -156,12 +156,6 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}				
 
 		if(bracketLevel > 0) {
-			if(flushedOffset <= mark) {
-				streamMark = buffer.length() + mark - flushedOffset; 
-			}
-			buffer.append(chars, flushedOffset, offset - flushedOffset);
-			flushedOffset = offset;
-			
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
@@ -170,6 +164,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 						buffer.append(chars, flushedOffset, markLimit - flushedOffset);
 					}
 					break markLimit;
+				} else {
+					if(mark >= flushedOffset) {
+						streamMark = buffer.length() + mark - flushedOffset; 
+						
+						buffer.append(chars, flushedOffset, mark - flushedOffset);
+					}					
 				}
 				buffer.setLength(streamMark);
 			}
@@ -298,12 +298,6 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 
 		if(bracketLevel > 0) {
-			if(flushedOffset <= mark) {
-				streamMark = stream.size() + mark - flushedOffset; 
-			}
-			stream.write(chars, flushedOffset, offset - flushedOffset);
-			flushedOffset = offset;
-			
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
@@ -312,6 +306,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 						stream.write(chars, flushedOffset, markLimit - flushedOffset);
 					}
 					break markLimit;
+				} else {
+					if(mark >= flushedOffset) {
+						streamMark = stream.size() + mark - flushedOffset; 
+						
+						stream.write(chars, flushedOffset, mark - flushedOffset);
+					}
 				}
 				stream.setCount(streamMark);
 			}
