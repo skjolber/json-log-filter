@@ -24,9 +24,9 @@ public class PathItemTest {
 		p2.setNext(p3);
 		p3.setNext(p4);
 		
-		assertSame(p1.matchPath("a"), p2);
+		assertSame(p1.matchPath(0, "a"), p2);
 		
-		FilterType type = p1.matchPath("a").matchPath("b").matchPath("c").getType();
+		FilterType type = p1.matchPath(0, "a").matchPath(1, "b").matchPath(2, "c").getType();
 		assertNotNull(type);
 	}
 	
@@ -57,13 +57,13 @@ public class PathItemTest {
 		p32.setNext(p5);
 		p33.setNext(p6);
 		
-		assertSame(p1.matchPath("a"), p2);
-		assertSame(p2.matchPath("c"), p31);
-		assertSame(p31.matchPath("f"), p4);
+		assertSame(p1.matchPath(0, "a"), p2);
+		assertSame(p2.matchPath(1, "c"), p31);
+		assertSame(p31.matchPath(2, "f"), p4);
 		
-		assertNotNull(p1.matchPath("a").matchPath("c").matchPath("f").getType());
-		assertNotNull(p1.matchPath("a").matchPath("d").matchPath("g").getType());
-		assertNotNull(p1.matchPath("a").matchPath("e").matchPath("h").getType());
+		assertNotNull(p1.matchPath(0, "a").matchPath(1, "c").matchPath(2, "f").getType());
+		assertNotNull(p1.matchPath(0, "a").matchPath(1, "d").matchPath(2, "g").getType());
+		assertNotNull(p1.matchPath(0, "a").matchPath(1, "e").matchPath(2, "h").getType());
 	}
 
 }

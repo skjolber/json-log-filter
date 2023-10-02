@@ -53,7 +53,10 @@ public class AnyMultiPathItem extends PathItem {
 	}
 	
 	@Override
-	public PathItem matchPath(byte[] source, int start, int end) {
+	public PathItem matchPath(int level, byte[] source, int start, int end) {
+		if(level != this.level) {
+			return any;
+		}
 		byte[][] fieldNameBytes = this.fieldNameBytes;
 		for(int i = 0; i < fieldNameBytes.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes[i])) {
@@ -64,7 +67,10 @@ public class AnyMultiPathItem extends PathItem {
 	}
 	
 	@Override
-	public PathItem matchPath(char[] source, int start, int end) {
+	public PathItem matchPath(int level, char[] source, int start, int end) {
+		if(level != this.level) {
+			return any;
+		}
 		char[][] fieldNameChars = this.fieldNameChars;
 		for(int i = 0; i < fieldNameChars.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[i])) {
@@ -75,7 +81,10 @@ public class AnyMultiPathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(String fieldName) {
+	public PathItem matchPath(int level, String fieldName) {
+		if(level != this.level) {
+			return any;
+		}
 		for(int i = 0; i < fieldNames.length; i++) {
 			if(fieldName.equals(fieldNames[i])) {
 				return next[i];

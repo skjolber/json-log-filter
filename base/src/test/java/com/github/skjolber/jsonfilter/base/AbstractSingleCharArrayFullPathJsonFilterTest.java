@@ -56,7 +56,7 @@ public class AbstractSingleCharArrayFullPathJsonFilterTest {
 	@Test
 	public void testFullPath() {
 		char[][] paths = new MySingleCharArrayAnyPathJsonFilter(-1, "/abc", FilterType.ANON).getPaths();
-		assertEquals(new String(paths[0]), "abc");
+		assertEquals(new String(paths[1]), "abc");
 	}
 	
 }

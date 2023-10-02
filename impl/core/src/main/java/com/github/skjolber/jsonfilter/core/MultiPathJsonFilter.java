@@ -83,7 +83,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						FilterType type = null;
 						
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 
 						if(pathItem.hasType()) {
 							// matched
@@ -223,7 +223,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						FilterType type = null;
 						
 						// match again any higher filter
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 
 						if(pathItem.hasType()) {
 							// matched

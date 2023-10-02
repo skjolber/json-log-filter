@@ -47,7 +47,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
@@ -63,7 +63,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 	
@@ -82,7 +82,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
@@ -98,7 +98,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
@@ -114,7 +114,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 	
@@ -175,7 +175,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 				boolean anon = false;
 				
 				// match again any higher filter
-				pathItem = pathItem.constrain(level).matchPath(currentName);
+				pathItem = pathItem.constrain(level).matchPath(level, currentName);
 
 				if(pathItem.hasType()) {
 					// matched
@@ -201,8 +201,6 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 					if(nextToken == JsonToken.VALUE_STRING) {
 						parser.getTextLength();
 					} 
-
-					System.out.println(nextToken);
 
 					// check size
 					if(nextToken.isScalarValue()) {
@@ -246,7 +244,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 							generator.writeFieldName(currentName);
 							generator.copyCurrentEvent(parser);
 							// keep structure, but mark all values
-							if(!JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter.anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, metrics)) {
+							if(!JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter.anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, metrics)) {
 								break;
 							}
 						} else {
@@ -271,6 +269,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 								metrics.onPrune(1);
 							}
 						}
+
 					}
 					offset = offsetSupplier.getAsLong();
 				} else {

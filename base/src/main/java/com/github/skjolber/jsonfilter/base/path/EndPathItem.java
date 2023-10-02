@@ -27,17 +27,17 @@ public class EndPathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(char[] source, int start, int end) {
+	public PathItem matchPath(int level, char[] source, int start, int end) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public PathItem matchPath(byte[] source, int start, int end) {
+	public PathItem matchPath(int level, byte[] source, int start, int end) {
 		throw new UnsupportedOperationException();
 	}
 	
 	@Override
-	public PathItem matchPath(String fieldName) {
+	public PathItem matchPath(int level, String fieldName) {
 		throw new UnsupportedOperationException();
 	}
 

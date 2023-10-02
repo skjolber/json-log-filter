@@ -154,7 +154,6 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 		final String[] elementPaths = this.paths;
 
 		int level = 0;
-		int matches = 0;
 		
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
@@ -163,25 +162,13 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			}
 
 			if(nextToken == JsonToken.START_OBJECT) {
-				if(level > matches) {
-					generator.copyCurrentEvent(parser);
-					JacksonMaxStringLengthJsonFilter.skipMaxStringLength(parser, generator, matches, builder, metrics, truncateStringValue);
-					
-					continue;
-				}
 				level++;
 			} else if(nextToken == JsonToken.END_OBJECT) {
 				level--;
-
-				matches = level;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
-				// reset match for a sibling field name, if any
-				matches = level - 1;
-
-				if(matchPath(parser.getCurrentName(), elementPaths[matches])) {
-					matches++;
-					
-					if(matches == elementPaths.length) {
+				
+				if(matchPath(parser.getCurrentName(), elementPaths[level])) {
+					if(level + 1 == elementPaths.length) {
 						generator.copyCurrentEvent(parser);
 
 						nextToken = parser.nextToken();
@@ -207,11 +194,32 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 								}
 							}
 						}
-
-						matches--;
 						
 						continue;
 					}
+				} else {
+					generator.copyCurrentEvent(parser);
+					
+					nextToken = parser.nextToken();
+					if(nextToken.isScalarValue()) {
+						if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+							JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+							
+							if(metrics != null) {
+								metrics.onMaxStringLength(1);
+							}
+	
+							continue;
+						}
+						generator.copyCurrentEvent(parser);
+					} else if(nextToken.isStructStart()) {
+						generator.copyCurrentEvent(parser);
+
+						JacksonMaxStringLengthJsonFilter.skipMaxStringLength(parser, generator, maxStringLength, builder, metrics, truncateStringValue);
+					} else {
+						generator.copyCurrentEvent(parser);
+					}
+					continue;
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);

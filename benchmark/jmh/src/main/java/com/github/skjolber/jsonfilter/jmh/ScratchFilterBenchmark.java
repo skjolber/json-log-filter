@@ -22,7 +22,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.FasterMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 
@@ -75,7 +74,7 @@ public class ScratchFilterBenchmark {
 		int size = (int) (file.length() - 1);
 		
 		original = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), false);
-		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new FasterMaxSizeJsonFilter(size), false);
+		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), false);
 
 		// xml-log-filter
 		//original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);

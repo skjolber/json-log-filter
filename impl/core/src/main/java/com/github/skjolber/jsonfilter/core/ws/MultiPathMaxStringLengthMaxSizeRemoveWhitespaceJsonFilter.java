@@ -211,7 +211,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				PathItem previousPathItem = pathItem;
 				
 				// match again any higher filter
-				pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
+				pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
 					// matched
 					filterType = pathItem.getType();
@@ -616,7 +616,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				PathItem previousPathItem = pathItem;
 				
 				// match again any higher filter
-				pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, endQuoteIndex);
+				pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
 					// matched
 					filterType = pathItem.getType();

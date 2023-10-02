@@ -189,7 +189,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						// was field name
 						FilterType type = null;
 
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteEndIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteEndIndex);
 
 						if(pathItem.hasType()) {
 							// matched
@@ -531,7 +531,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						FilterType type = null;
 						
 						// match again any higher filter
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteEndIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteEndIndex);
 						if(pathItem.hasType()) {
 							// matched
 							type = pathItem.getType();

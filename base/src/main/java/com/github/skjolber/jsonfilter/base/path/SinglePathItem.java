@@ -24,8 +24,8 @@ public class SinglePathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(String fieldName) {
-		if(this.fieldName.equals(fieldName)) {
+	public PathItem matchPath(int level, String fieldName) {
+		if(level == this.level && this.fieldName.equals(fieldName)) {
 			return next;
 		}
 		return this;
@@ -36,8 +36,8 @@ public class SinglePathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(char[] source, int start, int end) {
-		if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars)) {
+	public PathItem matchPath(int level, char[] source, int start, int end) {
+		if(level == this.level && AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars)) {
 			return next;
 		}
 		
@@ -45,8 +45,8 @@ public class SinglePathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(byte[] source, int start, int end) {
-		if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes)) {
+	public PathItem matchPath(int level, byte[] source, int start, int end) {
+		if(level == this.level && AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes)) {
 			return next;
 		}
 		return this;

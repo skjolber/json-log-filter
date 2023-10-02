@@ -236,7 +236,7 @@ public class CveFilterBenchmark {
 		Options opt = new OptionsBuilder()
 				.include(CveFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
-				.measurementIterations(5)
+				.measurementIterations(2)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();

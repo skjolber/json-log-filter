@@ -54,7 +54,14 @@ public class JsonComparator {
 				builder.append("\n");
 			}
 			
-			builder.append(JsonComparator.printDiff(output1, output2));
+			if(output1 != null && output2 != null) {
+				builder.append(JsonComparator.printDiff(output1, output2));
+			} else {
+				builder.append(output1);
+				builder.append("\n");
+				builder.append(output2);
+				builder.append("\n");
+			}
 			
 			Assertions.fail(builder.toString());
 		}

@@ -146,13 +146,16 @@ public class JsonPathFilter implements JsonFilter {
 
 				if(value.length() > maxStringLength) {
 					// A high surrogate precedes a low surrogate. Together they make up a codepoint.
-					int maxStringLength = this.maxStringLength;
+					int aligned = this.maxStringLength;
 					if(Character.isLowSurrogate(value.charAt(maxStringLength))) {
-						maxStringLength--;
+						aligned--;
 					}
-					int lost = value.length() - maxStringLength;
-					return value.subSequence(0, maxStringLength) + FILTER_TRUNCATE_MESSAGE + lost;
-
+					int removeLength = value.length() - aligned;
+					
+					int actualReductionLength = removeLength - FILTER_TRUNCATE_MESSAGE.length() - lengthToDigits(removeLength);
+					if(actualReductionLength > 0) {
+						return value.subSequence(0, aligned) + FILTER_TRUNCATE_MESSAGE + removeLength;
+					}
 				}
 				return value;
 			});
@@ -307,5 +310,46 @@ public class JsonPathFilter implements JsonFilter {
 	public boolean isValidating() {
 		return true;
 	}
+	
+	public static int lengthToDigits(int number) {
+		if (number < 100000) {
+		    if (number < 100) {
+		        if (number < 10) {
+		            return 1;
+		        } else {
+		            return 2;
+		        }
+		    } else {
+		        if (number < 1000) {
+		            return 3;
+		        } else {
+		            if (number < 10000) {
+		                return 4;
+		            } else {
+		                return 5;
+		            }
+		        }
+		    }
+		} else {
+		    if (number < 10000000) {
+		        if (number < 1000000) {
+		            return 6;
+		        } else {
+		            return 7;
+		        }
+		    } else {
+		        if (number < 100000000) {
+		            return 8;
+		        } else {
+		            if (number < 1000000000) {
+		                return 9;
+		            } else {
+		                return 10;
+		            }
+		        }
+		    }
+		}
+	}
+
 	
 }

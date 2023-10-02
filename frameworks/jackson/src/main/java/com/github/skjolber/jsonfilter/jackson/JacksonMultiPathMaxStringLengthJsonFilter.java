@@ -139,15 +139,6 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-		
-		if(getClass() != JacksonMultiPathMaxStringLengthJsonFilter.class) {
-			try {
-				throw new RuntimeException(getClass().getName());
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
 		int level = 0;
@@ -176,7 +167,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 				pathItem = pathItem.constrain(level);
 						
 				if(pathItem.getLevel() == level) {
-					pathItem = pathItem.matchPath(currentName);
+					pathItem = pathItem.matchPath(level, currentName);
 					
 					// match again any higher filter
 					if(pathItem.hasType()) {

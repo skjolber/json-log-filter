@@ -13,17 +13,17 @@ public class AnyPathItem extends PathItem {
 	}
 
 	@Override
-	public PathItem matchPath(String fieldName) {
+	public PathItem matchPath(int level, String fieldName) {
 		return next;
 	}
 
 	@Override
-	public PathItem matchPath(char[] source, int start, int end) {
+	public PathItem matchPath(int level, char[] source, int start, int end) {
 		return next;
 	}
 
 	@Override
-	public PathItem matchPath(byte[] source, int start, int end) {
+	public PathItem matchPath(int level, byte[] source, int start, int end) {
 		return next;
 	}
 
