@@ -1,9 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPathMaxStringLengthJsonFilter {
@@ -28,7 +27,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 		final char[][] elementPaths = this.pathChars;
 
-		final CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
+		final CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
 
 		int maxReadLimit = offset + length; // i.e. max limit
 		
@@ -103,14 +102,9 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 					case ',' :
 						mark = offset;
 						break;
-					case '"' :					
-						int nextOffset = offset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+					case '"' :
+						int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+						
 						int quoteEndIndex = nextOffset;
 						
 						nextOffset++;
@@ -378,7 +372,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 		final byte[][] elementPaths = this.pathBytes;
 
-		final ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(pathMatches, length);
+		final ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(pathMatches, length);
 
 		int maxReadLimit = offset + length; // i.e. max limit
 		
@@ -454,14 +448,9 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 					case ',' :
 						mark = offset;
 						break;
-					case '"' :					
-						int nextOffset = offset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+					case '"' :
+						int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
 						int quoteEndIndex = nextOffset;
 						
 						nextOffset++;							

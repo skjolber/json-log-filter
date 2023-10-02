@@ -55,13 +55,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					
 					break;
 				case '"' :
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteIndex = nextOffset;
 
 					nextOffset++;
@@ -212,13 +207,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					
 					break;
 				case '"' :
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;
@@ -261,12 +251,8 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 							offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, nextOffset + 1, maxStringLength, filter);
 						} else if(chars[nextOffset] == '"') {
 							offset = nextOffset;
-							do {
-								if(chars[nextOffset] == '\\') {
-									nextOffset++;
-								}
-								nextOffset++;
-							} while(chars[nextOffset] != '"');
+							
+							nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, nextOffset);
 							
 							quoteIndex = nextOffset;
 							

@@ -51,11 +51,5 @@ public class SinglePathItem extends PathItem {
 		}
 		return this;
 	}
-
-	@Override
-	public String toString() {
-		return "SinglePathItem [level=" + level + ", fieldName=" + fieldName + "]";
-	}
-
 	
 }

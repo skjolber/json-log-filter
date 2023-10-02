@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.test.jackson;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.core.JsonFactory;

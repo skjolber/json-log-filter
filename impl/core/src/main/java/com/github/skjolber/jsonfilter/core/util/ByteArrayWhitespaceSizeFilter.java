@@ -3,10 +3,8 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
-import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 
-public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter {
+public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 
 	protected int limit;
 
@@ -16,11 +14,11 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 	protected int mark;
 	protected int writtenMark;
 
-	public ByteArrayWhitespaceBracketFilter() {
+	public ByteArrayWhitespaceSizeFilter() {
 		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
 	}
 
-	public ByteArrayWhitespaceBracketFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
+	public ByteArrayWhitespaceSizeFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		super(pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
@@ -57,30 +55,6 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 	
 	public void setMark(int mark) {
 		this.mark = mark;
-	}
-
-	public void closeStructure(ByteArrayOutputStream output) {
-		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackets[i]) {
-				output.write(']');
-			} else {
-				output.write('}');
-			}
-		}
-	}	
-
-	public int markToLimit(byte[] chars) {
-		switch(chars[mark]) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
 	}
 
 	public void setLimit(int limit) {
@@ -171,12 +145,9 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				mark = offset;
 				break;			
 			case '"': 
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+
+				continue;
 			}
 			offset++;
 		}
@@ -433,13 +404,7 @@ public class ByteArrayWhitespaceBracketFilter extends ByteArrayWhitespaceFilter 
 				mark = offset;
 				break;
 			case '"': {
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 
 				if(nextOffset >= maxSizeLimit ) {
 					offset = nextOffset;

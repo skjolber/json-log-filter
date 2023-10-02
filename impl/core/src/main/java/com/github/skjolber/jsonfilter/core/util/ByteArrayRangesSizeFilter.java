@@ -4,18 +4,14 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class ByteArrayRangesBracketFilter extends ByteArrayRangesFilter {
+public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 
 	private boolean[] squareBrackets = new boolean[32];
 	private int mark;
 	private int level;
 	private int maxSizeLimit = -1;
-	
-	public ByteArrayRangesBracketFilter(int initialCapacity, int length) {
-		super(initialCapacity, length);
-	}
 
-	public ByteArrayRangesBracketFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage,
+	public ByteArrayRangesSizeFilter(int initialCapacity, int length, byte[] pruneMessage, byte[] anonymizeMessage,
 			byte[] truncateMessage) {
 		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}

@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.test.jackson;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

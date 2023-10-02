@@ -14,7 +14,7 @@ We want to create filters which do the following:
  * limit document size
  * limit text value size (i.e. base64 values)
  * remove whitespace
- * metrics (what was actually done to the document)
+ * generate metrics (what was actually done to the document)
 
 For specifying which values to hide or remove, the filters supports paths, i.e. a chain of field names like `/myRoot/myUser/myPassword`. As there is no field names in arrays, the parsers ignores array constructs, i.e. the path for "abcdef" in
 
@@ -89,7 +89,7 @@ while also no falling in the corner case
 "abcdef\\"
 ```
 
-Since ending a field name or value with a slash is unusual, scan for the double quote, then see whether it was in fact escaped or not.
+Since ending a field name or value with a slash is unusual, we can speed up the algorithm: Look for a double quote, then see whether it was in fact escaped or not.
 
 ```
 while(true) {
@@ -117,7 +117,7 @@ Parsing the above path `/myRoot/myUser/myPassword` into an array, keeping track 
 
 ```
 int level = 0;
-String[] pathElements = [null, "myRoot", "myUser", "myPassword"];
+String[] pathElements = new String[]{null, "myRoot", "myUser", "myPassword"};
 
 while(offset < limit) {
     switch(chars[offset]) {
@@ -140,7 +140,9 @@ while(offset < limit) {
             if(fieldName.equals(pathElements[level]) {
                 if(level + 1 == pathElements.length) {
                   // remove or hide field value
+                  continue
                 }
+                // fall through here if a match
             } else {
               // skip field value
             }
@@ -208,12 +210,8 @@ while(true) {
 			break;
 		}
 		case '"' :
-			do {
-				if(chars[offset] == '\\') {
-					offset++;
-				}
-				offset++;
-			} while(chars[offset] != '"');
+			offset = .. // end quote + 1
+			continue;
 		default :
 	}
 	offset++;
@@ -252,7 +250,7 @@ Then the above loop can be simplified to
  * get hold of field names or text scalar values
  * check if the current string must be limited
  * identify whether the current string is a field value or not. 
- * check whether the string is actually reduced when also counting the additonal ".. 30 chars removed" message
+ * check whether the string is actually reduced when also counting the additional ".. 30 chars removed" message
  * construct the truncated string
  
 So it is not really necessary to keep track of level.

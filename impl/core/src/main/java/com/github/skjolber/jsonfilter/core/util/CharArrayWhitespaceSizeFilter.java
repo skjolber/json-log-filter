@@ -6,7 +6,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 
-public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter {
+public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 
 	protected int maxSizeLimit;
 
@@ -16,11 +16,7 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 	protected int mark;
 	protected int writtenMark;
 
-	public CharArrayWhitespaceBracketFilter() {
-		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
-	}
-
-	public CharArrayWhitespaceBracketFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+	public CharArrayWhitespaceSizeFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
 		super(pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
@@ -57,30 +53,6 @@ public class CharArrayWhitespaceBracketFilter extends CharArrayWhitespaceFilter 
 	
 	public void setMark(int mark) {
 		this.mark = mark;
-	}
-
-	public void closeStructure(ByteArrayOutputStream output) {
-		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackets[i]) {
-				output.write(']');
-			} else {
-				output.write('}');
-			}
-		}
-	}	
-
-	public int markToLimit(byte[] chars) {
-		switch(chars[mark]) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
 	}
 
 	public void setMaxSizeLimit(int limit) {

@@ -17,14 +17,7 @@ public class ByteArrayWhitespaceFilter {
 	protected final byte[] truncateMessage;
 
 	protected int flushOffset;
-	protected int mark;
-	protected int writtenMark;
 	protected byte[] digit = new byte[11];
-	
-	protected int limit;
-
-	protected boolean[] squareBrackets = new boolean[32];
-	protected int level;	
 
 	public ByteArrayWhitespaceFilter() {
 		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
@@ -44,89 +37,14 @@ public class ByteArrayWhitespaceFilter {
 		return flushOffset;
 	}
 	
-	public int getWrittenMark() {
-		return writtenMark;
-	}
-
-	public void setWrittenMark(int writtenMark) {
-		this.writtenMark = writtenMark;
-	}
-	
-	public boolean[] grow(boolean[] squareBrackets) {
-		boolean[] next = new boolean[squareBrackets.length + 32];
-		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-		this.squareBrackets = next;
-		return next;
-	}
-
-	public boolean[] getSquareBrackets() {
-		return squareBrackets;
-	}
-	
-	public int getLevel() {
-		return level;
-	}
-	
-	public int getMark() {
-		return mark;
-	}
-	
-	public void setLevel(int level) {
-		this.level = level;
-	}
-	
-	public void setMark(int mark) {
-		this.mark = mark;
-	}
-
-	public void closeStructure(final StringBuilder buffer) {
-		for(int i = level - 1; i >= 0; i--) {
-			if(squareBrackets[i]) {
-				buffer.append(']');
-			} else {
-				buffer.append('}');
-			}
-		}
-	}
-
-	public int markToLimit(char[] chars) {
-		switch(chars[mark]) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
-	}
-
-	public byte[] getDigit() {
-		return digit;
-	}
-
-	public int getLimit() {
-		return limit;
-	}
-	
-	public void setLimit(int limit) {
-		this.limit = limit;
-	}
-	
 	public static void process(byte[] chars, int offset, int limit, ByteArrayOutputStream output) {
 		int flushOffset = offset;
 		
 		while(offset < limit) {
 			byte c = chars[offset];
 			if(c == '"') {
-				do {
-					if(chars[offset] == '\\') {
-						offset++;
-					}
-					offset++;
-				} while(chars[offset] != '"');
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+				continue;
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.write(chars, flushOffset, offset - flushOffset);
@@ -143,101 +61,6 @@ public class ByteArrayWhitespaceFilter {
 		output.write(chars, flushOffset, offset - flushOffset);
 	}
 	
-	public int skipObject(final byte[] chars, int offset, int limit, final ByteArrayOutputStream buffer) {
-		int level = 1;
-
-		int start = getFlushOffset();
-
-		loop: while(offset < limit) {
-			byte c = chars[offset];
-			if(c <= 0x20) {
-				// skip this char and any other whitespace
-				buffer.write(chars, start, offset - start);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
-
-				start = offset;
-				c = chars[offset];
-			}
-			
-			switch(c) {
-			case '"': {
-				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
-				
-				continue;
-			}
-			case '{' :
-				level++;
-
-				break;
-			case '}' :
-				level--;
-
-				if(level == 0) {
-					offset++;
-					break loop;
-				}
-				break;
-			}
-			offset++;
-		}
-		
-		buffer.write(chars, start, offset - start);
-		
-		setFlushOffset(offset);
-		
-		return offset;
-	}
-	
-	public int skipArray(final byte[] chars, int offset, final ByteArrayOutputStream buffer) {
-		int level = 1;
-
-		int start = getFlushOffset();
-
-		loop: while(offset < limit) {
-			byte c = chars[offset];
-			if(c <= 0x20) {
-				// skip this char and any other whitespace
-				buffer.write(chars, start, offset - start);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
-
-				start = offset;
-				c = chars[offset];
-			}
-			
-			switch(c) {
-			case '"': {
-				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
-				
-				continue;
-			}
-			case '[' :
-				level++;
-
-				break;
-			case ']' :
-				level--;
-
-				if(level == 0) {
-					offset++;
-					break loop;
-				}
-				break;
-			}
-			offset++;
-		}
-		
-		buffer.write(chars, start, offset - start);
-		
-		setFlushOffset(offset);
-		
-		return offset;
-	}
-
-
 	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
@@ -536,107 +359,6 @@ public class ByteArrayWhitespaceFilter {
 		return offset;
 
 	}
-
-
-	public int skipObjectOrArray(final byte[] chars, int offset, int limit, final ByteArrayOutputStream buffer) {
-		int level = 1;
-
-		int start = getFlushOffset();
-
-		loop: while(offset < limit) {
-			if(chars[offset] <= 0x20) {
-				// skip this char and any other whitespace
-				buffer.write(chars, start, offset - start);
-				do {
-					offset++;
-					if(offset >= limit) {
-						start = offset;
-						break loop;
-					}
-				} while(chars[offset] <= 0x20);
-				
-				start = offset;
-			}
-			
-			// 01111011 {
-			// 01011011 [
-			// 01x11011
-			
-			// 01011101 ]
-			// 01111101 }
-			// 01x11101
-			
-			// 01x11xx1 translates to
-			// 01011001 Y (safe to ignore)
-			// 01011011 [
-			// 01011101 ]
-			// 01011111 _ (safe to ignore)
-			// 01111001 y (safe to ignore)
-			// 01111011 {
-			// 01111101 }
-			// 01111111 DEL (safe to ignore)
-			
-			
-			// 00100010 "
-			// 00101100 ,
-			
-			if(chars[offset] == '"') {
-				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
-				
-				continue;
-			} 
-			
-			if((chars[offset] & 0b11011001) == 0b01011001) {
-				
-				/*
-				if((chars[offset] & 0x3) == 0x3) {
-					level++;
-				} else {
-					level--;
-					if(level == 0) {
-						offset++;
-						break loop;
-					}
-				}
-*/
-				/*
-				switch(chars[offset]) {
-				case '[':
-				case '{': {
-					level++;
-					break;
-				}
-				default : {
-					level--;
-					if(level == 0) {
-						offset++;
-						break loop;
-					}
-				}
-				}
-				*/
-				
-				
-				if(chars[offset] == '[' || chars[offset] == '{') { // alternatively if((chars[offset] & 0x3) == 0x3)
-					level++;
-				} else {
-					level--;
-					if(level == 0) {
-						offset++;
-						break loop;
-					}
-				}
-				
-			}
-			offset++;
-		}
-		
-		buffer.write(chars, start, offset - start);
-		
-		setFlushOffset(offset);
-		
-		return offset;
-	}
 	
 	public static int addMaxLength(final byte[] chars, int offset, final ByteArrayOutputStream output, int start, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
 		// was a value
@@ -661,5 +383,9 @@ public class ByteArrayWhitespaceFilter {
 			
 			return 0;
 		}
+	}
+	
+	public byte[] getDigit() {
+		return digit;
 	}
 }

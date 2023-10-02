@@ -2,19 +2,19 @@ package com.github.skjolber.jsonfilter.core.util;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class CharArrayRangesBracketFilter extends CharArrayRangesFilter {
+public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 
 	protected boolean[] squareBrackets = new boolean[32];
 	protected int mark;
 	protected int level;
 	protected int maxSizeLimit = -1;
 
-	public CharArrayRangesBracketFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
+	public CharArrayRangesSizeFilter(int initialCapacity, int length, char[] pruneMessage, char[] anonymizeMessage,
 			char[] truncateMessage) {
 		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public CharArrayRangesBracketFilter(int initialCapacity, int length) {
+	public CharArrayRangesSizeFilter(int initialCapacity, int length) {
 		super(initialCapacity, length);
 	}
 

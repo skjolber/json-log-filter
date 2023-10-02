@@ -8,11 +8,11 @@ import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceBracketFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceBracketFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceSizeFilter;
 
 public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MultiPathMaxStringLengthRemoveWhitespaceJsonFilter {
 
@@ -38,7 +38,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				maxSizeLimit = maxReadLimit;
 			}
 			
-			CharArrayWhitespaceBracketFilter filter = new CharArrayWhitespaceBracketFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+			CharArrayWhitespaceSizeFilter filter = new CharArrayWhitespaceSizeFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
@@ -59,7 +59,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		}
 	}
 
-	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceBracketFilter filter, JsonFilterMetrics metrics) {
+	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
 		int maxSizeLimit = filter.getMaxSizeLimit();
@@ -440,7 +440,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				maxSizeLimit = maxReadLimit;
 			}
 
-			ByteArrayWhitespaceBracketFilter filter = new ByteArrayWhitespaceBracketFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+			ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 
 			filter.setLimit(maxSizeLimit);
 			
@@ -464,7 +464,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 		}
 	}
 
-	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final FlexibleOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceBracketFilter filter, JsonFilterMetrics metrics) throws IOException {
+	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final FlexibleOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
 		int maxSizeLimit = filter.getLimit();

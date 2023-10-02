@@ -1,7 +1,7 @@
 package com.github.skjolber.jsonfilter.test.truth;
 
-import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Fact.fact;
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import java.nio.charset.StandardCharsets;

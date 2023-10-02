@@ -5,12 +5,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.apache.commons.io.IOUtils;
 
@@ -19,8 +16,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
-import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
-import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTestFactory;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;
 
 /**

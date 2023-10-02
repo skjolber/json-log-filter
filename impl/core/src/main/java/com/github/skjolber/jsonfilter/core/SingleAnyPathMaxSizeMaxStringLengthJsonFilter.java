@@ -1,8 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPathMaxStringLengthJsonFilter  {
@@ -23,7 +23,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, maxStringLength, pathChars, filterType, maxPathMatches, filter);
@@ -40,7 +40,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, maxStringLength, pathBytes, filterType, maxPathMatches, filter);
@@ -49,7 +49,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 		}
 	}
 
-	public static CharArrayRangesBracketFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, final char[] elementPaths, FilterType filterType, int pathMatches, CharArrayRangesBracketFilter filter) {
+	public static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, final char[] elementPaths, FilterType filterType, int pathMatches, CharArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -86,14 +86,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 				case ',' :
 					mark = offset;
 					break;				
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;
@@ -303,7 +298,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 		return filter;
 	}
 
-	public static ByteArrayRangesBracketFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesBracketFilter filter) {
+	public static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -340,14 +335,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;

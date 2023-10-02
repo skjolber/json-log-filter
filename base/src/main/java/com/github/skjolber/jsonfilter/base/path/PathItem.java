@@ -36,8 +36,4 @@ public abstract class PathItem {
 		return level;
 	}
 
-	public PathItem getParent() {
-		return parent;
-	}
-
 }

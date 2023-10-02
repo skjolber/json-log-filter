@@ -1,8 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
@@ -51,16 +51,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						break;
 					case '"' : { 
-						int nextOffset = offset;
-						// avoid escaped double quotes
-						// also avoid to count escaped double slash as an escape character
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
-						
+						int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+
 						int quoteIndex = nextOffset;
 
 						nextOffset++;							
@@ -181,15 +173,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						break;
 					case '"' : { 
-						int nextOffset = offset;
-						// avoid escaped double quotes
-						// also avoid to count escaped double slash as an escape character
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+						int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 						
 						int quoteIndex = nextOffset;
 						

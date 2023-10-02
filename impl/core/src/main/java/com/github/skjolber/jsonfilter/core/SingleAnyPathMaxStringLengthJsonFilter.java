@@ -41,13 +41,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 			int pathMatches, final char[] path, FilterType filterType, final T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;
@@ -149,13 +144,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 			int pathMatches, final byte[] path, FilterType filterType, final T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+				
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;

@@ -11,7 +11,6 @@ import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Logbook.ResponseProcessingStage;
 import org.zalando.logbook.Logbook.ResponseWritingStage;
 
-import com.github.skjolber.jsonfilter.spring.autoconfigure.logbook.PathFilterSink;
 import com.github.skjolber.jsonfilter.spring.logbook.servlet.LocalResponse;
 
 public class LogbookRequestMappingHandlerAdapter extends RequestMappingHandlerAdapter {

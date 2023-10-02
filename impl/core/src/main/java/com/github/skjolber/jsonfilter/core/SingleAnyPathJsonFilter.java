@@ -41,13 +41,8 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 	public static <T extends CharArrayRangesFilter> T rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, char[] path, FilterType filterType, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+				
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;
@@ -125,13 +120,8 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 	public static <T extends ByteArrayRangesFilter> T rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, byte[] path, FilterType filterType, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					if(chars[nextOffset] == '\\') {
-						nextOffset++;
-					}
-					nextOffset++;
-				} while(chars[nextOffset] != '"');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+				
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;

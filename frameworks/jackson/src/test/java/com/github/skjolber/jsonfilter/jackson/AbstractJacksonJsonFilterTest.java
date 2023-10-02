@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
-import java.util.function.Predicate;
 
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 

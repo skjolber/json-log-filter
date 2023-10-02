@@ -1,8 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
@@ -25,7 +25,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			return super.ranges(chars, offset, length);
 		}
 
-		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
 			return rangesFullPathMaxSize(chars, offset, offset + length, offset + maxSize, 0, pathChars, 0, filterType, maxPathMatches, filter);
@@ -40,7 +40,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 			return super.ranges(chars, offset, length);
 		}
 		
-		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
 			return rangesFullPathMaxSize(chars, offset, offset + length, offset + maxSize, 0, pathBytes, 0, filterType, maxPathMatches, filter);
@@ -49,7 +49,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 		}
 	}
 	
-	public static CharArrayRangesBracketFilter rangesFullPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, CharArrayRangesBracketFilter filter) {
+	public static CharArrayRangesSizeFilter rangesFullPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, CharArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -116,14 +116,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -338,7 +333,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 		return filter;
 	}
 
-	public static ByteArrayRangesBracketFilter rangesFullPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayRangesBracketFilter filter) {
+	public static ByteArrayRangesSizeFilter rangesFullPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int level, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -404,14 +399,9 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							

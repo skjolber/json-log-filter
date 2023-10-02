@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonCollection;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonItem;
 
 public class MaxSizeJsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAssertion {

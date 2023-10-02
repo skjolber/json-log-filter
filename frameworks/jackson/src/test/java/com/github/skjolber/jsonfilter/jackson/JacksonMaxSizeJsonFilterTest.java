@@ -3,16 +3,10 @@ package com.github.skjolber.jsonfilter.jackson;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 
 public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest {
 

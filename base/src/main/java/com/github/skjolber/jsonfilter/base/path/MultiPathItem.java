@@ -30,16 +30,7 @@ public class MultiPathItem extends PathItem {
 		}		
 		this.next = new PathItem[fieldNames.length];
 	}
-	
-	@Override
-	public String toString() {
-		return "MultiPathItem[" + Arrays.toString(fieldNames) + "]";
-	}
-	
-	public boolean hasNext() {
-		return next != null;
-	}
-	
+
 	public void setNext(PathItem next, int i) {
 		this.next[i] = next;
 	}

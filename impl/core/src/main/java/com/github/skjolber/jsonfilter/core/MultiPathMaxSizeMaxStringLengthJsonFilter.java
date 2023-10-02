@@ -1,11 +1,10 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStringLengthJsonFilter {
 
@@ -27,7 +26,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		final CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
+		final CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
 
 		int maxReadLimit = offset + length; // i.e. max limit
 		
@@ -124,13 +123,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						mark = offset;
 						break;
 					case '"' :
-						int nextOffset = offset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+						int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+						
 						int quoteEndIndex = nextOffset;
 						
 						nextOffset++;
@@ -367,7 +361,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		final ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(pathMatches, length);
+		final ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(pathMatches, length);
 
 		int maxReadLimit = offset + length;
 		
@@ -466,13 +460,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 
 				
 					case '"' :
-						int nextOffset = offset;
-						do {
-							if(chars[nextOffset] == '\\') {
-								nextOffset++;
-							}
-							nextOffset++;
-						} while(chars[nextOffset] != '"');
+						int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+						
 						int quoteEndIndex = nextOffset;
 						
 						nextOffset++;

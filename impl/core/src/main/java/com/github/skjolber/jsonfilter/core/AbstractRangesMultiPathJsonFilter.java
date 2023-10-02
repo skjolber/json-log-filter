@@ -4,9 +4,9 @@ import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public abstract class AbstractRangesMultiPathJsonFilter extends AbstractMultiPathJsonFilter {
@@ -77,12 +77,12 @@ public abstract class AbstractRangesMultiPathJsonFilter extends AbstractMultiPat
 		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
 
-	protected CharArrayRangesBracketFilter getCharArrayRangesBracketFilter(int capacity, int length) {
-		return new CharArrayRangesBracketFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	protected CharArrayRangesSizeFilter getCharArrayRangesBracketFilter(int capacity, int length) {
+		return new CharArrayRangesSizeFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 	}
 
-	protected ByteArrayRangesBracketFilter getByteArrayRangesBracketFilter(int capacity, int length) {
-		return new ByteArrayRangesBracketFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	protected ByteArrayRangesSizeFilter getByteArrayRangesBracketFilter(int capacity, int length) {
+		return new ByteArrayRangesSizeFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 	}
 
 	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {

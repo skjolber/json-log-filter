@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
 

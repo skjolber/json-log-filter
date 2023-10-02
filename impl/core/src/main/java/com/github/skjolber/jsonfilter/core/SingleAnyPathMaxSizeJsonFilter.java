@@ -1,8 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
@@ -21,7 +21,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			return super.ranges(chars, offset, length);
 		}
 
-		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, pathChars, filterType, maxPathMatches, filter);
@@ -36,7 +36,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 			return super.ranges(chars, offset, length);
 		}
 		
-		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, pathBytes, filterType, maxPathMatches, filter);
@@ -45,7 +45,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		}
 	}
 
-	protected static CharArrayRangesBracketFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, final char[] elementPaths, FilterType filterType, int pathMatches, CharArrayRangesBracketFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, final char[] elementPaths, FilterType filterType, int pathMatches, CharArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -84,14 +84,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -263,7 +258,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		return filter;
 	}
 
-	protected static CharArrayRangesBracketFilter rangesMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, CharArrayRangesBracketFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, CharArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -335,7 +330,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesBracketFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesBracketFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -373,14 +368,9 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						if(chars[nextOffset] == '\\') {
-							nextOffset++;
-						}
-						nextOffset++;
-					} while(chars[nextOffset] != '"');
+				case '"' :
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteEndIndex = nextOffset;
 					
 					nextOffset++;							
@@ -548,7 +538,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesBracketFilter rangesMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, ByteArrayRangesBracketFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, ByteArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();

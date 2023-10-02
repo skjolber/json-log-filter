@@ -15,11 +15,6 @@ public class EndPathItem extends PathItem {
 	public FilterType getType() {
 		return filterType;
 	}
-	
-	@Override
-	public String toString() {
-		return "EndPathItem [level=" + level + ", previous=" + parent + ", filterType=" + filterType + "]";
-	}
 
 	@Override
 	public boolean hasType() {

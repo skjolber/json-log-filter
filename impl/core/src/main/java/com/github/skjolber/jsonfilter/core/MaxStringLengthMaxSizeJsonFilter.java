@@ -16,9 +16,9 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesBracketFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter {
@@ -39,7 +39,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		int maxReadLimit = offset + length;
 
@@ -73,7 +73,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 
 		int maxReadLimit = offset + length;
 		
@@ -99,7 +99,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		}
 	}
 
-	public static int rangesMaxSizeMaxStringLength(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
+	public static int rangesMaxSizeMaxStringLength(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, CharArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -124,7 +124,6 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 					offset++;
 					mark = offset;
-
 					continue;
 				case '}' :	
 				case ']' :
@@ -138,11 +137,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				case '"' :				
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 					
 					if(nextOffset - offset < maxStringLength) {
 						offset = nextOffset + 1;
@@ -227,7 +223,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		return offset;
 	}
 	
-	public static int rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
+	public static int rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, ByteArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -237,6 +233,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 			switch(chars[offset]) {
 				case '[' : 
 				case '{' :
+					// check corner case
 					maxSizeLimit--;
 					if(offset >= maxSizeLimit) {
 						break loop;
@@ -265,11 +262,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					mark = offset;
 					break;
 				case '"' :					
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
 					if(nextOffset - offset < maxStringLength) {
 						offset = nextOffset + 1;
 						continue;
