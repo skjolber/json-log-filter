@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter implements JacksonJsonFilter {
@@ -136,7 +137,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}
 
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
 		if(bytes.length < offset + length) {
 			return false;
 		}
@@ -214,7 +215,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}
 
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(bytes.length < offset + length) {
 			return false;
 		}

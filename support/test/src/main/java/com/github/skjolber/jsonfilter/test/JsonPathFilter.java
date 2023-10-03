@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -239,7 +240,7 @@ public class JsonPathFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		if(chars.length < offset + length) {
 			return false;
 		}
@@ -296,7 +297,7 @@ public class JsonPathFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 			JsonFilterMetrics metrics) {
 		return process(chars, offset, length, output);
 	}

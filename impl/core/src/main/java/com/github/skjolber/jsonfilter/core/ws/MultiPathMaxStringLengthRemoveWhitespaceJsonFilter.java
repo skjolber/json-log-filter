@@ -16,9 +16,8 @@
  */
 package com.github.skjolber.jsonfilter.core.ws;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
@@ -47,7 +46,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
 	
@@ -231,7 +230,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 		}
 	}
 	
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		int bufferLength = output.size();

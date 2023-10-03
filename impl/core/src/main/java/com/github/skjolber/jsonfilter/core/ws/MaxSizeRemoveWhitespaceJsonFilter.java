@@ -16,11 +16,10 @@
  */
 package com.github.skjolber.jsonfilter.core.ws;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
@@ -179,14 +178,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output, metrics);
 		}
 
 		int bufferLength = output.size();
-		
-		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
 		
 		int maxSizeLimit = offset + maxSize;
 
@@ -203,10 +200,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				maxSizeLimit = maxReadLimit;
 			}
 			
-			process(chars, offset, offset, stream, maxSizeLimit, maxReadLimit, level, squareBrackets, mark, writtenMark, metrics);
+			process(chars, offset, offset, output, maxSizeLimit, maxReadLimit, level, squareBrackets, mark, writtenMark, metrics);
 			
-			stream.writeTo(output);
-
 			if(metrics != null) {
 				metrics.onInput(length);
 				int written = output.size() - bufferLength;
@@ -222,7 +217,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public static void process(byte[] chars, int offset, int flushedOffset, FlexibleOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, JsonFilterMetrics metrics) throws IOException {
+	public static void process(byte[] chars, int offset, int flushedOffset, ResizableByteArrayOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, JsonFilterMetrics metrics) throws IOException {
 		loop:
 		while(offset < maxSizeLimit) {
 			
@@ -327,7 +322,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
 	

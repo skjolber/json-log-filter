@@ -16,11 +16,10 @@
  */
 package com.github.skjolber.jsonfilter.core.ws;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
@@ -230,6 +229,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				offset = nextOffset;
 
 				continue;
+
 			}
 			default : {
 			}
@@ -263,12 +263,10 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		return bracketLevel;
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output, metrics);
 		}
-
-		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
 		
 		byte[] digit = new byte[11];
 		
@@ -289,8 +287,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				maxSizeLimit = maxReadLimit;
 			}
 
-			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, level, squareBrackets, mark, writtenMark, digit, maxStringLength, truncateStringValueAsBytes, metrics);
-			stream.writeTo(output);
+			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, output, level, squareBrackets, mark, writtenMark, digit, maxStringLength, truncateStringValueAsBytes, metrics);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -308,7 +305,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		}		
 	}
 
-	public static int processMaxStringLengthMaxSize(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, FlexibleOutputStream stream, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, byte[] digit, int maxStringLength, byte[] truncateStringValueAsBytes, JsonFilterMetrics metrics) throws IOException {
+	public static int processMaxStringLengthMaxSize(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, ResizableByteArrayOutputStream stream, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, byte[] digit, int maxStringLength, byte[] truncateStringValueAsBytes, JsonFilterMetrics metrics) throws IOException {
 		
 		int flushedOffset = offset;
 

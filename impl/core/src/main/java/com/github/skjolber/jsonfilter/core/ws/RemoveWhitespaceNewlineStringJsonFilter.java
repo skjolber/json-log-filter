@@ -16,9 +16,8 @@
  */
 package com.github.skjolber.jsonfilter.core.ws;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
@@ -96,7 +95,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 		}
 	}
 	
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int bufferLength = output.size();
 		
 		try {
@@ -159,7 +158,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
 	

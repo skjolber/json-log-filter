@@ -1,9 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
 public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 

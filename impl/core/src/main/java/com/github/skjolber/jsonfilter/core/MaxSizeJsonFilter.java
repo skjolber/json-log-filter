@@ -16,11 +16,11 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -41,6 +41,8 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
 		if(!mustConstrainMaxSize(length)) {
+			if(true) throw new RuntimeException();
+			
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -197,12 +199,14 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		return -1;
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {		
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {		
 		if(!mustConstrainMaxSize(length)) {
+			if(true) throw new RuntimeException();
+
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -216,7 +220,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		int startOffset = offset;
+		int flushOffset = offset;
 
 		int bufferLength = output.size();
 		
@@ -274,18 +278,18 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			}
 
 			if(bracketLevel > 0) {
-				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+				int markLimit = markToLimit(chars, offset, flushOffset + length, maxSizeLimit, mark);
 				if(markLimit != -1) {
-					output.write(chars, startOffset, markLimit - startOffset);
+					output.write(chars, flushOffset, markLimit - flushOffset);
 				} else {
-					output.write(chars, startOffset, mark - startOffset);
+					output.write(chars, flushOffset, mark - flushOffset);
 				}
 				
 				closeStructure(bracketLevel, squareBrackets, output);
 				
 				if(metrics != null) {
 					metrics.onInput(length);
-					int charsLimit = startOffset + length;
+					int charsLimit = flushOffset + length;
 					if(markLimit < charsLimit) {
 						metrics.onMaxSize(charsLimit - markLimit);
 					}

@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
@@ -106,7 +107,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.truncateMessage = truncateMessage;
 	}
 
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		
 		metrics.onInput(length);
 
@@ -146,7 +147,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		metrics.onOutput(buffer.size() - bufferSize);
 	}
 
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
 		length += offset;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
@@ -323,11 +324,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.removedLength += end - start;
 	}
 	
-	public final void writeInt(ByteArrayOutputStream out, int v) {
+	public final void writeInt(ResizableByteArrayOutputStream out, int v) {
 		writeInt(out, v, digit);
 	}
 	
-	public static final void writeInt(ByteArrayOutputStream out, int v, byte[] digit) {
+	public static final void writeInt(ResizableByteArrayOutputStream out, int v, byte[] digit) {
 		int chars = getChars(v, 11, digit);
 		
 		out.write(digit, chars, 11 - chars);

@@ -1,4 +1,4 @@
-package com.github.skjolber.jsonfilter.base;
+package com.github.skjolber.jsonfilter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -7,11 +7,15 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-public class FlexibleOutputStream extends ByteArrayOutputStream {
+/**
+ * 
+ * Performance optimized {@linkplain ByteArrayOutputStream} equivalent.
+ * 
+ */
+
+public class ResizableByteArrayOutputStream extends OutputStream {
 
 	private static final int MIN_INCREMENT = 16 * 1024;
-
-	private final int maxSize;
 
     /**
      * The buffer where data is stored.
@@ -32,13 +36,12 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * @param  maxSize   the max size.
      * @throws IllegalArgumentException if size is negative.
      */
-    public FlexibleOutputStream(int initialSize, int maxSize) {
+    public ResizableByteArrayOutputStream(int initialSize) {
         if (initialSize < 0) {
             throw new IllegalArgumentException("Negative initial size: "
                                                + initialSize);
         }
         this.buf = new byte[initialSize];
-        this.maxSize = maxSize;
     }
 
     public void ensureCapacity(int minCapacity) {
@@ -51,16 +54,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
         		minimumIncrement = MIN_INCREMENT;
         	}
         	
-        	// add half-way to max size, or a minimum amount
-        	if(minCapacity < maxSize) {
-        		
-        		int halfwayToMaxSize = (minCapacity + maxSize) / 2;
-        		
-                buf = copyOf(buf, Math.max(halfwayToMaxSize, buf.length + minimumIncrement));
-        	} else {
-        		// minimum amount
-                buf = copyOf(buf, buf.length + minimumIncrement);
-        	}
+            buf = copyOf(buf, buf.length + minimumIncrement);
         }
     }
 
@@ -69,7 +63,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      *
      * @param   b   the byte to be written.
      */
-    public synchronized void write(int b) {
+    public  void write(int b) {
         ensureCapacity(count + 1);
         buf[count] = (byte) b;
         count += 1;
@@ -87,7 +81,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * {@code len} is negative, or {@code len} is greater than
      * {@code b.length - off}
      */
-    public synchronized void write(byte b[], int off, int len) {
+    public void write(byte b[], int off, int len) {
     	// do not sanity check
         ensureCapacity(count + len);
         System.arraycopy(b, off, buf, count, len);
@@ -118,7 +112,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * @throws  NullPointerException if {@code out} is {@code null}.
      * @throws  IOException if an I/O error occurs.
      */
-    public synchronized void writeTo(OutputStream out) throws IOException {
+    public  void writeTo(OutputStream out) throws IOException {
         out.write(buf, 0, count);
     }
 
@@ -130,7 +124,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      *
      * @see     java.io.ByteArrayInputStream#count
      */
-    public synchronized void reset() {
+    public  void reset() {
         count = 0;
     }
 
@@ -142,7 +136,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * @return  the current contents of this output stream, as a byte array.
      * @see     java.io.ByteArrayOutputStream#size()
      */
-    public synchronized byte[] toByteArray() {
+    public  byte[] toByteArray() {
         return Arrays.copyOf(buf, count);
     }
 
@@ -153,7 +147,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      *          of valid bytes in this output stream.
      * @see     java.io.ByteArrayOutputStream#count
      */
-    public synchronized int size() {
+    public  int size() {
         return count;
     }
 
@@ -172,7 +166,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * @return String decoded from the buffer's contents.
      * @since  1.1
      */
-    public synchronized String toString() {
+    public  String toString() {
         return new String(buf, 0, count);
     }
 
@@ -207,7 +201,7 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      *         If the named charset is not supported
      * @since  1.1
      */
-    public synchronized String toString(String charsetName)
+    public  String toString(String charsetName)
         throws UnsupportedEncodingException
     {
         return new String(buf, 0, count, charsetName);
@@ -229,36 +223,8 @@ public class FlexibleOutputStream extends ByteArrayOutputStream {
      * @return     String decoded from the buffer's contents.
      * @since      10
      */
-    public synchronized String toString(Charset charset) {
+    public  String toString(Charset charset) {
         return new String(buf, 0, count, charset);
-    }
-
-    /**
-     * Creates a newly allocated string. Its size is the current size of
-     * the output stream and the valid contents of the buffer have been
-     * copied into it. Each character <i>c</i> in the resulting string is
-     * constructed from the corresponding element <i>b</i> in the byte
-     * array such that:
-     * <blockquote><pre>{@code
-     *     c == (char)(((hibyte & 0xff) << 8) | (b & 0xff))
-     * }</pre></blockquote>
-     *
-     * @deprecated This method does not properly convert bytes into characters.
-     * As of JDK&nbsp;1.1, the preferred way to do this is via the
-     * {@link #toString(String charsetName)} or {@link #toString(Charset charset)}
-     * method, which takes an encoding-name or charset argument,
-     * or the {@code toString()} method, which uses the platform's default
-     * character encoding.
-     *
-     * @param      hibyte    the high byte of each resulting Unicode character.
-     * @return     the current contents of the output stream, as a string.
-     * @see        java.io.ByteArrayOutputStream#size()
-     * @see        java.io.ByteArrayOutputStream#toString(String)
-     * @see        java.io.ByteArrayOutputStream#toString()
-     */
-    @Deprecated
-    public synchronized String toString(int hibyte) {
-        return new String(buf, hibyte, 0, count);
     }
 
     /**

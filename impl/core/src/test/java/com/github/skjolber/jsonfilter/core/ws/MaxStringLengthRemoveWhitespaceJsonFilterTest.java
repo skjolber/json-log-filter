@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonFilterTest {
@@ -24,7 +25,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxStringLengthRemoveWhitespaceJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(new MaxStringLengthRemoveWhitespaceJsonFilter(-1).process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(new MaxStringLengthRemoveWhitespaceJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

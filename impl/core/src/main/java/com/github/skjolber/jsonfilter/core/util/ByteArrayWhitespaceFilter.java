@@ -1,9 +1,11 @@
 package com.github.skjolber.jsonfilter.core.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayWhitespaceFilter {
@@ -37,7 +39,7 @@ public class ByteArrayWhitespaceFilter {
 		return flushOffset;
 	}
 	
-	public static void process(byte[] chars, int offset, int limit, ByteArrayOutputStream output) {
+	public static void process(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream output) {
 		int flushOffset = offset;
 		
 		while(offset < limit) {
@@ -61,7 +63,7 @@ public class ByteArrayWhitespaceFilter {
 		output.write(chars, flushOffset, offset - flushOffset);
 	}
 	
-	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		// stop processing with level is zero
@@ -180,7 +182,7 @@ public class ByteArrayWhitespaceFilter {
 		return limit + 1;
 	}
 
-	public int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public int skipObjectMaxStringLength(byte[] chars, int offset, int maxStringLength, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int flushOffset = getFlushOffset();
@@ -270,7 +272,7 @@ public class ByteArrayWhitespaceFilter {
 
 	}
 
-	public int skipArrayMaxStringLength(byte[] chars, int offset, int maxStringLength, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public int skipArrayMaxStringLength(byte[] chars, int offset, int maxStringLength, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int level = 1;
 
 		int flushOffset = getFlushOffset();
@@ -360,7 +362,7 @@ public class ByteArrayWhitespaceFilter {
 
 	}
 	
-	public static int addMaxLength(final byte[] chars, int offset, final ByteArrayOutputStream output, int start, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
+	public static int addMaxLength(final byte[] chars, int offset, final ResizableByteArrayOutputStream output, int start, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
 		// was a value
 		int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 		

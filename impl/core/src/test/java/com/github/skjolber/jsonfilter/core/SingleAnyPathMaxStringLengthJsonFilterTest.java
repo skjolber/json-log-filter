@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
@@ -24,7 +25,7 @@ public class SingleAnyPathMaxStringLengthJsonFilterTest extends DefaultJsonFilte
 	public void exception_returns_false() throws Exception {
 		SingleAnyPathMaxStringLengthJsonFilter filter = new SingleAnyPathMaxStringLengthJsonFilter(-1, -1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}	
 
 	@Test

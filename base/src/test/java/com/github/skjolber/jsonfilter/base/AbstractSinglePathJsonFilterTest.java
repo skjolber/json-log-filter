@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.JsonFilterRunner;
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
@@ -33,7 +34,7 @@ public class AbstractSinglePathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 			if(JsonValidator.isWellformed(new String(chars, offset, length))) {
 				output.write(chars, offset, length);
 				
@@ -49,7 +50,7 @@ public class AbstractSinglePathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}

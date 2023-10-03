@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 
@@ -43,7 +44,7 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 		this.mark = mark;
 	}
 	
-	public void closeStructure(ByteArrayOutputStream output) {
+	public void closeStructure(ResizableByteArrayOutputStream output) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
 				output.write(']');
@@ -58,14 +59,14 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 	}
 
 	@Override
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		super.filter(chars, offset, length, buffer, metrics);
 		
 		closeStructure(buffer);
 	}
 	
 	@Override
-	public void filter(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
 		super.filter(chars, offset, length, buffer);
 		
 		closeStructure(buffer);

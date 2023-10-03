@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.core.pp;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+
 /**
  * Append whitespace to character outputs in levels.<br><br>
  * 
@@ -149,7 +151,7 @@ public class Indent {
 		return indentations;
 	}
 	
-	public void append(ByteArrayOutputStream stream, int level) {
+	public void append(ResizableByteArrayOutputStream stream, int level) {
 		if(level < charIndentations.length) {
 			stream.write(byteIndentations[level], 0, byteIndentations[level].length);
 		} else {

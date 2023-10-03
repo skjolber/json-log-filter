@@ -1,13 +1,12 @@
 package com.github.skjolber.jsonfilter.core;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractSingleCharArrayFullPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
 public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends AbstractSingleCharArrayFullPathJsonFilter {
 
@@ -34,7 +33,7 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 	
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
-	public boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer) {
+	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
@@ -50,7 +49,7 @@ public abstract class AbstractRangesSingleCharArrayFullPathJsonFilter extends Ab
 	}
 	
 	
-	public boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;

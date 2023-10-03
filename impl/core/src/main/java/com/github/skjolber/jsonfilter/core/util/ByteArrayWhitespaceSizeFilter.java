@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.util;
 import java.io.ByteArrayOutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 
@@ -69,7 +70,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		return truncateMessage;
 	}
 
-	public int skipObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer) {
+	public int skipObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ResizableByteArrayOutputStream buffer) {
 		int bracketLevel = getLevel();
 		int levelLimit = bracketLevel - 1;
 		
@@ -161,7 +162,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		return offset;
 	}
 	
-	public int skipObjectOrArrayMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer, int maxStringLength, JsonFilterMetrics metrics) {
+	public int skipObjectOrArrayMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, final ResizableByteArrayOutputStream buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
 		int bracketLevel = getLevel();
 		int levelLimit = bracketLevel - 1;
@@ -328,7 +329,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		return offset;
 	}
 	
-	public int anonymizeObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
+	public int anonymizeObjectOrArrayMaxSize(final byte[] chars, int offset, int maxReadLimit, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int levelLimit = getLevel() - 1;
 		int bracketLevel = getLevel();
 

@@ -32,6 +32,7 @@ public class DefaultJsonLogFilterBuilder {
 	protected int maxStringLength = -1;
 	protected int maxPathMatches = -1;
 	protected int maxSize = -1;
+	protected boolean removeWhitespace = false;
 	
 	protected List<String> anonymizeFilters = new ArrayList<>();
 	protected List<String> pruneFilters = new ArrayList<>();
@@ -58,12 +59,18 @@ public class DefaultJsonLogFilterBuilder {
 		factory.setTruncateJsonStringValue(truncateStringValue);
 
 		factory.setMaxSize(maxSize);
+		factory.setRemoveWhitespace(removeWhitespace);
 
 		return factory.newJsonFilter();
 	}
 	
 	public DefaultJsonLogFilterBuilder withMaxSize(int maxSize) {
 		this.maxSize = maxSize;
+		return this;
+	}
+	
+	public DefaultJsonLogFilterBuilder withRemoveWhitespace(boolean removeWhitespace) {
+		this.removeWhitespace = removeWhitespace;
 		return this;
 	}
 	

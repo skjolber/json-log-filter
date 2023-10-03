@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 
 public class ByteArrayRangesFilterTest {
@@ -42,7 +43,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 			
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			
 			filter.filter(encoded, 0, encoded.length, b);
 			
@@ -61,7 +62,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 			
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			
 			filter.filter(encoded, 0, encoded.length, b);
 			
@@ -82,7 +83,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			
 			filter.filter(encoded, 0, encoded.length, b);
 			
@@ -119,7 +120,7 @@ public class ByteArrayRangesFilterTest {
 				ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 				filter.addMaxLength(encoded, prefix.length() + i, encoded.length, encoded.length - i);
 				
-				ByteArrayOutputStream b = new ByteArrayOutputStream();
+				ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 				filter.filter(encoded, 0, encoded.length, b);
 				String string = b.toString();
 				assertEquals(string.length(), prefix.length() + "...TRUNCATED BY XX".length());
@@ -131,7 +132,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, prefix.length() + unicodeBytes.length, encoded.length, encoded.length);
 			
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			filter.filter(encoded, 0, encoded.length, b);
 			String string = b.toString();
 			assertTrue(string.startsWith(prefix + unicode));
@@ -149,7 +150,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 			
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			
 			filter.filter(encoded, 0, encoded.length, b);
 			
@@ -170,7 +171,7 @@ public class ByteArrayRangesFilterTest {
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(encoded.length, encoded.length);
 		filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 		
-		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 		
 		filter.filter(encoded, 0, encoded.length, b);
 		return b.toString();
@@ -217,7 +218,7 @@ public class ByteArrayRangesFilterTest {
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, encoded.length);
 			filter.addMaxLength(encoded, i, encoded.length, encoded.length - i);
 			
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 			
 			filter.filter(encoded, 0, encoded.length, b);
 			
@@ -242,10 +243,10 @@ public class ByteArrayRangesFilterTest {
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
 		ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
 		
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		filter.filter(input.getBytes(), 0, input.length(), buffer);
+		ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
+		filter.filter(input.getBytes(), 0, input.length(), b);
 		
-		assertThat(buffer.toString()).isEqualTo(output);
+		assertThat(b.toString()).isEqualTo(output);
 	}
 	
 	@Test
@@ -258,10 +259,10 @@ public class ByteArrayRangesFilterTest {
 			
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
 			ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			filter.filter(input.getBytes(), 0, input.length(), buffer);
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
+			filter.filter(input.getBytes(), 0, input.length(), b);
 			
-			assertThat(buffer.toString()).isEqualTo(outputs[i]);
+			assertThat(b.toString()).isEqualTo(outputs[i]);
 		}
 	}
 	
@@ -275,10 +276,10 @@ public class ByteArrayRangesFilterTest {
 			
 			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
 			filter.addPrune(0, input.length() -1);
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			filter.filter(input.getBytes(), 0, input.length(), buffer);
+			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
+			filter.filter(input.getBytes(), 0, input.length(), b);
 			
-			assertThat(buffer.toString()).isEqualTo(outputs[i]);
+			assertThat(b.toString()).isEqualTo(outputs[i]);
 		}
 	}
 	

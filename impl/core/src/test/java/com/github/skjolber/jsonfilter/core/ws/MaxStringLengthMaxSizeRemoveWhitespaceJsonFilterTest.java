@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -43,13 +44,13 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		assertFalse(filter.process(brokenChars, 0, string.length(), new StringBuilder()));
 		
 		byte[] brokenBytes = broken.getBytes(StandardCharsets.UTF_8);
-		assertFalse(filter.process(brokenBytes, 0, string.length(), new ByteArrayOutputStream()));
+		assertFalse(filter.process(brokenBytes, 0, string.length(), new ResizableByteArrayOutputStream(128)));
 		
 		filter = new MaxSizeRemoveWhitespaceJsonFilter(brokenBytes.length);
 
 		assertFalse(filter.process(new char[]{}, 0, string.length(), new StringBuilder()));
 		
-		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test
@@ -60,7 +61,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1).process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1).process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

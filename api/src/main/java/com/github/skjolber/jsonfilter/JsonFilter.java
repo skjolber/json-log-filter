@@ -170,7 +170,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
-	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
+	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output);
 
 	/**
 	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
@@ -182,7 +182,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
-	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics);
+	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Check if validation

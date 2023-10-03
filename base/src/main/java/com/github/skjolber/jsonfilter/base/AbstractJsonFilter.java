@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public abstract class AbstractJsonFilter implements JsonFilter {
 
@@ -79,7 +80,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	@Override
 	public byte[] process(byte[] chars, int offset, int length) {
-		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(chars.length);
 		
 		if(process(chars, offset, length, output)) {
 			return output.toByteArray();
@@ -113,7 +114,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	@Override
 	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
-		ByteArrayOutputStream output = new ByteArrayOutputStream(chars.length);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(chars.length);
 		
 		if(process(chars, offset, length, output, metrics)) {
 			return output.toByteArray();

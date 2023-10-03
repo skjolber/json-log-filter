@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
@@ -26,7 +27,7 @@ public class MultiPathJsonFilterTest extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		MultiPathJsonFilter filter = new MultiPathJsonFilter(-1, null, null);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
@@ -26,7 +27,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilterTest extends
 	public void exception_returns_false() throws Exception {
 		SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, PASSTHROUGH_XPATH, FilterType.ANON);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

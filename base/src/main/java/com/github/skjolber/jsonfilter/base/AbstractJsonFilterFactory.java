@@ -37,6 +37,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
 	/** Raw (escaped) JSON string */
 	protected String truncateStringValue;
+	protected boolean removeWhitespace;
 	
 	protected boolean isSinglePruneFilter() {
 		return 
@@ -87,6 +88,14 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
 	public int getMaxStringLength() {
 		return maxStringLength;
+	}
+	
+	public void setRemoveWhitespace(boolean removeWhitespace) {
+		this.removeWhitespace = removeWhitespace;
+	}
+	
+	public boolean isRemoveWhitespace() {
+		return removeWhitespace;
 	}
 	
 	public void setMaxPathMatches(int maxPathMatches) {
@@ -247,6 +256,16 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		case TRUNCATE_MESSAGE : {
 			if(value instanceof String) {
 				setTruncateStringValue((String) value);
+			} else {
+				throw new IllegalArgumentException("Cannot set truncate message, unexpected value type");
+			}
+			break;
+		}
+		case REMOVE_WHITESPACE : {
+			if(value instanceof String) {
+				setRemoveWhitespace(Boolean.parseBoolean((String)value));
+			} else if(value instanceof Boolean) {
+				setRemoveWhitespace((Boolean)value);
 			} else {
 				throw new IllegalArgumentException("Cannot set truncate message, unexpected value type");
 			}

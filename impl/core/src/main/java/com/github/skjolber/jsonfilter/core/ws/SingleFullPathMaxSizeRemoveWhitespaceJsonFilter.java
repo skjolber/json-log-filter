@@ -16,11 +16,10 @@
  */
 package com.github.skjolber.jsonfilter.core.ws;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
-import com.github.skjolber.jsonfilter.base.FlexibleOutputStream;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
@@ -416,13 +415,11 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 		}		
 	}
 	
-	public boolean process(final byte[] chars, int offset, int length, final ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output, metrics);
 		}
 		
-		FlexibleOutputStream stream = new FlexibleOutputStream((length * 2) / 3, length);
-
 		int bufferLength = output.size();
 
 		int maxSizeLimit = offset + maxSize;
@@ -437,9 +434,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 
 			filter.setLimit(maxSizeLimit);
 			
-			processMaxSize(chars, offset, maxReadLimit, 0, stream, this.pathBytes, 0, filterType, maxPathMatches, filter, metrics);
-
-			stream.writeTo(output);
+			processMaxSize(chars, offset, maxReadLimit, 0, output, this.pathBytes, 0, filterType, maxPathMatches, filter, metrics);
 
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -457,7 +452,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 		}
 	}
 
-	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final FlexibleOutputStream stream, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
+	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		int maxSizeLimit = filter.getLimit();
 
 		int flushedOffset = filter.getFlushOffset();

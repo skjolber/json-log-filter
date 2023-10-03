@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
@@ -39,7 +40,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
 		try (JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			if(parse(parser)) {
 				output.write(bytes, offset, length);
@@ -81,7 +82,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 			JsonFilterMetrics filterMetrics) {
 		return process(chars, offset, length, output);
 	}

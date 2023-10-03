@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 
@@ -129,7 +130,7 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		byte[] process = process(chars, offset, length);
 		if(process != null) {
 			output.write(process, 0, process.length);
@@ -170,7 +171,7 @@ public final class PrimitiveJsonPropertyBodyFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 			JsonFilterMetrics filterMetrics) {
 		return process(chars, offset, length, output);
 	}

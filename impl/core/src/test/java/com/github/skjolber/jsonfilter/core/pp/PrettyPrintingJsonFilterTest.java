@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
@@ -38,13 +39,13 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(brokenChars, 0, string.length(), new StringBuilder()));
 		
 		byte[] brokenBytes = broken.getBytes(StandardCharsets.UTF_8);
-		assertFalse(filter.process(brokenBytes, 0, string.length(), new ByteArrayOutputStream()));
+		assertFalse(filter.process(brokenBytes, 0, string.length(), new ResizableByteArrayOutputStream(128)));
 		
 		filter = new RemoveWhitespaceJsonFilter();
 
 		assertFalse(filter.process(new char[]{}, 0, string.length(), new StringBuilder()));
 		
-		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[]{}, 0, string.length(), new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test
@@ -55,7 +56,7 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(getPrettyPrinter().process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(getPrettyPrinter().process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(getPrettyPrinter().process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.pp.Indent;
 import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryCache;
@@ -21,7 +22,7 @@ public class BenchmarkRunner<T extends JsonFilter> {
 	protected T jsonFilter;
 
 	protected StringBuilder builder = new StringBuilder(256 * 1000);
-	protected ByteArrayOutputStream outputstream = new ByteArrayOutputStream(256 * 1000);
+	protected ResizableByteArrayOutputStream outputstream = new ResizableByteArrayOutputStream(256 * 1000);
 	
 	protected boolean newBuilder;
 	protected boolean prettyPrint;
@@ -130,14 +131,14 @@ public class BenchmarkRunner<T extends JsonFilter> {
 			for(int i = 0; i < directory.size(); i++) {
 				byte[] bytes = directory.getValueAsBytes(i);
 				
-				ByteArrayOutputStream builder;
+				ResizableByteArrayOutputStream builder;
 				if(newBuilder) {
-					builder = new ByteArrayOutputStream(bytes.length);
+					builder = new ResizableByteArrayOutputStream(bytes.length);
 				} else {
 					builder = this.outputstream;
 				}
 				if(jsonFilter.process(bytes, 0, bytes.length, builder)) {
-					sizeSum += builder.toString().length(); // note: string output
+					sizeSum += builder.size(); // note: string output
 				} else {
 					throw new RuntimeException("Unable to filter using " + jsonFilter + " for source " + directory.getFile(i));
 				}
