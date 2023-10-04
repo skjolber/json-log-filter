@@ -20,18 +20,21 @@ public abstract class AbstractMaxSizeFilterBenchmark {
 	public void init() throws Exception {
 		File file = getFile();
 
-		int maxSize = getMaxSize();
+		long minimum = Integer.MAX_VALUE;
+		for (File f : file.listFiles()) {
+			if(f.length() < minimum) {
+				minimum = f.length();
+			}
+		}
 
-		System.out.flush();
-		System.err.println("Init " + file + " size " + maxSize);
-
+		int maxSize = getMaxSize((int)minimum);
 
 		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(maxSize), false);
 		coreMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeJsonFilter>(file, true, new MaxSizeJsonFilter(maxSize), false);
 		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeRemoveWhitespaceJsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(maxSize), false);
 	}
 	
-	protected abstract int getMaxSize();
+	protected abstract int getMaxSize(int minimum);
 
 	protected abstract File getFile();
 

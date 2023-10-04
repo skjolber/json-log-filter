@@ -50,7 +50,7 @@ import com.github.skjolber.jsonfilter.jmh.AbstractSingleFullPathMaxStringLengthF
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
 public class CveSingleFullPathMaxStringLengthFilterBenchmark extends AbstractSingleFullPathMaxStringLengthFilterBenchmark {
@@ -64,18 +64,6 @@ public class CveSingleFullPathMaxStringLengthFilterBenchmark extends AbstractSin
 	@Override
 	protected File getFile() {
 		return new File("./src/test/resources/benchmark/cves/" + fileName);
-	}
-	
-	public static void main(String[] args) throws RunnerException {
-		Options opt = new OptionsBuilder()
-				.include(CveSingleFullPathMaxStringLengthFilterBenchmark.class.getSimpleName())
-				.warmupIterations(5)
-				.measurementIterations(2)
-				.result("target/" + System.currentTimeMillis() + "." + CveSingleFullPathMaxStringLengthFilterBenchmark.class.getSimpleName() + ".json")
-				.resultFormat(ResultFormatType.JSON)
-				.build();
-
-		new Runner(opt).run();
 	}
 
 	@Override
@@ -91,6 +79,18 @@ public class CveSingleFullPathMaxStringLengthFilterBenchmark extends AbstractSin
 	@Override
 	protected String getPath() {
 		return PATH;
+	}
+	
+	public static void main(String[] args) throws RunnerException {
+		Options opt = new OptionsBuilder()
+				.include(CveSingleFullPathMaxStringLengthFilterBenchmark.class.getSimpleName())
+				.warmupIterations(5)
+				.measurementIterations(2)
+				.result("target/" + System.currentTimeMillis() + "." + CveSingleFullPathMaxStringLengthFilterBenchmark.class.getSimpleName() + ".json")
+				.resultFormat(ResultFormatType.JSON)
+				.build();
+
+		new Runner(opt).run();
 	}
 
 }

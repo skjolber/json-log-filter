@@ -49,7 +49,7 @@ import com.github.skjolber.jsonfilter.jmh.AbstractMaxStringLengthFilterBenchmark
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
 public class CveMaxStringLengthFilterBenchmark extends AbstractMaxStringLengthFilterBenchmark {
@@ -60,7 +60,7 @@ public class CveMaxStringLengthFilterBenchmark extends AbstractMaxStringLengthFi
 
 	@Override
 	protected File getFile() {
-		return new File("./src/test/resources/benchmark/cves/" + fileName);
+		return new File("./src/test/resources/benchmark/cves/" + fileName +"/cve2006.json.gz.json");
 	}
 	
 	public static void main(String[] args) throws RunnerException {

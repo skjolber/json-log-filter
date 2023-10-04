@@ -5,38 +5,35 @@ import java.io.IOException;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Setup;
 
-import com.github.skjolber.jsonfilter.core.MaxStringLengthMaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MultiPathMaxStringLengthRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
 
 
-public abstract class AbstractMaxStringLengthMaxSizeFilterBenchmark {
+public abstract class AbstractMultiPathMaxStringLengthFilterBenchmark {
 
 	protected JacksonBenchmarkRunner jacksonMaxSizeJsonFilter;
-	protected BenchmarkRunner<MaxStringLengthMaxSizeJsonFilter> coreMaxSizeJsonFilter;
-	protected BenchmarkRunner<MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter> coreRemoveWhitespaceMaxSizeJsonFilter;
+	protected BenchmarkRunner<? extends JsonFilter> coreMaxSizeJsonFilter;
+	protected BenchmarkRunner<? extends JsonFilter> coreRemoveWhitespaceMaxSizeJsonFilter;
 	
 	@Setup
 	public void init() throws Exception {
 		File file = getFile();
-		
-		long minimum = Integer.MAX_VALUE;
-		for (File f : file.listFiles()) {
-			if(f.length() < minimum) {
-				minimum = f.length();
-			}
-		}
 
-		int maxSize = getMaxSize((int)minimum);
-		
 		int maxStringLength = getMaxStringLength();
 
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize), false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthMaxSizeJsonFilter(maxStringLength, maxSize), false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize), false);
+		String[] anon = getAnon();
+		String[] prune = getPrune();
+		
+		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(maxStringLength, anon, prune), false);
+		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthJsonFilter(maxStringLength, -1, anon, prune), false);
+		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, -1, anon, prune), false);
 	}
 	
-	protected abstract int getMaxSize(int max);
+	protected abstract String[] getPrune();
+
+	protected abstract String[] getAnon();
 
 	protected abstract int getMaxStringLength();
 

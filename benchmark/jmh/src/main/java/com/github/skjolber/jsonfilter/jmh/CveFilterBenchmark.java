@@ -50,7 +50,7 @@ import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxSizeMaxStr
 @Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
-public class CveFilterBenchmark {
+public abstract class CveFilterBenchmark {
 
 	private final int maxStringLength = 64;
 	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};

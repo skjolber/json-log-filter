@@ -49,7 +49,7 @@ import com.github.skjolber.jsonfilter.jmh.AbstractMaxStringLengthMaxSizeFilterBe
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
 public class CveMaxStringLengthMaxSizeFilterBenchmark extends AbstractMaxStringLengthMaxSizeFilterBenchmark {
@@ -59,13 +59,13 @@ public class CveMaxStringLengthMaxSizeFilterBenchmark extends AbstractMaxStringL
 	private String fileName;
 
 	@Override
-	protected int getMaxSize() {
-		return (int)new File("./src/test/resources/benchmark/cves/" + fileName).length() / 2;
+	protected int getMaxSize(int max) {
+		return max / 2;
 	}
-
+	
 	@Override
 	protected File getFile() {
-		return new File("./src/test/resources/benchmark/cves/" + fileName);
+		return new File("./src/test/resources/benchmark/cves/" + fileName +"/cve2006.json.gz.json");
 	}
 	
 	@Override

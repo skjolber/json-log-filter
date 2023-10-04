@@ -42,6 +42,10 @@ import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeMaxStringLengthJsonF
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.AbstractMaxSizeFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractMaxStringLengthFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractMultiPathMaxStringLengthFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractSingleFullPathMaxStringLengthFilterBenchmark;
 
 
 @State(Scope.Thread)
@@ -51,28 +55,46 @@ import com.github.skjolber.jsonfilter.jmh.AbstractMaxSizeFilterBenchmark;
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
-public class CveMaxSizeFilterBenchmark extends AbstractMaxSizeFilterBenchmark {
+public class CveMultiPathMaxSizeMaxStringLengthFilterBenchmark extends AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark {
 
-	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	@Param(value={"200KB"})
+	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};
+	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
+
+	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	//@Param(value={"2KB"})
 	private String fileName;
+
+	@Override
+	protected File getFile() {
+		return new File("./src/test/resources/benchmark/cves/" + fileName);
+	}
+
+	@Override
+	protected int getMaxStringLength() {
+		return 64;
+	}
+
+	@Override
+	protected String[] getPrune() {
+		return prune;
+	}
+
+	@Override
+	protected String[] getAnon() {
+		return anon;
+	}
 
 	@Override
 	protected int getMaxSize(int minimum) {
 		return minimum / 2;
 	}
 	
-	@Override
-	protected File getFile() {
-		return new File("./src/test/resources/benchmark/cves/" + fileName);
-	}
-	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
-				.include(CveMaxSizeFilterBenchmark.class.getSimpleName())
+				.include(CveMultiPathMaxSizeMaxStringLengthFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
-				.measurementIterations(20)
-				.result("target/" + System.currentTimeMillis() + "." + CveMaxSizeFilterBenchmark.class.getSimpleName() + ".json")
+				.measurementIterations(2)
+				.result("target/" + System.currentTimeMillis() + "." + CveMultiPathMaxSizeMaxStringLengthFilterBenchmark.class.getSimpleName() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();
 

@@ -162,18 +162,19 @@ public interface JsonFilter {
 	byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics);
 
 	/**
-	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
+	 * Filter JSON characters to a {@linkplain ResizableByteArrayOutputStream}
 	 * 
 	 * @param chars bytes containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
+	 * @param output output
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
 	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output);
 
 	/**
-	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
+	 * Filter JSON characters to a {@linkplain ResizableByteArrayOutputStream}
 	 * 
 	 * @param chars bytes containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts

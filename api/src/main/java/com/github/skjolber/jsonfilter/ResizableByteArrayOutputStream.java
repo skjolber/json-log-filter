@@ -31,9 +31,7 @@ public class ResizableByteArrayOutputStream extends OutputStream {
      * Creates a new {@code ByteArrayOutputStream}, with a buffer capacity of
      * the specified size, in bytes.
      *
-     * @param  initialSize   the
-     *  initial size.
-     * @param  maxSize   the max size.
+     * @param  initialSize the initial size.
      * @throws IllegalArgumentException if size is negative.
      */
     public ResizableByteArrayOutputStream(int initialSize) {
