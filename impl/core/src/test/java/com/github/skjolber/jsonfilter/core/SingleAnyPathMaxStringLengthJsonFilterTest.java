@@ -2,8 +2,6 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
 
-import java.io.ByteArrayOutputStream;
-
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;

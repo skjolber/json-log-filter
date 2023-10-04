@@ -1,5 +1,4 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.output.StringBuilderWriter;

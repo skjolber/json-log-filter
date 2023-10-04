@@ -1,5 +1,4 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;

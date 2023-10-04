@@ -153,7 +153,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 			MaxSizeJsonCollection charsInput = charsInputs.get(i);
 			MaxSizeJsonCollection bytesInput = byteInputs.get(i);
 
-			
+			// TODO
 			
 			
 		}		

@@ -5,20 +5,12 @@ import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayWhitespaceFilter {
 
-	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_PRUNE_MESSAGE_JSON.toCharArray();
-	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_ANONYMIZE_MESSAGE.toCharArray();
-	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = AbstractRangesFilter.FILTER_TRUNCATE_MESSAGE.toCharArray();
-
 	protected final char[] pruneMessage;
 	protected final char[] anonymizeMessage;
 	protected final char[] truncateMessage;
 
 	protected int flushOffset;
 	protected byte[] digit = new byte[11];
-	
-	public CharArrayWhitespaceFilter() {
-		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
-	}
 
 	public CharArrayWhitespaceFilter(char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
 		this.pruneMessage = pruneMessage;

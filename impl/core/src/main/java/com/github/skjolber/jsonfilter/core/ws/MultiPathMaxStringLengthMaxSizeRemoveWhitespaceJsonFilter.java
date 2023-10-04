@@ -814,7 +814,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						stream.write(chars, flushOffset, mark - flushOffset);
 					}
 				}
-				stream.setCount(streamMark);
+				stream.setSize(streamMark);
 			}
 			MaxSizeJsonFilter.closeStructure(bracketLevel, squareBrackets, stream);
 		} else {

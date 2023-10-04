@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.core.util;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;

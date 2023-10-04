@@ -1,6 +1,4 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;

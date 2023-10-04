@@ -308,7 +308,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 						stream.write(chars, flushedOffset, mark - flushedOffset);
 					}
 				}
-				stream.setCount(streamMark);
+				stream.setSize(streamMark);
 			}
 			MaxSizeJsonFilter.closeStructure(bracketLevel, squareBrackets, stream);
 		} else {

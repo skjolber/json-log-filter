@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.core.util;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
@@ -14,10 +12,6 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 	
 	protected int mark;
 	protected int writtenMark;
-
-	public ByteArrayWhitespaceSizeFilter() {
-		this(DEFAULT_FILTER_PRUNE_MESSAGE_CHARS, DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS, DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS);
-	}
 
 	public ByteArrayWhitespaceSizeFilter(byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
 		super(pruneMessage, anonymizeMessage, truncateMessage);

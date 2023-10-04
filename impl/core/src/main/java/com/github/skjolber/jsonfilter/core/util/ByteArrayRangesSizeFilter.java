@@ -1,7 +1,5 @@
 package com.github.skjolber.jsonfilter.core.util;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 

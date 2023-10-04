@@ -14,10 +14,6 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
-	public CharArrayRangesSizeFilter(int initialCapacity, int length) {
-		super(initialCapacity, length);
-	}
-
 	public boolean[] grow(boolean[] squareBrackets) {
 		boolean[] next = new boolean[squareBrackets.length + 32];
 		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);

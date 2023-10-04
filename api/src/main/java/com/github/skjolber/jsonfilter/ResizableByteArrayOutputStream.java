@@ -258,7 +258,7 @@ public class ResizableByteArrayOutputStream extends OutputStream {
         return copy;
     }
 	
-	public void setCount(int count) {
+	public void setSize(int count) {
 		this.count = count;
 	}
 	

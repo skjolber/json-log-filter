@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;

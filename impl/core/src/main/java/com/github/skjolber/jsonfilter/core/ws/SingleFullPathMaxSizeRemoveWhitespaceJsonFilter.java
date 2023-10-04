@@ -788,7 +788,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						stream.write(chars, flushedOffset, mark - flushedOffset);
 					}
 				}
-				stream.setCount(streamMark);
+				stream.setSize(streamMark);
 			}
 			MaxSizeJsonFilter.closeStructure(bracketLevel, squareBrackets, stream);
 		} else {
