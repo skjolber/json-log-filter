@@ -26,16 +26,12 @@ public class MultiPathItem extends PathItem {
 		for(int i = 0; i < fieldNames.length; i++) {
 			fieldNameBytes[i] = fieldNames[i].getBytes(StandardCharsets.UTF_8);
 			fieldNameChars[i] = fieldNames[i].toCharArray();
-		}		
+		}
 		this.next = new PathItem[fieldNames.length];
 	}
 
 	public void setNext(PathItem next, int i) {
 		this.next[i] = next;
-	}
-	
-	public String[] getFieldNames() {
-		return fieldNames;
 	}
 	
 	@Override

@@ -1,10 +1,10 @@
 package com.github.skjolber.jsonfilter.base.path;
 
-public class AnyPathItem extends PathItem {
+public class StarPathItem extends PathItem {
 
 	private PathItem next;
 
-	public AnyPathItem(int level, PathItem parent) {
+	public StarPathItem(int level, PathItem parent) {
 		super(level, parent);
 	}
 	

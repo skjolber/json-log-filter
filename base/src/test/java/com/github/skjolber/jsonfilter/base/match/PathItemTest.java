@@ -11,7 +11,7 @@ import com.github.skjolber.jsonfilter.base.path.MultiPathItem;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.base.path.SinglePathItem;
 
-public class PathItemTest {
+public class PathItemTest extends AbstractPathTest {
 
 	@Test
 	public void test1() {
@@ -56,7 +56,8 @@ public class PathItemTest {
 		p31.setNext(p4);
 		p32.setNext(p5);
 		p33.setNext(p6);
-		
+
+		// string
 		assertSame(p1.matchPath(0, "a"), p2);
 		assertSame(p2.matchPath(1, "c"), p31);
 		assertSame(p31.matchPath(2, "f"), p4);
@@ -64,6 +65,24 @@ public class PathItemTest {
 		assertNotNull(p1.matchPath(0, "a").matchPath(1, "c").matchPath(2, "f").getType());
 		assertNotNull(p1.matchPath(0, "a").matchPath(1, "d").matchPath(2, "g").getType());
 		assertNotNull(p1.matchPath(0, "a").matchPath(1, "e").matchPath(2, "h").getType());
+		
+		// chars
+		assertSame(p1.matchPath(0, aChars, 0, 1), p2);
+		assertSame(p2.matchPath(1, cChars, 0, 1), p31);
+		assertSame(p31.matchPath(2, fChars, 0, 1), p4);
+		
+		assertNotNull(p1.matchPath(0, aChars, 0, 1).matchPath(1, cChars, 0, 1).matchPath(2, fChars, 0, 1).getType());
+		assertNotNull(p1.matchPath(0, aChars, 0, 1).matchPath(1, dChars, 0, 1).matchPath(2, gChars, 0, 1).getType());
+		assertNotNull(p1.matchPath(0, aChars, 0, 1).matchPath(1, eChars, 0, 1).matchPath(2, hChars, 0, 1).getType());
+
+		// bytes
+		assertSame(p1.matchPath(0, aBytes, 0, 1), p2);
+		assertSame(p2.matchPath(1, cBytes, 0, 1), p31);
+		assertSame(p31.matchPath(2, fBytes, 0, 1), p4);
+		
+		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, cBytes, 0, 1).matchPath(2, fBytes, 0, 1).getType());
+		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, dBytes, 0, 1).matchPath(2, gBytes, 0, 1).getType());
+		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, eBytes, 0, 1).matchPath(2, hBytes, 0, 1).getType());
 	}
 
 }

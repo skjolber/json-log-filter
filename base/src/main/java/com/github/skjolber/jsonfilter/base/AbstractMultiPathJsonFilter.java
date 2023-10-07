@@ -21,12 +21,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.skjolber.jsonfilter.base.path.ExpressionNode;
+import com.github.skjolber.jsonfilter.base.path.ExpressionNodeFactory;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.base.path.PathItemFactory;
 
 public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter {
 	
-	private static PathItemFactory FACTORY = new PathItemFactory();
+	private static final PathItemFactory FACTORY = new PathItemFactory();
+	private static final ExpressionNodeFactory NODE_FACTORY = new ExpressionNodeFactory();
 
 	public static class AnyPathFilter {
 		
@@ -92,7 +95,9 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			anyElementFilters = null;
 		}
 
-		this.pathItem = FACTORY.create(pathsList, typesList);		
+		ExpressionNode expressionNode = NODE_FACTORY.toExpressionNode(pathsList, typesList);
+		
+		this.pathItem = FACTORY.create(expressionNode);		
 	}
 	
 	/**

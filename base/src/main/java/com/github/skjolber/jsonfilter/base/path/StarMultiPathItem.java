@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 
-public class AnyMultiPathItem extends PathItem {
+public class StarMultiPathItem extends PathItem {
 
 	public final String[] fieldNames;
 	public final byte[][] fieldNameBytes;
@@ -15,11 +15,11 @@ public class AnyMultiPathItem extends PathItem {
 	public PathItem[] next;
 	private PathItem any;
 
-	public AnyMultiPathItem(List<String> fieldNames, int index, PathItem previous) {
+	public StarMultiPathItem(List<String> fieldNames, int index, PathItem previous) {
 		this(fieldNames.toArray(new String[fieldNames.size()]), index, previous);
 	}
 	
-	public AnyMultiPathItem(String[] fieldNames, int level, PathItem parent) {
+	public StarMultiPathItem(String[] fieldNames, int level, PathItem parent) {
 		super(level, parent);
 		this.fieldNames = fieldNames;
 		this.fieldNameBytes = new byte[fieldNames.length][];
@@ -30,24 +30,11 @@ public class AnyMultiPathItem extends PathItem {
 		}
 		this.next = new PathItem[fieldNames.length];
 	}
-	
-	@Override
-	public String toString() {
-		return "AnyMultiPathItem[" + Arrays.toString(fieldNames) + "]";
-	}
-	
-	public boolean hasNext() {
-		return next != null;
-	}
 
 	public void setNext(PathItem next, int i) {
 		this.next[i] = next;
 	}
-	
-	public String[] getFieldNames() {
-		return fieldNames;
-	}
-	
+
 	public void setAny(PathItem any) {
 		this.any = any;
 	}
@@ -55,7 +42,7 @@ public class AnyMultiPathItem extends PathItem {
 	@Override
 	public PathItem matchPath(int level, byte[] source, int start, int end) {
 		if(level != this.level) {
-			return any;
+			return this;
 		}
 		byte[][] fieldNameBytes = this.fieldNameBytes;
 		for(int i = 0; i < fieldNameBytes.length; i++) {
@@ -69,7 +56,7 @@ public class AnyMultiPathItem extends PathItem {
 	@Override
 	public PathItem matchPath(int level, char[] source, int start, int end) {
 		if(level != this.level) {
-			return any;
+			return this;
 		}
 		char[][] fieldNameChars = this.fieldNameChars;
 		for(int i = 0; i < fieldNameChars.length; i++) {
@@ -83,7 +70,7 @@ public class AnyMultiPathItem extends PathItem {
 	@Override
 	public PathItem matchPath(int level, String fieldName) {
 		if(level != this.level) {
-			return any;
+			return this;
 		}
 		for(int i = 0; i < fieldNames.length; i++) {
 			if(fieldName.equals(fieldNames[i])) {

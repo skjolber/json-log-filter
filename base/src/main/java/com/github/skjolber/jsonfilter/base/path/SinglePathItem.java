@@ -31,10 +31,6 @@ public class SinglePathItem extends PathItem {
 		return this;
 	}
 
-	public boolean hasNext() {
-		return next != null;
-	}
-
 	@Override
 	public PathItem matchPath(int level, char[] source, int start, int end) {
 		if(level == this.level && AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars)) {
@@ -51,5 +47,5 @@ public class SinglePathItem extends PathItem {
 		}
 		return this;
 	}
-	
+
 }

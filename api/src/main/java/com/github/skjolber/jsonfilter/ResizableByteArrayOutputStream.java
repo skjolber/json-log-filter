@@ -266,4 +266,7 @@ public class ResizableByteArrayOutputStream extends OutputStream {
 		return buf[index];
 	}
 	
+	public byte[] getBuffer() {
+		return buf;
+	}
 }

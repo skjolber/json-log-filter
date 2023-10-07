@@ -17,11 +17,6 @@ public class EndPathItem extends PathItem {
 	}
 
 	@Override
-	public boolean hasType() {
-		return true;
-	}
-
-	@Override
 	public PathItem matchPath(int level, char[] source, int start, int end) {
 		throw new UnsupportedOperationException();
 	}
@@ -34,6 +29,10 @@ public class EndPathItem extends PathItem {
 	@Override
 	public PathItem matchPath(int level, String fieldName) {
 		throw new UnsupportedOperationException();
+	}
+
+	public boolean hasType() {
+		return true;
 	}
 
 }
