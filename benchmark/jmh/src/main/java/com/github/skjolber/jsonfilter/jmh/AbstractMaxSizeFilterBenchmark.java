@@ -29,9 +29,9 @@ public abstract class AbstractMaxSizeFilterBenchmark {
 
 		int maxSize = getMaxSize((int)minimum);
 
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(maxSize), false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeJsonFilter>(file, true, new MaxSizeJsonFilter(maxSize), false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeRemoveWhitespaceJsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(maxSize), false);
+		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(maxSize), true, false);
+		coreMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeJsonFilter>(file, true, new MaxSizeJsonFilter(maxSize), true, false);
+		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<MaxSizeRemoveWhitespaceJsonFilter>(file, true, new MaxSizeRemoveWhitespaceJsonFilter(maxSize), true, false);
 	}
 	
 	protected abstract int getMaxSize(int minimum);

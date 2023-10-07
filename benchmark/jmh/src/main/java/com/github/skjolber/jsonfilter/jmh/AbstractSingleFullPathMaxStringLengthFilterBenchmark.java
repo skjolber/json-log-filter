@@ -33,9 +33,9 @@ public abstract class AbstractSingleFullPathMaxStringLengthFilterBenchmark {
 		String path = getPath();
 		FilterType type = getFilterType();
 		
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, path, type), false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, path, type), false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, -1, path, type), false);
+		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, path, type), true, false);
+		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new SingleFullPathMaxStringLengthJsonFilter(maxStringLength, -1, path, type), true, false);
+		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, -1, path, type), true, false);
 	}
 	
 	protected abstract FilterType getFilterType();

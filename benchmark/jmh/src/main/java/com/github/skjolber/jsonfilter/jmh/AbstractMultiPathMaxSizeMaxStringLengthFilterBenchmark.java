@@ -38,9 +38,9 @@ public abstract class AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark {
 		String[] anon = getAnon();
 		String[] prune = getPrune();
 		
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, anon, prune), false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, -1, anon, prune), false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, -1, anon, prune), false);
+		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, anon, prune), true, false);
+		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
+		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
 	}
 	
 	protected abstract int getMaxSize(int minimum);

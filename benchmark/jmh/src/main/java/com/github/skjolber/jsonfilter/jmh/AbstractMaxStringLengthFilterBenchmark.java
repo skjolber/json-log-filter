@@ -26,9 +26,9 @@ public abstract class AbstractMaxStringLengthFilterBenchmark {
 
 		int maxStringLength = getMaxStringLength();
 		
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength), false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthJsonFilter(maxStringLength), false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength), false);
+		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(maxStringLength), true, false);
+		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthJsonFilter(maxStringLength), true, false);
+		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength), true, false);
 	}
 	
 	protected abstract int getMaxStringLength();
