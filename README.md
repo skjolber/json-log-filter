@@ -21,7 +21,7 @@ Features:
  * Remove (prune) whole subtrees
  * Truncate large documents (max total output size)
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
- * Remove whitespace (for in pretty-printed documents)
+ * Remove whitespace (for pretty-printed documents)
  * Metrics for the above operations + total input and output size 
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
