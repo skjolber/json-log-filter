@@ -17,8 +17,6 @@
 
 package com.github.skjolber.jsonfilter;
 
-import java.io.ByteArrayOutputStream;
-
 /**
  * Interface for filtering JSON. <br>
  *  

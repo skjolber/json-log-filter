@@ -19,19 +19,19 @@ public class RequestResponseJsonFilter {
 		this.responses = responses;
 	}
 
-	public JsonFilter getRequestFilter(String path, boolean validate) {
+	public JsonFilter getRequestFilter(String path, boolean validate, int size) {
 		for(JsonFilterPathMatcher matcher : requests) {
 			if(matcher.matches(path)) {
-				return matcher.getFilter(validate);
+				return matcher.getFilter(validate, size);
 			}
 		}
 		return null;
 	}
 
-	public JsonFilter getResponseFilter(String path, boolean validate) {
+	public JsonFilter getResponseFilter(String path, boolean validate, int size) {
 		for(JsonFilterPathMatcher matcher : responses) {
 			if(matcher.matches(path)) {
-				return matcher.getFilter(validate);
+				return matcher.getFilter(validate, size);
 			}
 		}
 		return null;

@@ -5,12 +5,12 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 public class DefaultJsonFilterPathMatcherFactory implements JsonFilterPathMatcherFactory {
 
 	@Override
-	public JsonFilterPathMatcher createMatcher(String matcher, JsonFilter filterWithValidate, JsonFilter filter) {
+	public JsonFilterPathMatcher createMatcher(String matcher, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
 		JsonFilterPathMatcher m; 
 		if(matcher == null || matcher.isEmpty()) {
-			m = new AllJsonFilterPathMatcher(filterWithValidate, filter);
+			m = new AllJsonFilterPathMatcher(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		} else {
-			m = new PrefixJsonFilterPathMatcher(matcher, filterWithValidate, filter);
+			m = new PrefixJsonFilterPathMatcher(matcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		}
 		return m;
 	}

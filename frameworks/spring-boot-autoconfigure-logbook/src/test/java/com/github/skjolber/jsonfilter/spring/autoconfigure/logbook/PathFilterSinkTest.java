@@ -39,7 +39,7 @@ public class PathFilterSinkTest {
 		PathFilterSink pathFilterSink = new PathFilterSink(sink, requestResponseJsonFilter, false, false, WhitespaceStrategy.ALWAYS, WhitespaceStrategy.ALWAYS, new JsonFactory());
 		
 		JsonFilter jsonFilter = mock(JsonFilter.class);
-		when(requestResponseJsonFilter.getResponseFilter("/def", false)).thenReturn(jsonFilter);
+		when(requestResponseJsonFilter.getResponseFilter("/def", false, 1024)).thenReturn(jsonFilter);
 
 		HttpRequest matchRequest = mock(HttpRequest.class);
 		when(matchRequest.getPath()).thenReturn("/def");

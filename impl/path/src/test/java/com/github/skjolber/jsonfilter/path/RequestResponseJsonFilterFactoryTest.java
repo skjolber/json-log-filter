@@ -33,10 +33,10 @@ public class RequestResponseJsonFilterFactoryTest {
 		JsonFiltersProperties properties = new JsonFiltersProperties();
 		c.requestResponseJsonFilter(properties);
 		
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher(null, null, null) instanceof AllJsonFilterPathMatcher);
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("",  null, null) instanceof AllJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher(null, null, null, null, null, 1024) instanceof AllJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("",  null, null, null, null, 1024) instanceof AllJsonFilterPathMatcher);
 		
-		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("/ABC", null, null) instanceof PrefixJsonFilterPathMatcher);
+		assertTrue(defaultJsonFilterPathMatcherFactory.createMatcher("/ABC", null, null, null, null, 1024) instanceof PrefixJsonFilterPathMatcher);
 		
 		
 		JsonFilterPathProperties p = new JsonFilterPathProperties();
@@ -78,7 +78,7 @@ public class RequestResponseJsonFilterFactoryTest {
 	public void testAllForEmptyMatcher() {
 		JsonFilter filter = new DefaultJsonFilter();
 		JacksonMaxStringLengthJsonFilter validatingFilter = new JacksonMaxStringLengthJsonFilter(1024);
-		JsonFilterPathMatcher matcher = defaultJsonFilterPathMatcherFactory.createMatcher(null, validatingFilter, filter);
+		JsonFilterPathMatcher matcher = defaultJsonFilterPathMatcherFactory.createMatcher(null, validatingFilter, validatingFilter, filter, filter, 1024);
 		assertTrue(matcher instanceof AllJsonFilterPathMatcher);
 	}
 	
@@ -116,7 +116,7 @@ public class RequestResponseJsonFilterFactoryTest {
 		
 		RequestResponseJsonFilter requestResponseJsonFilter = c.requestResponseJsonFilter(jsonFiltersProperties);
 		
-		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", true);
+		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", true, 1024);
 		
 		assertTrue(filter instanceof JacksonJsonFilter);
 	}
@@ -155,7 +155,7 @@ public class RequestResponseJsonFilterFactoryTest {
 		
 		RequestResponseJsonFilter requestResponseJsonFilter = c.requestResponseJsonFilter(jsonFiltersProperties);
 		
-		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", false);
+		JsonFilter filter = requestResponseJsonFilter.getRequestFilter("/myPath", false, 1024);
 		
 		assertFalse(filter instanceof JacksonJsonFilter);
 	}

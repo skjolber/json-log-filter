@@ -42,40 +42,47 @@ public class PathResponseFilter implements RequestFilter {
 				}
 			} while(true);
 			
-			if(preprocessedHttpMessage != null) {
-				boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
-
-				if(databinding) {
-					// so no further JSON validation is necessary
-					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
-
-					if(jsonFilter != null) {
-						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
-					} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
-						return new JsonHttpRequest(request, new CompactingJsonProcessor());
-					}
+			try {
+				byte[] body = request.getBody();
+				if(body == null) {
 					return request;
-				} else {
-					// might still be valid JSON
 				}
-			}
-			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validate);
-			if(jsonFilter != null) {
-				if(validate) {
-					return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, whitespaceStrategy));
-				} else {
-					return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+				if(preprocessedHttpMessage != null) {
+					boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
+	
+					if(databinding) {
+						// so no further JSON validation is necessary
+						JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false, body.length);
+	
+						if(jsonFilter != null) {
+							return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+						} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
+							return new JsonHttpRequest(request, new CompactingJsonProcessor());
+						}
+						return request;
+					} else {
+						// might still be valid JSON
+					}
 				}
-			} else if(validate) {
-				return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, whitespaceStrategy));
-			} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
-				return new JsonHttpRequest(request, new CompactingJsonProcessor());
-			} else {
-				return request;
+				JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validate, body.length);
+				if(jsonFilter != null) {
+					if(validate) {
+						return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, whitespaceStrategy));
+					} else {
+						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+					}
+				} else if(validate) {
+					return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, whitespaceStrategy));
+				} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
+					return new JsonHttpRequest(request, new CompactingJsonProcessor());
+				} else {
+					return request;
+				}
+			} catch(Exception e) {
+				// ignore
 			}
-		} else {
-			return request;
 		}
+		return request;
 	}
 
 }

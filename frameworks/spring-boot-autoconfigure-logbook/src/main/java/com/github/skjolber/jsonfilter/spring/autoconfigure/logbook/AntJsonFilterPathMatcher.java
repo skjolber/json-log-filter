@@ -10,8 +10,8 @@ public class AntJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 	private final AntPathMatcher matcher;
 	private final String pattern;
 
-	public AntJsonFilterPathMatcher(AntPathMatcher matcher, String pattern, JsonFilter validatingFilter, JsonFilter nonvalidatingFilter) {
-		super(validatingFilter, nonvalidatingFilter);
+	public AntJsonFilterPathMatcher(AntPathMatcher matcher, String pattern, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+		super(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		this.matcher = matcher;
 		this.pattern = pattern;
 	}

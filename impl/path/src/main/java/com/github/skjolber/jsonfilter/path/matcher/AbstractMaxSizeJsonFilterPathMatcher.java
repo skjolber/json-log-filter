@@ -2,7 +2,7 @@ package com.github.skjolber.jsonfilter.path.matcher;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 
-public abstract class AbstractJsonFilterPathMatcher implements JsonFilterPathMatcher {
+public abstract class AbstractMaxSizeJsonFilterPathMatcher implements JsonFilterPathMatcher {
 
 	protected final JsonFilter validatingFilter;
 	protected final JsonFilter validatingMaxSizeFilter;
@@ -12,7 +12,7 @@ public abstract class AbstractJsonFilterPathMatcher implements JsonFilterPathMat
 	
 	protected final int maxSize;
 	
-	public AbstractJsonFilterPathMatcher(JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+	public AbstractMaxSizeJsonFilterPathMatcher(JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
 		this.validatingFilter = validatingFilter;
 		this.validatingMaxSizeFilter = validatingMaxSizeFilter;
 		this.nonvalidatingFilter = nonvalidatingFilter;

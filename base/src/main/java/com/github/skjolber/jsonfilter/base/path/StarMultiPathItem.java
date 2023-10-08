@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.base.path;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;

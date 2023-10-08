@@ -89,13 +89,18 @@ public class PathFilterSink implements Sink {
 				boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
 
 				if(databinding) {
-					// so no further JSON validation is necessary
-					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
-
-					if(jsonFilter != null) {
-						sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
-					} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
-						sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
+					byte[] body = request.getBody();
+					if(body != null) {
+						// so no further JSON validation is necessary
+						JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false, body.length);
+	
+						if(jsonFilter != null) {
+							sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
+						} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
+							sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
+						} else {
+							sink.write(precorrelation, request);
+						}
 					} else {
 						sink.write(precorrelation, request);
 					}
@@ -104,17 +109,22 @@ public class PathFilterSink implements Sink {
 					// might still be valid JSON
 				}
 			}
-			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests);
-			if(jsonFilter != null) {
-				if(validateRequests) {
-					sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, requestWhitespaceStrategy)));
+			byte[] body = request.getBody();
+			if(body != null) {
+				JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests, body.length);
+				if(jsonFilter != null) {
+					if(validateRequests) {
+						sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, requestWhitespaceStrategy)));
+					} else {
+						sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
+					}
+				} else if(validateRequests) {
+					sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, requestWhitespaceStrategy)));
+				} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
+					sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
 				} else {
-					sink.write(precorrelation, new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, requestWhitespaceStrategy)));
+					sink.write(precorrelation, request);
 				}
-			} else if(validateRequests) {
-				sink.write(precorrelation, new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, requestWhitespaceStrategy)));
-			} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
-				sink.write(precorrelation, new JsonHttpRequest(request, new CompactingJsonProcessor()));
 			} else {
 				sink.write(precorrelation, request);
 			}
@@ -149,11 +159,16 @@ public class PathFilterSink implements Sink {
 
 				if(databinding) {
 					// so no JSON validation is necessary
-					JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), false);
-					if(jsonFilter != null) {
-						sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
-					} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
-						sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
+					byte[] body = response.getBody();
+					if(body != null) {
+						JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), false, body.length);
+						if(jsonFilter != null) {
+							sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
+						} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
+							sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
+						} else {
+							sink.write(correlation, request, response);
+						}
 					} else {
 						sink.write(correlation, request, response);
 					}
@@ -162,17 +177,23 @@ public class PathFilterSink implements Sink {
 					// might still be valid JSON
 				}
 			}
-			JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), validateResponses);
-			if(jsonFilter != null) {
-				if(validateResponses) {
-					sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonFilterProcessor(jsonFilter, factory, responseWhitespaceStrategy)));
+			
+			byte[] body = response.getBody();
+			if(body != null) {
+				JsonFilter jsonFilter = filter.getResponseFilter(request.getPath(), validateResponses, body.length);
+				if(jsonFilter != null) {
+					if(validateResponses) {
+						sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonFilterProcessor(jsonFilter, factory, responseWhitespaceStrategy)));
+					} else {
+						sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
+					}
+				} else if(validateResponses) {
+					sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonProcessor(factory, responseWhitespaceStrategy)));
+				} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
+					sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
 				} else {
-					sink.write(correlation, request, new JsonHttpResponse(response, new JsonFilterProcessor(jsonFilter, responseWhitespaceStrategy)));
+					sink.write(correlation, request, response);
 				}
-			} else if(validateResponses) {
-				sink.write(correlation, request, new JsonHttpResponse(response, new ValidatingJsonProcessor(factory, responseWhitespaceStrategy)));
-			} else if(requestWhitespaceStrategy != WhitespaceStrategy.NEVER) {
-				sink.write(correlation, request, new JsonHttpResponse(response, new CompactingJsonProcessor()));
 			} else {
 				sink.write(correlation, request, response);
 			}

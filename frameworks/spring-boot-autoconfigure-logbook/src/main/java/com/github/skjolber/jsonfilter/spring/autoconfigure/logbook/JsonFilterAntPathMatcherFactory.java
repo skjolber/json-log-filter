@@ -13,14 +13,14 @@ public class JsonFilterAntPathMatcherFactory implements JsonFilterPathMatcherFac
 	protected AntPathMatcher matcher = new AntPathMatcher();
 
 	@Override
-	public JsonFilterPathMatcher createMatcher(String antMatcher, JsonFilter validatingFilter, JsonFilter nonvalidatingFilter) {
+	public JsonFilterPathMatcher createMatcher(String antMatcher, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
 		JsonFilterPathMatcher m; 
 		if(antMatcher == null || antMatcher.isEmpty()) {
-			m = new AllJsonFilterPathMatcher(validatingFilter, nonvalidatingFilter);
+			m = new AllJsonFilterPathMatcher(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		} else if(!matcher.isPattern(antMatcher)) {
-			m = new PrefixJsonFilterPathMatcher(antMatcher, validatingFilter, nonvalidatingFilter);
+			m = new PrefixJsonFilterPathMatcher(antMatcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		} else {
-			m = new AntJsonFilterPathMatcher(matcher, antMatcher, validatingFilter, nonvalidatingFilter);
+			m = new AntJsonFilterPathMatcher(matcher, antMatcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		}
 		return m;
 	}

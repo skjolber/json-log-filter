@@ -15,8 +15,8 @@ public class AllJsonFilterPathMatcherTest {
 		DefaultJsonFilter filter = new DefaultJsonFilter();
 		DefaultJacksonJsonFilter defaultJacksonJsonFilter = new DefaultJacksonJsonFilter();
 		
-		AllJsonFilterPathMatcher all = new AllJsonFilterPathMatcher(defaultJacksonJsonFilter, filter);
+		AllJsonFilterPathMatcher all = new AllJsonFilterPathMatcher(defaultJacksonJsonFilter, defaultJacksonJsonFilter, filter, filter, 1024);
 		assertTrue(all.matches("abc"));
-		assertSame(all.getFilter(false), filter);
+		assertSame(all.getFilter(false, 1024), filter);
 	}
 }

@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.spring.autoconfigure.logbook;
 
+import java.io.IOException;
+
 import org.zalando.logbook.ForwardingHttpRequest;
 import org.zalando.logbook.HttpRequest;
 import org.zalando.logbook.RequestFilter;
@@ -42,40 +44,47 @@ public class PathRequestFilter implements RequestFilter {
 				}
 			} while(true);
 			
-			if(preprocessedHttpMessage != null) {
-				boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
-
-				if(databinding) {
-					// so no further JSON validation is necessary
-					JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false);
-
-					if(jsonFilter != null) {
-						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
-					} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
-						return new JsonHttpRequest(request, new CompactingJsonProcessor());
-					}
+			try {
+				byte[] body = request.getBody();
+				if(body == null) {
 					return request;
-				} else {
-					// might still be valid JSON
 				}
-			}
-			JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests);
-			if(jsonFilter != null) {
-				if(validateRequests) {
-					return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, whitespaceStrategy));
-				} else {
-					return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+				if(preprocessedHttpMessage != null) {
+					boolean databinding = preprocessedHttpMessage.isDatabindingPerformed() && preprocessedHttpMessage.wasDatabindingSuccessful();
+	
+					if(databinding) {
+						// so no further JSON validation is necessary
+						JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), false, body.length);
+	
+						if(jsonFilter != null) {
+							return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+						} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
+							return new JsonHttpRequest(request, new CompactingJsonProcessor());
+						}
+						return request;
+					} else {
+						// might still be valid JSON
+					}
 				}
-			} else if(validateRequests) {
-				return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, whitespaceStrategy));
-			} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
-				return new JsonHttpRequest(request, new CompactingJsonProcessor());
-			} else {
-				return request;
+				JsonFilter jsonFilter = filter.getRequestFilter(request.getPath(), validateRequests, body.length);
+				if(jsonFilter != null) {
+					if(validateRequests) {
+						return new JsonHttpRequest(request, new ValidatingJsonFilterProcessor(jsonFilter, factory, whitespaceStrategy));
+					} else {
+						return new JsonHttpRequest(request, new JsonFilterProcessor(jsonFilter, whitespaceStrategy));
+					}
+				} else if(validateRequests) {
+					return new JsonHttpRequest(request, new ValidatingJsonProcessor(factory, whitespaceStrategy));
+				} else if(whitespaceStrategy != WhitespaceStrategy.NEVER) {
+					return new JsonHttpRequest(request, new CompactingJsonProcessor());
+				} else {
+					return request;
+				}
+			} catch(IOException e) {
+				// ignore
 			}
-		} else {
-			return request;
 		}
+		return request;
 	}
 
 }

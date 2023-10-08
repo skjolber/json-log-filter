@@ -1,9 +1,7 @@
 package com.github.skjolber.jsonfilter.base.path;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
