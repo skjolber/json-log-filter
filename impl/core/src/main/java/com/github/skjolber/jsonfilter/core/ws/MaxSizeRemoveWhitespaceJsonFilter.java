@@ -49,17 +49,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 		int maxSizeLimit = offset + maxSize;
 
-		boolean[] squareBrackets = new boolean[32];
-
-		int mark = 0;
-		int writtenMark = 0;
-
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
-			process(chars, offset, offset, buffer, maxReadLimit, maxSizeLimit, 0, squareBrackets, mark, writtenMark, metrics);
+			process(chars, offset, offset, buffer, maxReadLimit, maxSizeLimit, 0, new boolean[32], 0, 0);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -76,7 +71,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public static void process(final char[] chars, int offset, int flushedOffset, final StringBuilder buffer, int maxReadLimit, int maxSizeLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, JsonFilterMetrics metrics) {
+	public static void process(final char[] chars, int offset, int flushedOffset, final StringBuilder buffer, int maxReadLimit, int maxSizeLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark) {
 		loop:
 		while(offset < maxSizeLimit) {
 			char c = chars[offset];
@@ -146,10 +141,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 					// also avoid to count escaped double slash an escape character
 					offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 					continue;
-				default : {
-					// some kind of value
-					// do nothing
-				}
+				default:
 			}
 			offset++;
 		}				
@@ -187,20 +179,13 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		
 		int maxSizeLimit = offset + maxSize;
 
-		int level = 0;
-
-		boolean[] squareBrackets = new boolean[32];
-
-		int mark = 0;
-		int writtenMark = 0;
-
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
 			
-			process(chars, offset, offset, output, maxSizeLimit, maxReadLimit, level, squareBrackets, mark, writtenMark, metrics);
+			process(chars, offset, offset, output, maxSizeLimit, maxReadLimit, 0, new boolean[32], 0, 0);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -217,7 +202,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public static void process(byte[] chars, int offset, int flushedOffset, ResizableByteArrayOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, JsonFilterMetrics metrics) throws IOException {
+	public static void process(byte[] chars, int offset, int flushedOffset, ResizableByteArrayOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark) throws IOException {
 		loop:
 		while(offset < maxSizeLimit) {
 			

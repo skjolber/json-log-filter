@@ -46,7 +46,7 @@ public class CveMaxSizeFilterBenchmark extends AbstractMaxSizeFilterBenchmark {
 		Options opt = new OptionsBuilder()
 				.include(CveMaxSizeFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
-				.measurementIterations(20)
+				.measurementIterations(1)
 				.result("target/" + System.currentTimeMillis() + "." + CveMaxSizeFilterBenchmark.class.getSimpleName() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();

@@ -375,7 +375,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						if(pathMatches == 0) {
 							// just remove whitespace
 							
-							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, buffer, maxReadLimit, maxSizeLimit, bracketLevel, squareBrackets, mark, streamMark, metrics);
+							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, buffer, maxReadLimit, maxSizeLimit, bracketLevel, squareBrackets, mark, streamMark);
 
 							return;
 						}							
@@ -756,7 +756,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						pathMatches--;
 						if(pathMatches == 0) {
 							// just remove whitespace
-							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, stream, maxSizeLimit, maxReadLimit, bracketLevel, squareBrackets, mark, streamMark, metrics);
+							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, stream, maxSizeLimit, maxReadLimit, bracketLevel, squareBrackets, mark, streamMark);
 
 							return;
 						}							

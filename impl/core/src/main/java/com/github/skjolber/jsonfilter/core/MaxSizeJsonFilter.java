@@ -54,11 +54,28 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 
-		int startOffset = offset;
-		
 		int bufferLength = buffer.length();
 		
-		int maxSizeLimit = offset + maxSize;
+		try {
+			processMaxSize(chars, offset, length, offset + maxSize, buffer);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				int written = buffer.length() - bufferLength;
+				int totalSize = length;
+				if(written < totalSize) {
+					metrics.onMaxSize(totalSize - totalSize);
+				}					
+				metrics.onOutput(buffer.length() - bufferLength);
+			}
+			return true;
+		} catch(Exception e) {
+			return false;
+		}			
+	}
+
+	protected static void processMaxSize(final char[] chars, int offset, int length, int maxSizeLimit, final StringBuilder buffer) {
+		int flushOffset = offset;
 		
 		int bracketLevel = 0;
 		
@@ -66,7 +83,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 		int mark = 0;
 
-		try {
 			loop:
 			while(offset < maxSizeLimit) {
 				switch(chars[offset]) {
@@ -107,43 +123,23 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 						offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 						continue;
 						
-					default : {
-						// some kind of value
-						// do nothing
-					}
+					default:
 				}
 				offset++;
 			}
 			
 			if(bracketLevel > 0) {
-				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+				int markLimit = markToLimit(chars, offset, flushOffset + length, maxSizeLimit, mark);
 				if(markLimit != -1) {
-					buffer.append(chars, startOffset, markLimit - startOffset);
+					buffer.append(chars, flushOffset, markLimit - flushOffset);
 				} else {
-					buffer.append(chars, startOffset, mark - startOffset);
+					buffer.append(chars, flushOffset, mark - flushOffset);
 				}
 				
 				closeStructure(bracketLevel, squareBrackets, buffer);
-			
-				if(metrics != null) {
-					metrics.onInput(length);
-					int charsLimit = startOffset + length;
-					if(markLimit < charsLimit) {
-						metrics.onMaxSize(charsLimit - markLimit);
-					}
-					metrics.onOutput(buffer.length() - bufferLength);
-				}
 			} else {
-				if(metrics != null) {
-					metrics.onInput(length);
-					metrics.onOutput(buffer.length() - bufferLength);
-				}				
+				buffer.append(chars, flushOffset, offset - flushOffset);				
 			}
-
-			return true;
-		} catch(Exception e) {
-			return false;
-		}
 	}
 
 	public static int markToLimit(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
@@ -216,11 +212,28 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		int flushOffset = offset;
-
 		int bufferLength = output.size();
 		
-		int maxSizeLimit = offset + maxSize;
+		try {
+			processMaxSize(chars, offset, length, offset + maxSize, output);
+			
+			if(metrics != null) {
+				metrics.onInput(length);
+				int written = output.size() - bufferLength;
+				int totalSize = length;
+				if(written < totalSize) {
+					metrics.onMaxSize(totalSize - totalSize);
+				}					
+				metrics.onOutput(output.size() - bufferLength);
+			}
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
+	}
+
+	private static void processMaxSize(byte[] chars, int offset, int length, int maxSizeLimit, ResizableByteArrayOutputStream output) throws IOException {
+		int flushOffset = offset;
 
 		int bracketLevel = 0;
 		
@@ -228,79 +241,61 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
 		int mark = 0;
 
-		try {
-			loop:
-			while(offset < maxSizeLimit) {
-				switch(chars[offset]) {
-					case '{' :
-					case '[' :
-						// check corner case
-						maxSizeLimit--;
-						if(offset >= maxSizeLimit) {
-							break loop;
-						}
-
-						squareBrackets[bracketLevel] = chars[offset] == '[';
-						
-						bracketLevel++;
-						if(bracketLevel >= squareBrackets.length) {
-							boolean[] next = new boolean[squareBrackets.length + 32];
-							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-							squareBrackets = next;
-						}
-						
-						offset++;
-						mark = offset;
-						
-						continue;
-					case '}' :
-					case ']' :
-						bracketLevel--;
-						maxSizeLimit++;
-						
-						offset++;
-						mark = offset;
-						
-						continue;
-					case ',' :
-						mark = offset;
-						break;
-					case '"' :
-						offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
-						continue;
-					default : // do nothing
-				}
-				offset++;
-			}
-
-			if(bracketLevel > 0) {
-				int markLimit = markToLimit(chars, offset, flushOffset + length, maxSizeLimit, mark);
-				if(markLimit != -1) {
-					output.write(chars, flushOffset, markLimit - flushOffset);
-				} else {
-					output.write(chars, flushOffset, mark - flushOffset);
-				}
-				
-				closeStructure(bracketLevel, squareBrackets, output);
-				
-				if(metrics != null) {
-					metrics.onInput(length);
-					int charsLimit = flushOffset + length;
-					if(markLimit < charsLimit) {
-						metrics.onMaxSize(charsLimit - markLimit);
+		loop:
+		while(offset < maxSizeLimit) {
+			switch(chars[offset]) {
+				case '{' :
+				case '[' :
+					// check corner case
+					maxSizeLimit--;
+					if(offset >= maxSizeLimit) {
+						break loop;
 					}
-					metrics.onOutput(output.size() - bufferLength);
-				}
-			} else {
-				if(metrics != null) {
-					metrics.onInput(length);
-					metrics.onOutput(output.size() - bufferLength);
-				}				
+
+					squareBrackets[bracketLevel] = chars[offset] == '[';
+					
+					bracketLevel++;
+					if(bracketLevel >= squareBrackets.length) {
+						boolean[] next = new boolean[squareBrackets.length + 32];
+						System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
+						squareBrackets = next;
+					}
+					
+					offset++;
+					mark = offset;
+					
+					continue;
+				case '}' :
+				case ']' :
+					bracketLevel--;
+					maxSizeLimit++;
+					
+					offset++;
+					mark = offset;
+					
+					continue;
+				case ',' :
+					mark = offset;
+					break;
+				case '"' :
+					offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+					continue;
+				default : // do nothing
 			}
-	
-			return true;
-		} catch(Exception e) {
-			return false;
+			offset++;
+		}
+
+		if(bracketLevel > 0) {
+			int markLimit = markToLimit(chars, offset, flushOffset + length, maxSizeLimit, mark);
+			if(markLimit != -1) {
+				output.write(chars, flushOffset, markLimit - flushOffset);
+			} else {
+				output.write(chars, flushOffset, mark - flushOffset);
+			}
+			
+			closeStructure(bracketLevel, squareBrackets, output);
+		} else {
+			output.write(chars, flushOffset, offset - flushOffset);
 		}
 	}
 
