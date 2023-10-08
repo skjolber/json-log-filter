@@ -6,8 +6,8 @@ public class PrefixJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 
 	private final String prefix;
 	
-	public PrefixJsonFilterPathMatcher(String prefix, JsonFilter filterWithValidate, JsonFilter filter) {
-		super(filterWithValidate, filter);
+	public PrefixJsonFilterPathMatcher(String prefix, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+		super(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		this.prefix = prefix;
 	}
 

@@ -10,6 +10,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * For testing only
@@ -92,6 +93,10 @@ public class FileUtils {
 	}
 
 	public static FileDirectoryValue getValue(String input, final FileFilter filter) throws FileNotFoundException, IOException {
-		return directoryCache.getValue(input, filter);
+		return getValue(input, filter, Function.identity());
+	}
+	
+	public static FileDirectoryValue getValue(String input, final FileFilter filter, Function<String, String> transformer) throws FileNotFoundException, IOException {
+		return directoryCache.getValue(input, filter, transformer);
 	}
 }

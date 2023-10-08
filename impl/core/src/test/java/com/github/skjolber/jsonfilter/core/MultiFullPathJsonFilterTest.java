@@ -3,12 +3,12 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
@@ -34,7 +34,7 @@ public class MultiFullPathJsonFilterTest extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		MultiFullPathJsonFilter filter = new MultiFullPathJsonFilter(-1, null, null);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(filter.process(new byte[] {}, 1, 1, new ByteArrayOutputStream()));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test

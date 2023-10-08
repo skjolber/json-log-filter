@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.apache.commons.io.IOUtils;
 
@@ -16,6 +15,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;
 
 /**
  * 
@@ -31,38 +32,21 @@ public abstract class AbstractJsonFilterTest {
 	protected JsonFactory factory = new JsonFactory();
 
 	protected Map<String, byte[]> maps = new HashMap<>();
-	
+
 	protected JsonFilterRunner runner;
 	
-	public AbstractJsonFilterTest(JsonFilterRunner runner) {
-		this.runner = runner;
+	public AbstractJsonFilterTest(JsonFilterRunner jsonFilterRunner) {
+		this.runner = jsonFilterRunner;
 	}
+
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
-		return assertThat(filter, (s) -> true);
-	}
-	
-	protected JsonFilterResultSubject assertThat(JsonFilter filter, JsonFilter transformer) throws Exception {
-		JsonFilterResult process = runner.process(filter,  (s) -> true, (f) -> transformer.process(f));
+		JsonFilterDirectoryUnitTestCollection process = runner.process(filter);
 		
 		return JsonFilterResultSubject.assertThat(process);
 	}
-	
-	protected JsonFilterResultSubject assertThat(JsonFilter filter, Predicate<String> predicate) throws Exception {
-		JsonFilterResult process = runner.process(filter, predicate);
-			
-		return JsonFilterResultSubject.assertThat(process);
-	}
 
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, (p) -> true, Function.identity());
-	}
-
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter) throws Exception {
-		return assertThatMaxSize(maxSize, infiniteSize, filter, Function.identity());
-	}
-
-	protected JsonFilterResultSubject assertThatMaxSize(Function<Integer, JsonFilter> maxSize, JsonFilter infiniteSize, Predicate<String> filter, Function<String, String> transformer) throws Exception {
-		JsonFilterResult process = runner.process(maxSize, infiniteSize, filter, transformer);
+	protected JsonFilterResultSubject assertThatMaxSize(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSizeFunction, infiniteSize);
 			
 		return JsonFilterResultSubject.assertThat(process);
 	}
@@ -84,19 +68,21 @@ public abstract class AbstractJsonFilterTest {
 			
 			try {
 				validate(byteArray);
-			} catch(JsonParseException e) {
+			} catch(Exception e) {
+				e.printStackTrace();
+				System.out.println(new String(bs));
 				System.out.println(new String(byteArray));
-				fail(byteArray.length + " vs " + i);
+				fail("Parse failed, got " + byteArray.length + " vs expected " + i);
 			}
 			if(byteArray.length >= i + 16) {
+				System.out.println(new String(bs, 0, bs.length));
 				System.out.println(new String(byteArray));
-				fail(byteArray.length + " vs " + i);
+				fail("Got " + byteArray.length + " vs expected " + i);
 			}
 			
 			if(i % 10000 == 0) {
 				System.out.println("Bytes " + i);
 			}
-
 		}
 		
 		char[] charArray = new String(bs).toCharArray();
@@ -161,7 +147,7 @@ public abstract class AbstractJsonFilterTest {
 	
 			try {
 				validate(process);
-				assertTrue(process.length + " > " + (i + levels) + new String(process, StandardCharsets.UTF_8), process.length <= i + levels);
+				assertTrue(process.length + " > " + i + " " + new String(process, StandardCharsets.UTF_8), process.length <= i);
 			} catch(Throwable e) {
 				System.out.println(new String(generateDeepStructure));
 				System.out.println("Processed " + process.length + " for max size " + i);

@@ -1,5 +1,4 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.function.LongSupplier;
 
@@ -10,14 +9,15 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends JacksonSingleFullPathMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
-	public JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String expression, FilterType type) {
-		this(maxStringLength, maxSize, expression, type, new JsonFactory());
+	public JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type) {
+		this(maxStringLength, maxSize, maxPathMatches, expression, type, new JsonFactory());
 	}
 
-	public JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String expression, FilterType type, JsonFactory jsonFactory) {
+	public JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String expression, FilterType type, JsonFactory jsonFactory) {
 		this(maxStringLength, maxSize, expression, type, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, jsonFactory);
 	}
 
@@ -34,7 +34,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
@@ -50,7 +50,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
-		if(maxSize >= length) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 		output.ensureCapacity(output.length() + length);
@@ -65,8 +65,8 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 		}
 	}
 	
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
-		if(maxSize >= length) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.process(bytes, offset, length, output);
 		}
 	
@@ -76,21 +76,76 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			) {
 			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size());
 		} catch(final Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}
 	
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
+		return process(parser, generator, offsetSupplier, outputSizeSupplier, null);
+	}
+	
+	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
+		if(!mustConstrainMaxSize(length)) {
+			return super.process(chars, offset, length, output, metrics);
+		}
+		output.ensureCapacity(output.length() + length);
+
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+		} catch(final Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
+		if(!mustConstrainMaxSize(length)) {
+			return super.process(bytes, offset, length, output, metrics);
+		}
+		output.ensureCapacity(output.length() + length);
+
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+		} catch(final Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		if(!mustConstrainMaxSize(length)) {
+			return super.process(bytes, offset, length, output, metrics);
+		}
+	
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+			) {
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size(), metrics);
+		} catch(final Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}	
+	
+	
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
+		
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-
+		
 		final String[] elementPaths = this.paths;
 
-		long maxSize = this.maxSize;
+		int maxSize = this.maxSize;
 
 		int level = 0;
-		int matches = 0;
 
         String fieldName = null;
         
@@ -101,92 +156,158 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			if(nextToken == null) {
 				break;
 			}
-			if(nextToken == JsonToken.START_OBJECT) {
+			
+			switch(nextToken) {
+			case START_OBJECT:
 				level++;
-			} else if(nextToken == JsonToken.END_OBJECT) {
+			case START_ARRAY:
+				maxSize--;
+				break;
+			case END_OBJECT:
 				level--;
-			}
-				
-			if(nextToken == JsonToken.VALUE_STRING) {
+			case END_ARRAY:
+				maxSize++;
+				break;
+			case VALUE_STRING:
 				parser.getTextLength();
-			} 
+				break;
+				default: // do nothing
+			}
 			
 			if(nextToken == JsonToken.FIELD_NAME) {
 				String currentName = parser.currentName();
-				if(matches + 1 == level && matches < elementPaths.length && matchPath(currentName, elementPaths[matches])) {
-					matches++;
-				}				
-				if(matches == elementPaths.length) {
-					generator.copyCurrentEvent(parser);
-
-					nextToken = parser.nextToken();
-					if(nextToken == JsonToken.VALUE_STRING) {
-						parser.getTextLength();
-					} 
-					
-					if(nextToken.isScalarValue()) {
-						char[] message;
-						if(filterType == FilterType.ANON) {
-							message = anonymizeJsonValue;
-						} else {
-							message = pruneJsonValue;
-						}
-						
-						if(level + currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong() >= maxSize) {
-							break;
-						}
-						
-						generator.writeRawValue(message, 0, message.length);
-					} else {
-						// array or object
-						if(filterType == FilterType.ANON) {
-							// keep structure, but mark all values
-							generator.copyCurrentEvent(parser);
-
-							if(!anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue)) {
-								break;
-							}
-						} else {
-							if(level + currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong() >= maxSize) {
-								break;
-							}
-							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-							
-							parser.skipChildren(); // skip children
-						}
-					}
-					offset = offsetSupplier.getAsLong();
-
-					matches--;
-				} else {
-					fieldName = currentName;
-				}
 				
-				continue;
+				if(matchPath(currentName, elementPaths[level])) {
+					if(level + 1 == elementPaths.length) {
+						nextToken = parser.nextToken();
+						if(nextToken == JsonToken.VALUE_STRING) {
+							parser.getTextLength();
+						} 
+						
+						if(nextToken.isScalarValue()) {
+							char[] message;
+							if(filterType == FilterType.ANON) {
+								message = anonymizeJsonValue;
+							} else {
+								message = pruneJsonValue;
+							}
+							
+							long size = currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong() ;
+							if(parser.getParsingContext().getCurrentIndex() >= 2) {
+								size++;
+							}
+							
+							if(size > maxSize) {
+								break;
+							}
+							
+							generator.writeFieldName(currentName);
+							generator.writeRawValue(message, 0, message.length);
+						} else {
+							// array or object
+							if(filterType == FilterType.ANON) {
+		
+								// the anon message might not be written
+								long size = currentName.length() + 3 + outputSizeSupplier.getAsLong();
+								if(parser.getParsingContext().getCurrentIndex() >= 2) {
+									size++;
+								}
+		
+								if(size > maxSize) {
+									break;
+								}
+								
+								// keep structure, but mark all values
+								generator.writeFieldName(currentName);
+								generator.copyCurrentEvent(parser);
+		
+								if(!anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue)) {
+									break;
+								}
+							} else {
+								long size = currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong();
+								if(parser.getParsingContext().getCurrentIndex() >= 2) {
+									size++;
+								}
+		
+								if(size > maxSize) {
+									break;
+								}
+								generator.writeFieldName(currentName);
+								generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+								
+								parser.skipChildren(); // skip children
+							}
+						}
+						offset = offsetSupplier.getAsLong();
+					} else {
+						fieldName = parser.currentName();
+					}
+					continue;
+				} else {
+					fieldName = parser.currentName();
+					
+					nextToken = parser.nextToken();
+					if(nextToken.isStructStart()) {
+						maxSize--;
+						
+						long nextOffset = offsetSupplier.getAsLong();
+						
+						long size = nextOffset - offset; // i.e. this includes whitespace
+
+						long outputSize = outputSizeSupplier.getAsLong();
+						
+						if(outputSize + size > maxSize) {
+
+							// do more accurate size calculation
+							int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+							
+							if(outputSize + accurateSize > maxSize) {
+								if(metrics != null) {
+									metrics.onMaxSize(-1);
+								}
+								
+								break;
+							}
+						}
+						
+						generator.writeFieldName(fieldName);
+						fieldName = null;
+						
+						generator.copyCurrentEvent(parser);
+
+						if(!skipMaxSizeMaxStringLengthChildren(parser, generator, offsetSupplier, outputSizeSupplier, maxSize, maxStringLength, builder, truncateStringValue, metrics)) {
+							generator.flush();
+							
+							return true;
+						}
+						offset = offsetSupplier.getAsLong();
+						
+						maxSize++;
+						
+						continue;
+					}
+				}
 			} 
 			
 			long nextOffset = offsetSupplier.getAsLong();
 			
-			long size;
-			
-			if(nextToken == JsonToken.VALUE_STRING) {
-				size = 2;
-				if(fieldName != null) {
-					size += fieldName.length() + 2;
-				}
-				if(parser.getTextLength() > maxStringLength) {
-					size += maxStringLength + truncateStringValue.length + JacksonMaxSizeMaxStringSizeJsonFilter.lengthToDigits(parser.getTextLength() - maxStringLength);
-				} else {
-					size += parser.getTextLength();
-				}
-			} else {
-				size = nextOffset - offset; // i.e. this includes whitespace
-			}
-			
+			long size = nextOffset - offset; // i.e. this includes whitespace
+
 			long outputSize = outputSizeSupplier.getAsLong();
 			
-			if(outputSize + size + level > maxSize) {
-				break;
+			if(outputSize + size > maxSize) {
+
+				// do more accurate size calculation
+				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				
+				if(outputSize + accurateSize > maxSize) {
+					if(metrics != null) {
+						metrics.onMaxSize(-1);
+					}
+					
+					break;
+				}
 			}
 
 			if(fieldName != null) {
@@ -196,6 +317,10 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 				
 				offset = nextOffset;
 
@@ -211,54 +336,93 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 		return true;
 	}
 	
-	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue) throws IOException {
-		int level = 1;
-		
+	public static boolean skipMaxSizeMaxStringLengthChildren(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int maxSize, int maxStringLength, StringBuilder builder, char[] truncateStringValue, JsonFilterMetrics metrics) throws IOException {
         String fieldName = null;
-		while(level > 0) {
+        
+        long offset = offsetSupplier.getAsLong();
+        
+        int level = 1;
+        
+		while(true) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {
-				return false;
-			}
-			
-			if(nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
-				level++;
-			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
-				level--;
-			} else if(nextToken == JsonToken.FIELD_NAME) {
-				fieldName = parser.currentName();
-				
-				continue;
+				break;
 			}
 
-			long outputSize;
-			if(nextToken.isScalarValue()) {
-				outputSize = anonymizeJsonValue.length;
-			} else {
-				outputSize = 1;
+			switch(nextToken) {
+			case START_ARRAY:
+			case START_OBJECT:
+				level++;
+				maxSize--;
+				break;
+			case END_ARRAY:
+			case END_OBJECT:
+				level--;
+				maxSize++;
+				
+				if(level == 0) {
+					generator.copyCurrentEvent(parser);
+					return true;
+				}
+
+				break;
+			case FIELD_NAME:
+				fieldName = parser.currentName();
+				continue;
+			case VALUE_STRING:
+				parser.getTextLength();
+				break;
+				default: // do nothing
 			}
-			if(fieldName != null) {
-				outputSize += fieldName.length() + 3;
-			}
+
+			long nextOffset = offsetSupplier.getAsLong();
 			
-			long size = outputSizeSupplier.getAsLong();
-			if(outputSize + size + level >= maxSize) {
-				return false;
-			}
+			long size = nextOffset - offset; // i.e. this includes whitespace
+
+			long outputSize = outputSizeSupplier.getAsLong();
+
+			if(outputSize + size > maxSize) {
+
+				// do more accurate size calculation
+				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				
+				if(outputSize + accurateSize > maxSize) {
+					if(metrics != null) {
+						metrics.onMaxSize(-1);
+					}
+					
+					return false;
+				}
+			}			
 
 			if(fieldName != null) {
 				generator.writeFieldName(fieldName);
 				fieldName = null;
 			}
 
-			if(nextToken.isScalarValue()) {
-				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
-			} else {
-				generator.copyCurrentEvent(parser);
-			}
-		}
+			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
+				
+				offset = nextOffset;
+
+				continue;
+			}
+			
+			generator.copyCurrentEvent(parser);
+			
+			offset = nextOffset;
+		}
+		
 		return true;
+	}
+
+	
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue) throws IOException {
+		return anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, null);
 	}
 	
 	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
@@ -271,14 +435,24 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 				return false;
 			}
 			
-			if(nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
+			switch(nextToken) {
+			case START_OBJECT:
+			case START_ARRAY:
 				level++;
-			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
+				maxSize--;
+				break;
+			case END_OBJECT:
+			case END_ARRAY:
 				level--;
-			} else if(nextToken == JsonToken.FIELD_NAME) {
+				maxSize++;
+				break;
+			case FIELD_NAME: 
 				fieldName = parser.currentName();
-				
 				continue;
+			case VALUE_STRING:
+				parser.getTextLength();
+				break;
+				default: // do nothing
 			}
 
 			long outputSize;
@@ -291,9 +465,16 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 				outputSize += fieldName.length() + 3;
 			}
 			
+			if(parser.getParsingContext().getCurrentIndex() >= 2) {
+				outputSize++;
+			}
+			
 			long size = outputSizeSupplier.getAsLong();
-			if(outputSize + size + level >= maxSize) {
-				metrics.onMaxSize(-1);
+			
+			if(outputSize + size > maxSize) {
+				if(metrics != null) {
+					metrics.onMaxSize(-1);
+				}
 				return false;
 			}
 
@@ -305,7 +486,9 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			if(nextToken.isScalarValue()) {
 				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 				
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 			} else {
 				generator.copyCurrentEvent(parser);
 			}

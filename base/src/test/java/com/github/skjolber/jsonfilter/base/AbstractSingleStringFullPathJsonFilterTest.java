@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class AbstractSingleStringFullPathJsonFilterTest {
@@ -24,7 +25,7 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 			return false;
 		}
 		
@@ -39,7 +40,7 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}
@@ -55,6 +56,6 @@ public class AbstractSingleStringFullPathJsonFilterTest {
 	@Test
 	public void testFullPath() {
 		String[] paths = new MySingleStringPathJsonFilter(-1, "/abc", FilterType.ANON).getPaths();
-		assertEquals(new String(paths[0]), "abc");
+		assertEquals(new String(paths[1]), "abc");
 	}
 }

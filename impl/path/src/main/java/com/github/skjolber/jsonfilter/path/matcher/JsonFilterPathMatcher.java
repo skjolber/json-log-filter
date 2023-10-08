@@ -6,6 +6,6 @@ public interface JsonFilterPathMatcher {
 
 	public boolean matches(String path);
 	
-	public JsonFilter getFilter(boolean validate);
+	public JsonFilter getFilter(boolean validate, int size);
 	
 }

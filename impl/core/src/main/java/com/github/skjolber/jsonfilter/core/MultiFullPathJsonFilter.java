@@ -1,8 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
@@ -51,10 +51,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						break;
 					case '"' : { 
-						int nextOffset = offset;
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+
 						int quoteIndex = nextOffset;
 
 						nextOffset++;							
@@ -88,7 +86,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 
 						// match again any higher filter
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 
 						if(pathItem.hasType()) {
 							// matched
@@ -104,7 +102,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									// quoted value
 									offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 								} else {
-									offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 								if(type == FilterType.PRUNE) {
 									filter.addPrune(nextOffset, offset);
@@ -175,10 +173,8 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						
 						break;
 					case '"' : { 
-						int nextOffset = offset;
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+						int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+						
 						int quoteIndex = nextOffset;
 						
 						nextOffset++;							
@@ -211,7 +207,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							nextOffset++;
 						}
 
-						pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+						pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 
 						if(pathItem.hasType()) {
 							// matched
@@ -227,7 +223,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 									// quoted value
 									offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 								} else {
-									offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+									offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 								}
 								if(type == FilterType.PRUNE) {
 									filter.addPrune(nextOffset, offset);

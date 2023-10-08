@@ -7,8 +7,8 @@ public class JsonFiltersProperties {
 
 	protected boolean enabled = true;
 	
-	protected ProcessingProperties requests = new ProcessingProperties(true, true);
-	protected ProcessingProperties responses = new ProcessingProperties(false, false);
+	protected ProcessingProperties requests = new ProcessingProperties(true, WhitespaceStrategy.ON_DEMAND);
+	protected ProcessingProperties responses = new ProcessingProperties(false, WhitespaceStrategy.NEVER);
 
 	protected List<JsonFilterPathProperties> paths = new ArrayList<>();
 

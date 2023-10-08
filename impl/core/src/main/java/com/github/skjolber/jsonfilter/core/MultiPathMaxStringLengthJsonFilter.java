@@ -1,8 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+
 
 public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
@@ -44,7 +45,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					level++;
 					
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
 						
@@ -59,10 +60,8 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					
 					break;
 				case '"' :
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;
@@ -83,7 +82,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(nextOffset - offset > maxStringLength) {								
+							if(quoteIndex - offset >= maxStringLength) {								
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
@@ -96,7 +95,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					FilterType type = null;
 					
 					// match again any higher filter
-					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+					pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 					if(pathItem.hasType()) {
 						// matched
 						type = pathItem.getType();
@@ -127,7 +126,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 								// quoted value
 								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(type == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);
@@ -188,7 +187,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					level++;
 					
 					if(anyElementFilters == null && level > pathItem.getLevel()) {
-						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset, maxStringLength, filter);
+						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
 						
@@ -203,10 +202,8 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 
 					break;
 				case '"' :
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;
@@ -227,7 +224,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
-							if(nextOffset - offset > maxStringLength) {								
+							if(quoteIndex - offset >= maxStringLength) {								
 								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex));
 							}
 
@@ -240,7 +237,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					FilterType type = null;
 					
 					// match again any higher filter
-					pathItem = pathItem.constrain(level).matchPath(chars, offset + 1, quoteIndex);
+					pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, quoteIndex);
 					if(pathItem.hasType()) {
 						// matched
 						type = pathItem.getType();
@@ -270,7 +267,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 								// quoted value
 								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(type == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);

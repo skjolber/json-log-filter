@@ -10,8 +10,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.JsonFilterRunner;
+import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
 
 public class AbstractSinglePathJsonFilterTest {
 
@@ -23,7 +25,7 @@ public class AbstractSinglePathJsonFilterTest {
 
 		@Override
 		public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-			if(JsonFilterRunner.isWellformed(new String(chars, offset, length))) {
+			if(JsonValidator.isWellformed(new String(chars, offset, length))) {
 				output.append(chars, offset, length);
 				
 				return true;
@@ -32,8 +34,8 @@ public class AbstractSinglePathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
-			if(JsonFilterRunner.isWellformed(new String(chars, offset, length))) {
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
+			if(JsonValidator.isWellformed(new String(chars, offset, length))) {
 				output.write(chars, offset, length);
 				
 				return true;
@@ -48,7 +50,7 @@ public class AbstractSinglePathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}

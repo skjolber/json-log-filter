@@ -1,7 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPathJsonFilter {
 
@@ -41,10 +41,8 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 	public static <T extends CharArrayRangesFilter> T rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, char[] path, FilterType filterType, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+				
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;
@@ -90,7 +88,10 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							// quoted value
 							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							
+							// is this a null value?
+							
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset);
@@ -119,10 +120,8 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 	public static <T extends ByteArrayRangesFilter> T rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, byte[] path, FilterType filterType, T filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
-				int nextOffset = offset;
-				do {
-					nextOffset++;
-				} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+				
 				int quoteIndex = nextOffset;
 				
 				nextOffset++;
@@ -168,7 +167,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							// quoted value
 							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
-							offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						}
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset);

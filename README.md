@@ -21,6 +21,7 @@ Features:
  * Remove (prune) whole subtrees
  * Truncate large documents (max total output size)
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
+ * Remove whitespace (for in pretty-printed documents)
  * Metrics for the above operations + total input and output size 
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
@@ -174,15 +175,6 @@ String filtered = filter.process(json, myMetrics); // perform filtering
 
 The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing.
 
-### Logbook module
-See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for Spring-flavoured REST services. Features:
-
- * filter in- and/or outgoing payloads per path
- * well-formed JSON payloads are appended as JSON, i.e. indexable to log accumulation tools
- * non-well-formed JSON payloads are added as text
-
-This module improves performance by detecting whether databinding was successful.
-
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
 
@@ -208,10 +200,10 @@ Depending on your service stack and architecture, performing two additional oper
 
 For a typical REST service, the above operations might be necessary for the (untrusted) incoming request payload, but not the (trusted) outgoing response payload. Depending on the service, all authorized requests may be considered trusted.
 
-Note that 
+Note that
   
  * the `Jackson`-based processors in this project do both of these automatically, and 
- * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON. __See the Logbook module.__
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
@@ -228,4 +220,3 @@ Using SIMD for parsing JSON:
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:				https://github.com/FasterXML/jackson-core
 [JSON]:					https://www.json.org/json-en.html
-[Logbook]:				https://github.com/zalando/logbook

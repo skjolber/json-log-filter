@@ -96,7 +96,7 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 		}
 		if(isActiveMaxStringLength()) {
 			if(isActiveMaxSize()) {
-				return new JacksonMaxSizeMaxStringSizeJsonFilter(maxStringLength, maxSize, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				return new JacksonMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 			}
 			return new JacksonMaxStringLengthJsonFilter(maxStringLength, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		}

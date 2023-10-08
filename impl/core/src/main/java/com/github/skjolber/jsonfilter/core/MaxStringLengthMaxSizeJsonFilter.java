@@ -16,10 +16,11 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesBracketFilter;
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesBracketFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+
 public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter {
 
 	public MaxStringLengthMaxSizeJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage) {
@@ -38,19 +39,25 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		CharArrayRangesBracketFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
-		int limit = offset + length;
+		int maxReadLimit = offset + length;
 
 		try {
-			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
+			offset = rangesMaxSizeMaxStringLength(chars, offset, maxReadLimit, offset + maxSize, maxStringLength, filter);
 			
-			if(offset < limit){
+			if(offset < maxReadLimit) {
 				// max size reached before end of document
-				int markLimit = filter.markToLimit(chars);
-				
-				// filter rest of document
-				filter.addDelete(markLimit, limit);
+				if(filter.getMark() < filter.getMaxSizeLimit()) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
+					if(markLimit != -1) {
+						// filter rest of document
+						filter.addDelete(markLimit, maxReadLimit);
+						
+						return filter;
+					}
+				}
+				filter.addDelete(filter.getMark(), maxReadLimit);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -66,19 +73,25 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		ByteArrayRangesBracketFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 
-		int limit = offset + length;
+		int maxReadLimit = offset + length;
 		
 		try {
-			offset = rangesMaxSizeMaxStringLength(chars, offset, limit, offset + maxSize, maxStringLength, filter);
+			offset = rangesMaxSizeMaxStringLength(chars, offset, maxReadLimit, offset + maxSize, maxStringLength, filter);
 			
-			if(offset < limit){
+			if(offset < maxReadLimit) {
 				// max size reached before end of document
-				int markLimit = filter.markToLimit(chars);
-				
-				// filter rest of document
-				filter.addDelete(markLimit, limit);
+				if(filter.getMark() < filter.getMaxSizeLimit()) {
+					int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, filter.getMaxSizeLimit(), filter.getMark());
+					if(markLimit != -1) {
+						// filter rest of document
+						filter.addDelete(markLimit, maxReadLimit);
+						
+						return filter;
+					}
+				}
+				filter.addDelete(filter.getMark(), maxReadLimit);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -86,7 +99,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		}
 	}
 
-	public static int rangesMaxSizeMaxStringLength(final char[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, CharArrayRangesBracketFilter filter) {
+	public static int rangesMaxSizeMaxStringLength(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, CharArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -94,110 +107,107 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		loop:
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
+				case '[' :
 				case '{' :
-					squareBrackets[bracketLevel] = false;
+					// check corner case
+					maxSizeLimit--;
+					if(offset >= maxSizeLimit) {
+						break loop;
+					}
+
+					squareBrackets[bracketLevel] = chars[offset] == '[';
 					bracketLevel++;
 					
 					if(bracketLevel >= squareBrackets.length) {
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
+					offset++;
 					mark = offset;
-					break;
+					continue;
 				case '}' :	
-					bracketLevel--;
-
-					mark = offset;
-
-					break;
-				case '[' : {
-					squareBrackets[bracketLevel] = true;
-					bracketLevel++;
-
-					if(bracketLevel >= squareBrackets.length) {
-						squareBrackets = filter.grow(squareBrackets);
-					}
-					mark = offset;
-
-					break;
-				}
 				case ']' :
 					bracketLevel--;
+					maxSizeLimit++;
 					
+					offset++;
 					mark = offset;
 
-					break;
+					continue;
 				case ',' :
 					mark = offset;
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
-					nextOffset++;
+				case '"' :				
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 					
-					if(nextOffset - offset > maxStringLength) {
-						// is this a field name or a value? A field name must be followed by a colon
-						
-						// special case: no whitespace
+					if(nextOffset - offset < maxStringLength) {
+						offset = nextOffset + 1;
+						continue;
+					}
+
+					nextOffset++;					
+					
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+						continue;
+					}
+					// most likely there is now no whitespace, but a comma, end array or end object
+					
+					// legal whitespaces are:
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
+
+					int quoteIndex = nextOffset;
+					if(chars[nextOffset] <= 0x20) {
+						// fast-forward over whitespace
+						// optimization: scan for highest value
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
 						if(chars[nextOffset] == ':') {
-							// key
+							// was a field name
 							offset = nextOffset + 1;
 							continue;
-						} else {
-							// most likely there is now no whitespace, but a comma, end array or end object
-							
-							// legal whitespaces are:
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-
-							int quoteIndex = nextOffset - 1;
-							if(chars[nextOffset] <= 0x20) {
-								// fast-forward over whitespace
-								// optimization: scan for highest value
-								do {
-									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);
-
-								if(chars[nextOffset] == ':') {
-									// was a field name
-									offset = nextOffset + 1;
-									continue;
-								}
-							}
-							
-							if(offset + maxStringLength > maxSizeLimit) {
-								offset = maxSizeLimit;
-								
-								break loop;
-							}
-							
-							int removedLength = filter.getRemovedLength();
-
-							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1));
-
-							// increment limit since we removed something
-							maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-							if(nextOffset >= maxSizeLimit) {
-								filter.removeLastFilter();
-								
-								offset = nextOffset;
-								
-								break loop;
-							}
-							
-							if(maxSizeLimit >= limit) {
-								// filter only for max string length
-								filter.setLevel(0);
-								
-								return ranges(chars, nextOffset, limit, maxStringLength, filter);
-							}
 						}
 					}
+					
+					if(offset + maxStringLength > maxSizeLimit) {
+						offset = nextOffset;
+						
+						break loop;
+					}
+					
+					int removedLength = filter.getRemovedLength();
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
+						// increment limit since we removed something
+						maxSizeLimit += filter.getRemovedLength() - removedLength;
+
+						if(nextOffset > maxSizeLimit) {
+							// corner case, even with removal we are over the limit
+							maxSizeLimit -= filter.getRemovedLength() - removedLength;
+
+							filter.removeLastFilter();
+							
+							offset = nextOffset;
+							
+							break loop;
+						}
+						
+						if(maxSizeLimit >= maxReadLimit) {
+							// filter only for max string length
+							filter.setLevel(0);
+							
+							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+						}
+					}
+					mark = nextOffset;
 					offset = nextOffset;
 					
 					continue;
@@ -208,11 +218,12 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 		filter.setLevel(bracketLevel);
 		filter.setMark(mark);
+		filter.setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
 	
-	public static int rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int limit, int maxSizeLimit, int maxStringLength, ByteArrayRangesBracketFilter filter) {
+	public static int rangesMaxSizeMaxStringLength(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int maxStringLength, ByteArrayRangesSizeFilter filter) {
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
 		int mark = filter.getMark();
@@ -220,110 +231,111 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		loop:
 		while(offset < maxSizeLimit) {
 			switch(chars[offset]) {
+				case '[' : 
 				case '{' :
-					squareBrackets[bracketLevel] = false;
+					// check corner case
+					maxSizeLimit--;
+					if(offset >= maxSizeLimit) {
+						break loop;
+					}
+
+					squareBrackets[bracketLevel] = chars[offset] == '[';
 					bracketLevel++;
 					
 					if(bracketLevel >= squareBrackets.length) {
 						squareBrackets = filter.grow(squareBrackets);
 					}
 
+					offset++;
 					mark = offset;
-					break;
+					continue;
+				case ']' :
 				case '}' :	
 					bracketLevel--;
-
-					mark = offset;
-
-					break;
-				case '[' : {
-					squareBrackets[bracketLevel] = true;
-					bracketLevel++;
-
-					if(bracketLevel >= squareBrackets.length) {
-						squareBrackets = filter.grow(squareBrackets);
-					}
-					mark = offset;
-
-					break;
-				}
-				case ']' :
-					bracketLevel--;
+					maxSizeLimit++;
 					
+					offset++;
 					mark = offset;
 
-					break;
+					continue;
 				case ',' :
 					mark = offset;
 					break;
 				case '"' :					
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
+					if(nextOffset - offset < maxStringLength) {
+						offset = nextOffset + 1;
+						continue;
+					}
+
 					nextOffset++;
 					
-					if(nextOffset - offset > maxStringLength) {
-						// is this a field name or a value? A field name must be followed by a colon
-						
-						// special case: no whitespace
+					// is this a field name or a value? A field name must be followed by a colon
+					
+					// special case: no whitespace
+					if(chars[nextOffset] == ':') {
+						// key
+						offset = nextOffset + 1;
+						continue;
+					}
+					// most likely there is now no whitespace, but a comma, end array or end object
+					
+					// legal whitespaces are:
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
+
+					int quoteIndex = nextOffset;
+					if(chars[nextOffset] <= 0x20) {
+						// fast-forward over whitespace
+						// optimization: scan for highest value
+						do {
+							nextOffset++;
+						} while(chars[nextOffset] <= 0x20);
+
 						if(chars[nextOffset] == ':') {
-							// key
+							// was a field name
 							offset = nextOffset + 1;
 							continue;
-						} else {
-							// most likely there is now no whitespace, but a comma, end array or end object
-							
-							// legal whitespaces are:
-							// space: 0x20
-							// tab: 0x09
-							// carriage return: 0x0D
-							// newline: 0x0A
-
-							int quoteIndex = nextOffset - 1;
-							if(chars[nextOffset] <= 0x20) {
-								// fast-forward over whitespace
-								// optimization: scan for highest value
-								do {
-									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);
-
-								if(chars[nextOffset] == ':') {
-									// was a field name
-									offset = nextOffset + 1;
-									continue;
-								}
-							}
-							
-							if(offset + maxStringLength > maxSizeLimit) {
-								offset = maxSizeLimit;
-								
-								break loop;
-							}
-							
-							int removedLength = filter.getRemovedLength();
-
-							filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset + maxStringLength - quoteIndex - 1));
-
-							// increment limit since we removed something
-							maxSizeLimit += filter.getRemovedLength() - removedLength;
-
-							if(nextOffset >= maxSizeLimit) {
-								filter.removeLastFilter();
-								
-								offset = nextOffset;
-								
-								break loop;
-							}
-							
-							if(maxSizeLimit >= limit) {
-								// filter only for max string length
-								filter.setLevel(0);
-								
-								return ranges(chars, nextOffset, limit, maxStringLength, filter);
-							}
 						}
 					}
+					
+					if(offset + maxStringLength > maxSizeLimit) {
+						offset = nextOffset;
+						
+						break loop;
+					}
+					
+					int removedLength = filter.getRemovedLength();
+
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
+
+						// increment limit since we removed something
+						maxSizeLimit += filter.getRemovedLength() - removedLength;
+
+						if(nextOffset > maxSizeLimit) {
+							// corner case, even with removal we are over the limit
+							maxSizeLimit -= filter.getRemovedLength() - removedLength;
+							
+							filter.removeLastFilter();
+							
+							offset = nextOffset;
+							
+							break loop;
+						}
+						
+						if(maxSizeLimit >= maxReadLimit) {
+							// filter only for max string length
+							filter.setLevel(0);
+							
+							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+						}
+						
+						mark = nextOffset;
+					}
+					
 					offset = nextOffset;
 					
 					continue;
@@ -334,6 +346,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		
 		filter.setLevel(bracketLevel);
 		filter.setMark(mark);
+		filter.setMaxSizeLimit(maxSizeLimit);
 		
 		return offset;
 	}

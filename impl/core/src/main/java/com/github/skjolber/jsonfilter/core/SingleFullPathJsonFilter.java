@@ -1,7 +1,9 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.ByteArrayRangesFilter;
-import com.github.skjolber.jsonfilter.base.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
 public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullPathJsonFilter {
 
@@ -48,31 +50,20 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 	}
 
 	protected static int rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
+		
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
-						
-						continue;
-					}
-					
 					level++;
 					
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
-				case '"' :					
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+				case '"' :
+					int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+					
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;							
@@ -99,18 +90,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
 					// was field name
-					if(elementPaths[matches] == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
-
 					nextOffset++;
 
 					// skip whitespace
@@ -118,7 +98,21 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '{') {
+							offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '"') {
+							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						} else {
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
@@ -131,7 +125,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								// quoted value
 								offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = CharArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);
@@ -146,8 +140,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								return limit; // done filtering
 							}							
 						}
-						
-						matches = level - 1;
 					} else {
 						offset = nextOffset;
 					}
@@ -169,27 +161,16 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		while(offset < limit) {
 			switch(chars[offset]) {
 				case '{' :
-					if(level > matches) {
-						// so always level < elementPaths.length
-						offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
-						
-						continue;
-					}
 					level++;
 					
 					break;
 				case '}' :
 					level--;
 					
-					// always skips start object if not on a matching level, so must always constrain here
-					matches = level;
-					
 					break;
 				case '"' :
-					int nextOffset = offset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] != '"' || chars[nextOffset - 1] == '\\');
+					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+
 					int quoteIndex = nextOffset;
 					
 					nextOffset++;							
@@ -216,16 +197,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						}
 					}
 
-					// reset match for a sibling field name, if any
-					matches = level - 1;
-
-					if(elementPaths[matches] == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, elementPaths[matches])) {
-						matches++;
-					} else {
-						offset = nextOffset;
-						
-						continue;
-					}
+					// was field name
 
 					nextOffset++;
 
@@ -234,7 +206,21 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						nextOffset++;
 					}
 					
-					if(matches == elementPaths.length) {
+					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
+						// skip here
+						if(chars[nextOffset] == '[') {
+							offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '{') {
+							offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1);
+						} else if(chars[nextOffset] == '"') {
+							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						} else {
+							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+						}
+						continue;
+					}
+					
+					if(level + 1 == elementPaths.length) {
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
@@ -247,7 +233,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								// quoted value
 								offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 							} else {
-								offset = ByteArrayRangesFilter.scanUnquotedValue(chars, nextOffset);
+								offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 							}
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset);
@@ -262,8 +248,6 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 								return limit; // done filtering
 							}							
 						}
-						
-						matches--;
 					} else {
 						offset = nextOffset;
 					}
@@ -293,5 +277,30 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 	protected char[] getTruncateStringValue() {
 		return truncateStringValue;
 	}
+
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
+		return getCharArrayRangesFilter(-1, length);
+	}
+
+	protected CharArrayRangesFilter getCharArrayRangesFilter(int capacity, int length) {
+		return new CharArrayRangesFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
+	protected CharArrayRangesSizeFilter getCharArrayRangesBracketFilter(int capacity, int length) {
+		return new CharArrayRangesSizeFilter(capacity, length, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+	}
+
+	protected ByteArrayRangesSizeFilter getByteArrayRangesBracketFilter(int capacity, int length) {
+		return new ByteArrayRangesSizeFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int length) {
+		return getByteArrayRangesFilter(-1, length);
+	}
+	
+	protected ByteArrayRangesFilter getByteArrayRangesFilter(int capacity, int length) {
+		return new ByteArrayRangesFilter(capacity, length, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+	}
+
 	
 }

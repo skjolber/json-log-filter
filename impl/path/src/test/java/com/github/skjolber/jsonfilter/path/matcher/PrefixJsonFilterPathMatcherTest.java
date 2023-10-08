@@ -12,14 +12,14 @@ public class PrefixJsonFilterPathMatcherTest {
 
 	@Test
 	public void testConstructor() {
-		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter());
+		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJacksonJsonFilter(), new DefaultJsonFilter(), new DefaultJsonFilter(), 1024);
 		
-		assertNotNull(matcher.getFilter(false));
+		assertNotNull(matcher.getFilter(false, 512));
 	}
 
 	@Test
 	public void testMatching() {
-		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter());
+		PrefixJsonFilterPathMatcher matcher = new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJacksonJsonFilter(), new DefaultJsonFilter(), new DefaultJsonFilter(), 1024);
 		
 		assertThat(matcher.matches("/abcdef")).isTrue();
 		assertThat(matcher.matches("/cdef")).isFalse();

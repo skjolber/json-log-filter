@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.base;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class AbstractPathJsonFilterTest {
 
@@ -31,7 +33,7 @@ public class AbstractPathJsonFilterTest {
 		}
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 			return false;
 		}
 
@@ -43,7 +45,7 @@ public class AbstractPathJsonFilterTest {
 
 
 		@Override
-		public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}
@@ -116,12 +118,14 @@ public class AbstractPathJsonFilterTest {
 	@Test
 	public void testSplit() {
 		String[] parse1 = AbstractPathJsonFilter.parse("/a/bc");
-		assertEquals(parse1[0], "a");
-		assertEquals(parse1[1], "bc");
+		assertNull(parse1[0]);
+		assertEquals(parse1[1], "a");
+		assertEquals(parse1[2], "bc");
 		
 		String[] parse2 = AbstractPathJsonFilter.parse(".a.bc");
-		assertEquals(parse2[0], "a");
-		assertEquals(parse2[1], "bc");
+		assertNull(parse2[0]);
+		assertEquals(parse2[1], "a");
+		assertEquals(parse2[2], "bc");
 	}
 	
 	@Test

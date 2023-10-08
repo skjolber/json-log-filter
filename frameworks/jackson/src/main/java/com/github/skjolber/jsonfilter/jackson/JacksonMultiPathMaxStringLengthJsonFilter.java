@@ -1,5 +1,4 @@
 package com.github.skjolber.jsonfilter.jackson;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -9,8 +8,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFilter implements JacksonJsonFilter {
@@ -67,7 +66,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}
 
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
@@ -79,90 +78,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
-		
-		int level = 0;
-
-		PathItem pathItem = this.pathItem;
-
-		while(true) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-
-			if(nextToken == JsonToken.START_OBJECT) {
-				level++;
-			} else if(nextToken == JsonToken.END_OBJECT) {
-				pathItem.constrain(level);
-
-				level--;
-			} else if(nextToken == JsonToken.FIELD_NAME) {
-				boolean prune = false;
-				boolean anon = false;
-				
-				// match again any higher filter
-				// match again any higher filter
-				pathItem = pathItem.constrain(level);
-						
-				if(pathItem.getLevel() == level) {
-					pathItem = pathItem.matchPath(parser.getCurrentName());
-
-					if(pathItem.hasType()) {
-						// matched
-						if(pathItem.getType() == FilterType.ANON) {
-							anon = true;
-						} else {
-							prune = true;
-						}
-						pathItem = pathItem.constrain(level);
-					}
-				}
-				
-				if(anyElementFilters != null) {
-					FilterType filterType = matchAnyElements(parser.getCurrentName());
-					if(filterType == FilterType.ANON) {
-						anon = true;
-					} else if(filterType == FilterType.PRUNE) {
-						prune = true;
-					}
-				}
-				
-				if(prune || anon) {
-					generator.copyCurrentEvent(parser);
-
-					nextToken = parser.nextToken();
-					if(nextToken.isScalarValue()) {
-						if(anon) {
-							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
-						} else {
-							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-						}
-					} else {
-						// array or object
-						if(anon) {
-							generator.copyCurrentEvent(parser);
-
-							// keep structure, but mark all values
-							anonymizeChildren(parser, generator);
-						} else {
-							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
-							parser.skipChildren(); // skip children
-						}
-					}
-
-					continue;
-				}
-			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-				
-				continue;
-			}
-			
-			generator.copyCurrentEvent(parser);
-		}
-
-		return true;
+		return process(parser, generator, null);
 	}	
 
 	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator) throws IOException {
@@ -211,7 +127,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 		}
 	}
 
-	public boolean process(byte[] bytes, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
@@ -223,7 +139,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
 		int level = 0;
 
@@ -251,7 +167,7 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 				pathItem = pathItem.constrain(level);
 						
 				if(pathItem.getLevel() == level) {
-					pathItem = pathItem.matchPath(currentName);
+					pathItem = pathItem.matchPath(level, currentName);
 					
 					// match again any higher filter
 					if(pathItem.hasType()) {
@@ -295,7 +211,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 							parser.skipChildren(); // skip children
 							
-							metrics.onPrune(1);
+							if(metrics != null) {
+								metrics.onPrune(1);
+							}
 						}
 					}
 
@@ -304,7 +222,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 				
 				continue;
 			}
@@ -328,7 +248,9 @@ public class JacksonMultiPathMaxStringLengthJsonFilter extends AbstractMultiPath
 			} else if(nextToken.isScalarValue()) {
 				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 				
 				continue;
 			}

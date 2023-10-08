@@ -12,17 +12,13 @@ public abstract class PathItem {
 		this.level = level;
 		this.parent = parent;
 	}
-
-	public abstract PathItem matchPath(String fieldName);
-	public abstract PathItem matchPath(final char[] source, int start, int end);
-	public abstract PathItem matchPath(final byte[] source, int start, int end);
+	
+	public abstract PathItem matchPath(int level, String fieldName);
+	public abstract PathItem matchPath(int level, final char[] source, int start, int end);
+	public abstract PathItem matchPath(int level, final byte[] source, int start, int end);
 	
 	public FilterType getType() {
 		return null;
-	}
-	
-	public boolean hasType() {
-		return false;
 	}
 
 	public PathItem constrain(int level) {
@@ -36,8 +32,8 @@ public abstract class PathItem {
 		return level;
 	}
 
-	public PathItem getParent() {
-		return parent;
+	public boolean hasType() {
+		return false;
 	}
 
 }

@@ -8,8 +8,8 @@ public class DefaultJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher 
 
 	protected final Predicate<String> matcher;
 	
-	public DefaultJsonFilterPathMatcher(Predicate<String> matcher, JsonFilter filterWithValidate, JsonFilter filter) {
-		super(filterWithValidate, filter);
+	public DefaultJsonFilterPathMatcher(Predicate<String> matcher, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+		super(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 		this.matcher = matcher;
 	}
 	

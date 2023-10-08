@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.jmh;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -8,31 +7,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.core.pp.Indent;
+import com.github.skjolber.jsonfilter.core.pp.PrettyPrintingJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryCache;
 import com.github.skjolber.jsonfilter.jmh.fileutils.FileDirectoryValue;
 
 public class BenchmarkRunner<T extends JsonFilter> {
 	
+	protected PrettyPrintingJsonFilter prettyPrinter = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
+	
 	protected List<FileDirectoryValue> directories;
 	protected T jsonFilter;
 
 	protected StringBuilder builder = new StringBuilder(256 * 1000);
-	protected ByteArrayOutputStream outputstream = new ByteArrayOutputStream(256 * 1000);
+	protected ResizableByteArrayOutputStream outputstream = new ResizableByteArrayOutputStream(256 * 1000);
 	
 	protected boolean newBuilder;
-
-	public BenchmarkRunner(File file, boolean recursive, T filter) throws IOException {
-		this(file, recursive, filter, false);
+	protected boolean prettyPrint;
+	
+	public BenchmarkRunner(File file, boolean recursive, T filter, boolean prettyPrint) throws IOException {
+		this(file, recursive, filter, false, prettyPrint);
 	}
 
-	public BenchmarkRunner(File file, boolean recursive, T filter, boolean newBuilder) throws IOException {
-		this(file, recursive);
+	public BenchmarkRunner(File file, boolean recursive, T filter, boolean newBuilder, boolean prettyPrint) throws IOException {
+		this(file, recursive, prettyPrint);
 		this.newBuilder = newBuilder;
 		
 		setJsonFilter(filter);
 	}
 
-	public BenchmarkRunner(File file, boolean recursive) throws IOException {
+	public BenchmarkRunner(File file, boolean recursive, boolean prettyPrint) throws IOException {
 		directories = new FileDirectoryCache().getValue(file, new FileFilter() {
 			
 			@Override
@@ -40,6 +45,8 @@ public class BenchmarkRunner<T extends JsonFilter> {
 				return file.getName().toLowerCase().endsWith(".json");
 			}
 		}, recursive);
+		
+		this.prettyPrint = prettyPrint;
 	}
 
 	public JsonFilter getJsonFilter() {
@@ -123,14 +130,14 @@ public class BenchmarkRunner<T extends JsonFilter> {
 			for(int i = 0; i < directory.size(); i++) {
 				byte[] bytes = directory.getValueAsBytes(i);
 				
-				ByteArrayOutputStream builder;
+				ResizableByteArrayOutputStream builder;
 				if(newBuilder) {
-					builder = new ByteArrayOutputStream(bytes.length);
+					builder = new ResizableByteArrayOutputStream(bytes.length);
 				} else {
 					builder = this.outputstream;
 				}
 				if(jsonFilter.process(bytes, 0, bytes.length, builder)) {
-					sizeSum += builder.toString().length(); // note: string output
+					sizeSum += builder.size(); // note: string output
 				} else {
 					throw new RuntimeException("Unable to filter using " + jsonFilter + " for source " + directory.getFile(i));
 				}

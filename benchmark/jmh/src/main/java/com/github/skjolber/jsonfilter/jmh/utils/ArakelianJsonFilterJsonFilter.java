@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.jmh.utils;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +14,7 @@ import com.arakelian.json.JsonFilter;
 import com.arakelian.json.JsonFilterOptions;
 import com.arakelian.json.JsonReader;
 import com.arakelian.json.JsonWriter;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 
 public class ArakelianJsonFilterJsonFilter extends DefaultJsonFilter {
@@ -48,7 +48,7 @@ public class ArakelianJsonFilterJsonFilter extends DefaultJsonFilter {
 	}
 	
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		JsonReader reader = new JsonReader(new InputStreamReader(new ByteArrayInputStream(chars, offset, length), StandardCharsets.UTF_8));
 		JsonWriter<?> writer = new JsonWriter<>(new OutputStreamWriter(output));
 

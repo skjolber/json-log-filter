@@ -13,6 +13,8 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
+import com.github.skjolber.jsonfilter.test.pp.PrettyPrinterIterator;
 
 public class PrettyPrinterIteratorTest {
 
@@ -26,6 +28,7 @@ public class PrettyPrinterIteratorTest {
 			PrettyPrintTransformer transformer = new PrettyPrintTransformer(prettyPrinter);
 			String transformed = transformer.apply(json);
 			all.add(transformed);
+			System.out.println(transformed);
 		}
 		assertTrue(all.size() > 1);
 	}

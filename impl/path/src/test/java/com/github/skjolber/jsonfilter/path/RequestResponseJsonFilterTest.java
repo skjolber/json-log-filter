@@ -20,25 +20,25 @@ public class RequestResponseJsonFilterTest {
 		List<JsonFilterPathMatcher> responses = new ArrayList<>();
 		RequestResponseJsonFilter requestResponseJsonFilter = new RequestResponseJsonFilter(requests, responses);
 		
-		assertNull(requestResponseJsonFilter.getRequestFilter("/abc", false));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/abc", false));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/abc", false, 1024));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/abc", false, 1024));
 	}
 
 	@Test 
 	public void testMatch() {
 		List<JsonFilterPathMatcher> requests = new ArrayList<>();
-		requests.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter()));
+		requests.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJacksonJsonFilter(), new DefaultJsonFilter(), new DefaultJsonFilter(), 1024));
 
 		List<JsonFilterPathMatcher> responses = new ArrayList<>();
-		responses.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJsonFilter()));
+		responses.add(new PrefixJsonFilterPathMatcher("/abc", new DefaultJacksonJsonFilter(), new DefaultJacksonJsonFilter(), new DefaultJsonFilter(), new DefaultJsonFilter(), 1024));
 
 		RequestResponseJsonFilter requestResponseJsonFilter = new RequestResponseJsonFilter(requests, responses);
 		
-		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc", false));
-		assertNotNull(requestResponseJsonFilter.getResponseFilter("/abc", false));
+		assertNotNull(requestResponseJsonFilter.getRequestFilter("/abc", false, 1024));
+		assertNotNull(requestResponseJsonFilter.getResponseFilter("/abc", false, 1024));
 		
-		assertNull(requestResponseJsonFilter.getRequestFilter("/def", false));
-		assertNull(requestResponseJsonFilter.getResponseFilter("/def", false));
+		assertNull(requestResponseJsonFilter.getRequestFilter("/def", false, 1024));
+		assertNull(requestResponseJsonFilter.getResponseFilter("/def", false, 1024));
 		
 	}
 

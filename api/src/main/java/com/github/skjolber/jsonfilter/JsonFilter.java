@@ -17,8 +17,6 @@
 
 package com.github.skjolber.jsonfilter;
 
-import java.io.ByteArrayOutputStream;
-
 /**
  * Interface for filtering JSON. <br>
  *  
@@ -162,18 +160,19 @@ public interface JsonFilter {
 	byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics filterMetrics);
 
 	/**
-	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
+	 * Filter JSON characters to a {@linkplain ResizableByteArrayOutputStream}
 	 * 
 	 * @param chars bytes containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
+	 * @param output output
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
-	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output);
+	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output);
 
 	/**
-	 * Filter JSON characters to an {@linkplain ByteArrayOutputStream}
+	 * Filter JSON characters to a {@linkplain ResizableByteArrayOutputStream}
 	 * 
 	 * @param chars bytes containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
@@ -182,7 +181,7 @@ public interface JsonFilter {
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
-	boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics filterMetrics);
+	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics);
 
 	/**
 	 * Check if validation

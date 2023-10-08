@@ -86,7 +86,6 @@
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
 		<spring-boot.version>2.7.12</spring-boot.version>
-		<logbook.version>2.16.0</logbook.version>
 		<!-- module descriptors -->
 		<java.module.version>11</java.module.version>
 	</properties>
@@ -121,16 +120,6 @@
 			<dependency>
 				<groupId>com.github.skjolber.json-log-filter</groupId>
 				<artifactId>path</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>spring-boot-autoconfigure-logbook</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.github.skjolber.json-log-filter</groupId>
-				<artifactId>spring-boot-starter-logbook</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -176,56 +165,6 @@
 			    <version>${commons-codec.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-autoconfigure</artifactId>
-				<version>${spring-boot.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-configuration-processor</artifactId>
-				<version>${spring-boot.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zalando</groupId>
-				<artifactId>logbook-spring-boot-autoconfigure</artifactId>
-				<version>${logbook.version}</version>
-			</dependency>
-	        <dependency>
-	            <groupId>org.zalando</groupId>
-	            <artifactId>logbook-core</artifactId>
-				<version>${logbook.version}</version>
-	        </dependency>        
-			<dependency>
-				<groupId>org.zalando</groupId>
-				<artifactId>logbook-json</artifactId>
-				<version>${logbook.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-web</artifactId>
-				<version>${spring-boot.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-test</artifactId>
-				<version>${spring-boot.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zalando</groupId>
-				<artifactId>logbook-api</artifactId>
-				<version>${logbook.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zalando</groupId>
-				<artifactId>logbook-logstash</artifactId>
-				<version>${logbook.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter</artifactId>
-				<version>${spring-boot.version}</version>
-			</dependency>			
-			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-api</artifactId>
 				<version>${junit.version}</version>
@@ -270,6 +209,16 @@
 	            <artifactId>javax.activation</artifactId>
 	            <version>${javax.activation.version}</version>
 	        </dependency>
+			<dependency>
+			    <groupId>io.github.classgraph</groupId>
+			    <artifactId>classgraph</artifactId>
+			    <version>4.8.152</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.jimfs</groupId>
+				<artifactId>jimfs</artifactId>
+				<version>1.2</version>
+			</dependency>			
 		</dependencies>
 	</dependencyManagement>
 
@@ -292,7 +241,7 @@
 					<configuration>
 						<forkCount>1</forkCount>
 						<reuseForks>true</reuseForks>
-						<redirectTestOutputToFile>true</redirectTestOutputToFile>
+						<redirectTestOutputToFile>false</redirectTestOutputToFile>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -474,8 +423,6 @@
 		<module>support/test</module>
 		<module>frameworks/jackson</module>
 		<module>impl/path</module>
-		<module>frameworks/spring-boot-autoconfigure-logbook</module>
-		<module>frameworks/spring-boot-starter-logbook</module>
 	</modules>
 
 	<profiles>

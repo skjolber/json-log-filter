@@ -1,9 +1,8 @@
 package com.github.skjolber.jsonfilter.base;
 
-import java.io.ByteArrayOutputStream;
-
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 /**
  * 
@@ -46,7 +45,7 @@ public class DefaultJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		output.write(chars, offset, length);
 		return true;
 	}
@@ -82,8 +81,7 @@ public class DefaultJsonFilter implements JsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output,
-			JsonFilterMetrics filterMetrics) {
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
 		return process(chars, offset, length, output);
 	}
 

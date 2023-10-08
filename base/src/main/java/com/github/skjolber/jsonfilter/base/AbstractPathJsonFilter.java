@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
@@ -119,9 +120,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			expression = expression.substring(1);
 		}
 		String[] split = expression.split("/|\\.");
-		String[] elementPath = new String[split.length - 1];
-		for(int k = 0; k < elementPath.length; k++) {
-			elementPath[k] = intern(split[k + 1]);
+		String[] elementPath = new String[split.length];
+		for(int k = 1; k < elementPath.length; k++) {
+			elementPath[k] = intern(split[k]);
 		}
 		return elementPath;
 	}
@@ -434,6 +435,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected static char[][] toCharArray(String[] pathStrings) {
 		char[][] paths = new char[pathStrings.length][];
 		for(int i = 0; i < pathStrings.length; i++) {
+			if(pathStrings[i] == null) {
+				continue;
+			}
 			paths[i] = intern(pathStrings[i].toCharArray());
 		}
 		return paths;
@@ -442,6 +446,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected static byte[][] toByteArray(String[] pathStrings) {
 		byte[][] paths = new byte[pathStrings.length][];
 		for(int i = 0; i < pathStrings.length; i++) {
+			if(pathStrings[i] == null) {
+				continue;
+			}
 			paths[i] = intern(pathStrings[i].getBytes(StandardCharsets.UTF_8));
 		}
 		return paths;
@@ -482,4 +489,13 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	protected String[] getPrunes() {
 		return prunes;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "[anonymizes=" + Arrays.toString(anonymizes) + ", prunes="
+				+ Arrays.toString(prunes) + ", maxPathMatches=" + maxPathMatches + ", maxStringLength="
+				+ maxStringLength + ", maxSize=" + maxSize + "]";
+	}
+	
+	
 }

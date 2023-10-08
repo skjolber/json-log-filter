@@ -4,8 +4,8 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public class AllJsonFilterPathMatcher extends AbstractJsonFilterPathMatcher {
 
-	public AllJsonFilterPathMatcher(JsonFilter filterWithValidate, JsonFilter filter) {
-		super(filterWithValidate, filter);
+	public AllJsonFilterPathMatcher(JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+		super(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 	}
 
 	@Override

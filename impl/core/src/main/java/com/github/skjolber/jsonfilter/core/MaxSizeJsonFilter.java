@@ -16,12 +16,14 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class MaxSizeJsonFilter extends AbstractJsonFilter {
 
@@ -56,63 +58,86 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		int bufferLength = buffer.length();
 		
-		int limit = offset + maxSize;
-
-		int level = 0;
+		int maxSizeLimit = offset + maxSize;
+		
+		int bracketLevel = 0;
 		
 		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
 
 		try {
-			while(offset < limit) {
+			loop:
+			while(offset < maxSizeLimit) {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
-						squareBrackets[level] = chars[offset] == '[';
+						// check corner case
+						maxSizeLimit--;
+						if(offset >= maxSizeLimit) {
+							break loop;
+						}
+
+						squareBrackets[bracketLevel] = chars[offset] == '[';
 						
-						level++;
-						if(level >= squareBrackets.length) {
+						bracketLevel++;
+						if(bracketLevel >= squareBrackets.length) {
 							boolean[] next = new boolean[squareBrackets.length + 32];
 							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
 							squareBrackets = next;
 						}
-						mark = offset;
 						
-						break;
+						offset++;
+						mark = offset;
+
+						continue;
 					case '}' :
 					case ']' :
-						level--;
-						// fall through
+						bracketLevel--;
+						maxSizeLimit++;
+						
+						offset++;
+						mark = offset;
+
+						continue;
 					case ',' :
 						mark = offset;
 						break;
 					case '"' :
-						do {
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
-						
+						offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 						continue;
 						
-					default : // do nothing
+					default : {
+						// some kind of value
+						// do nothing
+					}
 				}
 				offset++;
 			}
 			
-			int markLimit = markToLimit(mark, chars);
-			
-			buffer.append(chars, startOffset, markLimit - startOffset);
-			
-			closeStructure(level, squareBrackets, buffer);
-		
-			if(metrics != null) {
-				metrics.onInput(length);
-				int charsLimit = startOffset + length;
-				if(markLimit < charsLimit) {
-					metrics.onMaxSize(charsLimit - markLimit);
+			if(bracketLevel > 0) {
+				int markLimit = markToLimit(chars, offset, startOffset + length, maxSizeLimit, mark);
+				if(markLimit != -1) {
+					buffer.append(chars, startOffset, markLimit - startOffset);
+				} else {
+					buffer.append(chars, startOffset, mark - startOffset);
 				}
-				metrics.onOutput(buffer.length() - bufferLength);
+				
+				closeStructure(bracketLevel, squareBrackets, buffer);
+			
+				if(metrics != null) {
+					metrics.onInput(length);
+					int charsLimit = startOffset + length;
+					if(markLimit < charsLimit) {
+						metrics.onMaxSize(charsLimit - markLimit);
+					}
+					metrics.onOutput(buffer.length() - bufferLength);
+				}
+			} else {
+				if(metrics != null) {
+					metrics.onInput(length);
+					metrics.onOutput(buffer.length() - bufferLength);
+				}				
 			}
 
 			return true;
@@ -121,12 +146,62 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		}
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output) {
+	public static int markToLimit(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
+		// see whether we can include the last value,
+		// which might otherwise be excluded by size exceeded due to whitespace
+		// or as a corner case. 
+		// note: offset is never in the middle of a field name or string value
+		//
+		// | Overview:                                                 
+		// |-----------------------------------------------------------|
+		// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
+		// |                     ^           ^   ^                     | 
+		// |                mark ╯           |   |                     |
+		// |                    desired mark ╯   ╰  max reached        |
+		// |-----------------------------------------------------------|
+		
+		int previousOffset = offset - 1;
+		
+		while(mark < previousOffset) {
+			if(chars[previousOffset] > 0x20) {
+				if(previousOffset < maxSizeLimit) {
+					// check if there is a proper terminator
+					// after the current offset
+					
+					int nextOffset = offset;
+					
+					while(nextOffset < maxReadLimit) {
+						if(chars[nextOffset] > 0x20) {
+							switch(chars[nextOffset]) {
+							case ',':
+							case ']':
+							case '}': {
+								// chars[nextOffset] must be a value of some sorts
+								return previousOffset + 1;
+							}
+							default : {
+								// do nothing
+							}
+							
+							}
+							break;
+						}
+						nextOffset++;
+					}									
+				}
+				
+				break;
+			}
+			previousOffset--;
+		}
+		return -1;
+	}
+
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		return process(chars, offset, length, output, null);
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {		
 		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
@@ -141,74 +216,143 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			return true;
 		}
 		
-		int startOffset = offset;
+		int flushOffset = offset;
 
 		int bufferLength = output.size();
 		
-		int limit = offset + maxSize;
+		int maxSizeLimit = offset + maxSize;
 
-		int level = 0;
+		int bracketLevel = 0;
 		
 		boolean[] squareBrackets = new boolean[32];
 
 		int mark = 0;
 
 		try {
-			while(offset < limit) {
+			loop:
+			while(offset < maxSizeLimit) {
 				switch(chars[offset]) {
 					case '{' :
 					case '[' :
-						squareBrackets[level] = chars[offset] == '[';
+						// check corner case
+						maxSizeLimit--;
+						if(offset >= maxSizeLimit) {
+							break loop;
+						}
+
+						squareBrackets[bracketLevel] = chars[offset] == '[';
 						
-						level++;
-						if(level >= squareBrackets.length) {
+						bracketLevel++;
+						if(bracketLevel >= squareBrackets.length) {
 							boolean[] next = new boolean[squareBrackets.length + 32];
 							System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
 							squareBrackets = next;
 						}
+						
+						offset++;
 						mark = offset;
 						
-						break;
+						continue;
 					case '}' :
 					case ']' :
-						level--;
-						// fall through
+						bracketLevel--;
+						maxSizeLimit++;
+						
+						offset++;
+						mark = offset;
+						
+						continue;
 					case ',' :
 						mark = offset;
 						break;
 					case '"' :
-						do {
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						offset++;
-						
+						offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 						continue;
-						
 					default : // do nothing
 				}
 				offset++;
-				
 			}
 
-			int markLimit = markToLimit(mark, chars);
-			
-			output.write(chars, startOffset, markLimit - startOffset);
-			
-			closeStructure(level, squareBrackets, output);
-			
-			if(metrics != null) {
-				metrics.onInput(length);
-				int charsLimit = startOffset + length;
-				if(markLimit < charsLimit) {
-					metrics.onMaxSize(charsLimit - markLimit);
+			if(bracketLevel > 0) {
+				int markLimit = markToLimit(chars, offset, flushOffset + length, maxSizeLimit, mark);
+				if(markLimit != -1) {
+					output.write(chars, flushOffset, markLimit - flushOffset);
+				} else {
+					output.write(chars, flushOffset, mark - flushOffset);
 				}
-				metrics.onOutput(output.size() - bufferLength);
+				
+				closeStructure(bracketLevel, squareBrackets, output);
+				
+				if(metrics != null) {
+					metrics.onInput(length);
+					int charsLimit = flushOffset + length;
+					if(markLimit < charsLimit) {
+						metrics.onMaxSize(charsLimit - markLimit);
+					}
+					metrics.onOutput(output.size() - bufferLength);
+				}
+			} else {
+				if(metrics != null) {
+					metrics.onInput(length);
+					metrics.onOutput(output.size() - bufferLength);
+				}				
 			}
 	
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
+	}
+
+	public static int markToLimit(byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
+		// see whether we can include the last value,
+		// which might otherwise be excluded by size exceeded due to whitespace
+		// or as a corner case. 
+		// note: offset is never in the middle of a field name or string value
+		//
+		// | Overview:                                                 
+		// |-----------------------------------------------------------|
+		// | [\n  {\n    "key" : [\n      "a"\n    ]\n  }\n]           |
+		// |                     ^           ^   ^                     | 
+		// |                mark ╯           |   |                     |
+		// |                    desired mark ╯   ╰  max reached        |
+		// |-----------------------------------------------------------|
+		
+		int previousOffset = offset - 1;
+		
+		while(mark < previousOffset) {
+			if(chars[previousOffset] > 0x20) {
+				if(previousOffset < maxSizeLimit) {
+					// check if there is a proper terminator
+					// after the current offset
+					
+					int nextOffset = offset;
+					
+					while(nextOffset < maxReadLimit) {
+						if(chars[nextOffset] > 0x20) {
+							switch(chars[nextOffset]) {
+							case ',':
+							case ']':
+							case '}': {
+								// chars[nextOffset] must be a value of some sorts
+								return previousOffset + 1;
+							}
+							default : {
+								// do nothing
+							}
+							
+							}
+							break;
+						}
+						nextOffset++;
+					}									
+				}
+				
+				break;
+			}
+			previousOffset--;
+		}
+		return -1;
 	}
 
 	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {
@@ -219,42 +363,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				buffer.append('}');
 			}
 		}
-	}
-	
-	public static int markToLimit(int mark, char c) {
-		switch(c) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
-	}
-	
-	public static int markToLimit(int mark, byte c) {
-		switch(c) {
-			
-			case '{' :
-			case '}' :
-			case '[' :
-			case ']' :
-				return mark + 1;
-			default : {
-				return mark;
-			}
-		}
-	}
-	
-	public static int markToLimit(int mark, byte[] chars) {
-		return markToLimit(mark, chars[mark]);
-	}
-	
-	public static int markToLimit(int mark, char[] chars) {
-		return markToLimit(mark, chars[mark]);
 	}
 	
 	public static void closeStructure(int level, boolean[] squareBrackets, OutputStream output) throws IOException {

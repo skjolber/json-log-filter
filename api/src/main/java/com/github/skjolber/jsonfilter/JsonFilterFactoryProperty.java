@@ -8,7 +8,8 @@ public enum JsonFilterFactoryProperty {
 	PRUNE_MESSAGE("com.github.skjolber.jsonfilter.pruneMessage"),
 	ANON_MESSAGE("com.github.skjolber.jsonfilter.anonymizeMessage"),
 	TRUNCATE_MESSAGE("com.github.skjolber.jsonfilter.truncateMessage"),
-	MAX_SIZE("com.github.skjolber.jsonfilter.maxSize")
+	MAX_SIZE("com.github.skjolber.jsonfilter.maxSize"),
+	REMOVE_WHITESPACE("com.github.skjolber.jsonfilter.removeWhitespace")
 	;
 	
 	private final String name;
