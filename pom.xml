@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.skjolber.json-log-filter</groupId>
 	<artifactId>parent</artifactId>
-	<version>4.1.0</version>
+	<version>4.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>json-log-filter</name>
 	<description>Project for filtering of JSON for logging purposes</description>
