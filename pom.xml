@@ -58,18 +58,16 @@
 		<xerces.version>2.12.0</xerces.version>
 
 		<indent.version>1.0.0</indent.version>
-		<jackson.version>2.14.2</jackson.version>
+		<jackson.version>2.15.2</jackson.version>
 		<google-truth.version>1.1.5</google-truth.version>
 		<commons-io.version>2.14.0</commons-io.version>
 		<commons-codec.version>1.16.0</commons-codec.version>
 		
 		<mockito.version>5.6.0</mockito.version>
 		<junit.version>5.9.3</junit.version>
-		<logback.version>1.2.11</logback.version>
 		<slf4j.version>1.7.36</slf4j.version>
-		<servlet.version>4.0.1</servlet.version>
-		<javax.activation.version>1.2.0</javax.activation.version>
-
+		<logback.version>1.4.11</logback.version>
+		
 		<!-- plugins -->
 		<build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
@@ -85,7 +83,6 @@
 
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
-		<spring-boot.version>2.7.12</spring-boot.version>
 		<!-- module descriptors -->
 		<java.module.version>11</java.module.version>
 	</properties>
@@ -199,11 +196,6 @@
 				<artifactId>json-path</artifactId>
 				<version>${json-path.version}</version>
 			</dependency>
-	        <dependency>
-	            <groupId>javax.servlet</groupId>
-	            <artifactId>javax.servlet-api</artifactId>
-	            <version>${servlet.version}</version>
-	        </dependency>
 	        <dependency>
 	            <groupId>com.sun.activation</groupId>
 	            <artifactId>javax.activation</artifactId>
