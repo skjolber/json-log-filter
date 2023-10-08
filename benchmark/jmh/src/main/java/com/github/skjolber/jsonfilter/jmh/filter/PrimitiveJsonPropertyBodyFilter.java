@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.jmh.filter;
 
 import static java.util.regex.Pattern.compile;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;

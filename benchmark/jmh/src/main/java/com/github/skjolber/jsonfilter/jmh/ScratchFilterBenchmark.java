@@ -19,25 +19,8 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
-
-import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
-
-import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 
 
 @State(Scope.Thread)

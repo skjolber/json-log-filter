@@ -1,7 +1,6 @@
 package com.github.skjolber.jsonfilter.jmh.utils;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

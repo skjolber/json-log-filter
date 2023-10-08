@@ -18,22 +18,19 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.zalando.logbook.BodyFilter;
-import org.zalando.logbook.json.JsonPathBodyFilters;
 
-import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
-
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
@@ -64,9 +61,6 @@ public class AllFilterBenchmark {
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxSizeJacksonJsonFilter;
 
-	private LogbookBenchmarkRunner singlePathLogbookJsonPathJsonFilter;
-	private LogbookBenchmarkRunner singleAnyPathLogbookJsonPathJsonFilter;
-	
 	private BenchmarkRunner<JsonFilter> defaultJsonFilter;
 
 	private BenchmarkRunner<JsonFilter> singleFullPathAnonymizeJsonFilter;
@@ -108,10 +102,6 @@ public class AllFilterBenchmark {
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(20), prettyPrinted);
 		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(128), prettyPrinted);
 		
-		// jsonpath
-		singlePathLogbookJsonPathJsonFilter = new LogbookBenchmarkRunner(file, true, JsonPathBodyFilters.jsonPath("$.address").replace("*****"), prettyPrinted);
-		singleAnyPathLogbookJsonPathJsonFilter = new LogbookBenchmarkRunner(file, true, JsonPathBodyFilters.jsonPath("$..address").replace("*****"), prettyPrinted);
-
 		// json-log-filter
 		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(20), prettyPrinted);
 		maxSizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(128), prettyPrinted);
@@ -231,17 +221,6 @@ public class AllFilterBenchmark {
 	public long arakelian_filter() throws IOException {
 		return singlePathArakelianJsonFilter.benchmarkBytes();
 	}
-
-	@Benchmark
-	public long anonSingleAnyPathLogbook() {
-		return singleAnyPathLogbookJsonPathJsonFilter.benchmarkCharacters();
-	}
-
-	@Benchmark
-	public long anonSinglePathLogbook() {
-		return singlePathLogbookJsonPathJsonFilter.benchmarkCharacters();
-	}
-
 	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()

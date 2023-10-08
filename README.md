@@ -175,15 +175,6 @@ String filtered = filter.process(json, myMetrics); // perform filtering
 
 The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing.
 
-### Logbook module
-See the [spring-boot-starter-logbook](frameworks/spring-boot-starter-logbook) module for request-/response logging for Spring-flavoured REST services. Features:
-
- * filter in- and/or outgoing payloads per path
- * well-formed JSON payloads are appended as JSON, i.e. indexable to log accumulation tools
- * non-well-formed JSON payloads are added as text
-
-This module improves performance by detecting whether databinding was successful.
-
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
 
