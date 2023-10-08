@@ -200,10 +200,10 @@ Depending on your service stack and architecture, performing two additional oper
 
 For a typical REST service, the above operations might be necessary for the (untrusted) incoming request payload, but not the (trusted) outgoing response payload. Depending on the service, all authorized requests may be considered trusted.
 
-Note that 
+Note that
   
  * the `Jackson`-based processors in this project do both of these automatically, and 
- * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON. __See the Logbook module.__
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
@@ -220,4 +220,3 @@ Using SIMD for parsing JSON:
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:				https://github.com/FasterXML/jackson-core
 [JSON]:					https://www.json.org/json-en.html
-[Logbook]:				https://github.com/zalando/logbook
