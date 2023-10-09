@@ -194,10 +194,9 @@ public class ByteArrayWhitespaceFilter {
 				
 				int endQuoteIndex = nextOffset;
 				
-				// key or value, might be whitespace
+				// key or value, might be followed by whitespace
 				nextOffset++;
 				
-				colon:
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
@@ -206,34 +205,59 @@ public class ByteArrayWhitespaceFilter {
 						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
-							break colon;
-						}
-					}
-					// was a value
+							// whitespace before colon
+							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+							output.write(':');
+							
+							nextOffset++;
 
+							if(chars[nextOffset] <= 0x20) {
+								// whitespace before and after colon
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);				
+							} else {
+								// whitespace before colon, but not after
+							}
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
+						}
+					} 
+					
+					// was a value
 					if(endQuoteIndex - offset >= maxStringLength) {
 						ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
-					} else {
-						output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
+						
+						flushOffset = nextOffset;
 					}
-					
+						
 					offset = nextOffset;
-					flushOffset = nextOffset;
 					
 					continue;
-				}
-
-				// was a key
-				output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-				output.write(':');
-
-				do {
+				} else {
+					// was a key
 					nextOffset++;
-				} while(chars[nextOffset] <= 0x20);				
-				
-				offset = nextOffset;
-				flushOffset = nextOffset;
-				
+
+					if(chars[nextOffset] > 0x20) {
+						// no whitespace before or after colon
+						
+						offset = nextOffset;
+						continue;
+					}
+
+					// whitespace after colon, but not before
+					output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+					output.write(':');
+					
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);				
+					
+					flushOffset = nextOffset;
+					offset = nextOffset;
+				}
 				continue;
 			}
 			case '{' :
@@ -350,7 +374,7 @@ public class ByteArrayWhitespaceFilter {
 
 	}
 	
-	public static int addMaxLength(final byte[] chars, int offset, final ResizableByteArrayOutputStream output, int start, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
+	public static int addMaxLength(final byte[] chars, int offset, final ResizableByteArrayOutputStream output, int flushOffset, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
 		// was a value
 		int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 		
@@ -359,7 +383,7 @@ public class ByteArrayWhitespaceFilter {
 		// if truncate message + digits is smaller than the actual payload, trim it.
 		int remove = removed - truncateStringValueAsBytes.length - AbstractRangesFilter.lengthToDigits(removed);
 		if(remove > 0) {
-			output.write(chars, start, aligned - start);
+			output.write(chars, flushOffset, aligned - flushOffset);
 			output.write(truncateStringValueAsBytes, 0, truncateStringValueAsBytes.length);
 			ByteArrayRangesFilter.writeInt(output, removed, digit);
 			output.write('"');
@@ -369,7 +393,7 @@ public class ByteArrayWhitespaceFilter {
 			}
 			return remove;
 		} else {
-			output.write(chars, start, endQuoteIndex - start + 1);
+			output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 			
 			return 0;
 		}

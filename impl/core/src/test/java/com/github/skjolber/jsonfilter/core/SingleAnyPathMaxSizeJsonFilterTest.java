@@ -102,37 +102,4 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
 
-	@Test
-	public void test() {
-		// String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
-		String string = "{\n"
-				+ "  \"key\" : [\n"
-				+ "    \"aaaaaaaaaaaaaaaaaaaa\"\n"
-				+ "  ]\n"
-				+ "}";
-		
-		System.out.println("Input size is ");
-		
-		int size = 42;
-		
-		SingleAnyPathMaxSizeJsonFilter filter = new MustContrainSingleAnyPathMaxSizeJsonFilter(size, 1, ANY_PASSTHROUGH_XPATH, FilterType.PRUNE);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
-
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		System.out.println(new String(filteredBytes));
-		
-		System.out.println(filtered.length());
-
-		long epochSecond = Instant.EPOCH.plus(51 * 365L, ChronoUnit.DAYS).getEpochSecond(); // 1970 + almost 51 years
-
-		Instant.EPOCH.plus(51 * 365L, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
-		
-		System.out.println(epochSecond);
-	}
 }

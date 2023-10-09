@@ -164,30 +164,5 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFi
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
-	
-	@Test
-	public void test() {
-		// String string = "{\"key1\":\"aa\",\"key2\":\"abcdefghijklmnopqrstuvwxyz0123456789\"}";
-		String string = "{\"a\":{\"b\":{\"key\":[\"abc\"]}}}";
-		
-		System.out.println("Input size is ");
-		
-		int size = 22;
-		
-		MultiPathMaxSizeMaxStringLengthJsonFilter filter = new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, null, null);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
 
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		System.out.println(new String(filteredBytes));
-		
-		System.out.println(filtered.length());
-
-	}
-	
 }

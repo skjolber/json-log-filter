@@ -65,7 +65,7 @@ public class CveMultiPathMaxSizeMaxStringLengthFilterBenchmark extends AbstractM
 		Options opt = new OptionsBuilder()
 				.include(CveMultiPathMaxSizeMaxStringLengthFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
-				.measurementIterations(2)
+				.measurementIterations(25)
 				.result("target/" + System.currentTimeMillis() + "." + CveMultiPathMaxSizeMaxStringLengthFilterBenchmark.class.getSimpleName() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();

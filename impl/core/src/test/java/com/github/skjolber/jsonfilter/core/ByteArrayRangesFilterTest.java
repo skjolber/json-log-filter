@@ -240,31 +240,14 @@ public class ByteArrayRangesFilterTest {
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
 		
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
-		ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
+		ByteArrayRangesFilter.anonymizeObjectOrArray(input.getBytes(), 1, filter);
 		
 		ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 		filter.filter(input.getBytes(), 0, input.length(), b);
 		
 		assertThat(b.toString()).isEqualTo(output);
 	}
-	
-	@Test
-	public void testAnonymizeSubtreeScalar() throws IOException {
-		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
-		String[] outputs = new String[]{"\"*****\",", "\"*****\"}"};
-		
-		for(int i = 0; i < inputs.length; i++) {
-			String input = inputs[i];
-			
-			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
-			ByteArrayRangesFilter.anonymizeSubtree(input.getBytes(), 0, filter);
-			ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
-			filter.filter(input.getBytes(), 0, input.length(), b);
-			
-			assertThat(b.toString()).isEqualTo(outputs[i]);
-		}
-	}
-	
+
 	@Test
 	public void testPruneSubtreeScalar() throws IOException {
 		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};

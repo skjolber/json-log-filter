@@ -62,14 +62,14 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 		int level = 0;
 		final char[][] elementPaths = this.pathChars;
 		FilterType filterType = this.filterType;
-		int pathMatches = 0;
+		int pathMatches = this.maxPathMatches;
 
 		try {
-			int limit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 			
 			int flushOffset = offset;
 
-			while(offset < limit) {
+			while(offset < maxReadLimit) {
 				char c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
@@ -185,7 +185,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							} else {
 								filter.setFlushOffset(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, buffer, metrics);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 								
 								flushOffset = filter.getFlushOffset();
 							}
@@ -217,7 +217,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, buffer, metrics, maxStringLength, filter.getTruncateMessage());
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushOffset, buffer, metrics, maxStringLength, filter.getTruncateMessage());
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -262,14 +262,14 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 		byte[] digit = new byte[11];
 		
 		FilterType filterType = this.filterType;
-		int pathMatches = 0;
+		int pathMatches = this.maxPathMatches;
 
 		try {
-			int limit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
 
 			int flushOffset = offset;
 
-			while(offset < limit) {
+			while(offset < maxReadLimit) {
 				byte c = chars[offset];
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
@@ -290,7 +290,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 					level--;
 					
 					break;
-				case '"' :					
+				case '"' :
 					int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 					
 					int endQuoteIndex = nextOffset;
@@ -310,7 +310,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								break colon;
 							}
 						}
-							
+						
 						// was a value
 						if(endQuoteIndex - offset >= maxStringLength) {
 							ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, digit, metrics);
@@ -384,7 +384,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							} else {
 								filter.setFlushOffset(nextOffset);
 
-								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, limit, output, metrics);
+								offset = filter.anonymizeObjectOrArray(chars, nextOffset + 1, maxReadLimit, output, metrics);
 								
 								flushOffset = filter.getFlushOffset();
 							}
@@ -419,7 +419,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, output, filter.getDigit(), metrics, maxStringLength, filter.getTruncateMessage());
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushOffset, output, filter.getDigit(), metrics, maxStringLength, filter.getTruncateMessage());
 								
 								if(metrics != null) {
 									metrics.onInput(length);

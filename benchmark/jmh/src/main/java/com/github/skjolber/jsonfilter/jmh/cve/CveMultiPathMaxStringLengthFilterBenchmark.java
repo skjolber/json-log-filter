@@ -33,7 +33,6 @@ public class CveMultiPathMaxStringLengthFilterBenchmark extends AbstractMultiPat
 	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
 	private String fileName;
 
 	@Override

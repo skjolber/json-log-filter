@@ -35,7 +35,7 @@ public class CveMaxStringLengthFilterBenchmark extends AbstractMaxStringLengthFi
 
 	@Override
 	protected File getFile() {
-		return new File("./src/test/resources/benchmark/cves/" + fileName +"/cve2006.json.gz.json");
+		return new File("./src/test/resources/benchmark/cves/" + fileName);
 	}
 	
 	public static void main(String[] args) throws RunnerException {

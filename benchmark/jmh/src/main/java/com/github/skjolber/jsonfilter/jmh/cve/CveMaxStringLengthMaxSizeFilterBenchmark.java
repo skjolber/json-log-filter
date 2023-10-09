@@ -40,7 +40,7 @@ public class CveMaxStringLengthMaxSizeFilterBenchmark extends AbstractMaxStringL
 	
 	@Override
 	protected File getFile() {
-		return new File("./src/test/resources/benchmark/cves/" + fileName +"/cve2006.json.gz.json");
+		return new File("./src/test/resources/benchmark/cves/" + fileName);
 	}
 	
 	@Override

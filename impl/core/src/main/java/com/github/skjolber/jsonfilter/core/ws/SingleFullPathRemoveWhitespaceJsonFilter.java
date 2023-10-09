@@ -56,11 +56,12 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
 		int bufferLength = buffer.length();
+		int maxStringLength = this.maxStringLength;
 		
 		int level = 0;
 		final char[][] elementPaths = this.pathChars;
 		FilterType filterType = this.filterType;
-		int pathMatches = 0;
+		int pathMatches = this.maxPathMatches;
 
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
@@ -116,7 +117,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 						flushOffset = nextOffset;
 						
 						continue;
-					}					
+					}
 
 					// was a field name
 					
@@ -167,7 +168,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								// skip both whitespace and actual content
 								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 								
-								buffer.append(pruneJsonValue);
+								buffer.append(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
@@ -189,13 +190,13 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							}
 
 							if(filterType == FilterType.PRUNE) {
-								buffer.append(pruneJsonValue);
+								buffer.append(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
 
 							} else {
-								buffer.append(anonymizeJsonValue);
+								buffer.append(filter.getAnonymizeMessage());
 								if(metrics != null) {
 									metrics.onAnonymize(1);
 								}
@@ -245,12 +246,13 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		int bufferLength = output.size();
+		int maxStringLength = this.maxStringLength;
 		
 		int level = 0;
 		final byte[][] elementPaths = this.pathBytes;
 		
 		FilterType filterType = this.filterType;
-		int pathMatches = 0;
+		int pathMatches = this.maxPathMatches;
 
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
@@ -355,7 +357,7 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 								// skip both whitespace and actual content
 								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 
-								output.write(pruneJsonValueAsBytes);
+								output.write(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
@@ -377,13 +379,13 @@ public class SingleFullPathRemoveWhitespaceJsonFilter extends AbstractSingleChar
 							}
 
 							if(filterType == FilterType.PRUNE) {
-								output.write(pruneJsonValueAsBytes);
+								output.write(filter.getPruneMessage());
 								
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
 							} else {
-								output.write(anonymizeJsonValueAsBytes);
+								output.write(filter.getAnonymizeMessage());
 								
 								if(metrics != null) {
 									metrics.onAnonymize(1);

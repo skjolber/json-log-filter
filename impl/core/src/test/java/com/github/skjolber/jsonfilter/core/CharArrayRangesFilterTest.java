@@ -224,32 +224,14 @@ public class CharArrayRangesFilterTest {
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
 		
 		CharArrayRangesFilter filter = new CharArrayRangesFilter(12, input.length());
-		CharArrayRangesFilter.anonymizeSubtree(input.toCharArray(), 0, filter);
+		CharArrayRangesFilter.anonymizeObjectOrArray(input.toCharArray(), 1, filter);
 		
 		StringBuilder buffer = new StringBuilder();
 		filter.filter(input.toCharArray(), 0, input.length(), buffer);
 		
 		assertThat(buffer.toString()).isEqualTo(output);
 	}
-	
-	@Test
-	public void testAnonymizeSubtreeScalar() throws IOException {
-		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
-		String[] outputs = new String[]{"\"*****\",", "\"*****\"}"};
-		
-		for(int i = 0; i < inputs.length; i++) {
-			String input = inputs[i];
-			
-			CharArrayRangesFilter filter = new CharArrayRangesFilter(12, inputs.length);
-			CharArrayRangesFilter.anonymizeSubtree(input.toCharArray(), 0, filter);
-			
-			StringBuilder buffer = new StringBuilder();
-			filter.filter(input.toCharArray(), 0, input.length(), buffer);
-			
-			assertThat(buffer.toString()).isEqualTo(outputs[i]);
-		}
-	}
-	
+
 	@Test
 	public void testPruneSubtreeScalar() throws IOException {
 		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};

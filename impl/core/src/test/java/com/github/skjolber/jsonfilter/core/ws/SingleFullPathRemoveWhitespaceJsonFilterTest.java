@@ -73,5 +73,30 @@ public class SingleFullPathRemoveWhitespaceJsonFilterTest extends DefaultJsonFil
 	public void pruneWildcard() throws Exception {
 		assertThat(new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
 	}
+
+	
+	@Test
+	public void test() {
+		String string = "{\"a\":{\"b\":{\"key\":\"d\\\"a\"}}}";
+		
+		System.out.println("Input size is " + string.length());
+		
+		int size = 26;
+		
+		SingleFullPathRemoveWhitespaceJsonFilter filter = new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_PATH, FilterType.ANON);
+		
+		System.out.println("Original:");
+		System.out.println(string);
+		System.out.println("Filtered:");
+
+		String filtered = filter.process(string);
+		System.out.println(filtered);
+		
+		byte[] filteredBytes = filter.process(string.getBytes());
+		System.out.println(new String(filteredBytes));
+		
+		System.out.println(filtered.length());
+
+	}
 	
 }
