@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter.AnyPathFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -18,6 +19,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 
 		length += offset;
@@ -152,6 +155,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
+
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 
 		length += offset;
 

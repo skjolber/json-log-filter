@@ -29,7 +29,8 @@ import com.github.skjolber.jsonfilter.jmh.AbstractMaxSizeFilterBenchmark;
 @Fork(1)
 public class CveMaxSizeFilterBenchmark extends AbstractMaxSizeFilterBenchmark {
 
-	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	@Param(value={"2KB"})
 	private String fileName;
 
 	@Override

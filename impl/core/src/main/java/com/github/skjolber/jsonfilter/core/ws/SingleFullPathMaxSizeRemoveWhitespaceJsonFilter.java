@@ -80,7 +80,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, final char[][] elementPaths, FilterType filterType, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		int maxSizeLimit = filter.getMaxSizeLimit();
 
-		int flushedOffset = filter.getFlushOffset();
+		int flushOffset = filter.getFlushOffset();
 		int mark = filter.getMark();
 		int streamMark = filter.getWrittenMark();
 		int bracketLevel = filter.getLevel();
@@ -92,11 +92,11 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 			char c = chars[offset];
 			
 			if(c <= 0x20) {
-				if(flushedOffset <= mark) {
-					streamMark = buffer.length() + mark - flushedOffset; 
+				if(flushOffset <= mark) {
+					streamMark = buffer.length() + mark - flushOffset; 
 				}
 				// skip this char and any other whitespace
-				buffer.append(chars, flushedOffset, offset - flushedOffset);
+				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 					maxSizeLimit++;
@@ -106,7 +106,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 					maxSizeLimit = maxReadLimit;
 				}
 
-				flushedOffset = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			switch(c) {
@@ -180,10 +180,10 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 
 				int endQuoteIndex = nextOffset;
 
-				if(flushedOffset <= mark) {
-					streamMark = buffer.length() + mark - flushedOffset; 
+				if(flushOffset <= mark) {
+					streamMark = buffer.length() + mark - flushOffset; 
 				}
-				buffer.append(chars, flushedOffset, endQuoteIndex - flushedOffset + 1);			
+				buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
 				
 				nextOffset++;
 				colon:
@@ -204,7 +204,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 					}
 					// was a value
-					flushedOffset = nextOffset;
+					flushOffset = nextOffset;
 					offset = nextOffset;
 					
 					continue;
@@ -214,7 +214,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 
 				nextOffset++;
 				
-				flushedOffset = nextOffset;
+				flushOffset = nextOffset;
 
 				boolean match = elementPaths[level] == STAR_CHARS || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level]);
 
@@ -258,20 +258,20 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 
-						flushedOffset = filter.getFlushOffset();
+						flushOffset = filter.getFlushOffset();
 						streamMark = filter.getWrittenMark();
 						
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getMaxSizeLimit();						
 					} else if(chars[nextOffset] == '"') {
 						
-						flushedOffset = nextOffset;
+						flushOffset = nextOffset;
 						
 						nextOffset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						
 						offset = nextOffset;
 					} else {
-						flushedOffset = nextOffset;
+						flushOffset = nextOffset;
 						offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					}
 					continue;
@@ -301,14 +301,14 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 						
 						// adjust max size limit
-						maxSizeLimit += offset - nextOffset - pruneJsonValue.length;
+						maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}
 						
 						mark = offset;
-						flushedOffset = offset;
+						flushOffset = offset;
 					} else {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							maxSizeLimit--;
@@ -333,7 +333,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 							
 							offset = filter.anonymizeObjectOrArrayMaxSize(chars, nextOffset + 1, maxReadLimit, buffer, metrics);
 							
-							flushedOffset = filter.getFlushOffset();
+							flushOffset = filter.getFlushOffset();
 							bracketLevel = filter.getLevel();
 							mark = filter.getMark();
 							streamMark = filter.getWrittenMark();
@@ -358,14 +358,14 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 								metrics.onAnonymize(1);
 							}
 							
-							maxSizeLimit += offset - nextOffset - anonymizeJsonValue.length;
+							maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 
 							if(maxSizeLimit >= maxReadLimit) {
 								maxSizeLimit = maxReadLimit;
 							}
 							
 							mark = offset;
-							flushedOffset = offset;
+							flushOffset = offset;
 							
 						}
 					}
@@ -375,13 +375,13 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						if(pathMatches == 0) {
 							// just remove whitespace
 							
-							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, buffer, maxReadLimit, maxSizeLimit, bracketLevel, squareBrackets, mark, streamMark);
+							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushOffset, buffer, maxReadLimit, maxSizeLimit, bracketLevel, squareBrackets, mark, streamMark);
 
 							return;
 						}							
 					}
 				} else {
-					flushedOffset = nextOffset;
+					flushOffset = nextOffset;
 					offset = nextOffset;
 				}
 
@@ -395,15 +395,15 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
-					if(markLimit >= flushedOffset) {
-						buffer.append(chars, flushedOffset, markLimit - flushedOffset);
+					if(markLimit >= flushOffset) {
+						buffer.append(chars, flushOffset, markLimit - flushOffset);
 					}
 					break markLimit;
 				} else {
-					if(mark >= flushedOffset) {
-						streamMark = buffer.length() + mark - flushedOffset; 
+					if(mark >= flushOffset) {
+						streamMark = buffer.length() + mark - flushOffset; 
 						
-						buffer.append(chars, flushedOffset, mark - flushedOffset);
+						buffer.append(chars, flushOffset, mark - flushOffset);
 					}
 				}
 				
@@ -411,7 +411,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 			}
 			MaxSizeJsonFilter.closeStructure(bracketLevel, squareBrackets, buffer);
 		} else {
-			buffer.append(chars, flushedOffset, offset - flushedOffset);
+			buffer.append(chars, flushOffset, offset - flushOffset);
 		}		
 	}
 	
@@ -455,7 +455,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, final byte[][] elementPaths, int matches, FilterType filterType, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		int maxSizeLimit = filter.getLimit();
 
-		int flushedOffset = filter.getFlushOffset();
+		int flushOffset = filter.getFlushOffset();
 		int mark = filter.getMark();
 		int streamMark = filter.getWrittenMark();
 		int bracketLevel = filter.getLevel();
@@ -467,11 +467,11 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 			byte c = chars[offset];
 
 			if(c <= 0x20) {
-				if(flushedOffset <= mark) {
-					streamMark = stream.size() + mark - flushedOffset; 
+				if(flushOffset <= mark) {
+					streamMark = stream.size() + mark - flushOffset; 
 				}
 				// skip this char and any other whitespace
-				stream.write(chars, flushedOffset, offset - flushedOffset);
+				stream.write(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
 					maxSizeLimit++;
@@ -481,7 +481,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 					maxSizeLimit = maxReadLimit;
 				}
 
-				flushedOffset = offset;
+				flushOffset = offset;
 				c = chars[offset];
 			}
 			switch(c) {
@@ -556,10 +556,10 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 
 				int endQuoteIndex = nextOffset;
 
-				if(flushedOffset <= mark) {
-					streamMark = stream.size() + mark - flushedOffset; 
+				if(flushOffset <= mark) {
+					streamMark = stream.size() + mark - flushOffset; 
 				}
-				stream.write(chars, flushedOffset, endQuoteIndex - flushedOffset + 1);			
+				stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
 
 				nextOffset++;
 				
@@ -581,7 +581,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 					}
 					// was a value
-					flushedOffset = nextOffset;
+					flushOffset = nextOffset;
 					offset = nextOffset;
 					
 					continue;
@@ -591,7 +591,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 
 				nextOffset++;
 				
-				flushedOffset = nextOffset;
+				flushOffset = nextOffset;
 
 				boolean match = elementPaths[level] == STAR_BYTES || matchPath(chars, offset + 1, endQuoteIndex, elementPaths[level]);
 
@@ -636,19 +636,19 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						bracketLevel = filter.getLevel();
 						mark = filter.getMark();
 
-						flushedOffset = filter.getFlushOffset();
+						flushOffset = filter.getFlushOffset();
 						streamMark = filter.getWrittenMark();
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getLimit();						
 						
 					} else if(chars[nextOffset] == '"') {
-						flushedOffset = nextOffset;
+						flushOffset = nextOffset;
 						
 						nextOffset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 
 						offset = nextOffset;
 					} else {
-						flushedOffset = nextOffset;
+						flushOffset = nextOffset;
 						offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					}
 
@@ -680,14 +680,14 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 						
 						// adjust max size limit
-						maxSizeLimit += offset - nextOffset - pruneJsonValue.length;
+						maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 						
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}
 						
 						mark = offset;
-						flushedOffset = offset;
+						flushOffset = offset;
 						
 					} else {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
@@ -713,7 +713,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 							
 							offset = filter.anonymizeObjectOrArrayMaxSize(chars, nextOffset + 1, maxReadLimit, stream, metrics);
 							
-							flushedOffset = filter.getFlushOffset();
+							flushOffset = filter.getFlushOffset();
 							bracketLevel = filter.getLevel();
 							mark = filter.getMark();
 							streamMark = filter.getWrittenMark();
@@ -740,14 +740,14 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 								metrics.onAnonymize(1);
 							}
 							
-							maxSizeLimit += offset - nextOffset - anonymizeJsonValue.length;
+							maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 							
 							if(maxSizeLimit >= maxReadLimit) {
 								maxSizeLimit = maxReadLimit;
 							}
 							
 							mark = offset;
-							flushedOffset = offset;
+							flushOffset = offset;
 
 						}
 					}
@@ -756,13 +756,13 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						pathMatches--;
 						if(pathMatches == 0) {
 							// just remove whitespace
-							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushedOffset, stream, maxSizeLimit, maxReadLimit, bracketLevel, squareBrackets, mark, streamMark);
+							MaxSizeRemoveWhitespaceJsonFilter.process(chars, offset, flushOffset, stream, maxSizeLimit, maxReadLimit, bracketLevel, squareBrackets, mark, streamMark);
 
 							return;
 						}							
 					}
 				} else {
-					flushedOffset = nextOffset;
+					flushOffset = nextOffset;
 					offset = nextOffset;
 				}
 
@@ -777,22 +777,22 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
-					if(markLimit >= flushedOffset) {
-						stream.write(chars, flushedOffset, markLimit - flushedOffset);
+					if(markLimit >= flushOffset) {
+						stream.write(chars, flushOffset, markLimit - flushOffset);
 					}
 					break markLimit;
 				} else {
-					if(mark >= flushedOffset) {
-						streamMark = stream.size() + mark - flushedOffset; 
+					if(mark >= flushOffset) {
+						streamMark = stream.size() + mark - flushOffset; 
 						
-						stream.write(chars, flushedOffset, mark - flushedOffset);
+						stream.write(chars, flushOffset, mark - flushOffset);
 					}
 				}
 				stream.setSize(streamMark);
 			}
 			MaxSizeJsonFilter.closeStructure(bracketLevel, squareBrackets, stream);
 		} else {
-			stream.write(chars, flushedOffset, offset - flushedOffset);
+			stream.write(chars, flushOffset, offset - flushOffset);
 		}
 	}
 

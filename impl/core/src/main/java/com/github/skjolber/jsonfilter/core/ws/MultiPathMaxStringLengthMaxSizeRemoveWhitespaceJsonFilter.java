@@ -61,6 +61,10 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+
+		int maxStringLength = this.maxStringLength;
+		
 		int maxSizeLimit = filter.getMaxSizeLimit();
 
 		int flushOffset = filter.getFlushOffset();
@@ -191,7 +195,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					if(endQuoteIndex - offset < maxStringLength) {
 						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
-						maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateStringValue, maxStringLength, metrics);
+						maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
 					}
 					
 					flushOffset = nextOffset;
@@ -312,7 +316,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					}
 					
 					// adjust max size limit
-					maxSizeLimit += offset - nextOffset - pruneJsonValue.length;
+					maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
@@ -369,7 +373,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 							metrics.onAnonymize(1);
 						}
 						
-						maxSizeLimit += offset - nextOffset - anonymizeJsonValue.length;
+						maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
@@ -387,7 +391,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						// just remove whitespace
 						buffer.append(chars, flushOffset, offset - flushOffset);
 
-						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, truncateStringValue, metrics);
+						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
 
 						return;
 					}							
@@ -461,6 +465,10 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 
 	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
+
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		
+		int maxStringLength = this.maxStringLength;
 
 		int maxSizeLimit = filter.getLimit();
 
@@ -592,7 +600,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					if(endQuoteIndex - offset < maxStringLength) {
 						stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
-						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, filter.getDigit(), metrics);
+						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(), metrics);
 					}
 					
 					flushOffset = nextOffset;
@@ -713,7 +721,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					}
 					
 					// adjust max size limit
-					maxSizeLimit += offset - nextOffset - pruneJsonValue.length;
+					maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
@@ -770,7 +778,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 							metrics.onAnonymize(1);
 						}
 						
-						maxSizeLimit += offset - nextOffset - anonymizeJsonValue.length;
+						maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;

@@ -49,20 +49,37 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 			while(offset < limit) {
 				char c = chars[offset];
 				if(c == '"') {
-					do {
-						// tight inner loop for skipping normal chars. 
-						// the loop will exit on regular space :-(
+					
+					while(true) {
 						do {
-							offset++;
-						} while(chars[offset] > '"');
-						
-						if(chars[offset] == '\n') {
-							buffer.append(chars, flushOffset, offset - flushOffset); // not including last char (newline)
-							buffer.append(' '); // convert newline to space
-							flushOffset = offset + 1;
-							continue;
+							// tight inner loop for skipping normal chars. 
+							// the loop will exit on regular space :-(
+							do {
+								offset++;
+							} while(chars[offset] > '"');
+							
+							if(chars[offset] == '\n') {
+								buffer.append(chars, flushOffset, offset - flushOffset); // not including last char (newline)
+								buffer.append(' '); // convert newline to space
+								flushOffset = offset + 1;
+								continue;
+							}
+						} while(chars[offset] != '"');
+
+						if(chars[offset - 1] != '\\') {
+							break;
 						}
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+
+						// is there an even number of quotes behind?
+						int slashOffset = offset - 2;
+						while(chars[slashOffset] == '\\') {
+							slashOffset--;
+						}
+						if((offset - slashOffset) % 2 == 1) {
+							break;
+						}						
+					}
+					
 					offset++;
 					buffer.append(chars, flushOffset, offset - flushOffset);
 					
@@ -106,20 +123,37 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 			while(offset < limit) {
 				byte c = chars[offset];
 				if(c == '"') {
-					do {
-						// tight inner loop for skipping normal chars. 
-						// the loop will exit on regular space :-(
+					
+					while(true) {
 						do {
-							offset++;
-						} while(chars[offset] > '"');
-						
-						if(chars[offset] == '\n') {
-							output.write(chars, flushOffset, offset - flushOffset); // not including last char (newline)
-							output.write(' '); // convert newline to space
-							flushOffset = offset + 1;
-							continue;
+							// tight inner loop for skipping normal chars. 
+							// the loop will exit on regular space :-(
+							do {
+								offset++;
+							} while(chars[offset] > '"');
+							
+							if(chars[offset] == '\n') {
+								output.write(chars, flushOffset, offset - flushOffset); // not including last char (newline)
+								output.write(' '); // convert newline to space
+								flushOffset = offset + 1;
+								continue;
+							}
+						} while(chars[offset] != '"');
+
+						if(chars[offset - 1] != '\\') {
+							break;
 						}
-					} while(chars[offset] != '"' || chars[offset - 1] == '\\');
+
+						// is there an even number of quotes behind?
+						int slashOffset = offset - 2;
+						while(chars[slashOffset] == '\\') {
+							slashOffset--;
+						}
+						if((offset - slashOffset) % 2 == 1) {
+							break;
+						}						
+					}
+					
 					offset++;
 					output.write(chars, flushOffset, offset - flushOffset);
 					

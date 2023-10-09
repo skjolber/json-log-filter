@@ -55,6 +55,8 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
+		int maxStringLength = this.maxStringLength;
+		
 		int bufferLength = buffer.length();
 		
 		int level = 0;
@@ -111,7 +113,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 						// was a value
 
 						if(endQuoteIndex - offset >= maxStringLength) {
-							CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateStringValue, maxStringLength, metrics);
+							CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
 						} else {
 							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
 						}
@@ -152,7 +154,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							endQuoteIndex = nextOffset;
 							
 							if(endQuoteIndex - offset >= maxStringLength) {
-								CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateStringValue, maxStringLength, metrics);
+								CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
 							} else {
 								buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
 							}
@@ -174,7 +176,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								// skip both whitespace and actual content
 								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 								
-								buffer.append(pruneJsonValue);
+								buffer.append(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
@@ -196,13 +198,13 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							}
 
 							if(filterType == FilterType.PRUNE) {
-								buffer.append(pruneJsonValue);
+								buffer.append(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
 
 							} else {
-								buffer.append(anonymizeJsonValue);
+								buffer.append(filter.getAnonymizeMessage());
 								if(metrics != null) {
 									metrics.onAnonymize(1);
 								}
@@ -215,7 +217,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, buffer, metrics, maxStringLength, truncateStringValue);
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, buffer, metrics, maxStringLength, filter.getTruncateMessage());
 								
 								if(metrics != null) {
 									metrics.onInput(length);
@@ -249,6 +251,8 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+		
+		int maxStringLength = this.maxStringLength;
 		
 		int bufferLength = output.size();
 		
@@ -309,7 +313,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							
 						// was a value
 						if(endQuoteIndex - offset >= maxStringLength) {
-							ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
+							ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, digit, metrics);
 						} else {
 							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
 						}
@@ -349,7 +353,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							endQuoteIndex = nextOffset;
 							
 							if(endQuoteIndex - offset >= maxStringLength) {
-								ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
+								ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, digit, metrics);
 							} else {
 								output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
 							}
@@ -371,7 +375,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 								// skip both whitespace and actual content
 								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
 
-								output.write(pruneJsonValueAsBytes);
+								output.write(filter.getPruneMessage());
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
@@ -393,14 +397,14 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							}
 
 							if(filterType == FilterType.PRUNE) {
-								output.write(pruneJsonValueAsBytes);
+								output.write(filter.getPruneMessage());
 								
 								if(metrics != null) {
 									metrics.onPrune(1);
 								}
 
 							} else {
-								output.write(anonymizeJsonValueAsBytes);
+								output.write(filter.getAnonymizeMessage());
 								
 								if(metrics != null) {
 									metrics.onAnonymize(1);
@@ -415,7 +419,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, output, filter.getDigit(), metrics, maxStringLength, truncateStringValueAsBytes);
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, output, filter.getDigit(), metrics, maxStringLength, filter.getTruncateMessage());
 								
 								if(metrics != null) {
 									metrics.onInput(length);

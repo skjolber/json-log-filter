@@ -378,4 +378,16 @@ public class ByteArrayWhitespaceFilter {
 	public byte[] getDigit() {
 		return digit;
 	}
+	
+	public byte[] getAnonymizeMessage() {
+		return anonymizeMessage;
+	}
+	
+	public byte[] getPruneMessage() {
+		return pruneMessage;
+	}
+	
+	public byte[] getTruncateMessage() {
+		return truncateMessage;
+	}
 }

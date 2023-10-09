@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter.AnyPathFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
@@ -22,6 +23,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		
 		int pathMatches = this.maxPathMatches;
 
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
@@ -356,6 +359,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
+
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 
 		int pathMatches = this.maxPathMatches;
 

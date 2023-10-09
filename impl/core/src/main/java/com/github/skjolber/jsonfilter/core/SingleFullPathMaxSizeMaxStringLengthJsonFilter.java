@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -20,6 +21,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
+
+		FilterType filterType = this.filterType;
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
@@ -363,6 +366,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
+
+		FilterType filterType = this.filterType;
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
