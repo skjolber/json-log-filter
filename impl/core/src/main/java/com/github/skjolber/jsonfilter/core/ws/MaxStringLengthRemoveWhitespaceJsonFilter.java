@@ -69,23 +69,23 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(final char[] chars, int offset, int limit, int flushOffset, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateStringValue) {
+	public static void processMaxStringLength(final char[] chars, int offset, int limit, int flushOffset, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateMessage) {
 		while(offset < limit) {
 			char c = chars[offset];
 			if(c == '"') {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
-
+				
 				int endQuoteIndex = nextOffset;
 				
+				// key or value, might be followed by whitespace
 				nextOffset++;
-
+				
 				if(endQuoteIndex - offset < maxStringLength) {
 					offset = nextOffset;
 
 					continue;
 				}
-
-				colon:
+				
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
@@ -94,35 +94,60 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
-							break colon;
+							// whitespace before colon
+							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+							buffer.append(':');
+							
+							nextOffset++;
+
+							if(chars[nextOffset] <= 0x20) {
+								// whitespace before and after colon
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);				
+							} else {
+								// whitespace before colon, but not after
+							}
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
 						}
-					}
-						
+					} 
+					
 					// was a value
 					if(endQuoteIndex - offset >= maxStringLength) {
-						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateStringValue, maxStringLength, metrics);
-					} else {
-						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
+						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
+						
+						flushOffset = nextOffset;
 					}
-					
+						
 					offset = nextOffset;
-					flushOffset = nextOffset;
 					
 					continue;
-				}
-				
-				// was a field name
-				buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-				buffer.append(':');				
-				
-				do {
+				} else {
+					// was a key
 					nextOffset++;
-				} while(chars[nextOffset] <= 0x20);
-				
-				offset = nextOffset;
-				flushOffset = nextOffset;
 
-				continue;				
+					if(chars[nextOffset] > 0x20) {
+						// no whitespace before or after colon
+						
+						offset = nextOffset;
+						continue;
+					}
+
+					// whitespace after colon, but not before
+					buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+					buffer.append(':');
+					
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);				
+					
+					flushOffset = nextOffset;
+					offset = nextOffset;
+				}
+				continue;
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.append(chars, flushOffset, offset - flushOffset);
@@ -160,23 +185,23 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(byte[] chars, int offset, int limit, int flushOffset, ResizableByteArrayOutputStream output, byte[] digit, JsonFilterMetrics metrics, int maxStringLength, byte[] truncateStringValueAsBytes) throws IOException {
+	public static void processMaxStringLength(byte[] chars, int offset, int limit, int flushOffset, ResizableByteArrayOutputStream output, byte[] digit, JsonFilterMetrics metrics, int maxStringLength, byte[] truncateMessage) throws IOException {
 		while(offset < limit) {
 			byte c = chars[offset];
 			if(c == '"') {
 				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
-
+				
 				int endQuoteIndex = nextOffset;
 				
+				// key or value, might be followed by whitespace
 				nextOffset++;
-
+				
 				if(endQuoteIndex - offset < maxStringLength) {
 					offset = nextOffset;
 
 					continue;
 				}
-
-				colon:
+				
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
@@ -185,34 +210,59 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
-							break colon;
+							// whitespace before colon
+							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+							output.write(':');
+							
+							nextOffset++;
+
+							if(chars[nextOffset] <= 0x20) {
+								// whitespace before and after colon
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);				
+							} else {
+								// whitespace before colon, but not after
+							}
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
 						}
-					}
-						
+					} 
+					
 					// was a value
 					if(endQuoteIndex - offset >= maxStringLength) {
-						ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
-					} else {
-						output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);								
+						ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
+						
+						flushOffset = nextOffset;
 					}
-					
+						
 					offset = nextOffset;
-					flushOffset = nextOffset;
 					
 					continue;
-				}
-				
-				// was a field name
-				output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-				output.write(':');				
-				
-				do {
+				} else {
+					// was a key
 					nextOffset++;
-				} while(chars[nextOffset] <= 0x20);
-				
-				offset = nextOffset;
-				flushOffset = nextOffset;
 
+					if(chars[nextOffset] > 0x20) {
+						// no whitespace before or after colon
+						
+						offset = nextOffset;
+						continue;
+					}
+
+					// whitespace after colon, but not before
+					output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+					output.write(':');
+					
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);				
+					
+					flushOffset = nextOffset;
+					offset = nextOffset;
+				}
 				continue;
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace

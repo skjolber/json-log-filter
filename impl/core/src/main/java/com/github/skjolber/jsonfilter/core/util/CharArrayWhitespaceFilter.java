@@ -308,10 +308,9 @@ public class CharArrayWhitespaceFilter {
 				
 				int endQuoteIndex = nextOffset;
 				
-				// key or value, might be whitespace
+				// key or value, might be followed by whitespace
 				nextOffset++;
 				
-				colon:
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
@@ -320,34 +319,59 @@ public class CharArrayWhitespaceFilter {
 						} while(chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
-							break colon;
-						}
-					}
-					// was a value
+							// whitespace before colon
+							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+							buffer.append(':');
+							
+							nextOffset++;
 
+							if(chars[nextOffset] <= 0x20) {
+								// whitespace before and after colon
+								do {
+									nextOffset++;
+								} while(chars[nextOffset] <= 0x20);				
+							} else {
+								// whitespace before colon, but not after
+							}
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
+						}
+					} 
+					
+					// was a value
 					if(endQuoteIndex - offset >= maxStringLength) {
 						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
-					} else {
-						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);			
+						
+						flushOffset = nextOffset;
 					}
-					
+						
 					offset = nextOffset;
-					flushOffset = nextOffset;
 					
 					continue;
-				}
-
-				// was a key
-				buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
-				buffer.append(':');
-
-				do {
+				} else {
+					// was a key
 					nextOffset++;
-				} while(chars[nextOffset] <= 0x20);				
-				
-				offset = nextOffset;
-				flushOffset = nextOffset;
-				
+
+					if(chars[nextOffset] > 0x20) {
+						// no whitespace before or after colon
+						
+						offset = nextOffset;
+						continue;
+					}
+
+					// whitespace after colon, but not before
+					buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+					buffer.append(':');
+					
+					do {
+						nextOffset++;
+					} while(chars[nextOffset] <= 0x20);				
+					
+					flushOffset = nextOffset;
+					offset = nextOffset;
+				}
 				continue;
 			}
 			case '[' :
@@ -373,7 +397,6 @@ public class CharArrayWhitespaceFilter {
 		return offset;
 	}
 
-	
 	public int getPruneMessageLength() {
 		return pruneMessage.length;
 	}
