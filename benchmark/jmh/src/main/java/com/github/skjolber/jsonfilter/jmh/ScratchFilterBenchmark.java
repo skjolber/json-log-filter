@@ -1,5 +1,8 @@
 package com.github.skjolber.jsonfilter.jmh;
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -20,14 +23,21 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
+import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
+
+import dev.blaauwendraad.masker.json.JsonMasker;
 
 
 @State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)
 
 // for prototyping
 
@@ -35,7 +45,7 @@ import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 public class ScratchFilterBenchmark {
 
 	public static final String DEFAULT_XPATH = "/address";
-	public static final String DEFAULT_ANY_XPATH = "//address";
+	public static final String DEFAULT_ANY_XPATH = "//product_name";
 
 	private BenchmarkRunner<JsonFilter> original;
 	private BenchmarkRunner<JsonFilter> modified1;
@@ -56,8 +66,13 @@ public class ScratchFilterBenchmark {
 
 		int size = (int) (file.length() - 1);
 		
-		original = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), false);
-		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new MaxSizeJsonFilter(size), false);
+		Set<String> hashSet = new HashSet<>();
+		hashSet.add("product_name");
+		JsonMasker masker = JsonMasker.getMasker(hashSet);
+		
+		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_XPATH, FilterType.ANON), false);
+		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), false);
+		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), false);
 
 		// xml-log-filter
 		//original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
@@ -98,14 +113,20 @@ public class ScratchFilterBenchmark {
 	*/
 	
 	@Benchmark
-	public long original() {
-		return original.benchmarkCharacters();
+	public long jsonLogFilter() throws IOException {
+		return original.benchmarkBytesAsArray();
 	}
 	
 	@Benchmark
-	public long modified1() {
-		return modified1.benchmarkCharacters();
+	public long masker() throws IOException {
+		return modified1.benchmarkBytesAsArray();
+	}
+	
+	@Benchmark
+	public long jackson() throws IOException {
+		return modified2.benchmarkBytesAsArray();
 	}	
+	
 	/*
 	@Benchmark
 	public long modified2() {
@@ -115,8 +136,8 @@ public class ScratchFilterBenchmark {
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(ScratchFilterBenchmark.class.getSimpleName())
-				.warmupIterations(10)
-				.measurementIterations(10)
+				.warmupIterations(3)
+				.measurementIterations(1)
 				.resultFormat(ResultFormatType.JSON)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();

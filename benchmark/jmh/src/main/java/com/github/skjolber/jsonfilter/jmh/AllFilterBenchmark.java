@@ -1,6 +1,8 @@
 package com.github.skjolber.jsonfilter.jmh;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -41,6 +43,9 @@ import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJso
 import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.filter.PrimitiveJsonPropertyBodyFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.ArakelianJsonFilterJsonFilter;
+import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
+
+import dev.blaauwendraad.masker.json.JsonMasker;
 
 
 @State(Scope.Thread)
@@ -57,7 +62,9 @@ public class AllFilterBenchmark {
 
 	private JacksonBenchmarkRunner jacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singleFullPathAnonymizeMaxStringLengthJacksonJsonFilter;
+	private BenchmarkRunner<JsonFilter> anyPathJsonMaskerJsonFilter;
 	private BenchmarkRunner<JsonFilter> singlePathArakelianJsonFilter;
+
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxSizeJacksonJsonFilter;
 
@@ -120,8 +127,12 @@ public class AllFilterBenchmark {
 		// max size
 		multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
 
-		
 		// other
+		Set<String> hashSet = new HashSet<>();
+		hashSet.add("product_name");
+		JsonMasker masker = JsonMasker.getMasker(hashSet);
+		
+		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), false);
 		singlePathArakelianJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new ArakelianJsonFilterJsonFilter(DEFAULT_XPATH), prettyPrinted);
 
 		multiAnyPathLogbookJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, PrimitiveJsonPropertyBodyFilter.replaceString((a) -> a.equals("firstName"), "*****"), prettyPrinted);
@@ -175,6 +186,11 @@ public class AllFilterBenchmark {
 	@Benchmark
 	public long anonSingleAnyPath() throws IOException {
 		return singleAnyPathAnonymizeJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long anonSingleAnyPathJsonMask() throws IOException {
+		return anyPathJsonMaskerJsonFilter.benchmarkBytesAsArray();
 	}
 
 	@Benchmark
