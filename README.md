@@ -211,6 +211,10 @@ See the [xml-log-filter] for corresponding high-performance filtering of XML, an
 Using SIMD for parsing JSON: 
  * [simdjson](https://github.com/simdjson/simdjson)
  * [sparser](https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/)
+ 
+Alternative JSON filters:
+
+ * [json-masker](https://github.com/Breus/json-masker)
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
