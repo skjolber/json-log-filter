@@ -75,7 +75,7 @@
 		<maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-		<maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+		<maven-shade-plugin.version>3.5.2</maven-shade-plugin.version>
 
 		<sonar.exclusions>support/test/src/main/java/com/github/skjolber/jsonfilter/test/**/*,benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/**/*</sonar.exclusions>
 
