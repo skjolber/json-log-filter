@@ -74,6 +74,8 @@ public class ScratchFilterBenchmark {
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), false);
 		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), false);
 
+		
+		
 		// xml-log-filter
 		//original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
 		//modified1 = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter2(10, size), true);

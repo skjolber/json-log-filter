@@ -30,7 +30,7 @@
 		<dependency>
 		    <groupId>dev.blaauwendraad</groupId>
 		    <artifactId>json-masker</artifactId>
-		    <version>1.0.0-rc1</version>
+		    <version>1.0.0</version>
 		</dependency>		
 		<dependency>
 			<groupId>org.openjdk.jmh</groupId>
@@ -52,6 +52,11 @@
 			<version>${arakelian.jsonfilter.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+		    <groupId>org.simdjson</groupId>
+		    <artifactId>simdjson-java</artifactId>
+		    <version>0.1.0</version>
+		</dependency>		
 	</dependencies>
 
 	<prerequisites>
