@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
 
-public class JsonFilterRunnerTest {
+public class JsonFilterDirectoryUnitTestCollectionRunnerTest {
 
 	@Test
 	public void testReplace() {

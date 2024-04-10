@@ -47,37 +47,37 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends A
 	@Test
 	public void anonymize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH);
 		
 		maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEEP_PATH1, FilterType.ANON);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1);
 	}
 
 	@Test
 	public void anonymizeWildcard() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_WILDCARD_PATH);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_WILDCARD_PATH);
 	}
 	
 	@Test
 	public void prune() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_PATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH);
 		
 		maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEEP_PATH3, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEEP_PATH3, FilterType.PRUNE)).hasPruned(DEEP_PATH3);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEEP_PATH3, FilterType.PRUNE)).hasPruned(DEEP_PATH3);
 	}
 
 	@Test
 	public void pruneWildcard() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH);
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, -1, PASSTHROUGH_XPATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThat(maxSize, new JacksonSingleFullPathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, PASSTHROUGH_XPATH, FilterType.PRUNE)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

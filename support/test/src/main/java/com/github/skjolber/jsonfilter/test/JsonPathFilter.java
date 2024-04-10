@@ -1,6 +1,5 @@
 package com.github.skjolber.jsonfilter.test;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;

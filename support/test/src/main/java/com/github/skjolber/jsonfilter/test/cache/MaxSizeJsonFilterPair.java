@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.test.cache;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilters;
 
 public class MaxSizeJsonFilterPair {
 
@@ -9,21 +10,17 @@ public class MaxSizeJsonFilterPair {
 		JsonFilter getMaxSize(int size);
 	}
 
-	private JsonFilter infiniteJsonFilter;
+	private JsonFilters infiniteJsonFilter;
 	private final MaxSizeJsonFilterFunction delegate;
 	private JsonFilter[] filter = new JsonFilter[0];
 	
-	public MaxSizeJsonFilterPair(JsonFilter infiniteJsonFilter, MaxSizeJsonFilterFunction delegate) {
+	public MaxSizeJsonFilterPair(JsonFilters infiniteJsonFilter, MaxSizeJsonFilterFunction delegate) {
 		this.infiniteJsonFilter = infiniteJsonFilter;
 		this.delegate = delegate;
 	}
 	
-	public JsonFilter getInfiniteJsonFilter() {
+	public JsonFilters getInfiniteJsonFilter() {
 		return infiniteJsonFilter;
-	}
-	
-	public boolean isRemovingWhitespace() {
-		return infiniteJsonFilter.isRemovingWhitespace();
 	}
 	
 	public JsonFilter getMaxSizeJsonFilter(int size) {

@@ -31,4 +31,9 @@ public class JsonFile extends JsonPermutation {
 	public int getContentLength() {
 		return contentAsString.length();
 	}
+
+	public boolean hasPrettyPrinted() {
+		return !prettyPrinted.isEmpty();
+	}
+	
 }

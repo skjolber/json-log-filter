@@ -64,40 +64,40 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 	@Test
 	public void passthrough_success() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, PASSTHROUGH_XPATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON)).hasPassthrough();
 	}
 	
 	@Test
 	public void anonymize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEFAULT_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEEP_PATH1, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEEP_PATH1, FilterType.ANON)).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 	}
 	
 	@Test
 	public void anonymizeMaxPathMatches() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 1, "/key1", FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, "/key1", FilterType.ANON)).hasAnonymized("/key1").hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, "/key1", FilterType.ANON)).hasAnonymized("/key1").hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 1, DEFAULT_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 2, DEFAULT_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(2, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(2, DEFAULT_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 	}	
 
 	@Test
 	public void anonymizeWildcard() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_WILDCARD_PATH).hasAnonymizeMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.ANON)).hasAnonymized(DEFAULT_WILDCARD_PATH).hasAnonymizeMetrics();
 	}
 	
 	@Test
 	public void prune() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEFAULT_PATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH).hasPruneMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH).hasPruneMetrics();
 		
 		maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEEP_PATH3, FilterType.PRUNE);
 		assertThat(new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEEP_PATH3, FilterType.PRUNE)).hasPruned(DEEP_PATH3).hasPruneMetrics();
@@ -106,7 +106,7 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 	@Test
 	public void pruneMaxPathMatches() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 1, "/key3", FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(1, "/key3", FilterType.PRUNE)).hasPruned("/key3");
 		
 		maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, 1, DEFAULT_PATH, FilterType.PRUNE);
 		assertThat(new SingleFullPathRemoveWhitespaceJsonFilter(1, DEFAULT_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_PATH).hasPruneMetrics();
@@ -118,7 +118,7 @@ public class SingleFullPathMaxSizeJsonRemoveWhitespaceFilterTest extends Default
 	@Test
 	public void pruneWildcard() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainSingleFullPathMaxSizeRemoveWhitespaceJsonFilter(size, -1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE);
-		assertThatMaxSize(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
+		assertThat(maxSize, new SingleFullPathRemoveWhitespaceJsonFilter(-1, DEFAULT_WILDCARD_PATH, FilterType.PRUNE)).hasPruned(DEFAULT_WILDCARD_PATH).hasPruneMetrics();
 	}
 	
 	@Test

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.github.skjolber.jsonfilter.JsonFilter;
+import com.github.skjolber.jsonfilter.test.truth.JsonFilters;
 
 /**
  * 
@@ -16,7 +16,7 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 
 public class MaxSizeJsonCollectionInputOutputAlignment {
 
-	public static MaxSizeJsonCollectionInputOutputAlignment create(List<MaxSizeJsonCollection> inputs, List<MaxSizeJsonCollection> outputs, JsonFilter filter) {
+	public static MaxSizeJsonCollectionInputOutputAlignment create(List<MaxSizeJsonCollection> inputs, List<MaxSizeJsonCollection> outputs, JsonFilters filter) {
 		
 		Map<String, MaxSizeJsonCollection> outputMap = new HashMap<>();
 		
@@ -28,7 +28,7 @@ public class MaxSizeJsonCollectionInputOutputAlignment {
 
 		for (MaxSizeJsonCollection input : inputs) {
 			String inputString = input.getContentAsString();
-			String outputString = filter.process(inputString);
+			String outputString = filter.getCharacters().process(inputString);
 			
 			MaxSizeJsonCollection maxSizeJsonCollection = outputMap.get(outputString);
 			if(maxSizeJsonCollection == null) {
