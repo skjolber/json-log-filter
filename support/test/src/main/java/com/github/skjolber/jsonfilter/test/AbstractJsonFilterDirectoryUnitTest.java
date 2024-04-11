@@ -38,6 +38,10 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 	
 	protected JsonTestSuiteRunner jsonTestSuiteRunner;
 	
+	public AbstractJsonFilterDirectoryUnitTest(JsonFilterDirectoryUnitTestCollectionRunner jsonFilterRunner) {
+		this.runner = jsonFilterRunner;
+	}
+	
 	public AbstractJsonFilterDirectoryUnitTest(JsonFilterDirectoryUnitTestCollectionRunner jsonFilterRunner, JsonTestSuiteRunner jsonTestSuiteRunner) {
 		this.runner = jsonFilterRunner;
 		this.jsonTestSuiteRunner = jsonTestSuiteRunner;
@@ -46,22 +50,23 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
 		JsonFilterDirectoryUnitTestCollection process = runner.processDirectoryUnitTest(filter);
 
-		JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(filter);
-		for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
-			process.addPassthrough(jsonFilterDirectoryUnitTest);
+		if(jsonTestSuiteRunner != null) {
+			JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(filter);
+			for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
+				process.addPassthrough(jsonFilterDirectoryUnitTest);
+			}
 		}
-
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
 	protected JsonFilterResultSubject assertThat(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
 		JsonFilterDirectoryUnitTestCollection process = runner.processDirectoryUnitTest(maxSizeFunction, infiniteSize);
 		
-		JsonFilter maxSize = maxSizeFunction.getMaxSize(1024);
-		
-		JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(maxSizeFunction, infiniteSize);
-		for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
-			process.addPassthrough(jsonFilterDirectoryUnitTest);
+		if(jsonTestSuiteRunner != null) {
+			JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(maxSizeFunction, infiniteSize);
+			for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
+				process.addPassthrough(jsonFilterDirectoryUnitTest);
+			}
 		}
 		
 		return JsonFilterResultSubject.assertThat(process);

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -102,5 +103,4 @@ public class SingleAnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}
-
 }

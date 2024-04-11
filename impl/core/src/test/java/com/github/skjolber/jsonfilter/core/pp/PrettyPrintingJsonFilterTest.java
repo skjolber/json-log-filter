@@ -13,11 +13,12 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
+import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	public PrettyPrintingJsonFilterTest() throws Exception {
-		super(false, true, true);
+		super(false, true, true, true);
 	}
 	
 	public PrettyPrintingJsonFilter getPrettyPrinter() {

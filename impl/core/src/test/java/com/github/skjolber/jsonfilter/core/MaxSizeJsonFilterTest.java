@@ -87,6 +87,20 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
+	
+	@Test
+	public void test() {
+		String json = "{🇨🇭}";
+		
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
+
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		System.out.println(json);
+		
+		byte[] process = maxSize.getMaxSize(jsonBytes.length).process(jsonBytes);
+		
+		System.out.println(new String(process));
+	}
 
 	
 		

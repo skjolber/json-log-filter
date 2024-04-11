@@ -37,14 +37,16 @@ public class AbstractJsonFilterSymmetryAssertion {
 		}
 		
 		StringBuilder builder = new StringBuilder();
-		builder.append("Expected equal result\n");
+		builder.append("Expected equal result for ");
+		builder.append(source.toString());
+		builder.append(":\n");
 		builder.append("Input:\n");
 		builder.append(input);
 		builder.append("\n");
-		builder.append("Char output:\n");
+		builder.append("Char output (" + outputAsString.length() + "):\n");
 		builder.append(outputAsString);
 		builder.append("\n");
-		builder.append("Byte output:\n");
+		builder.append("Byte output (" + outputAsBytes.length + "):\n");
 		builder.append(outputAsBytesAsString);
 		builder.append("\n");
 		
