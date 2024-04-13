@@ -52,7 +52,7 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							break loop;
 						}
 						
-						offset++;						
+						offset++;
 
 						squareBrackets[bracketLevel] = false;
 						bracketLevel++;

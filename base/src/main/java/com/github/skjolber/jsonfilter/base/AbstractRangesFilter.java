@@ -10,12 +10,12 @@ public abstract class AbstractRangesFilter {
 	protected static final int FILTER_DELETE = 2;
 	protected static final int FILTER_MAX_LENGTH = 3;
 	
-	public static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
+	public static final String FILTER_PRUNE_MESSAGE = "PRUNED";
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	
 	public static final String FILTER_ANONYMIZE = "*****";
 	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
-	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
+	public static final String FILTER_TRUNCATE_MESSAGE = "... + ";
 
 	protected int[] filter; // start, end, type (if positive) or length (if negative)
 	protected int filterIndex = 0;

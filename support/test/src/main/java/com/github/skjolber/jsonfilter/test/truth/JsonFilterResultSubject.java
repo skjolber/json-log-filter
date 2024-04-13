@@ -25,11 +25,6 @@ public class JsonFilterResultSubject extends Subject {
 		return JsonFilterResultSubject::new;
 	}	
 
-	// Static method for getting the subject factory (for use with assertAbout())
-	public static Subject.Factory<JsonFilterResultSubject, JsonFilterDirectoryUnitTestCollection> employees() {
-		return JSON_FILTER_RESULT_SUBJECT_FACTORY;
-	}
-
 	// Boiler-plate Subject.Factory for EmployeeSubject
 	private static final Subject.Factory<JsonFilterResultSubject, JsonFilterDirectoryUnitTestCollection> JSON_FILTER_RESULT_SUBJECT_FACTORY = JsonFilterResultSubject::new;	
 

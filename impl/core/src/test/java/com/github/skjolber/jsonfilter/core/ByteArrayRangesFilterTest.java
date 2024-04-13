@@ -122,7 +122,7 @@ public class ByteArrayRangesFilterTest {
 				ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 				filter.filter(encoded, 0, encoded.length, b);
 				String string = b.toString();
-				assertEquals(string.length(), prefix.length() + "...TRUNCATED BY XX".length());
+				assertEquals(string.length(), prefix.length() + "... + XX".length());
 			}
 
 			// make sure last included character is byte 2, 3 or 4
@@ -179,31 +179,31 @@ public class ByteArrayRangesFilterTest {
 	@Test
 	public void testNoUnicodeAlignmentForSingleEscapeCharacters() throws IOException {
 		String str = "abcdefghiF678g\\n\\naaa01234567890123456789";
-		assertEquals("abcdefghiF678...TRUNCATED BY 28", splitAt(str, 13));
-		assertEquals("abcdefghiF678g...TRUNCATED BY 27", splitAt(str, 14));
-		assertEquals("abcdefghiF678g...TRUNCATED BY 27", splitAt(str, 15));
-		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 25", splitAt(str, 16));
-		assertEquals("abcdefghiF678g\\n...TRUNCATED BY 25", splitAt(str, 17));
-		assertEquals("abcdefghiF678g\\n\\n...TRUNCATED BY 23", splitAt(str, 18));
-		assertEquals("abcdefghiF678g\\n\\na...TRUNCATED BY 22", splitAt(str, 19));
-		assertEquals("abcdefghiF678g\\n\\naa...TRUNCATED BY 21", splitAt(str, 20));
+		assertEquals("abcdefghiF678... + 28", splitAt(str, 13));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 14));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 15));
+		assertEquals("abcdefghiF678g\\n... + 25", splitAt(str, 16));
+		assertEquals("abcdefghiF678g\\n... + 25", splitAt(str, 17));
+		assertEquals("abcdefghiF678g\\n\\n... + 23", splitAt(str, 18));
+		assertEquals("abcdefghiF678g\\n\\na... + 22", splitAt(str, 19));
+		assertEquals("abcdefghiF678g\\n\\naa... + 21", splitAt(str, 20));
 	}
 	
 	@Test
 	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() throws IOException {
 		String str = "abcdefghiF678ghijkluuuu\\\\uF678xxx01234567890123456789";
-		assertEquals("abcdefghiF678ghijkluu...TRUNCATED BY 32", splitAt(str, 21));
-		assertEquals("abcdefghiF678ghijkluuu...TRUNCATED BY 31", splitAt(str, 22));
-		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 30", splitAt(str, 23));
-		assertEquals("abcdefghiF678ghijkluuuu...TRUNCATED BY 30", splitAt(str, 24));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\...TRUNCATED BY 28", splitAt(str, 25));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\u...TRUNCATED BY 27", splitAt(str, 26));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF...TRUNCATED BY 26", splitAt(str, 27));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF6...TRUNCATED BY 25", splitAt(str, 28));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF67...TRUNCATED BY 24", splitAt(str, 29));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678...TRUNCATED BY 23", splitAt(str, 30));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678x...TRUNCATED BY 22", splitAt(str, 31));
-		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678xx...TRUNCATED BY 21", splitAt(str, 32));
+		assertEquals("abcdefghiF678ghijkluu... + 32", splitAt(str, 21));
+		assertEquals("abcdefghiF678ghijkluuu... + 31", splitAt(str, 22));
+		assertEquals("abcdefghiF678ghijkluuuu... + 30", splitAt(str, 23));
+		assertEquals("abcdefghiF678ghijkluuuu... + 30", splitAt(str, 24));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\... + 28", splitAt(str, 25));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\u... + 27", splitAt(str, 26));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF... + 26", splitAt(str, 27));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF6... + 25", splitAt(str, 28));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF67... + 24", splitAt(str, 29));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678... + 23", splitAt(str, 30));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678x... + 22", splitAt(str, 31));
+		assertEquals("abcdefghiF678ghijkluuuu\\\\uF678xx... + 21", splitAt(str, 32));
 	}
 	
 
@@ -251,7 +251,7 @@ public class ByteArrayRangesFilterTest {
 	@Test
 	public void testPruneSubtreeScalar() throws IOException {
 		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
-		String[] outputs = new String[]{"\"SUBTREE REMOVED\",", "\"SUBTREE REMOVED\"}"};
+		String[] outputs = new String[]{"\"PRUNED\",", "\"PRUNED\"}"};
 		
 		for(int i = 0; i < inputs.length; i++) {
 			String input = inputs[i];

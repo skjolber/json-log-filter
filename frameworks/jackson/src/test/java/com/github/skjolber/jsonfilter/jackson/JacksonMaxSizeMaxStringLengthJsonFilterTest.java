@@ -29,13 +29,13 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractJackson
 	@Test
 	public void passthrough_success() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(-1, size);
-		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(-1)).hasPassthrough();
+		assertThat(maxSize, new JacksonMaxStringLengthJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
-		assertThatMaxSize(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
+		assertThat(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
 	
 	@Test

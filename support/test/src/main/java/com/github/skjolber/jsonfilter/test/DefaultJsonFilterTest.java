@@ -11,7 +11,7 @@ import com.github.skjolber.jsonfilter.test.cache.JsonFileCache;
  *
  */
 
-public class DefaultJsonFilterTest extends AbstractJsonFilterTest implements JsonFilterConstants {
+public class DefaultJsonFilterTest extends AbstractJsonFilterDirectoryUnitTest implements JsonFilterConstants {
 	
 	private static List<String> NULLABLE = Arrays.asList(PASSTHROUGH_XPATH, ANY_PASSTHROUGH_XPATH, VALIDATING);
 
@@ -20,11 +20,15 @@ public class DefaultJsonFilterTest extends AbstractJsonFilterTest implements Jso
 		this(true);
 	}
 	public DefaultJsonFilterTest(boolean literal, boolean whitespace, boolean unicode) throws Exception {
-		super(new JsonFilterRunner(NULLABLE, literal, whitespace, unicode, JsonFileCache.getInstance()));
+		this(literal, whitespace, unicode, false);
+	}
+	
+	public DefaultJsonFilterTest(boolean literal, boolean whitespace, boolean unicode, boolean jsonTestSuite) throws Exception {
+		super(new JsonFilterDirectoryUnitTestCollectionRunner(NULLABLE, literal, unicode, JsonFileCache.getInstance()), jsonTestSuite ? JsonTestSuiteRunner.fromResource("/jsonTestSuite/test_parsing", "/jsonTestSuite/test_transform") : null);
 	}
 	
 	public DefaultJsonFilterTest(boolean literal) throws Exception {
-		this(literal, true, true);
+		this(literal, true, true, true);
 	}
 	
 }

@@ -150,7 +150,7 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 					default : // do nothing
 				}
 				
-				if(chars[offset] > 0x20) {
+				if(chars[offset] > 0x20 || chars[offset] < 0) {
 					output.write(chars[offset]);
 				}
 
@@ -165,7 +165,7 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 					int nextOffset = offset + 1;
 					// skip whitespace
 					// optimization: scan for highest value
-					while(chars[nextOffset] <= 0x20) {
+					while(0 <= chars[nextOffset] && chars[nextOffset] <= 0x20) {
 						nextOffset++;
 					}
 					

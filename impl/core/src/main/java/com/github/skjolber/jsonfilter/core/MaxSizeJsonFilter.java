@@ -316,7 +316,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		int previousOffset = offset - 1;
 		
 		while(mark < previousOffset) {
-			if(chars[previousOffset] > 0x20) {
+			if(chars[previousOffset] > 0x20 || chars[previousOffset] < 0) { // note: negative because could be UTF-8 multi characther
 				if(previousOffset < maxSizeLimit) {
 					// check if there is a proper terminator
 					// after the current offset
@@ -324,7 +324,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 					int nextOffset = offset;
 					
 					while(nextOffset < maxReadLimit) {
-						if(chars[nextOffset] > 0x20) {
+						if(chars[nextOffset] > 0x20 || chars[previousOffset] < 0) {
 							switch(chars[nextOffset]) {
 							case ',':
 							case ']':

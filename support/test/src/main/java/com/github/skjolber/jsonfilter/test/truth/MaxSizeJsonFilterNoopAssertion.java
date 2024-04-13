@@ -49,16 +49,16 @@ public class MaxSizeJsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAs
 		String contentAsString = input.getContentAsString();
 		byte[] contentAsBytes = input.getContentAsBytes();
 		
-		JsonFilter infiniteJsonFilter = maxSizeJsonFilterPair.getInfiniteJsonFilter();
+		JsonFilters infiniteJsonFilter = maxSizeJsonFilterPair.getInfiniteJsonFilter();
 		
-		byte[] bytesOutput = infiniteJsonFilter.process(contentAsBytes); // no metrics
-		String charsOutput = infiniteJsonFilter.process(contentAsString); // no metrics
+		byte[] bytesOutput = infiniteJsonFilter.getCharacters().process(contentAsBytes); // no metrics
+		String charsOutput = infiniteJsonFilter.getBytes().process(contentAsString); // no metrics
 		
 		assertEquals(input.getSource(), contentAsString, charsOutput, bytesOutput);
 		
 		List<MaxSizeJsonCollection> charsInputs = input.getMaxSizeCollections();
 		
-		boolean removingWhitespace = maxSizeJsonFilterPair.isRemovingWhitespace();
+		boolean removingWhitespace = maxSizeJsonFilterPair.getInfiniteJsonFilter().getCharacters().isRemovingWhitespace();
 		
 		for(int i = 0; i < charsInputs.size() - 1; i++) {
 			MaxSizeJsonCollection current = charsInputs.get(i);

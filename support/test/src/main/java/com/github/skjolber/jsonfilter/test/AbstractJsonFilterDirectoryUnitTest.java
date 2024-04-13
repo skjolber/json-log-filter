@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
+import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;
 
 /**
@@ -24,7 +25,7 @@ import com.github.skjolber.jsonfilter.test.truth.JsonFilterResultSubject;
  *
  */
 
-public abstract class AbstractJsonFilterTest {
+public abstract class AbstractJsonFilterDirectoryUnitTest {
 	
 	protected String DEEP_PATH2 = "/f0/f1/f2/f3/f4/f5/f6/f7/f8/f9/f10/f11/f12/f13/f14/f15/f16/f17/f18/f19/f20/f21/f22/f23/f24/f25/f26/f27/f28/f29/f30/f31/f32/f33";
 	protected String DEEP_PATH = "/f0/f1";
@@ -33,21 +34,41 @@ public abstract class AbstractJsonFilterTest {
 
 	protected Map<String, byte[]> maps = new HashMap<>();
 
-	protected JsonFilterRunner runner;
+	protected JsonFilterDirectoryUnitTestCollectionRunner runner;
 	
-	public AbstractJsonFilterTest(JsonFilterRunner jsonFilterRunner) {
+	protected JsonTestSuiteRunner jsonTestSuiteRunner;
+	
+	public AbstractJsonFilterDirectoryUnitTest(JsonFilterDirectoryUnitTestCollectionRunner jsonFilterRunner) {
 		this.runner = jsonFilterRunner;
+	}
+	
+	public AbstractJsonFilterDirectoryUnitTest(JsonFilterDirectoryUnitTestCollectionRunner jsonFilterRunner, JsonTestSuiteRunner jsonTestSuiteRunner) {
+		this.runner = jsonFilterRunner;
+		this.jsonTestSuiteRunner = jsonTestSuiteRunner;
 	}
 
 	protected JsonFilterResultSubject assertThat(JsonFilter filter) throws Exception {
-		JsonFilterDirectoryUnitTestCollection process = runner.process(filter);
-		
+		JsonFilterDirectoryUnitTestCollection process = runner.processDirectoryUnitTest(filter);
+
+		if(jsonTestSuiteRunner != null) {
+			JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(filter);
+			for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
+				process.addPassthrough(jsonFilterDirectoryUnitTest);
+			}
+		}
 		return JsonFilterResultSubject.assertThat(process);
 	}
 
-	protected JsonFilterResultSubject assertThatMaxSize(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
-		JsonFilterDirectoryUnitTestCollection process = runner.process(maxSizeFunction, infiniteSize);
-			
+	protected JsonFilterResultSubject assertThat(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+		JsonFilterDirectoryUnitTestCollection process = runner.processDirectoryUnitTest(maxSizeFunction, infiniteSize);
+		
+		if(jsonTestSuiteRunner != null) {
+			JsonFilterDirectoryUnitTestCollection passthrough = jsonTestSuiteRunner.processDirectoryUnitTest(maxSizeFunction, infiniteSize);
+			for (JsonFilterDirectoryUnitTest jsonFilterDirectoryUnitTest : passthrough.getPassthrough()) {
+				process.addPassthrough(jsonFilterDirectoryUnitTest);
+			}
+		}
+		
 		return JsonFilterResultSubject.assertThat(process);
 	}
 	
@@ -154,8 +175,7 @@ public abstract class AbstractJsonFilterTest {
 				System.out.println(new String(process));
 				
 				throw e;
-			}				
-			
+			}
 		}
 
 		String string = new String(generateDeepStructure, StandardCharsets.UTF_8);

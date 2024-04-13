@@ -22,7 +22,7 @@ public class JsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAssertion
 	
 	private JsonFile input;
 	private JsonFilterMetrics metrics;
-	private JsonFilter filter;
+	private JsonFilters filters;
 
 	public JsonFilterNoopAssertion withMetrics(JsonFilterMetrics metrics) {
 		this.metrics = metrics;
@@ -35,15 +35,25 @@ public class JsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAssertion
 	}
 	
 	public JsonFilterNoopAssertion withFilter(JsonFilter filter) {
-		this.filter = filter;
+		this.filters = new JsonFilters(filter);
 		return this;
 	}
 	
+	public JsonFilterNoopAssertion withFilters(JsonFilters jsonFilters) {
+		this.filters = jsonFilters;
+		return this;
+	}
+
+	public JsonFilterNoopAssertion withFilters(JsonFilter characters, JsonFilter bytes) {
+		this.filters = new JsonFilters(characters, bytes);
+		return this;
+	}
+
 	public void isNoop() {
 		if(input == null) {
 			throw new IllegalStateException();
 		}
-		if(filter == null) {
+		if(filters == null) {
 			throw new IllegalStateException();
 		}
 		if(metrics == null) {
@@ -53,8 +63,8 @@ public class JsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAssertion
 		String contentAsString = input.getContentAsString();
 		byte[] contentAsBytes = input.getContentAsBytes();
 		
-		String stringOutput = filter.process(contentAsString, metrics);
-		byte[] byteOutput = filter.process(contentAsBytes, metrics);
+		String stringOutput = filters.getCharacters().process(contentAsString, metrics);
+		byte[] byteOutput = filters.getBytes().process(contentAsBytes, metrics);
 		
 		assertEquals(input.getSource(), contentAsString, stringOutput, byteOutput);
 
@@ -62,20 +72,25 @@ public class JsonFilterNoopAssertion extends AbstractJsonFilterSymmetryAssertion
 			String prettyPrintedAsString = input.getPrettyPrintedAsString(i);
 			byte[] prettyPrintedAsBytes = input.getPrettyPrintedAsBytes(i);
 			
-			String prettyPrintStringOutput = filter.process(prettyPrintedAsString, metrics);
-			byte[] prettyPrintBytesOutput = filter.process(prettyPrintedAsBytes, metrics);
+			String prettyPrintStringOutput = filters.getCharacters().process(prettyPrintedAsString, metrics);
+			byte[] prettyPrintBytesOutput =  filters.getBytes().process(prettyPrintedAsBytes, metrics);
 			
 			assertEquals(input.getSource(), prettyPrintedAsString, prettyPrintedAsBytes, prettyPrintStringOutput, prettyPrintBytesOutput);
 
-			if(filter.isRemovingWhitespace()) {
+			if(filters.getCharacters().isRemovingWhitespace()) {
 				if(!Objects.equals(stringOutput, prettyPrintStringOutput)) {
 					assertEquals(input.getSource(), contentAsString, prettyPrintedAsString, stringOutput, prettyPrintStringOutput);
 				}
+			} else {
+				JsonComparator.assertEventsEqual(input.getSource(), contentAsString, prettyPrintedAsString, stringOutput, prettyPrintStringOutput);
+			}
+			
+			if(filters.getBytes().isRemovingWhitespace()) {
 				if(!Arrays.equals(byteOutput, prettyPrintBytesOutput)) {
 					assertEquals(input.getSource(), contentAsBytes, prettyPrintedAsBytes, byteOutput, prettyPrintBytesOutput);
 				}
 			} else {
-				JsonComparator.assertEventsEqual(input.getSource(), contentAsString, prettyPrintedAsString, stringOutput, prettyPrintStringOutput);
+				JsonComparator.assertEventsEqual(input.getSource(), contentAsBytes, prettyPrintedAsBytes, byteOutput, prettyPrintBytesOutput);
 			}
 		}
 	}

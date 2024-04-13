@@ -24,18 +24,22 @@ public class JsonFileCache {
 	private static final JsonFactory jsonFactory = new JsonFactory();
 	
 	public static JsonFile get(Path file) {
-		return instance.get(file);
+		return JsonFileCache.get(file);
 	}
 	
 	protected Map<Path, JsonFile> cache = new ConcurrentHashMap<>();
 
 	public JsonFile getJsonInput(Path file) {
+		return getJsonInput(file, true);
+	}
+
+	public JsonFile getJsonInput(Path file, boolean prettyPrint) {
 		try {
 			JsonFile item = cache.get(file);
-			if(item == null) {
+			if(item == null || (prettyPrint && !item.hasPrettyPrinted())) {
 				String string = getFile(file);
 
-				if(JsonValidator.isWellformed(string)) {
+				if(prettyPrint && JsonValidator.isWellformed(string)) {
 					List<MaxSizeJsonCollection> maxSizePermutations = new ArrayList<>();
 					
 					JsonCharSizeIterator maxSizeIterator = new JsonCharSizeIterator(jsonFactory, string);

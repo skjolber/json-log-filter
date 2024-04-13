@@ -58,10 +58,10 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		String expectedOutputContentAsString = outputFile.getContentAsString();
 		byte[] expectedOutputContentAsBytes = outputFile.getContentAsBytes();
 		
-		JsonFilter infiniteJsonFilter = maxSizeJsonFilterPair.getInfiniteJsonFilter();
+		JsonFilters infiniteJsonFilter = maxSizeJsonFilterPair.getInfiniteJsonFilter();
 
-		byte[] byteOutput = infiniteJsonFilter.process(inputContentAsBytes, metrics);
-		String stringOutput = infiniteJsonFilter.process(inputContentAsString, metrics);
+		byte[] byteOutput = infiniteJsonFilter.getBytes().process(inputContentAsBytes, metrics);
+		String stringOutput = infiniteJsonFilter.getCharacters().process(inputContentAsString, metrics);
 		
 		if(comparison == JsonComparisonType.LITERAL) {
 			assertEquals(inputFile.getSource(), inputContentAsString, stringOutput, expectedOutputContentAsString);
@@ -130,16 +130,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 					
 					byte[] maxSizeBytesOutput = bytesFilter.process(bytesValue, metrics);
 					String maxSizeCharsOutput = charsFilter.process(charsValue, metrics);
-					
-					/*
-					System.out.println(maxByteSize + " " + maxCharSize);
-					System.out.println(outputFile.getSource().toString());
-					System.out.println(new String(charsValue));
-					System.out.println(expectedMaxSizeCharsOutput);
-					System.out.println("Got");
-					System.out.println(maxSizeCharsOutput);
-					System.out.println(maxCharSize + " vs " + charsValue.length());
-					*/
+
 					assertEquals(inputFile.getSource(), charsValue, maxSizeCharsOutput, expectedMaxSizeCharsOutput);
 					assertEquals(inputFile.getSource(), bytesValue, maxSizeBytesOutput, expectedMaxSizeBytesOutput);
 				}
@@ -148,14 +139,11 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 			}
 		}
 		
-		
 		for(int i = 0; i < charsInputs.size() - 1; i++) {
 			MaxSizeJsonCollection charsInput = charsInputs.get(i);
 			MaxSizeJsonCollection bytesInput = byteInputs.get(i);
 
 			// TODO
-			
-			
 		}		
 	}
 

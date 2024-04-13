@@ -3,6 +3,10 @@ package com.github.skjolber.jsonfilter.test.truth;
 import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollection;
 import com.github.skjolber.jsonfilter.test.cache.JsonFile;
@@ -31,7 +35,7 @@ public class MaxSizeJsonFilterSubject extends Subject {
 	protected final MaxSizeJsonFilterPair actual;
 	protected JsonFilterMetrics metrics;
 
-	private JsonFile input; 
+	private List<JsonFile> inputs = new ArrayList<>(); 
 	/**
 	 * Constructor for use by subclasses. If you want to create an instance of this class itself, call
 	 * {@link Subject#check(String, Object...) check(...)}{@code .that(actual)}.
@@ -55,14 +59,21 @@ public class MaxSizeJsonFilterSubject extends Subject {
 		this.metrics = metrics;
 		return this;
 	}
-	
+
+	public MaxSizeJsonFilterSubject withInputFiles(Collection<JsonFile> input) {
+		this.inputs.addAll(input);
+		return this;
+	}
+
 	public MaxSizeJsonFilterSubject withInputFile(JsonFile input) {
-		this.input = input;
+		this.inputs.add(input);
 		return this;
 	}
 	
 	public MaxSizeJsonFilterSubject isPassthrough() {
-		MaxSizeJsonFilterNoopAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withInput(input).withMetrics(metrics).isPassthrough();
+		for(JsonFile input : inputs) {
+			MaxSizeJsonFilterNoopAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withInput(input).withMetrics(metrics).isPassthrough();
+		}
 		return this;
 	}
 
@@ -71,7 +82,9 @@ public class MaxSizeJsonFilterSubject extends Subject {
 	}
 
 	public MaxSizeJsonFilterSubject filtersTo(JsonFile output, JsonComparisonType type) {
-		MaxSizeJsonFilterAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withMetrics(metrics).withInputFile(input).filters(output, type);
+		for(JsonFile input : inputs) {
+			MaxSizeJsonFilterAssertion.newInstance().withMaxSizeJsonFilterPair(actual).withMetrics(metrics).withInputFile(input).filters(output, type);
+		}
 		return this;
 	}
 
