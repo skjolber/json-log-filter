@@ -49,9 +49,9 @@ public class JsonNormalizer {
 	}
 
 	public static String filterMaxStringLength(String result) {
-		// ...TRUNCATED BY 
+		// ... +
 
-		Pattern patt = Pattern.compile("(TRUNCATED BY )([0-9]+)");
+		Pattern patt = Pattern.compile("( \\+ )([0-9]+)");
 		Matcher m = patt.matcher(result);
 		StringBuffer sb = new StringBuffer(result.length());
 		while (m.find()) {

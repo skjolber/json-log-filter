@@ -10,9 +10,9 @@ public class JsonFilterDirectoryUnitTestCollectionRunnerTest {
 
 	@Test
 	public void testReplace() {
-		String filterSurrogates = JsonNormalizer.filterMaxStringLength("abcdef...TRUNCATED BY 123");
+		String filterSurrogates = JsonNormalizer.filterMaxStringLength("abcdef... + 123");
 		
-		assertEquals(filterSurrogates, "abcdef...TRUNCATED BY XX");
+		assertEquals(filterSurrogates, "abcdef... + XX");
 	}
 	
 }

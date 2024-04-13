@@ -8,9 +8,9 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public abstract class AbstractJsonFilter implements JsonFilter {
 
-	public static final String FILTER_PRUNE_MESSAGE = "SUBTREE REMOVED";
+	public static final String FILTER_PRUNE_MESSAGE = "PRUNED";
 	public static final String FILTER_ANONYMIZE = "*****";
-	public static final String FILTER_TRUNCATE_MESSAGE = "...TRUNCATED BY ";
+	public static final String FILTER_TRUNCATE_MESSAGE = "... + ";
 
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	public static final String FILTER_ANONYMIZE_JSON = '"' + FILTER_ANONYMIZE + '"';

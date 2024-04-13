@@ -22,9 +22,9 @@ Features:
  * Truncate large documents (max total output size)
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
  * Remove whitespace (for pretty-printed documents)
- * Metrics for the above operations + total input and output size 
+ * Metrics for the above operations + total input and output size
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson. There is also a `path` artifact which helps facilitate per-path filters for request/response-logging applications.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -113,7 +113,7 @@ Configure max string length for output like
 
 ```json
 {
-    "key": "QUJDREVGR0hJSktMTU5PUFFSU1...TRUNCATED BY 46"
+    "key": "QUJDREVGR0hJSktMTU5PUFFSU1... + 46"
 }
 ```
 
@@ -133,7 +133,7 @@ Configure prune for outputs like
 
 ```json
 {
-    "key": "SUBTREE REMOVED"
+    "key": "PRUNED"
 }
 ```
 
@@ -190,7 +190,7 @@ See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.g
 
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
-## Post-processing
+## Console-logging post-processing
 Depending on your service stack and architecture, performing two additional operations might be necessary:
 
  * removing linebreaks (and possibly all extra whitespace)
