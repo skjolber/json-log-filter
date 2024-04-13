@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.test.jackson.JsonNormalizer;
 
-public class JsonFilterRunnerTest {
+public class JsonFilterDirectoryUnitTestCollectionRunnerTest {
 
 	@Test
 	public void testReplace() {
-		String filterSurrogates = JsonNormalizer.filterMaxStringLength("abcdef...TRUNCATED BY 123");
+		String filterSurrogates = JsonNormalizer.filterMaxStringLength("abcdef... + 123");
 		
-		assertEquals(filterSurrogates, "abcdef...TRUNCATED BY XX");
+		assertEquals(filterSurrogates, "abcdef... + XX");
 	}
 	
 }

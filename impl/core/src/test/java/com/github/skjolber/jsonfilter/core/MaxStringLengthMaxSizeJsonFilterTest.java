@@ -33,14 +33,14 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	public void passthrough_success() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(-1, size);
 
-		assertThatMaxSize(maxSize, new MaxStringLengthJsonFilter(-1)).hasPassthrough();
+		assertThat(maxSize, new MaxStringLengthJsonFilter(-1)).hasPassthrough();
 	}
 
 	@Test
 	public void maxStringLength() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
-		assertThatMaxSize(maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
+		assertThat(maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
 	}
 	
 	@Test
@@ -50,18 +50,4 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		assertNull(filter.process(new byte[] {}, 1, 1));
 	}	
 
-	@Test
-	public void test() {
-		//String string = "[[\"a0123456789\",\"b012345678\"]]\n";
-		
-		MaxStringLengthMaxSizeJsonFilter maxStringLengthMaxSizeJsonFilter = new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, 53);
-		
-		String string = "[[\"a0123456789\",\"b012345678\",\"c01234567\"]]";
-		
-		String process = maxStringLengthMaxSizeJsonFilter.process(string);
-		
-		System.out.println(process);
-		
-	}
-	
 }

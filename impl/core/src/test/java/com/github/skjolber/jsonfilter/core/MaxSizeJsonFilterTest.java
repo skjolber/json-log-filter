@@ -85,9 +85,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void maxSize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
-		assertThatMaxSize(maxSize, new DefaultJsonFilter()).hasMaxSize();
+		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
 
-	
-		
 }

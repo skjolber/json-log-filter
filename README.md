@@ -1,3 +1,6 @@
+![Build Status](https://github.com/skjolber/json-log-filter/actions/workflows/maven.yml/badge.svg) 
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.skjolber.json-log-filter/parent.svg)](https://mvnrepository.com/artifact/com.github.skjolber.json-log-filter)
+
 # json-log-filter
 High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3x-5x). Typical use-cases:
 
@@ -22,9 +25,9 @@ Features:
  * Truncate large documents (max total output size)
  * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
  * Remove whitespace (for pretty-printed documents)
- * Metrics for the above operations + total input and output size 
+ * Metrics for the above operations + total input and output size
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson.
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using Jackson. There is also a `path` artifact which helps facilitate per-path filters for request/response-logging applications.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -113,7 +116,7 @@ Configure max string length for output like
 
 ```json
 {
-    "key": "QUJDREVGR0hJSktMTU5PUFFSU1...TRUNCATED BY 46"
+    "key": "QUJDREVGR0hJSktMTU5PUFFSU1... + 46"
 }
 ```
 
@@ -133,7 +136,7 @@ Configure prune for outputs like
 
 ```json
 {
-    "key": "SUBTREE REMOVED"
+    "key": "PRUNED"
 }
 ```
 
@@ -142,7 +145,7 @@ See below for supported path expression syntax.
 ### Max path matches
 Configure max path matches; so that anonymize and/or prune filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
 
-For example if the to-be filtereded JSON document has a schema definition with a header + body structure, and the target value is in the header.   
+For example if the to-be filtered JSON document has a schema definition with a header + body structure, and the target value is in the header.   
 
 ### Path expressions
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
@@ -190,7 +193,7 @@ See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.g
 
 Please consider refactoring your JSON structure(s) if you do a lot of filtering of static data and such.
 
-## Post-processing
+## Console-logging post-processing
 Depending on your service stack and architecture, performing two additional operations might be necessary:
 
  * removing linebreaks (and possibly all extra whitespace)

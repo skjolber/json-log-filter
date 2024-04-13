@@ -1,1 +1,1 @@
-{"grandparent":{"parent":{"child1":"*****","child2":true,"child3":"SUBTREE REMOVED"},"parentSibling":{"child1":"text","child2":true,"child3":"child3"}}}
+{"grandparent":{"parent":{"child1":"*****","child2":true,"child3":"PRUNED"},"parentSibling":{"child1":"text","child2":true,"child3":"child3"}}}

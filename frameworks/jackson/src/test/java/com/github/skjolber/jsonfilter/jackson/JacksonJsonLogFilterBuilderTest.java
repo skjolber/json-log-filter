@@ -26,7 +26,7 @@ public class JacksonJsonLogFilterBuilderTest {
 				.build();
 		assertNotNull(filter);
 		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("truncated\\t");
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"SUBTREE REMOVED\"");
+		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*****\"");
 	}
 	
@@ -39,8 +39,8 @@ public class JacksonJsonLogFilterBuilderTest {
 				.build();
 		assertNotNull(filter);
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"SUBTREE REMOVED\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("...TRUNCATED BY ");
+		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
+		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
 	}
 	
 	@Test
@@ -53,7 +53,7 @@ public class JacksonJsonLogFilterBuilderTest {
 		assertNotNull(filter);
 		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"x\\nxxxx\"");
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*****\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("...TRUNCATED BY ");
+		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
 	}
 	
 }

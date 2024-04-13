@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.test.JsonFilterRunner;
+import com.github.skjolber.jsonfilter.test.JsonFilterDirectoryUnitTestCollectionRunner;
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
 
 public class AbstractSinglePathJsonFilterTest {

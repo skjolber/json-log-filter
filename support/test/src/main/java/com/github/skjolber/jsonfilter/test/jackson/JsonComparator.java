@@ -11,17 +11,6 @@ import com.fasterxml.jackson.core.JsonToken;
 
 public class JsonComparator {
 
-	/*
-	
-							System.out.println();
-							System.out.println(charsValue);
-							System.out.println(new String(byteOutput2, StandardCharsets.UTF_8));
-							System.out.println(stringOutput2);
-							fail("Expected event symmertic pretty-printed result for " + input.getSource() + " max size " + k);
-	
-	
-	*/
-	
 	public static void assertEventsEqual(Path source, String input, String actualOutput, String expectedOutput) {
 		assertEventsEqual(source, input, input, actualOutput, expectedOutput);
 	}
@@ -46,7 +35,36 @@ public class JsonComparator {
 				builder.append(input1);
 				builder.append("\n");
 			} else {
-				builder.append("Expected equal symmertic result\n");
+				builder.append("Expected equal symmetric result\n");
+				
+				builder.append(input1);
+				builder.append("\n");
+				builder.append(input2);
+				builder.append("\n");
+			}
+			
+			if(output1 != null && output2 != null) {
+				builder.append(JsonComparator.printDiff(output1, output2));
+			} else {
+				builder.append(output1);
+				builder.append("\n");
+				builder.append(output2);
+				builder.append("\n");
+			}
+			
+			Assertions.fail(builder.toString());
+		}
+	}
+	
+	public static void assertEventsEqual(Path path, byte[] input1, byte[] input2, byte[] output1, byte[] output2) {
+		if(!isEventsEqual(output1, output2)) {
+			StringBuilder builder = new StringBuilder();
+			if(input1.equals(input2)) {
+				builder.append("Expected equal result\n");
+				builder.append(input1);
+				builder.append("\n");
+			} else {
+				builder.append("Expected equal symmetric result\n");
 				
 				builder.append(input1);
 				builder.append("\n");
@@ -132,7 +150,7 @@ public class JsonComparator {
 		return true;
 	}
 
-	public static boolean isSameEvents(byte[] expected, byte[] result) {
+	public static boolean isEventsEqual(byte[] expected, byte[] result) {
 		JsonFactory jsonFactory = new JsonFactory();
 		
 		try (

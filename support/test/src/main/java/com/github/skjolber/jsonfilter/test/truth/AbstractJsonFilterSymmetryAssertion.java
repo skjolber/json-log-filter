@@ -37,8 +37,17 @@ public class AbstractJsonFilterSymmetryAssertion {
 		}
 		
 		StringBuilder builder = new StringBuilder();
-		builder.append("Expected equal result\n");
+		builder.append("Expected equal result for ");
+		builder.append(source.toString());
+		builder.append(":\n");
+		builder.append("Input:\n");
 		builder.append(input);
+		builder.append("\n");
+		builder.append("Char output (" + outputAsString.length() + "):\n");
+		builder.append(outputAsString);
+		builder.append("\n");
+		builder.append("Byte output (" + outputAsBytes.length + "):\n");
+		builder.append(outputAsBytesAsString);
 		builder.append("\n");
 		
 		builder.append(JsonComparator.printDiff(outputAsBytesAsNormalizedString, outputAsStringAsNormalizedString));
@@ -74,7 +83,22 @@ public class AbstractJsonFilterSymmetryAssertion {
 	}
 
 	protected void assertEquals(Path source, String input1, byte[] input2, String outputAsString1, byte[] outputAsBytes2) {
-		assertEquals(source, input1, new String(input2, StandardCharsets.UTF_8), outputAsString1, new String(outputAsBytes2, StandardCharsets.UTF_8));
+		String input2String = new String(input2, StandardCharsets.UTF_8);
+		
+		if(outputAsBytes2 == null && outputAsString1 != null) {
+			fail("Expected bytes output for " + source + " " + new String(input2, StandardCharsets.UTF_8));
+		}
+		if(outputAsBytes2 != null && outputAsString1 == null) {
+			fail("Expected chars output for " + source + " " + input1);
+		}
+		
+		if(outputAsBytes2 == null && outputAsString1 == null) {
+			return;
+		}
+		
+		String outputAsBytes2String = new String(outputAsBytes2, StandardCharsets.UTF_8);
+		
+		assertEquals(source, input1, input2String, outputAsString1, outputAsBytes2String);
 	}
 
 	protected void assertEquals(Path source, String input1, String input2, String outputAsString1, String outputAsString2) {
@@ -118,7 +142,7 @@ public class AbstractJsonFilterSymmetryAssertion {
 	}
 	
 	
-	protected void assertEquals(Path source, byte[] input1, byte[] input2, byte[] outputAsString1, byte[] outputAsString2) {
+	public void assertEquals(Path source, byte[] input1, byte[] input2, byte[] outputAsString1, byte[] outputAsString2) {
 		if(outputAsString1 == null && outputAsString2 == null) {
 			return;
 		}

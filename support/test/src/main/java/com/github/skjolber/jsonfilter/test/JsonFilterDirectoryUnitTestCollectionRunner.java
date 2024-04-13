@@ -14,29 +14,26 @@ import com.github.skjolber.jsonfilter.test.directory.JsonFilterProperties;
 import com.github.skjolber.jsonfilter.test.jackson.JsonComparisonType;
 import com.github.skjolber.jsonfilter.test.truth.JsonFilterSubject;
 
-public class JsonFilterRunner {
+public class JsonFilterDirectoryUnitTestCollectionRunner {
 
 	private JsonFileCache cache;
 	private List<JsonFilterDirectoryUnitTest> outputDirectories;
 	private boolean literal;
-	// test filters with pretty printed JSON
-	private boolean whitespace;
 	// test json with unicode
 	private boolean unicode;
 
 	private List<JsonFilterDirectoryUnitTest> directoryTests;
 	private JsonFilterDirectoryUnitTestFactory factory;
 	
-	public JsonFilterRunner(List<?> nullable, boolean literal, boolean whitespace, boolean unicode, JsonFileCache cache) throws Exception {
+	public JsonFilterDirectoryUnitTestCollectionRunner(List<?> nullable, boolean literal, boolean unicode, JsonFileCache cache) throws Exception {
 		this.factory = JsonFilterDirectoryUnitTestFactory.fromResource("/json", nullable);
 		this.literal = literal;
-		this.whitespace = whitespace;
 		this.cache = cache;
 		this.unicode = unicode;
 		this.directoryTests = factory.create();
 	}
 
-	public JsonFilterDirectoryUnitTestCollection process(JsonFilter filter) throws Exception {
+	public JsonFilterDirectoryUnitTestCollection processDirectoryUnitTest(JsonFilter filter) throws Exception {
 		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection(); 
 
 		JsonFilterProperties filterProperties = factory.getProperties(filter);
@@ -45,7 +42,6 @@ public class JsonFilterRunner {
 
 		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
 			if(filterProperties.isNoop()) {
-				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
 				for (Path path : directoryTest.getFiles().keySet()) {
 					
 					JsonFile jsonInput = cache.getJsonInput(path);
@@ -58,7 +54,6 @@ public class JsonFilterRunner {
 				}
 				result.addPassthrough(directoryTest);
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
-				JsonFilterProperties properties = new JsonFilterProperties(filter, directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
 					System.out.println(entry.getKey() + " " + entry.getValue());
 					
@@ -81,7 +76,7 @@ public class JsonFilterRunner {
 		return result;
 	}
 
-	public JsonFilterDirectoryUnitTestCollection process(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
+	public JsonFilterDirectoryUnitTestCollection processDirectoryUnitTest(MaxSizeJsonFilterFunction maxSizeFunction, JsonFilter infiniteSize) throws Exception {
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 
@@ -90,7 +85,6 @@ public class JsonFilterRunner {
 		JsonFilterDirectoryUnitTestCollection result = new JsonFilterDirectoryUnitTestCollection(); 
 		for(JsonFilterDirectoryUnitTest directoryTest : directoryTests) {
 			if(filterProperties.isNoop()) {
-				JsonFilterProperties properties = new JsonFilterProperties(infiniteSize, directoryTest.getProperties());
 				for (Path path : directoryTest.getFiles().keySet()) {
 					JsonFile jsonInput = cache.getJsonInput(path);
 					
@@ -107,7 +101,6 @@ public class JsonFilterRunner {
 				}
 				result.addPassthrough(directoryTest);
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
-				JsonFilterProperties properties = new JsonFilterProperties(infiniteSize, directoryTest.getProperties());
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
 					
 					JsonFile jsonInput = cache.getJsonInput(entry.getKey());
