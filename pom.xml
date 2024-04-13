@@ -55,7 +55,7 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<indent.version>1.0.0</indent.version>
-		<jackson.version>2.16.1</jackson.version>
+		<jackson.version>2.17.0</jackson.version>
 		<google-truth.version>1.4.1</google-truth.version>
 		<commons-io.version>2.15.1</commons-io.version>
 		<commons-codec.version>1.16.1</commons-codec.version>
