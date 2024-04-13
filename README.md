@@ -145,7 +145,7 @@ See below for supported path expression syntax.
 ### Max path matches
 Configure max path matches; so that anonymize and/or prune filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
 
-For example if the to-be filtereded JSON document has a schema definition with a header + body structure, and the target value is in the header.   
+For example if the to-be filtered JSON document has a schema definition with a header + body structure, and the target value is in the header.   
 
 ### Path expressions
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
