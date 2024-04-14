@@ -2,7 +2,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.skjolber.json-log-filter/parent.svg)](https://mvnrepository.com/artifact/com.github.skjolber.json-log-filter)
 
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3x-5x). Typical use-cases:
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput (by ~3x-9x). Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -16,7 +16,7 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
     * keep within max log-statement size
        * GCP: [256 KB](https://cloud.google.com/logging/quotas)
        * Azure: 32 KB
-    
+
 Features:
 
  * Truncate large text values
@@ -28,8 +28,6 @@ Features:
  * Metrics for the above operations + total input and output size
 
 The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using [Jackson]. 
-
-There is also a `path` artifact which helps facilitate per-path filters for request/response-logging applications.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -52,12 +50,17 @@ then add
 ```xml
 <dependency>
     <groupId>com.github.skjolber.json-log-filter</groupId>
+    <artifactId>api</artifactId>
+    <version>${json-log-filter.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.github.skjolber.json-log-filter</groupId>
     <artifactId>core</artifactId>
     <version>${json-log-filter.version}</version>
 </dependency>
 ```
 
-or
+and optionally
 
 
 ```xml
@@ -86,10 +89,11 @@ ext {
 add
 
 ```groovy
+api("com.github.skjolber.json-log-filter:api:${jsonLogFilterVersion}")
 api("com.github.skjolber.json-log-filter:core:${jsonLogFilterVersion}")
 ```
 
-or
+and optionally
 
 ```groovy
 api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
@@ -108,7 +112,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxSize(128*1024)
                        .build();
                        
-String json = ...; // obtain JSON
+byte[] json = ...; // obtain JSON
 
 String filtered = filter.process(json); // perform filtering                       
 ```
@@ -142,7 +146,7 @@ for scalar values, and/or for objects / arrays all contained scalar values:
 }
 ```
 
-### Remove (prune) arrays or objects
+### Remove arrays or objects (prune subtrees) 
 Configure prune to turn input
 
 ```json
@@ -156,7 +160,7 @@ Configure prune to turn input
 }
 ```
 
-to outputs like
+to output like
 
 ```json
 {
@@ -168,26 +172,14 @@ to outputs like
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
     $.my.field.name
-    
-    or
-    
-    /my/field/name
 
 with support for wildcards; 
 
     $.my.field.*
-    
-    or
-    
-    /my/field/*
 
 or a simple any-level field name search 
 
     $..myFieldName
-    
-    or
-    
-    //myFieldName
 
 The filters within this library support using multiple expressions at once.
 
@@ -207,7 +199,10 @@ JsonFilterMetrics myMetrics = new DefaultJsonFilterMetrics();
 String filtered = filter.process(json, myMetrics); // perform filtering
 ```
 
-The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing.
+The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing, for example for
+
+ * Measuring the impact of the filtering, i.e. reduction in data size
+ * Make sure filters are actually operating as intended
 
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
@@ -221,7 +216,9 @@ For a typical, light-weight web service, the overall system performance improvem
 
 Memory use will be at 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
 
-See the benchmark results ([JDK 8](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk8.json&topBar=off), [JDK 11](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-3.0.1.jdk11.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 17](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.2.1.jdk17.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+
+There is also a [path](impl/path) artifact which helps facilitate per-path filters for request/response-logging applications, which should further improve performance.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
