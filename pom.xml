@@ -5,7 +5,7 @@
 	<version>4.1.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>json-log-filter</name>
-	<description>Project for filtering of JSON for logging purposes</description>
+	<description>Project for JSON filtering for logging purposes</description>
 	<url>https://github.com/skjolber/json-log-filter</url>
 
 	<organization>
