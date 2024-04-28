@@ -73,10 +73,6 @@ public class ExpressionNodeFactoryTest {
 
 		ExpressionNode expressionNode = expressionNodeFactory.toExpressionNode(expressions, types);
 		assertNotNull(expressionNode);
-		
-		
-		
-		System.out.println(expressionNode.print());
 	}
 
 }

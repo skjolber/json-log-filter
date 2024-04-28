@@ -45,7 +45,7 @@ public class RequestResponseJsonFilterFactory {
 		for(JsonFilterPathProperties filter : filters) {
 			JsonFilterProperties properties = mapper.apply(filter);
 			if(properties != null && properties.isEnabled()) {
-				String antMatcher = filter.getMatcher();
+				String matcher = filter.getMatcher();
 
 				JacksonJsonFilterFactory jacksonJsonFilterFactory = new JacksonJsonFilterFactory();
 				configureFactory(jacksonJsonFilterFactory, properties, replacements);
@@ -65,7 +65,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingFilter = nonvalidating.newJsonFilter();
 	
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, null, nonvalidatingFilter, null, Integer.MAX_VALUE);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, null, nonvalidatingFilter, null, Integer.MAX_VALUE);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ON_DEMAND) {
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
@@ -77,7 +77,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingRemoveWhitespaceFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingRemoveWhitespaceFilter = nonvalidating.newJsonFilter();
 						
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, Integer.MAX_VALUE);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, Integer.MAX_VALUE);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ALWAYS) {
 						jacksonJsonFilterFactory.setRemoveWhitespace(true);
@@ -86,7 +86,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingFilter = nonvalidating.newJsonFilter();
 						
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, null, nonvalidatingFilter, null, Integer.MAX_VALUE);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, null, nonvalidatingFilter, null, Integer.MAX_VALUE);
 						requestFilters.add(m);
 					}
 				} else {
@@ -100,7 +100,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingMaxSizeFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingMaxSizeFilter = nonvalidating.newJsonFilter();
 
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ON_DEMAND) {
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
@@ -115,7 +115,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingRemoveWhitespaceFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingRemoveWhitespaceFilter = nonvalidating.newJsonFilter();
 						
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, maxSize);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, maxSize);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ALWAYS) {
 						jacksonJsonFilterFactory.setRemoveWhitespace(true);
@@ -130,7 +130,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilter validatingRemoveWhitespaceFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingRemoveWhitespaceFilter = nonvalidating.newJsonFilter();
 						
-						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(antMatcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, maxSize);
+						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, validatingRemoveWhitespaceFilter, nonvalidatingFilter, nonvalidatingRemoveWhitespaceFilter, maxSize);
 						requestFilters.add(m);
 					}
 				}
