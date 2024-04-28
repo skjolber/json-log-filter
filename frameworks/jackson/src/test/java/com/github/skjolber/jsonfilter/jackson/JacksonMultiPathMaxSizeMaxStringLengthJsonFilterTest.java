@@ -153,33 +153,5 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 			}			
 		);
 	}	
-
-
-	@Test
-	public void test() {
-		String string = "{\"key\":[\"aaaaaaaaaaaaaaaaaaaa\"]}";
-		
-		int size = 25;
-		
-		JacksonMultiPathMaxSizeMaxStringLengthJsonFilter filter = new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, new String[]{DEFAULT_PATH});
-		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
-		
-		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
-
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		if(filteredBytes != null) {
-			System.out.println(new String(filteredBytes));
-		} else {
-			System.out.println("null");
-		}
-
-	}
 	
 }

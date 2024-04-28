@@ -24,8 +24,10 @@ jobs:
         distribution: temurin
         java-version: ${{ matrix.java }}
         cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+    - name: Test
+      run: mvn clean test
+    - name: Verify
+      run: mvn verify -DskipTests
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
       with:

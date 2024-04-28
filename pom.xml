@@ -235,14 +235,19 @@
 					</configuration>
 					<executions>
 						<execution>
-							<id>prepare-agent</id>
-							<phase>initialize</phase>
 							<goals>
 								<goal>prepare-agent</goal>
 							</goals>
 						</execution>
 						<execution>
 							<id>report</id>
+							<phase>test</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>report-aggregate</id>
 							<goals>
 								<goal>report-aggregate</goal>
 							</goals>
