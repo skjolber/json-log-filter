@@ -24,6 +24,19 @@ public class SimdJsonParser {
         reader = new BlockReader(STEP_SIZE);
         indexer = new StructuralIndexer(bitIndexes);
     }
+    
+    public void print(byte[] buffer, int len) {
+        stage0(buffer);
+        byte[] padded = padIfNeeded(buffer, len);
+        reset(padded, len);
+        stage1(padded);
+        
+        while (bitIndexes.hasNext()) {
+	        int idx = bitIndexes.advance();
+	        System.out.println((char)buffer[idx]);
+        }
+    }
+
 
     public JsonValue parse(byte[] buffer, int len) {
         stage0(buffer);
