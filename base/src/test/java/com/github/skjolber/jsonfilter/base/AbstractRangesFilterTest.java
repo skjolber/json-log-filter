@@ -58,5 +58,6 @@ public class AbstractRangesFilterTest {
 		assertEquals(7, AbstractRangesFilter.lengthToDigits(1000000));
 		assertEquals(8, AbstractRangesFilter.lengthToDigits(10000000));
 		assertEquals(9, AbstractRangesFilter.lengthToDigits(100000000));
+		assertEquals(10, AbstractRangesFilter.lengthToDigits(1000000000));
 	}
 }
