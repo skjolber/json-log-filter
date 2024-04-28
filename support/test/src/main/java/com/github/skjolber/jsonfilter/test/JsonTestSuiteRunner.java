@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.test;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,8 +48,13 @@ public class JsonTestSuiteRunner {
 			Map<Path, Path> files = new HashMap<>();
 
 			if(Files.isDirectory(target)) {
-				for(Path file : Files.newDirectoryStream(target, (f) -> Files.isRegularFile(f) && f.getFileName().toString().endsWith(".json"))) {
-					files.put(file, file);
+				DirectoryStream<Path> fileStream = Files.newDirectoryStream(target, (f) -> Files.isRegularFile(f) && f.getFileName().toString().endsWith(".json"));
+				try {
+					for(Path file : fileStream) {
+						files.put(file, file);
+					}
+				} finally {
+					fileStream.close();
 				}
 			}
 			
