@@ -36,67 +36,6 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 		
 		this.jsonFactory = jsonFactory;
 	}
-
-	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(chars, offset, length)
-			) {
-			return process(parser, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(output);
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator);
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-
-	public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
-		return process(parser, generator, null);
-	}	
-
-	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator) throws IOException {
-		int level = 1;
-
-		while(level > 0) {
-			JsonToken nextToken = parser.nextToken();
-
-			if(nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
-				level++;
-			} else if(nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
-				level--;
-			} else if(nextToken.isScalarValue()) {
-				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
-
-				continue;
-			}
-
-			generator.copyCurrentEvent(parser);
-		}  				
-	}
 	
 	protected char[] getPruneJsonValue() {
 		return pruneJsonValue;
@@ -184,7 +123,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 								generator.copyCurrentEvent(parser);
 
 								// keep structure, but mark all values
-								anonymizeChildren(parser, generator);
+								anonymizeChildren(parser, generator, metrics);
 							} else {
 								generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 								parser.skipChildren(); // skip children
@@ -251,7 +190,9 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 			} else if(nextToken.isScalarValue()) {
 				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
 
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 				
 				continue;
 			}

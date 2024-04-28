@@ -38,4 +38,12 @@ public class ProcessingProperties {
 	public int getMaxSize() {
 		return maxSize;
 	}
+
+	public boolean hasMaxSize() {
+		return maxSize != -1;
+	}
+
+	public boolean hasWhitespaceStrategy() {
+		return whitespaceStrategy != null;
+	}
 }

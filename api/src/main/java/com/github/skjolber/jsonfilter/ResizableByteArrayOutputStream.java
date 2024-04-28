@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 public class ResizableByteArrayOutputStream extends OutputStream {
 
-	private static final int MIN_INCREMENT = 16 * 1024;
+	protected static final int MIN_INCREMENT = 16 * 1024;
 
     /**
      * The buffer where data is stored.
@@ -56,6 +56,10 @@ public class ResizableByteArrayOutputStream extends OutputStream {
         }
     }
 
+    public void write(byte b[]) {
+        write(b, 0, b.length);
+    }
+    
     /**
      * Writes the specified byte to this {@code ByteArrayOutputStream}.
      *
@@ -268,5 +272,9 @@ public class ResizableByteArrayOutputStream extends OutputStream {
 	
 	public byte[] getBuffer() {
 		return buf;
+	}
+	
+	protected int getBufferSize() {
+		return buf.length;
 	}
 }

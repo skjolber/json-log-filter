@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -39,17 +40,17 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFil
 		
 		testConvenienceMethods(
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					return true;
 				}
 			}, 
 			new JacksonMaxStringLengthJsonFilter(-1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMaxStringLengthJsonFilter(-1, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					throw new RuntimeException();
 				}
 			}

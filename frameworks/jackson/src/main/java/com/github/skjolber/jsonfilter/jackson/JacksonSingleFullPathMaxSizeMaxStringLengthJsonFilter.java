@@ -33,58 +33,6 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 		super(maxStringLength, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 
-	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output);
-		}
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(chars, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output);
-		}
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.length());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output);
-		}
-	
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(output);
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size());
-		} catch(final Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
-		return process(parser, generator, offsetSupplier, outputSizeSupplier, null);
-	}
-	
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output, metrics);
@@ -221,7 +169,7 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 								generator.writeFieldName(currentName);
 								generator.copyCurrentEvent(parser);
 		
-								if(!anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue)) {
+								if(!anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, metrics)) {
 									break;
 								}
 							} else {
@@ -420,11 +368,6 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 		return true;
 	}
 
-	
-	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue) throws IOException {
-		return anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, null);
-	}
-	
 	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
 		int level = 1;
 		
