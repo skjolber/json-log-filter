@@ -31,22 +31,23 @@ public class ExpressionNodeFactory {
 			for(int k = 0; k < paths.length; k++) {
 				String path = paths[k];
 
-				if(current.filterType != null) {
+				if(current.hasFilterType()) {
+					// end leaf
 					break;
 				}
 
 				ExpressionNode next = current.find(path);
 				if(next == null) {
 					next = new ExpressionNode();
-					next.index = k;
-					next.path = path;
+					next.setIndex(k);
+					next.setPath(path);
 
-					current.children.add(next);
+					current.add(next);
 				}
 
 				current = next;
 			}
-			current.filterType = map.get(filteredExpressions.get(i));
+			current.setFilterType(map.get(filteredExpressions.get(i)));
 		}
 		
 		// /one/two/three/five
@@ -69,14 +70,13 @@ public class ExpressionNodeFactory {
 				
 				ExpressionNode current = nodes.get(i);
 				
-				if(current.children != null) {
-					nextNodes.addAll(current.children);
-				}
+				List<ExpressionNode> currentChildren = current.getChildren();
+				nextNodes.addAll(currentChildren);
 				
 				ExpressionNode starNode = null;
-				for (int j = 0; j < current.children.size(); j++) {
-					ExpressionNode childNode = current.children.get(j);
-					if(childNode.path.equals("*")) {
+				for (int j = 0; j < currentChildren.size(); j++) {
+					ExpressionNode childNode =currentChildren.get(j);
+					if(childNode.getPath().equals("*")) {
 						starNode = childNode;
 						
 						break;
@@ -84,13 +84,13 @@ public class ExpressionNodeFactory {
 				}
 				
 				if(starNode != null) {
-					
-					for (int j = 0; j < current.children.size(); j++) {
-						ExpressionNode targetNode = current.children.get(j);
+					for (int j = 0; j < currentChildren.size(); j++) {
+						ExpressionNode targetNode = currentChildren.get(j);
 						if(starNode != targetNode) {
 
-							for (int l = 0; l < starNode.children.size(); l++) {
-								ExpressionNode childStarNode = starNode.children.get(l);
+							List<ExpressionNode> starNodeChildren = starNode.getChildren();
+							for (int l = 0; l < starNodeChildren.size(); l++) {
+								ExpressionNode childStarNode = starNodeChildren.get(l);
 
 								targetNode.append(childStarNode);
 							}

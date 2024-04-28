@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
 public class JacksonMultiAnyPathMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
 
@@ -65,17 +66,17 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilterTest extends AbstractJa
 		
 		testConvenienceMethods(
 			new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
 			new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}			

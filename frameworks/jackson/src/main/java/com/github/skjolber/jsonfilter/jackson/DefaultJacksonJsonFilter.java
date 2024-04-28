@@ -5,26 +5,21 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
-public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
-
-	protected final JsonFactory jsonFactory;
+public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 
 	public DefaultJacksonJsonFilter() {
-		this(new JsonFactory());
+		super();
 	}
 
 	public DefaultJacksonJsonFilter(JsonFactory jsonFactory) {
-		super(-1, -1, FILTER_PRUNE_MESSAGE, FILTER_ANONYMIZE, FILTER_TRUNCATE_MESSAGE);
-		this.jsonFactory = jsonFactory;
+		super(jsonFactory);
 	}
 	
 	protected DefaultJacksonJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString, JsonFactory jsonFactory) {
-		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString);
-		
-		this.jsonFactory = jsonFactory;
+		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString, jsonFactory);
 	}
 
-	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
 		try (JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			if(parse(parser)) {
 				output.ensureCapacity(output.length() + length);
@@ -38,7 +33,7 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 	}
 
 	@Override
-	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
+	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
 		try (JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			if(parse(parser)) {
 				output.write(bytes, offset, length);
@@ -60,29 +55,5 @@ public class DefaultJacksonJsonFilter extends AbstractJsonFilter {
 			return false;
 		}
 	}
-	
-	protected char[] getPruneJsonValue() {
-		return pruneJsonValue;
-	}
-	
-	protected char[] getAnonymizeJsonValue() {
-		return anonymizeJsonValue;
-	}
-	
-	protected char[] getTruncateStringValue() {
-		return truncateStringValue;
-	}
-
-	@Override
-	public boolean process(char[] chars, int offset, int length, StringBuilder output,
-			JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
-	}
-
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
-			JsonFilterMetrics filterMetrics) {
-		return process(chars, offset, length, output);
-	}
-	
+		
 }

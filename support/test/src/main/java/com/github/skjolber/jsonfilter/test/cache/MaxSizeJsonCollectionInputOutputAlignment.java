@@ -34,7 +34,7 @@ public class MaxSizeJsonCollectionInputOutputAlignment {
 			if(maxSizeJsonCollection == null) {
 				
 				System.out.println("Input\n" + inputString);
-				System.out.println("Wanted\n" + outputString);
+				System.out.println("Wanted from " + filter.getCharacters() + "\n" + outputString);
 				System.out.println("Have");
 				for (Entry<String, MaxSizeJsonCollection> entry : outputMap.entrySet()) {
 					System.out.println(entry.getKey());

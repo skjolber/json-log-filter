@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
@@ -88,17 +89,17 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends A
 		
 		testConvenienceMethods(
 			new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					return true;
 				}
 			}, 
 			new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonSingleFullPathMaxStringLengthJsonFilter(-1, PASSTHROUGH_XPATH, FilterType.ANON, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
 					throw new RuntimeException();
 				}
 			}
