@@ -108,7 +108,9 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		
-		metrics.onInput(length);
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
 
 		length += offset;
 		
@@ -120,21 +122,29 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(anonymizeMessage, 0, anonymizeMessage.length);
 				
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(pruneMessage, 0, pruneMessage.length);
 				
-				metrics.onPrune(1);
+				if(metrics != null) {
+					metrics.onPrune(1);
+				}
 			} else if(filter[i+2] == FILTER_DELETE) {
 				buffer.write(chars, offset, filter[i] - offset);
-				metrics.onMaxSize(length - filter[i]);
+				if(metrics != null) {
+					metrics.onMaxSize(length - filter[i]);
+				}
 			} else {
 				buffer.write(chars, offset, filter[i] - offset);
 				buffer.write(truncateMessage, 0, truncateMessage.length);
 				writeInt(buffer, -filter[i+2]);
 				
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 			}
 			offset = filter[i + 1];
 		}
@@ -143,11 +153,16 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			buffer.write(chars, offset, length - offset);
 		}
 		
-		metrics.onOutput(buffer.size() - bufferSize);
+		if(metrics != null) {
+			metrics.onOutput(buffer.size() - bufferSize);
+		}
 	}
 
 	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
 		length += offset;
+		
+		int filterIndex = this.filterIndex;
+		int[] filter = this.filter;
 		
 		for(int i = 0; i < filterIndex; i += 3) {
 			
@@ -411,10 +426,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset + 1;
 			}
-		}		
+		}
 	}
-
-	public static final int scanQuotedValue(final byte[] chars, int offset) {
+	
+	public static final int scanBeyondQuoted(final byte[] chars, int offset) {
 		while(true) {
 			do {
 				offset++;
@@ -432,7 +447,36 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-		}	
+		}
+	}
+
+
+	public static final int scanQuotedValue(final byte[] chars, int offset) {
+		while(chars[++offset] != '"');
+		if(chars[offset - 1] != '\\') {
+			return offset;
+		}
+		
+		return scanEscapedValue(chars, offset);	
+	}
+
+	public static int scanEscapedValue(final byte[] chars, int offset) {
+		while(true) {
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset;
+			}
+			
+			while(chars[++offset] != '"');
+			
+			if(chars[offset - 1] != '\\') {
+				return offset;
+			}			
+		}
 	}
 
 	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
