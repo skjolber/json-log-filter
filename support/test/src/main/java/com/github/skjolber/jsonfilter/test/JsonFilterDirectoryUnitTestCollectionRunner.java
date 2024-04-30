@@ -55,8 +55,6 @@ public class JsonFilterDirectoryUnitTestCollectionRunner {
 				result.addPassthrough(directoryTest);
 			} else if (filterProperties.matches(directoryTest.getProperties()) ){
 				for (Entry<Path, Path> entry : directoryTest.getFiles().entrySet()) {
-					System.out.println(entry.getKey() + " " + entry.getValue());
-					
 					JsonFile jsonInput = cache.getJsonInput(entry.getKey());
 					
 					if(!unicode && (jsonInput.hasUnicode() || jsonInput.hasEscapeSequence())) {

@@ -147,7 +147,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 				}
 			}
 			return true;
-		} 
+		}
 		// check for escape
 		// must be at least one escape within the attribute length
 		int attributeOffset = 0;

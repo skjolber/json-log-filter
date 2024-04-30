@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core.util;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayRangesFilter extends AbstractRangesFilter {
@@ -26,7 +27,9 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		
-		metrics.onInput(length);
+		if(metrics != null) {
+			metrics.onInput(length);
+		}
 		
 		length += offset;
 		
@@ -37,21 +40,29 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(anonymizeMessage);
 				
-				metrics.onAnonymize(1);
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
 			} else if(filter[i+2] == FILTER_PRUNE) {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(pruneMessage);
-				metrics.onPrune(1);
+				if(metrics != null) {
+					metrics.onPrune(1);
+				}
 			} else if(filter[i+2] == FILTER_DELETE) {
 				buffer.append(chars, offset, filter[i] - offset);
 				
-				metrics.onMaxSize(length - filter[i]);
+				if(metrics != null) {
+					metrics.onMaxSize(length - filter[i]);
+				}
 			} else {
 				buffer.append(chars, offset, filter[i] - offset);
 				buffer.append(truncateMessage);
 				buffer.append(-filter[i+2]);
 				
-				metrics.onMaxStringLength(1);
+				if(metrics != null) {
+					metrics.onMaxStringLength(1);
+				}
 			}
 			offset = filter[i + 1];
 		}
@@ -60,7 +71,9 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			buffer.append(chars, offset, length - offset);
 		}
 		
-		metrics.onOutput(buffer.length() - bufferSize);
+		if(metrics != null) {
+			metrics.onOutput(buffer.length() - bufferSize);
+		}
 	}
 
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer) {
@@ -337,27 +350,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 
-	public static final int scanQuotedValue(final char[] chars, int offset) {
-		while(true) {
-			do {
-				offset++;
-			} while(chars[offset] != '"');
-
-			if(chars[offset - 1] != '\\') {
-				return offset;
-			}
-
-			// is there an even number of quotes behind?
-			int slashOffset = offset - 2;
-			while(chars[slashOffset] == '\\') {
-				slashOffset--;
-			}
-			if((offset - slashOffset) % 2 == 1) {
-				return offset;
-			}
-		}
-	}
-
 	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
 		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
 
@@ -488,6 +480,14 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		this.removedLength += end - start - anonymizeMessage.length;
 	}
 	
+	public void add(FilterType filterType, int start, int end) {
+		if(filterType == FilterType.ANON) {
+			addAnon(start, end);
+		} else if(filterType == FilterType.PRUNE) {
+			addPrune(start, end);
+		}
+	}
+	
 	public void addPrune(int start, int end) {
 		super.addPrune(start, end);
 		
@@ -576,6 +576,35 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 		return start;
 	}
+
+	public static final int scanQuotedValue(final char[] chars, int offset) {
+		while(chars[++offset] != '"');
+		if(chars[offset - 1] != '\\') {
+			return offset;
+		}
+		
+		return scanEscapedValue(chars, offset);	
+	}
+
+	public static int scanEscapedValue(final char[] chars, int offset) {
+		while(true) {
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset;
+			}
+			
+			while(chars[++offset] != '"');
+			
+			if(chars[offset - 1] != '\\') {
+				return offset;
+			}			
+		}
+	}
+
 
 
 }

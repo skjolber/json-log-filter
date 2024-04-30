@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base;
 
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+
 public abstract class AbstractRangesFilter {
 
 	public static final int MAX_INITIAL_ARRAY_SIZE = 256;
@@ -46,6 +48,15 @@ public abstract class AbstractRangesFilter {
 	public void addPrune(int start, int end) {
 		add(start, end, FILTER_PRUNE);
 	}
+	
+	public void add(FilterType type, int start, int end) {
+		if(type == FilterType.PRUNE) {
+			addPrune(start, end);
+		} else if(type == FilterType.ANON){
+			addAnon(start, end);
+		}
+	}
+	
 	
 	public void addDelete(int start, int end) {
 		add(start, end, FILTER_DELETE);

@@ -23,7 +23,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(maxPathMatches, length);
 
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, maxStringLength, pathChars, filterType, maxPathMatches, filter);
@@ -40,7 +40,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 		
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
-		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(maxPathMatches, length);
 		
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, maxStringLength, pathBytes, filterType, maxPathMatches, filter);

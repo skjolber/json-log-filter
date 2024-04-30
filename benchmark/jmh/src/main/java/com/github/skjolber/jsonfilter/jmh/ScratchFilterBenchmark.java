@@ -45,14 +45,14 @@ import dev.blaauwendraad.masker.json.JsonMasker;
 public class ScratchFilterBenchmark {
 
 	public static final String DEFAULT_XPATH = "/address";
-	public static final String DEFAULT_ANY_XPATH = "//product_name";
+	public static final String DEFAULT_ANY_XPATH = "//2product_name";
 
 	private BenchmarkRunner<JsonFilter> original;
 	private BenchmarkRunner<JsonFilter> modified1;
 	private BenchmarkRunner<JsonFilter> modified2;
 	
-	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
+	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	@Param(value={"2KB"})
 	private String fileName; 
 	
 	@Setup
@@ -66,13 +66,17 @@ public class ScratchFilterBenchmark {
 
 		int size = (int) (file.length() - 1);
 		
+		String key = "product_name";
+		
 		Set<String> hashSet = new HashSet<>();
-		hashSet.add("product_name");
+		hashSet.add(key);
 		JsonMasker masker = JsonMasker.getMasker(hashSet);
 		
-		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_XPATH, FilterType.ANON), false);
-		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), false);
-		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), false);
+		boolean prettyPrint = false;
+		
+		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, "//" + key, FilterType.ANON), true, prettyPrint);
+		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), true, prettyPrint);
+		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
 
 		
 		
@@ -124,10 +128,12 @@ public class ScratchFilterBenchmark {
 		return modified1.benchmarkBytesAsArray();
 	}
 	
+	/*
 	@Benchmark
 	public long jackson() throws IOException {
 		return modified2.benchmarkBytesAsArray();
-	}	
+	}
+	*/	
 	
 	/*
 	@Benchmark
@@ -140,6 +146,7 @@ public class ScratchFilterBenchmark {
 				.include(ScratchFilterBenchmark.class.getSimpleName())
 				.warmupIterations(3)
 				.measurementIterations(1)
+				.forks(1)
 				.resultFormat(ResultFormatType.JSON)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();

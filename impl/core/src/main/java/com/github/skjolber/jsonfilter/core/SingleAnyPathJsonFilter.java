@@ -22,17 +22,93 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 		try {
-			return rangesAnyPath(chars, offset, offset + length, maxPathMatches, pathChars, filterType, filter);
+			
+			if(maxPathMatches != -1) {
+				if(pathBytes == STAR_BYTES) {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, maxPathMatches, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, maxPathMatches, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				} else {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, maxPathMatches, pathChars, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, maxPathMatches, pathChars, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				}
+			} else {
+				if(pathBytes == STAR_BYTES) {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				} else {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, pathChars, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, pathChars, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				}
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
+
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches);
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches, length);
 		try {
-			return rangesAnyPath(chars, offset, offset + length, maxPathMatches, pathBytes, filterType, filter);
+			if(maxPathMatches != -1) {
+				if(pathBytes == STAR_BYTES) {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, maxPathMatches, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, maxPathMatches, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				} else {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, maxPathMatches, pathBytes, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, maxPathMatches, pathBytes, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				}
+			} else {
+				if(pathBytes == STAR_BYTES) {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				} else {
+					if(filterType == FilterType.ANON) {
+						rangesAnonymizeAnyPath(chars, offset, offset + length, pathBytes, filter);
+					} else if(filterType == FilterType.PRUNE) {
+						rangesPruneAnyPath(chars, offset, offset + length, pathBytes, filter);
+					} else {
+						throw new IllegalStateException();
+					}
+				}
+			}
+			return filter;
 		} catch(Exception e) {
 			return null;
 		}
@@ -77,26 +153,34 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				}
 				
 				if(path == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, path)) {
-					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
-						} else {
-							offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
-						}
-					} else {
-						if(chars[nextOffset] == '"') {
-							// quoted value
+					switch(chars[nextOffset]) {
+						case '[':
+						case '{':
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+							} else {
+								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							}
+							break;
+						case '"': {
 							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-						} else {
-							
-							// is this a null value?
-							
-							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+							filter.add(filterType, nextOffset, offset);
+							break;
 						}
-						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset);
-						} else {
-							filter.addAnon(nextOffset, offset);
+						case 't': 
+						case 'n': {
+							offset = nextOffset + 4;
+							filter.add(filterType, nextOffset, offset);
+							break;
+						}
+						case 'f': {
+							offset = nextOffset + 5;
+							filter.add(filterType, nextOffset, offset);
+							break;
+						}
+						default: {
+							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+							filter.add(filterType, nextOffset, offset);
 						}
 					}
 					
@@ -191,6 +275,1620 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 		}
 
 		return filter;
-
 	}
+	
+	public static void rangesAnonymizeAnyPath(final char[] chars, int offset, int limit, char[] path, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addAnon(nextOffset, offset);
+						
+						continue;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+	
+
+	public static void rangesPruneAnyPath(final char[] chars, int offset, int limit, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addPrune(nextOffset, offset);
+					
+					continue;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+		}
+	}
+	
+	public static void rangesAnonymizeAnyPath(final char[] chars, int offset, int limit, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addAnon(nextOffset, offset);
+					
+					continue;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+		}
+	}
+	
+	public static void rangesPruneAnyPath(final char[] chars, int offset, int limit, char[] path, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addPrune(nextOffset, offset);
+						
+						continue;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}	
+	
+	public static void rangesPruneAnyPath(final byte[] chars, int offset, int limit, byte[] path, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addPrune(nextOffset, offset);
+						
+						continue;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+
+	public static void rangesAnonymizeAnyPath(final byte[] chars, int offset, int limit, byte[] path, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addAnon(nextOffset, offset);
+						
+						continue;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+	
+
+	public static void rangesPruneAnyPath(final byte[] chars, int offset, int limit, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addPrune(nextOffset, offset);
+					
+					continue;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+		}
+	}
+	
+	public static void rangesAnonymizeAnyPath(final byte[] chars, int offset, int limit, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addAnon(nextOffset, offset);
+					
+					continue;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+		}
+	}
+	
+	public static void rangesAnonymizeAnyPath(final char[] chars, int offset, int limit, int maxPathMatches, char[] path, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addAnon(nextOffset, offset);
+						
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+				
+				maxPathMatches--;
+				if(maxPathMatches == 0) {
+					break; // done filtering
+				}
+
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+	
+
+	public static void rangesPruneAnyPath(final char[] chars, int offset, int limit, int maxPathMatches, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addPrune(nextOffset, offset);
+					
+					break;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+			
+			maxPathMatches--;
+			if(maxPathMatches == 0) {
+				break; // done filtering
+			}
+
+		}
+	}
+	
+	public static void rangesAnonymizeAnyPath(final char[] chars, int offset, int limit, int maxPathMatches, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addAnon(nextOffset, offset);
+					
+					break;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+			maxPathMatches--;
+			if(maxPathMatches == 0) {
+				break; // done filtering
+			}
+		}
+	}
+	
+	public static void rangesPruneAnyPath(final char[] chars, int offset, int limit, int maxPathMatches, char[] path, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = CharArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = CharArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addPrune(nextOffset, offset);
+						
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+				maxPathMatches--;
+				if(maxPathMatches == 0) {
+					break; // done filtering
+				}
+
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}	
+	
+	public static void rangesPruneAnyPath(final byte[] chars, int offset, int limit, int maxPathMatches, byte[] path, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addPrune(nextOffset, offset);
+						
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addPrune(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+				maxPathMatches--;
+				if(maxPathMatches == 0) {
+					break; // done filtering
+				}
+
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+
+	public static void rangesAnonymizeAnyPath(final byte[] chars, int offset, int limit, int maxPathMatches, byte[] path, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			int quoteIndex = nextOffset;
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			if(matchPath(chars, offset + 1, quoteIndex, path)) {
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+
+				switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						break;
+					case '"': {
+						offset = nextOffset;
+						while(chars[++offset] != '"');
+						if(chars[offset - 1] == '\\') {
+							offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+						}
+						offset++;
+						filter.addAnon(nextOffset, offset);
+						
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.addAnon(nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+				maxPathMatches--;
+				if(maxPathMatches == 0) {
+					break; // done filtering
+				}
+
+			} else {
+				offset = nextOffset + 1;
+			}
+		}
+	}
+	
+
+	public static void rangesPruneAnyPath(final byte[] chars, int offset, int limit, int maxPathMatches, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addPrune(nextOffset, offset);
+					
+					break;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addPrune(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+			
+			maxPathMatches--;
+			if(maxPathMatches == 0) {
+				break; // done filtering
+			}
+			
+		}
+	}
+	
+	public static void rangesAnonymizeAnyPath(final byte[] chars, int offset, int limit, int maxPathMatches, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] != '"') {
+				offset++;
+				continue;
+			}
+			int nextOffset = offset;
+			while(chars[++nextOffset] != '"');
+			if(chars[nextOffset - 1] == '\\') {
+				nextOffset = ByteArrayRangesFilter.scanEscapedValue(chars, nextOffset);
+			}
+			
+			while(chars[++nextOffset] <= 0x20);
+			
+			// is this a field name or a value? A field name must be followed by a colon
+			if(chars[nextOffset] != ':') {
+				// skip over whitespace
+				
+				// optimization: scan for highest value
+				// space: 0x20
+				// tab: 0x09
+				// carriage return: 0x0D
+				// newline: 0x0A
+
+				// was a text value
+				offset = nextOffset;
+				
+				continue;
+			}
+			
+			// skip whitespace after colon
+			while(chars[++nextOffset] <= 0x20);
+
+			switch(chars[nextOffset]) {
+				case '[':
+				case '{':
+					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					break;
+				case '"': {
+					offset = nextOffset;
+					while(chars[++offset] != '"');
+					if(chars[offset - 1] == '\\') {
+						offset = ByteArrayRangesFilter.scanEscapedValue(chars, offset);
+					}
+					offset++;
+					filter.addAnon(nextOffset, offset);
+					
+					continue;
+				}
+				case 't': 
+				case 'n': {
+					offset = nextOffset + 4;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				case 'f': {
+					offset = nextOffset + 5;
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+					break;
+				}
+				default: {
+					offset = nextOffset;
+					loop:
+					while(true) {
+						switch(chars[++offset]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+						case '-':
+						case '+':
+						case 'e':
+						case 'E':
+							continue;
+						default: break loop;
+					}
+					}
+					filter.addAnon(nextOffset, offset);
+					// next char cannot be quote, so skip it
+					offset++;
+				}
+			}
+			
+			maxPathMatches--;
+			if(maxPathMatches == 0) {
+				break; // done filtering
+			}
+		}
+	}	
+	
 }
