@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+
 public class DefaultJsonFilterTest {
 
 	private static final String JSON = "{}";
@@ -31,6 +33,11 @@ public class DefaultJsonFilterTest {
 
 		// byte-array
 		assertThat(filter.process(getBytes())).isEqualTo(getBytes());
+		assertThat(filter.process(getBytes(), 0, 2)).isEqualTo(getBytes());
+		
+		ResizableByteArrayOutputStream s = new ResizableByteArrayOutputStream(1111);
+		filter.process(getBytes(), 0, 2, s);
+		assertThat(s.size()).isEqualTo(2);
 	}
 
 	@Test

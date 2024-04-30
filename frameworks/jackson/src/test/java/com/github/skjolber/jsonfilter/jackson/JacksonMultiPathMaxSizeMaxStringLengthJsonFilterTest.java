@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
@@ -137,49 +138,21 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends Abstra
 		
 		testConvenienceMethods(
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			},
 			new JacksonMultiPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}			
 		);
 	}	
-
-
-	@Test
-	public void test() {
-		String string = "{\"key\":[\"aaaaaaaaaaaaaaaaaaaa\"]}";
-		
-		int size = 25;
-		
-		JacksonMultiPathMaxSizeMaxStringLengthJsonFilter filter = new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, null, new String[]{DEFAULT_PATH});
-		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, DEFAULT_WILDCARD_PATH, FilterType.ANON);
-		
-		//SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter filter = new SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, DEFAULT_PATH, FilterType.ANON);
-		
-		System.out.println("Original:");
-		System.out.println(string);
-		System.out.println("Filtered:");
-
-		String filtered = filter.process(string);
-		System.out.println(filtered);
-		
-		byte[] filteredBytes = filter.process(string.getBytes());
-		if(filteredBytes != null) {
-			System.out.println(new String(filteredBytes));
-		} else {
-			System.out.println("null");
-		}
-
-	}
 	
 }

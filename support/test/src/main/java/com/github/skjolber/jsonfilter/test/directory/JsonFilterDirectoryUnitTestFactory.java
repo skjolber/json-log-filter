@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -143,8 +144,13 @@ public class JsonFilterDirectoryUnitTestFactory {
 			jsonDirectory.jsonFiles.putAll(parent.jsonFiles);
 		}
 
-		for(Path file : Files.newDirectoryStream(jsonDirectory.directory, (f) -> Files.isRegularFile(f) && f.getFileName().toString().endsWith(".json"))) {
-			jsonDirectory.jsonFiles.put(file.getFileName().toString(), file); 
+		DirectoryStream<Path> files = Files.newDirectoryStream(jsonDirectory.directory, (f) -> Files.isRegularFile(f) && f.getFileName().toString().endsWith(".json"));
+		try {
+			for(Path file : files) {
+				jsonDirectory.jsonFiles.put(file.getFileName().toString(), file); 
+			}
+		} finally {
+			files.close();
 		}
 
 		jsonDirectory.parent = parent;
@@ -170,10 +176,15 @@ public class JsonFilterDirectoryUnitTestFactory {
 			results.add(new JsonFilterDirectoryUnitTest(jsonDirectory.directory, getInputFiles(jsonDirectory), jsonDirectory.properties));
 		}
 
-		for(Path subdirectory : Files.newDirectoryStream(jsonDirectory.directory, Files::isDirectory)) {
-			JsonDirectory createJsonDirectory = createJsonDirectory(jsonDirectory, subdirectory);
-
-			processFilterDirectories(createJsonDirectory, results);
+		DirectoryStream<Path> stream = Files.newDirectoryStream(jsonDirectory.directory, Files::isDirectory);
+		try {
+			for(Path subdirectory : stream) {
+				JsonDirectory createJsonDirectory = createJsonDirectory(jsonDirectory, subdirectory);
+	
+				processFilterDirectories(createJsonDirectory, results);
+			}
+		} finally {
+			stream.close();
 		}
 	}
 

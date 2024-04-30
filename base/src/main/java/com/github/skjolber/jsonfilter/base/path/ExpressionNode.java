@@ -6,10 +6,11 @@ import java.util.List;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 
 public class ExpressionNode {
-	String path;
-	int index;
-	FilterType filterType;
-	List<ExpressionNode> children = new ArrayList<>();
+	
+	private String path;
+	private int index;
+	private FilterType filterType;
+	private List<ExpressionNode> children = new ArrayList<>();
 	
 	public ExpressionNode find(String path) {
 		for (ExpressionNode expressionNode : children) {
@@ -58,10 +59,50 @@ public class ExpressionNode {
 		}
 		builder.append("\n");
 		
-		if(children != null) {
-			for (ExpressionNode expressionNode : children) {
-				expressionNode.print(builder);
-			}
+		for (ExpressionNode expressionNode : children) {
+			expressionNode.print(builder);
 		}
 	}
+
+	public boolean hasFilterType() {
+		return filterType != null;
+	}
+
+	public void add(ExpressionNode node) {
+		children.add(node);
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
+	public FilterType getFilterType() {
+		return filterType;
+	}
+
+	public void setFilterType(FilterType filterType) {
+		this.filterType = filterType;
+	}
+
+	public List<ExpressionNode> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<ExpressionNode> children) {
+		this.children = children;
+	}
+	
+	
 }

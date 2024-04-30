@@ -65,5 +65,14 @@ public class ExpressionNodeFactoryTest {
 		ExpressionNode expressionNode = expressionNodeFactory.toExpressionNode(expressions, types);
 		assertNotNull(expressionNode);
 	}
+	
+	@Test
+	public void testWildcard5() {
+		FilterType[] types = new FilterType[] {FilterType.ANON, FilterType.PRUNE, FilterType.ANON};
+		String[] expressions = new String[]{"/a/b/c/d/e/i", "/a/*/*/*/e/i", "/a/*/*/*/g/i"};
+
+		ExpressionNode expressionNode = expressionNodeFactory.toExpressionNode(expressions, types);
+		assertNotNull(expressionNode);
+	}
 
 }

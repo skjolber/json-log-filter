@@ -29,57 +29,6 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	protected JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
-	
-	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output);
-		}
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(chars, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, StringBuilder output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output);
-		}
-		output.ensureCapacity(output.length() + length);
-
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.length());
-		} catch(final Exception e) {
-			return false;
-		}
-	}
-	
-	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output) {
-		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output);
-		}
-	
-		try (
-			JsonGenerator generator = jsonFactory.createGenerator(output);
-			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
-			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size());
-		} catch(final Exception e) {
-			return false;
-		}
-	}	
-
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier) throws IOException {
-		return process(parser, generator, offsetSupplier, outputSizeSupplier, null);
-	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {

@@ -26,10 +26,6 @@ package com.github.skjolber.jsonfilter;
 
 public interface JsonFilter {
 
-	// Implementation note: The optimal output format 
-	// depends on what will be done with the filtered document, which translates to the the raw JSON append capabilities 
-	// of log frameworks; Jackson with Logback-logstash only supports characters (and this is the primary use-case).
-
 	/**
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
@@ -37,7 +33,9 @@ public interface JsonFilter {
 	 * @return a String instance if filtering was successful, null otherwise.
 	 */
 
-	String process(char[] chars);
+	default String process(char[] chars) {
+		return process(chars, null);
+	}
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -57,7 +55,9 @@ public interface JsonFilter {
 	 * @return a StringBuilder instance filtering was successful, null otherwise.
 	 */
 
-	String process(String chars);
+	default String process(String chars) {
+		return process(chars, (JsonFilterMetrics)null);
+	}
 	
 	/**
 	 * Filter JSON characters.
@@ -77,7 +77,9 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(String chars, StringBuilder output);
+	default boolean process(String chars, StringBuilder output) {
+		return process(chars, output, null);
+	}
 
 
 	/**
@@ -101,7 +103,9 @@ public interface JsonFilter {
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
-	boolean process(char[] chars, int offset, int length, StringBuilder output);
+	default boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		return process(chars, offset, length, output, null);
+	}
 
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -123,7 +127,9 @@ public interface JsonFilter {
 	 * @return a byte array instance if filtering was successful, null otherwise.
 	 */
 
-	byte[] process(byte[] chars);
+	default byte[] process(byte[] chars) {
+		return process(chars, null);
+	}
 
 
 	/**
@@ -145,7 +151,9 @@ public interface JsonFilter {
 	 * @return a byte array instance if filtering was successful, null otherwise.
 	 */
 
-	byte[] process(byte[] chars, int offset, int length);
+	default byte[] process(byte[] chars, int offset, int length) {
+		return process(chars, offset, length, (JsonFilterMetrics)null);
+	}
 	
 	/**
 	 * Filter JSON characters to an output StringBuilder.
@@ -169,7 +177,9 @@ public interface JsonFilter {
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	
-	boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output);
+	default boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
+	}
 
 	/**
 	 * Filter JSON characters to a {@linkplain ResizableByteArrayOutputStream}

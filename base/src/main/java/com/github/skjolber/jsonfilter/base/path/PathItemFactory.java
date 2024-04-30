@@ -13,13 +13,15 @@ public class PathItemFactory {
 	}
 	
 	protected PathItem create(PathItem parent, ExpressionNode node, int level) {
-		if(node.filterType != null) {
-			return new EndPathItem(level, parent, node.filterType);
+		if(node.hasFilterType()) {
+			return new EndPathItem(level, parent, node.getFilterType());
 		}
-		if(node.children.size() == 1) {
-			ExpressionNode childNode = node.children.get(0);
+		List<ExpressionNode> nodeChildren = node.getChildren();
+
+		if(nodeChildren.size() == 1) {
+			ExpressionNode childNode = nodeChildren.get(0);
 			
-			if(childNode.path.equals(AbstractPathJsonFilter.STAR)) {
+			if(childNode.getPath().equals(AbstractPathJsonFilter.STAR)) {
 				StarPathItem anyPathItem = new StarPathItem(level, parent);
 				
 				PathItem childPathItem = create(anyPathItem, childNode, level + 1);
@@ -27,7 +29,7 @@ public class PathItemFactory {
 				
 				return anyPathItem;
 			}
-			SinglePathItem singlePathItem = new SinglePathItem(level, childNode.path, parent);
+			SinglePathItem singlePathItem = new SinglePathItem(level, childNode.getPath(), parent);
 			
 			PathItem childPathItem = create(singlePathItem, childNode, level + 1);
 			singlePathItem.setNext(childPathItem);
@@ -35,8 +37,8 @@ public class PathItemFactory {
 			return singlePathItem;
 		}
 		List<String> keys = new ArrayList<>();
-		for(ExpressionNode child : node.children) {
-			keys.add(child.path);
+		for(ExpressionNode child : node.getChildren()) {
+			keys.add(child.getPath());
 		}
 
 		int anyIndex = keys.indexOf(AbstractPathJsonFilter.STAR);
@@ -58,14 +60,14 @@ public class PathItemFactory {
 			
 			keys.remove(anyIndex);
 			
-			ExpressionNode anyNode = node.children.remove(anyIndex);
+			ExpressionNode anyNode = nodeChildren.remove(anyIndex);
 
 			StarMultiPathItem multiPathItem = new StarMultiPathItem(keys, level, parent);
 
 			PathItem anyPathItem = create(multiPathItem, anyNode, level + 1);
 
-			for(int k = 0; k < node.children.size(); k++) {
-				ExpressionNode childNode = node.children.get(k);
+			for(int k = 0; k < nodeChildren.size(); k++) {
+				ExpressionNode childNode = nodeChildren.get(k);
 				
 				PathItem childPathItem = create(multiPathItem, childNode, level + 1);
 				
@@ -79,8 +81,8 @@ public class PathItemFactory {
 		}
 		
 		MultiPathItem multiPathItem = new MultiPathItem(keys, level, parent);
-		for(int k = 0; k < node.children.size(); k++) {
-			ExpressionNode childNode = node.children.get(k);
+		for(int k = 0; k < nodeChildren.size(); k++) {
+			ExpressionNode childNode = nodeChildren.get(k);
 			
 			PathItem childPathItem = create(multiPathItem, childNode, level + 1);
 			

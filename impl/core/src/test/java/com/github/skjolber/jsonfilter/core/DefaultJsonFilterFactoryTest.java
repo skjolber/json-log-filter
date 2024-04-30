@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
@@ -41,6 +42,11 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setMaxStringLength(123);
 		AbstractJsonFilter filter = (AbstractJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertTrue(filter.isRemovingWhitespace());
 	}
 
 	@Test
@@ -57,6 +63,11 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setAnonymizeFilters("/abc");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertTrue(filter.isRemovingWhitespace());
 	}
 
 	@Test
@@ -64,6 +75,11 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setAnonymizeFilters("/abc");
 		factory.setMaxSize(1024);
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
@@ -99,12 +115,18 @@ public class DefaultJsonFilterFactoryTest {
 	}	
 	
 	@Test
-	public void testAnonFullPathMaxLength() {
+	public void testAnonFullPathMaxStringLength() {
 		factory.setAnonymizeFilters("/abc");
 		factory.setMaxStringLength(123);
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertTrue(filter.isRemovingWhitespace());
 	}
 
 	@Test
@@ -152,6 +174,12 @@ public class DefaultJsonFilterFactoryTest {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
 		assertThat(filter.getMaxSize()).isEqualTo(1024);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+		assertTrue(filter.isRemovingWhitespace());
 	}	
 
 	@Test
@@ -179,6 +207,11 @@ public class DefaultJsonFilterFactoryTest {
 		factory.setPruneFilters("/def");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		assertTrue(filter.isRemovingWhitespace());
 	}
 	
 	@Test
@@ -188,6 +221,12 @@ public class DefaultJsonFilterFactoryTest {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
 		assertThat(filter.getMaxSize()).isEqualTo(1024);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		assertThat(filter.getMaxSize()).isEqualTo(1024);
+		assertTrue(filter.isRemovingWhitespace());
 	}
 
 	@Test
@@ -207,14 +246,19 @@ public class DefaultJsonFilterFactoryTest {
 	}
 
 	@Test
-	public void testPruneFullPathMaxLength() {
+	public void testPruneFullPathMaxStringLength() {
 		factory.setPruneFilters("/def");
 		factory.setMaxStringLength(123);
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
 		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		
+		factory.setRemoveWhitespace(true);
+		filter = (AbstractPathJsonFilter)factory.newJsonFilter();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		assertThat(filter.getMaxStringLength()).isEqualTo(123);
+		assertTrue(filter.isRemovingWhitespace());
 	}
-
 
 	@Test
 	public void testPruneFullPathMaxLengthMaxSize() {
