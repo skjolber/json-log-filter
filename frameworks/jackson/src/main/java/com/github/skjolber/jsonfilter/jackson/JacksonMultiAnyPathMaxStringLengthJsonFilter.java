@@ -113,7 +113,7 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 
 			if(nextToken == JsonToken.FIELD_NAME) {
 				
-				FilterType filterType = fields.get(parser.getCurrentName());
+				FilterType filterType = fields.get(parser.currentName());
 				if(filterType != null) {
 					generator.copyCurrentEvent(parser);
 
