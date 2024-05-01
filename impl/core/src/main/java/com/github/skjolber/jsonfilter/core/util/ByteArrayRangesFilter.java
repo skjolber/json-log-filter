@@ -486,6 +486,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			case '}':
 			case ']': 
 			case ' ': 
+			case '\r': 
 			case '\t': 
 			case '\n': 
 				return offset;

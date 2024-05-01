@@ -350,13 +350,35 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 	}
 
-	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
-
-		return offset;
+	public static final int scanQuotedValue(final char[] chars, int offset) {
+		while(chars[++offset] != '"');
+		if(chars[offset - 1] != '\\') {
+			return offset;
+		}
+		
+		return scanEscapedValue(chars, offset);	
 	}
+
+	public static int scanEscapedValue(final char[] chars, int offset) {
+		while(true) {
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset;
+			}
+			
+			while(chars[++offset] != '"');
+			
+			if(chars[offset - 1] != '\\') {
+				return offset;
+			}			
+		}
+	}	
 	
-	public static final int scanBeyondUnquotedValue2(final char[] chars, int offset) {
+	public static final int scanBeyondUnquotedValue(final char[] chars, int offset) {
 		while(true) {
 			switch(chars[++offset]) {
 			case ',':
@@ -592,35 +614,6 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		}
 		return start;
 	}
-
-	public static final int scanQuotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != '"');
-		if(chars[offset - 1] != '\\') {
-			return offset;
-		}
-		
-		return scanEscapedValue(chars, offset);	
-	}
-
-	public static int scanEscapedValue(final char[] chars, int offset) {
-		while(true) {
-			// is there an even number of quotes behind?
-			int slashOffset = offset - 2;
-			while(chars[slashOffset] == '\\') {
-				slashOffset--;
-			}
-			if((offset - slashOffset) % 2 == 1) {
-				return offset;
-			}
-			
-			while(chars[++offset] != '"');
-			
-			if(chars[offset - 1] != '\\') {
-				return offset;
-			}			
-		}
-	}
-
 
 
 }
