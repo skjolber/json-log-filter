@@ -355,6 +355,22 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 
 		return offset;
 	}
+	
+	public static final int scanBeyondUnquotedValue2(final char[] chars, int offset) {
+		while(true) {
+			switch(chars[++offset]) {
+			case ',':
+			case '}':
+			case ']': 
+			case ' ': 
+			case '\t': 
+			case '\r': 
+			case '\n': 
+				return offset;
+				default:
+			}
+		}
+	}
 
 	public static int anonymizeObjectOrArray(char[] chars, int offset, CharArrayRangesFilter filter) {
 		int level = 1;

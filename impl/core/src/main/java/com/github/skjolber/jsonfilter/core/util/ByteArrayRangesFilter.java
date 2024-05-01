@@ -480,9 +480,18 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
-		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
-
-		return offset;
+		while(true) {
+			switch(chars[++offset]) {
+			case ',':
+			case '}':
+			case ']': 
+			case ' ': 
+			case '\t': 
+			case '\n': 
+				return offset;
+				default:
+			}
+		}
 	}
 
 	public static int skipObjectOrArray(byte[] chars, int offset) {

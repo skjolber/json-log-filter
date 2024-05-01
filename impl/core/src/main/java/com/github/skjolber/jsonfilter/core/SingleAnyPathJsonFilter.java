@@ -329,44 +329,8 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						continue;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addAnon(nextOffset, offset);
 						// next char cannot be quote, so skip it
 						offset++;
@@ -428,45 +392,9 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					continue;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
-					filter.addPrune(nextOffset, offset);
+					offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+					filter.addAnon(nextOffset, offset);
 					// next char cannot be quote, so skip it
 					offset++;
 				}
@@ -539,28 +467,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					break;
 				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addAnon(nextOffset, offset);
 					// next char cannot be quote, so skip it
 					offset++;
@@ -621,47 +528,11 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						continue;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addPrune(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
 				}
 			} else {
@@ -722,48 +593,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						continue;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addPrune(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 			} else {
 				offset = nextOffset + 1;
@@ -823,48 +659,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						continue;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addAnon(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 			} else {
 				offset = nextOffset + 1;
@@ -922,47 +723,11 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					continue;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addPrune(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
 			}
 		}
@@ -1017,47 +782,11 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					continue;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addAnon(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
 			}
 		}
@@ -1115,48 +844,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						break;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addAnon(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 				
 				maxPathMatches--;
@@ -1220,48 +914,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					break;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addPrune(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
+
 			}
 			
 			maxPathMatches--;
@@ -1321,48 +980,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					break;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addAnon(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
+
 			}
 			maxPathMatches--;
 			if(maxPathMatches == 0) {
@@ -1423,48 +1047,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						break;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addPrune(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 				maxPathMatches--;
 				if(maxPathMatches == 0) {
@@ -1529,48 +1118,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						break;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addPrune(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addPrune(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 				maxPathMatches--;
 				if(maxPathMatches == 0) {
@@ -1635,48 +1189,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						
 						break;
 					}
-					case 't': 
-					case 'n': {
-						offset = nextOffset + 4;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
-					case 'f': {
-						offset = nextOffset + 5;
-						filter.addAnon(nextOffset, offset);
-						// next char cannot be quote, so skip it
-						offset++;
-						break;
-					}
 					default: {
-						offset = nextOffset;
-						loop:
-						while(true) {
-							switch(chars[++offset]) {
-							case '0':
-							case '1':
-							case '2':
-							case '3':
-							case '4':
-							case '5':
-							case '6':
-							case '7':
-							case '8':
-							case '9':
-							case '-':
-							case '+':
-							case 'e':
-							case 'E':
-								continue;
-							default: break loop;
-						}
-						}
+						offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 						filter.addAnon(nextOffset, offset);
 						// next char cannot be quote, so skip it
-						offset++;
+						offset++;		
 					}
+
 				}
 				maxPathMatches--;
 				if(maxPathMatches == 0) {
@@ -1739,48 +1258,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					break;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addPrune(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addPrune(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
+
 			}
 			
 			maxPathMatches--;
@@ -1840,48 +1324,13 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 					
 					continue;
 				}
-				case 't': 
-				case 'n': {
-					offset = nextOffset + 4;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
-				case 'f': {
-					offset = nextOffset + 5;
-					filter.addAnon(nextOffset, offset);
-					// next char cannot be quote, so skip it
-					offset++;
-					break;
-				}
 				default: {
-					offset = nextOffset;
-					loop:
-					while(true) {
-						switch(chars[++offset]) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-						case '-':
-						case '+':
-						case 'e':
-						case 'E':
-							continue;
-						default: break loop;
-					}
-					}
+					offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
 					filter.addAnon(nextOffset, offset);
 					// next char cannot be quote, so skip it
-					offset++;
+					offset++;		
 				}
+
 			}
 			
 			maxPathMatches--;
