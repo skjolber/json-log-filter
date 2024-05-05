@@ -171,17 +171,17 @@ to output like
 ### Path syntax
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
-    $.my.field.name
+    /my/field/name
 
 with support for wildcards; 
 
-    $.my.field.*
+    /my/field/*
 
 or a simple any-level field name search 
 
-    $..myFieldName
+    //myFieldName
 
-The filters within this library support using multiple expressions at once.
+The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
 
 ### Max path matches
 Configure max path matches; so that filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
