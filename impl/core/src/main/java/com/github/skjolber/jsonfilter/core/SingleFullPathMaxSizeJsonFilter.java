@@ -121,8 +121,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;							
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					// skip over whitespace
 
@@ -132,9 +130,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
@@ -143,13 +139,8 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					}
 
 					// was field name
-
-					nextOffset++;
-
 					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(nextOffset >= maxSizeLimit) {
 						break loop;
@@ -287,7 +278,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								return SingleAnyPathMaxSizeJsonFilter.rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
+								return AnyPathMaxSizeJsonFilter.rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
 							}							
 						}
 
@@ -404,8 +395,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;							
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					// skip over whitespace
 
@@ -415,22 +404,16 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
-					
+					while(chars[++nextOffset] <= 0x20);
+
 					if(chars[nextOffset] != ':') {
 						// was a text value
 						offset = nextOffset;
 						continue;
 					}
 					
-					nextOffset++;
-
 					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(nextOffset >= maxSizeLimit) {
 						break loop;
@@ -567,7 +550,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								return SingleAnyPathMaxSizeJsonFilter.rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
+								return AnyPathMaxSizeJsonFilter.rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
 							}							
 						}
 

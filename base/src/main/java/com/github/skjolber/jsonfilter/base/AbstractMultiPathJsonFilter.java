@@ -114,7 +114,6 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			}
 		}
 		return null;
-			
 	}
 	
 	/**
@@ -129,21 +128,16 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 */
 	
 	protected FilterType matchAnyElements(final char[] chars, int start, int end) {
-		anyFilters:
+		return matchAnyElements(anyElementFilters, chars, start, end);
+	}
+
+	protected static FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final char[] chars, int start, int end) {
 		for(int i = 0; i < anyElementFilters.length; i++) {
-			if(anyElementFilters[i].pathChars.length != end - start) {
-				continue;
+			if(AbstractPathJsonFilter.matchPath(chars, start, end, anyElementFilters[i].pathChars)) {
+				return anyElementFilters[i].getFilterType();
 			}
-			for(int k = 0; k < anyElementFilters[i].pathChars.length; k++) {
-				if(anyElementFilters[i].pathChars[k] != chars[start + k]) {
-					continue anyFilters;
-				}
-			}
-			
-			return anyElementFilters[i].getFilterType();
 		}
 		return null;
-			
 	}
 
 	/**
@@ -158,20 +152,16 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 */
 
 	protected FilterType matchAnyElements(final byte[] chars, int start, int end) {
-		anyFilters:
+		return matchAnyElements(anyElementFilters, chars, start, end);
+	}	
+	
+	protected static FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
 		for(int i = 0; i < anyElementFilters.length; i++) {
-			if(anyElementFilters[i].pathBytes.length != end - start) {
-				continue;
+			if(AbstractPathJsonFilter.matchPath(chars, start, end, anyElementFilters[i].pathBytes)) {
+				return anyElementFilters[i].getFilterType();
 			}
-			for(int k = 0; k < anyElementFilters[i].pathBytes.length; k++) {
-				if(anyElementFilters[i].pathBytes[k] != chars[start + k]) {
-					continue anyFilters;
-				}
-			}
-			
-			return anyElementFilters[i].getFilterType();
 		}
 		return null;
-			
 	}	
+
 }

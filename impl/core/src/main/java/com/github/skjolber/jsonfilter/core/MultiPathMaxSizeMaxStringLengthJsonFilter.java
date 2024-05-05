@@ -129,8 +129,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						
 						int quoteEndIndex = nextOffset;
 						
-						nextOffset++;
-						
 						// is this a field name or a value? A field name must be followed by a colon
 						
 						// skip over whitespace
@@ -141,9 +139,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						// carriage return: 0x0D
 						// newline: 0x0A
 
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
@@ -198,12 +194,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
 						}					
 								
-						nextOffset++;
-						
 						// skip whitespace
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 
 						if(type != null) {
 							int removedLength = filter.getRemovedLength();
@@ -468,8 +460,6 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						
 						int quoteEndIndex = nextOffset;
 						
-						nextOffset++;
-						
 						// is this a field name or a value? A field name must be followed by a colon
 						
 						// skip over whitespace
@@ -479,10 +469,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						// tab: 0x09
 						// carriage return: 0x0D
 						// newline: 0x0A
-
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
@@ -536,12 +523,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
 						}					
 								
-						nextOffset++;
-						
 						// skip whitespace
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 
 						if(type != null) {
 							int removedLength = filter.getRemovedLength();

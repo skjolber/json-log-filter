@@ -88,9 +88,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					
 					// was field name
 					// skip colon + whitespace
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
@@ -239,9 +237,7 @@ public class SingleFullPathMaxStringLengthJsonFilter extends AbstractRangesSingl
 					}
 					// was field name
 					// skip colon + whitespace
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
