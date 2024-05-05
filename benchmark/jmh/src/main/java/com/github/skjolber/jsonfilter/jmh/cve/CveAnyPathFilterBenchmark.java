@@ -33,8 +33,8 @@ public class CveAnyPathFilterBenchmark extends AbstractAnyPathFilterBenchmark {
 
 	private static String PATH = "//vendor_name";
 
-	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	@Param(value={"2KB"})
+	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	//@Param(value={"2KB"})
 	private String fileName;
 
 	@Override

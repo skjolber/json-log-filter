@@ -98,34 +98,4 @@ public abstract class AbstractAnyPathFilterBenchmark {
 		return fastCoreMultipleJsonFilter.benchmarkBytes();
 	}
 
-
-	@Benchmark
-	public long core_multiple_keep_ws_bytes2() throws IOException {
-		return coreMultipleJsonFilter.benchmarkBytes();
-	}
-	
-
-	@Benchmark
-	public long fast_multiple_keep_ws_bytes2() throws IOException {
-		return fastCoreMultipleJsonFilter.benchmarkBytes();
-	}
-
-
-
-	/*
-	@Benchmark
-	public long jackson_char() throws IOException {
-		return jacksonJsonFilter.benchmarkCharacters();
-	}
-	
-	@Benchmark
-	public long core_single_keep_ws_char() throws IOException {
-		return coreSingleJsonFilter.benchmarkCharacters();
-	}
-	
-	@Benchmark
-	public long core_multiple_keep_ws_char() throws IOException {
-		return coreMultipleJsonFilter.benchmarkCharacters();
-	}	
-	*/
 }
