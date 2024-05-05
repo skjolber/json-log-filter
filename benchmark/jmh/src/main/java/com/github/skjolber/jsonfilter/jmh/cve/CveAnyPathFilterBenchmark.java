@@ -18,7 +18,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.jmh.AbstractSingleAnyPathFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractAnyPathFilterBenchmark;
 import com.github.skjolber.jsonfilter.jmh.AbstractSingleFullPathMaxStringLengthFilterBenchmark;
 
 
@@ -29,12 +29,12 @@ import com.github.skjolber.jsonfilter.jmh.AbstractSingleFullPathMaxStringLengthF
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
-public class CveAnyPathFilterBenchmark extends AbstractSingleAnyPathFilterBenchmark {
+public class CveAnyPathFilterBenchmark extends AbstractAnyPathFilterBenchmark {
 
 	private static String PATH = "//vendor_name";
 
-	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
+	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	@Param(value={"2KB"})
 	private String fileName;
 
 	@Override

@@ -155,7 +155,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		return matchAnyElements(anyElementFilters, chars, start, end);
 	}	
 	
-	protected FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
+	protected static FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
 		for(int i = 0; i < anyElementFilters.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(chars, start, end, anyElementFilters[i].pathBytes)) {
 				return anyElementFilters[i].getFilterType();

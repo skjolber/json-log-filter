@@ -91,12 +91,8 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					}
 
 					// was field name
-					nextOffset++;
-
-					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					// skip whitespace after colon
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
@@ -198,13 +194,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					}
 
 					// was field name
-
-					nextOffset++;
-
-					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here

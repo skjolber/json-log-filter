@@ -126,11 +126,6 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 								return new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 							}
 							return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-						} else {
-							if(isActiveMaxSize()) {
-								return new SingleAnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-							}
-							return new SingleAnyPathJsonFilter(maxPathMatches, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 						}
 					}
 				} else if(isSingleAnonymizeFilter()) {
@@ -152,13 +147,15 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 								return new SingleAnyPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 							}
 							return new SingleAnyPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-						} else {
-							if(isActiveMaxSize()) {
-								return new SingleAnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-							}
-							return new SingleAnyPathJsonFilter(maxPathMatches, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 						}
 					}
+				}
+				
+				if(anonymizeFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(anonymizeFilters) && pruneFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(pruneFilters)) {
+					if(isActiveMaxSize()) {
+						return new AnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, anonymizeFilters, pruneFilters);
+					}
+					return new AnyPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters);
 				}
 
 				if(isActiveMaxStringLength()) {

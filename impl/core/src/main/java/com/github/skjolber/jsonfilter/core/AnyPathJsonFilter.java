@@ -1,18 +1,21 @@
 package com.github.skjolber.jsonfilter.core;
 
-import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter.AnyPathFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 
 	public AnyPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		this(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	public AnyPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes) {
-		super(-1, -1, maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+		this(-1, -1, maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+	}
+	
+	protected AnyPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes,
+			String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
 	@Override
@@ -21,9 +24,9 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		try {
 			AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 			if(maxPathMatches != -1) {
-				
+				rangesAnyPath(chars, offset, offset + length, maxPathMatches, anyElementFilters, filter);
 			} else {
-				
+				rangesAnyPath(chars, offset, offset + length, anyElementFilters, filter);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -38,9 +41,9 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		try {
 			AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 			if(maxPathMatches != -1) {
-				
+				rangesAnyPath(chars, offset, offset + length, maxPathMatches, anyElementFilters, filter);
 			} else {
-				
+				rangesAnyPath(chars, offset, offset + length, anyElementFilters, filter);
 			}
 			return filter;
 		} catch(Exception e) {
@@ -48,7 +51,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		}
 	}
 
-	public static <T extends CharArrayRangesFilter> T rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, T filter) {
+	public static void rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
@@ -79,12 +82,8 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					}
 				}
 
-				nextOffset++;
-				
-				// skip whitespace
-				while(chars[nextOffset] <= 0x20) {
-					nextOffset++;
-				}
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
 				
 				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
 				
@@ -107,23 +106,51 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						case 'n': {
 							offset = nextOffset + 4;
 							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
 							break;
 						}
 						case 'f': {
 							offset = nextOffset + 5;
 							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
 							break;
 						}
 						default: {
-							offset = CharArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+							offset = nextOffset;
+							loop:
+							while(true) {
+								switch(chars[++offset]) {
+								case '0':
+								case '1':
+								case '2':
+								case '3':
+								case '4':
+								case '5':
+								case '6':
+								case '7':
+								case '8':
+								case '9':
+								case '-':
+								case '+':
+								case 'e':
+								case 'E':
+									continue;
+								default: break loop;
+							}
+							}
 							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
 						}
 					}
+
 					
 					if(pathMatches != -1) {
 						pathMatches--;
 						if(pathMatches == 0) {
-							return filter; // done filtering
+							return; // done filtering
 						}
 					}					
 				} else {
@@ -133,11 +160,9 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 			}
 			offset++;
 		}
-
-		return filter;
 	}
 
-	public static <T extends ByteArrayRangesFilter> T rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, T filter) {
+	public static void rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
@@ -168,39 +193,73 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					}
 				}
 
-				nextOffset++;
-				
-				// skip whitespace
-				while(chars[nextOffset] <= 0x20) {
-					nextOffset++;
-				}
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
 				
 				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
 				if(filterType != null) {
-					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
+					switch(chars[nextOffset]) {
+					case '[':
+					case '{':
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
 						} else {
 							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
 						}
-					} else {
-						if(chars[nextOffset] == '"') {
-							// quoted value
-							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-						} else {
-							offset = ByteArrayRangesFilter.scanBeyondUnquotedValue(chars, nextOffset);
+						break;
+					case '"': {
+						offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						filter.add(filterType, nextOffset, offset);
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
 						}
-						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset);
-						} else {
-							filter.addAnon(nextOffset, offset);
 						}
-					}	
-					
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+
 					if(pathMatches != -1) {
 						pathMatches--;
 						if(pathMatches == 0) {
-							return filter; // done filtering
+							return; // done filtering
 						}
 					}					
 				} else {
@@ -210,9 +269,213 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 			}
 			offset++;
 		}
-
-		return filter;
 	}
-	
-	
+
+	public static void rangesAnyPath(final char[] chars, int offset, int limit, AnyPathFilter[] anyElementFilters, CharArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] == '"') {
+				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
+				
+				int quoteIndex = nextOffset;
+				
+				nextOffset++;
+				
+				// is this a field name or a value? A field name must be followed by a colon
+				if(chars[nextOffset] != ':') {
+					// skip over whitespace
+					
+					// optimization: scan for highest value
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
+
+					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+						nextOffset++;
+					}
+					
+					if(chars[nextOffset] != ':') {
+						// was a text value
+						offset = nextOffset;
+						
+						continue;
+					}
+				}
+
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+				
+				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+				
+				if(filterType != null) {
+					switch(chars[nextOffset]) {
+					case '[':
+					case '{':
+						if(filterType == FilterType.PRUNE) {
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+						} else {
+							offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						}
+						break;
+					case '"': {
+						offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+						filter.add(filterType, nextOffset, offset);
+						break;
+					}
+					case 't': 
+					case 'n': {
+						offset = nextOffset + 4;
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					case 'f': {
+						offset = nextOffset + 5;
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+						break;
+					}
+					default: {
+						offset = nextOffset;
+						loop:
+						while(true) {
+							switch(chars[++offset]) {
+							case '0':
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+							case '-':
+							case '+':
+							case 'e':
+							case 'E':
+								continue;
+							default: break loop;
+						}
+						}
+						filter.add(filterType, nextOffset, offset);
+						// next char cannot be quote, so skip it
+						offset++;
+					}
+				}
+
+				} else {
+					offset = nextOffset;
+				}
+				continue;
+			}
+			offset++;
+		}
+	}
+
+	public static void rangesAnyPath(final byte[] chars, int offset, int limit, AnyPathFilter[] anyElementFilters, ByteArrayRangesFilter filter) {
+		while(offset < limit) {
+			if(chars[offset] == '"') {
+				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+				
+				int quoteIndex = nextOffset;
+				
+				nextOffset++;
+				
+				// is this a field name or a value? A field name must be followed by a colon
+				if(chars[nextOffset] != ':') {
+					// skip over whitespace
+					
+					// optimization: scan for highest value
+					// space: 0x20
+					// tab: 0x09
+					// carriage return: 0x0D
+					// newline: 0x0A
+
+					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
+						nextOffset++;
+					}
+					
+					if(chars[nextOffset] != ':') {
+						// was a text value
+						offset = nextOffset;
+						
+						continue;
+					}
+				}
+
+				// skip whitespace after colon
+				while(chars[++nextOffset] <= 0x20);
+				
+				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+				if(filterType != null) {
+					switch(chars[nextOffset]) {
+						case '[':
+						case '{':
+							if(filterType == FilterType.PRUNE) {
+								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+							} else {
+								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							}
+							break;
+						case '"': {
+							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
+							filter.add(filterType, nextOffset, offset);
+							break;
+						}
+						case 't': 
+						case 'n': {
+							offset = nextOffset + 4;
+							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
+							break;
+						}
+						case 'f': {
+							offset = nextOffset + 5;
+							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
+							break;
+						}
+						default: {
+							offset = nextOffset;
+							loop:
+							while(true) {
+								switch(chars[++offset]) {
+								case '0':
+								case '1':
+								case '2':
+								case '3':
+								case '4':
+								case '5':
+								case '6':
+								case '7':
+								case '8':
+								case '9':
+								case '-':
+								case '+':
+								case 'e':
+								case 'E':
+									continue;
+								default: break loop;
+							}
+							}
+							filter.add(filterType, nextOffset, offset);
+							// next char cannot be quote, so skip it
+							offset++;
+						}
+					}
+				
+				} else {
+					offset = nextOffset;
+				}
+				continue;
+			}
+			offset++;
+		}
+	}
+
 }

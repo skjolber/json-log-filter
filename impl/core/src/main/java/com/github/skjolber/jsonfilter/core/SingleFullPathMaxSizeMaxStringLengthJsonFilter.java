@@ -109,8 +109,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						
 						int quoteEndIndex = nextOffset;
 						
-						nextOffset++;
-						
 						// is this a field name or a value? A field name must be followed by a colon
 						
 						// skip over whitespace
@@ -121,9 +119,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						// carriage return: 0x0D
 						// newline: 0x0A
 
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
+						// skip colon + whitespace
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
@@ -164,9 +161,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							continue;
 						}
 
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						// skip colon + whitespace
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(nextOffset >= maxSizeLimit) {
 							break loop;
@@ -457,8 +453,6 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 
 						int quoteEndIndex = nextOffset;
 						
-						nextOffset++;							
-						
 						// is this a field name or a value? A field name must be followed by a colon
 						
 						// skip over whitespace
@@ -469,9 +463,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 						// carriage return: 0x0D
 						// newline: 0x0A
 
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
+						// skip colon + whitespace
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(chars[nextOffset] != ':') {
 							// was a text value
@@ -513,9 +506,8 @@ public class SingleFullPathMaxSizeMaxStringLengthJsonFilter extends SingleFullPa
 							continue;
 						}
 
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						// skip colon + whitespace
+						while(chars[++nextOffset] <= 0x20);
 						
 						if(nextOffset >= maxSizeLimit) {
 							break loop;

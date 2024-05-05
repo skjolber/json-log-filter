@@ -91,8 +91,6 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					
 					// skip over whitespace
@@ -103,9 +101,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
@@ -144,15 +140,11 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						continue;
 					}
 					
-					nextOffset++;
+					while(chars[++nextOffset] <= 0x20);
 
 					// was a field name
 					if(elementPaths == STAR_CHARS || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
 						int removedLength = filter.getRemovedLength();
-
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
 
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
@@ -340,8 +332,6 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					
 					// skip over whitespace
@@ -352,9 +342,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
@@ -393,15 +381,11 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 						continue;
 					}
 					
-					nextOffset++;
+					while(chars[++nextOffset] <= 0x20);
 
 					// was a field name
 					if(elementPaths == STAR_BYTES || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
 						int removedLength = filter.getRemovedLength();
-
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
 
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?

@@ -107,12 +107,8 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						type = matchAnyElements(chars, offset + 1, quoteIndex);
 					}					
 							
-					nextOffset++;
-					
 					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 
 					if(type != null) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
@@ -249,12 +245,9 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						type = matchAnyElements(chars, offset + 1, quoteIndex);
 					}					
 					
-					nextOffset++;
-					
 					// skip whitespace
-					while(chars[nextOffset] <= 0x20) {
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
+					
 					if(type != null) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(type == FilterType.PRUNE) {

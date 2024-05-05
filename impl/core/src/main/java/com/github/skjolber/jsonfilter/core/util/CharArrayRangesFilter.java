@@ -330,24 +330,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public static final int scanBeyondQuotedValue(final char[] chars, int offset) {
-		while(true) {
-			do {
-				offset++;
-			} while(chars[offset] != '"');
-
-			if(chars[offset - 1] != '\\') {
-				return offset + 1;
-			}
-
-			// is there an even number of quotes behind?
-			int slashOffset = offset - 2;
-			while(chars[slashOffset] == '\\') {
-				slashOffset--;
-			}
-			if((offset - slashOffset) % 2 == 1) {
-				return offset + 1;
-			}
-		}
+		return scanQuotedValue(chars, offset) + 1;
 	}
 
 	public static final int scanQuotedValue(final char[] chars, int offset) {
