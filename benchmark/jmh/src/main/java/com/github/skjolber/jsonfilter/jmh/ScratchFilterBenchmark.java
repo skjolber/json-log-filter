@@ -23,11 +23,8 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
+import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
@@ -74,7 +71,7 @@ public class ScratchFilterBenchmark {
 		
 		boolean prettyPrint = false;
 		
-		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, "//" + key, FilterType.ANON), true, prettyPrint);
+		original = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{"//" + key}, null), true, prettyPrint);
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), true, prettyPrint);
 		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
 
