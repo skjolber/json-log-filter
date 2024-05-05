@@ -144,38 +144,16 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						offset = nextOffset + 1;
 						continue;
 					}
+					int quoteIndex = nextOffset;
 
-					nextOffset++;					
+					while(chars[++nextOffset] <= 0x20);
 					
 					// is this a field name or a value? A field name must be followed by a colon
 					
-					// special case: no whitespace
 					if(chars[nextOffset] == ':') {
-						// key
+						// was a field name
 						offset = nextOffset + 1;
 						continue;
-					}
-					// most likely there is now no whitespace, but a comma, end array or end object
-					
-					// legal whitespaces are:
-					// space: 0x20
-					// tab: 0x09
-					// carriage return: 0x0D
-					// newline: 0x0A
-
-					int quoteIndex = nextOffset;
-					if(chars[nextOffset] <= 0x20) {
-						// fast-forward over whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
-
-						if(chars[nextOffset] == ':') {
-							// was a field name
-							offset = nextOffset + 1;
-							continue;
-						}
 					}
 					
 					if(offset + maxStringLength > maxSizeLimit) {
@@ -269,37 +247,16 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						continue;
 					}
 
-					nextOffset++;
+					int quoteIndex = nextOffset;
+
+					while(chars[++nextOffset] <= 0x20);
 					
 					// is this a field name or a value? A field name must be followed by a colon
 					
-					// special case: no whitespace
 					if(chars[nextOffset] == ':') {
-						// key
+						// was a field name
 						offset = nextOffset + 1;
 						continue;
-					}
-					// most likely there is now no whitespace, but a comma, end array or end object
-					
-					// legal whitespaces are:
-					// space: 0x20
-					// tab: 0x09
-					// carriage return: 0x0D
-					// newline: 0x0A
-
-					int quoteIndex = nextOffset;
-					if(chars[nextOffset] <= 0x20) {
-						// fast-forward over whitespace
-						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
-
-						if(chars[nextOffset] == ':') {
-							// was a field name
-							offset = nextOffset + 1;
-							continue;
-						}
 					}
 					
 					if(offset + maxStringLength > maxSizeLimit) {

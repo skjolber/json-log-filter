@@ -93,12 +93,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}
 								
-						nextOffset++;
-						
 						// skip whitespace
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 
 						// match again any higher filter
 						if(type != null) {
@@ -230,12 +226,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							type = matchAnyElements(chars, offset + 1, quoteIndex);
 						}
 
-						nextOffset++;
-						
 						// skip whitespace
-						while(chars[nextOffset] <= 0x20) {
-							nextOffset++;
-						}
+						while(chars[++nextOffset] <= 0x20);
 
 						// match again any higher filter
 						if(type != null) {

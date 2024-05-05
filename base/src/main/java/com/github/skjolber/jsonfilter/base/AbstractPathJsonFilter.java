@@ -50,6 +50,17 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return false;
 	}
 
+	public static boolean hasAllAnyPrefix(String[] filters) {
+		if(filters != null) {
+			for(String string : filters) {
+				if(!hasAnyPrefix(string)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	public static boolean hasAnyPrefix(String string) {
 		return string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_SLASHES) || string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_DOTS);
 	}
@@ -147,7 +158,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 				}
 			}
 			return true;
-		} 
+		}
 		// check for escape
 		// must be at least one escape within the attribute length
 		int attributeOffset = 0;

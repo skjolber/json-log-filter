@@ -13,9 +13,9 @@ import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLe
 
 public abstract class AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark {
 
-	protected JacksonBenchmarkRunner jacksonMaxSizeJsonFilter;
-	protected BenchmarkRunner<? extends JsonFilter> coreMaxSizeJsonFilter;
-	protected BenchmarkRunner<? extends JsonFilter> coreRemoveWhitespaceMaxSizeJsonFilter;
+	protected JacksonBenchmarkRunner jacksonJsonFilter;
+	protected BenchmarkRunner<? extends JsonFilter> coreJsonFilter;
+	protected BenchmarkRunner<? extends JsonFilter> coreRemoveWhitespaceJsonFilter;
 	
 	@Setup
 	public void init() throws Exception {
@@ -35,9 +35,9 @@ public abstract class AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark {
 		String[] anon = getAnon();
 		String[] prune = getPrune();
 		
-		jacksonMaxSizeJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, anon, prune), true, false);
-		coreMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
-		coreRemoveWhitespaceMaxSizeJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
+		jacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, anon, prune), true, false);
+		coreJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
+		coreRemoveWhitespaceJsonFilter = new BenchmarkRunner<>(file, true, new MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, -1, anon, prune), true, false);
 	}
 	
 	protected abstract int getMaxSize(int minimum);
@@ -52,31 +52,31 @@ public abstract class AbstractMultiPathMaxSizeMaxStringLengthFilterBenchmark {
 
 	@Benchmark
 	public long jackson_bytes() throws IOException {
-		return jacksonMaxSizeJsonFilter.benchmarkBytes();
+		return jacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long core_keep_whitespace_bytes() throws IOException {
-		return coreMaxSizeJsonFilter.benchmarkBytes();
+		return coreJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
 	public long core_remove_whitespace_bytes() throws IOException {
-		return coreRemoveWhitespaceMaxSizeJsonFilter.benchmarkBytes();
+		return coreRemoveWhitespaceJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long jackson_char() throws IOException {
-		return jacksonMaxSizeJsonFilter.benchmarkCharacters();
+		return jacksonJsonFilter.benchmarkCharacters();
 	}
 	
 	@Benchmark
 	public long core_keep_whitespace_char() throws IOException {
-		return coreMaxSizeJsonFilter.benchmarkCharacters();
+		return coreJsonFilter.benchmarkCharacters();
 	}
 
 	@Benchmark
 	public long core_remove_whitespace_char() throws IOException {
-		return coreRemoveWhitespaceMaxSizeJsonFilter.benchmarkCharacters();
+		return coreRemoveWhitespaceJsonFilter.benchmarkCharacters();
 	}
 }

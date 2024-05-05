@@ -16,6 +16,7 @@
 
 	<properties>
 		<jmh.version>1.37</jmh.version>
+		<asm.version>9.7</asm.version>
 		<arakelian.jsonfilter.version>4.0.1</arakelian.jsonfilter.version>
 		<uberjar.name>benchmarks</uberjar.name>
 		<sonar.skip>true</sonar.skip>
@@ -32,6 +33,16 @@
 			<artifactId>jmh-generator-annprocess</artifactId>
 			<version>${jmh.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.ow2.asm</groupId>
+		    <artifactId>asm</artifactId>
+		    <version>${asm.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.ow2.asm</groupId>
+		    <artifactId>asm-commons</artifactId>
+		    <version>${asm.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.skjolber.json-log-filter</groupId>

@@ -72,12 +72,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					}
 				}
 
-				nextOffset++;
-				
 				// skip whitespace
-				while(chars[nextOffset] <= 0x20) {
-					nextOffset++;
-				}
+				while(chars[++nextOffset] <= 0x20);
 				
 				if(path == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
@@ -175,12 +171,8 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 					}
 				}
 
-				nextOffset++;
-				
 				// skip whitespace
-				while(chars[nextOffset] <= 0x20) {
-					nextOffset++;
-				}
+				while(chars[++nextOffset] <= 0x20);
 
 				if(path == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {

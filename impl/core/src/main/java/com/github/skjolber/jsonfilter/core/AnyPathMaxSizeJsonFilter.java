@@ -1,18 +1,20 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter.AnyPathFilter;
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
-public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
+public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 	
-	public SingleAnyPathMaxSizeJsonFilter(int maxSize, int maxPathMatches, String expression, FilterType type, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(-1, maxSize, maxPathMatches, expression, type, pruneMessage, anonymizeMessage, truncateMessage);
+	public AnyPathMaxSizeJsonFilter(int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		super(-1, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	
-	public SingleAnyPathMaxSizeJsonFilter(int maxSize, int maxPathMatches, String expression, FilterType type) {
-		this(maxSize, maxPathMatches, expression, type, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+	public AnyPathMaxSizeJsonFilter(int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes) {
+		this(maxSize, maxPathMatches, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 	
 	@Override
@@ -24,7 +26,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
-			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, pathChars, filterType, maxPathMatches, filter);
+			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyElementFilters, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
@@ -39,13 +41,13 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
-			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, pathBytes, filterType, maxPathMatches, filter);
+			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyElementFilters, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, final char[] elementPaths, FilterType filterType, int pathMatches, CharArrayRangesSizeFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilter[] anyElementFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -89,8 +91,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;							
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					
 					// skip over whitespace
@@ -100,9 +100,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
@@ -113,14 +111,11 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					// was a field name
 					
 					// skip colon
-					nextOffset++;
+					while(chars[++nextOffset] <= 0x20);
 					
-					if(elementPaths == STAR_CHARS || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
+					FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteEndIndex);
+					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
-						
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
 						
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
@@ -215,7 +210,8 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								return rangesMaxSize(chars, nextOffset, maxReadLimit, maxSizeLimit, filter);
+								rangesMaxSize(chars, nextOffset, maxReadLimit, maxSizeLimit, filter);
+								return filter;
 							}							
 						}
 
@@ -223,7 +219,8 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
-							return rangesAnyPath(chars, offset, maxReadLimit, pathMatches, elementPaths, filterType, filter);
+							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyElementFilters, filter);
+							return filter;
 						}
 					} else {
 						offset = nextOffset;
@@ -297,13 +294,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					mark = offset;
 					break;
 				case '"' :					
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
-
+					offset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 				default : // do nothing
 			}
 			offset++;			
@@ -330,7 +321,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, final byte[] elementPaths, FilterType filterType, int pathMatches, ByteArrayRangesSizeFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilter[] anyElementFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -373,8 +364,6 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					
 					int quoteEndIndex = nextOffset;
 					
-					nextOffset++;							
-					
 					// is this a field name or a value? A field name must be followed by a colon
 					// optimization: scan for highest value
 					// space: 0x20
@@ -382,9 +371,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					// carriage return: 0x0D
 					// newline: 0x0A
 
-					while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-						nextOffset++;
-					}
+					while(chars[++nextOffset] <= 0x20);
 					
 					if(chars[nextOffset] != ':') {
 						// was a text value
@@ -395,14 +382,11 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					// was a field name
 
 					// skip colon
-					nextOffset++;
+					while(chars[++nextOffset] <= 0x20);
 
-					if(elementPaths == STAR_BYTES || matchPath(chars, offset + 1, quoteEndIndex, elementPaths)) {
+					FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteEndIndex);
+					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
-						
-						while(chars[nextOffset] <= 0x20) { // expecting colon, comma, end array or end object
-							nextOffset++;
-						}
 						
 						if(filterType == FilterType.PRUNE) {
 							// is there space within max size?
@@ -505,7 +489,8 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
-							return rangesAnyPath(chars, offset, maxReadLimit, pathMatches, elementPaths, filterType, filter);
+							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyElementFilters, filter);
+							return filter;
 						}
 					} else {
 						offset = nextOffset;
@@ -576,13 +561,7 @@ public class SingleAnyPathMaxSizeJsonFilter extends SingleAnyPathJsonFilter {
 					mark = offset;
 					break;
 				case '"' :
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
-					
+					offset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 				default : // do nothing
 			}
 			offset++;			
