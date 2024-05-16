@@ -409,8 +409,47 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	public static final int scanBeyondQuotedValue(final byte[] chars, int offset) {
-		return scanQuotedValue(chars, offset) + 1;
+		while(true) {
+			do {
+				offset++;
+			} while(chars[offset] != '"');
+
+			if(chars[offset - 1] != '\\') {
+				return offset + 1;
+			}
+
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset + 1;
+			}
+		}
 	}
+	
+	public static final int scanBeyondQuoted(final byte[] chars, int offset) {
+		while(true) {
+			do {
+				offset++;
+			} while(chars[offset] != '"');
+
+			if(chars[offset - 1] != '\\') {
+				return offset;
+			}
+
+			// is there an even number of quotes behind?
+			int slashOffset = offset - 2;
+			while(chars[slashOffset] == '\\') {
+				slashOffset--;
+			}
+			if((offset - slashOffset) % 2 == 1) {
+				return offset;
+			}
+		}
+	}
+
 
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		while(chars[++offset] != '"');
@@ -441,19 +480,9 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static final int scanBeyondUnquotedValue(final byte[] chars, int offset) {
-		while(true) {
-			switch(chars[++offset]) {
-			case ',':
-			case '}':
-			case ']': 
-			case ' ': 
-			case '\r': 
-			case '\t': 
-			case '\n': 
-				return offset;
-				default:
-			}
-		}
+		while(chars[++offset] != ',' && chars[offset] != '}' && chars[offset] != ']' && chars[offset] > 0x20);
+
+		return offset;
 	}
 
 	public static int skipObjectOrArray(byte[] chars, int offset) {
