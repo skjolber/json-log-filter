@@ -41,9 +41,8 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
-		<des
-
-	<//dependency>ndencies>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
