@@ -8,6 +8,8 @@
 	</parent>
 	<artifactId>test</artifactId>
 	<packaging>jar</packaging>
+	<name>test</name>
+	<description>test</description>
 
 	<properties>
 		<sonar.skip>true</sonar.skip>	

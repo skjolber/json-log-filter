@@ -11,6 +11,8 @@
 	</parent>
 
 	<artifactId>jmh</artifactId>
+	<name>jmh</name>
+	<description>jmh</description>
 
 	<packaging>jar</packaging>
 

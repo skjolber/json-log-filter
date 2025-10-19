@@ -9,6 +9,8 @@
 	</parent>
 	<artifactId>path</artifactId>
 	<packaging>jar</packaging>
+	<name>path</name>
+	<description>path</description>
 
 	<dependencies>
 		<dependency>

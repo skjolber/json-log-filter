@@ -9,7 +9,8 @@
 	</parent>
 	<artifactId>api</artifactId>
 	<packaging>jar</packaging>
-
+	<name>api</name>
+	<description>api</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -40,8 +41,9 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
-		</dependency>
-	</dependencies>
+		<des
+
+	<//dependency>ndencies>
 
 	<build>
 		<plugins>
