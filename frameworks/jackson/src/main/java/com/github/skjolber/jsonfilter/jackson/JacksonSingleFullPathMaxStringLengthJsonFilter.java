@@ -106,7 +106,7 @@ public class JacksonSingleFullPathMaxStringLengthJsonFilter extends AbstractSing
 				level--;
 			} else if(nextToken == JsonToken.FIELD_NAME) {
 				
-				if(matchPath(parser.getCurrentName(), elementPaths[level])) {
+				if(matchPath(parser.currentName(), elementPaths[level])) {
 					if(level + 1 == elementPaths.length) {
 						generator.copyCurrentEvent(parser);
 

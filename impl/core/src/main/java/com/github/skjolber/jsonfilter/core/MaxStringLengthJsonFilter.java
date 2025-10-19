@@ -110,9 +110,8 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			// optimization: scan for highest value
 
 			int end = nextOffset;
-			do {
-				nextOffset++;
-			} while(chars[nextOffset] <= 0x20);
+			
+			while(chars[++nextOffset] <= 0x20);
 
 			if(chars[nextOffset] == ':') {
 				// was a key
@@ -174,9 +173,8 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 			// optimization: scan for highest value
 
 			int end = nextOffset;
-			do {
-				nextOffset++;
-			} while(chars[nextOffset] <= 0x20);
+			
+			while(chars[++nextOffset] <= 0x20);
 
 			if(chars[nextOffset] == ':') {
 				// was a key

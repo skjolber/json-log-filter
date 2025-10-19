@@ -24,13 +24,13 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleAnyPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathMaxStringLengthJsonFilter;
@@ -83,7 +83,7 @@ public class AllFilterBenchmark {
 	private BenchmarkRunner<JacksonJsonFilter> multiPathAnonymizeMaxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> multiAnyPathAnonymizeMaxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> multiAnyPathLogbookJsonFilter;
-	private BenchmarkRunner<JsonFilter> singleAnyPathAnonymizeJsonFilter;
+	private BenchmarkRunner<JsonFilter> anyPathAnonymizeJsonFilter;
 	private BenchmarkRunner<JsonFilter> singleAnyPathAnonymizeMaxStringLengthJsonFilter;
 
 	private BenchmarkRunner<JsonFilter> multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter;
@@ -116,7 +116,7 @@ public class AllFilterBenchmark {
 		// path - single
 		singleFullPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), prettyPrinted);
 		singleFullPathMaxStringLengthAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxStringLengthJsonFilter(20, -1, xpath, FilterType.ANON), prettyPrinted);
-		singleAnyPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, DEFAULT_ANY_XPATH, FilterType.ANON), prettyPrinted);
+		anyPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
 		singleAnyPathAnonymizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathMaxStringLengthJsonFilter(20, -1, DEFAULT_ANY_XPATH, FilterType.ANON), prettyPrinted);
 		
 		// path - multiple
@@ -184,8 +184,8 @@ public class AllFilterBenchmark {
 	}
 
 	@Benchmark
-	public long anonSingleAnyPath() throws IOException {
-		return singleAnyPathAnonymizeJsonFilter.benchmarkBytes();
+	public long anonAnyPath() throws IOException {
+		return anyPathAnonymizeJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
