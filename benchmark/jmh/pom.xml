@@ -15,6 +15,9 @@
 	<packaging>jar</packaging>
 
 	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+
 		<jmh.version>1.37</jmh.version>
 		<asm.version>9.9</asm.version>
 		<arakelian.jsonfilter.version>4.0.1</arakelian.jsonfilter.version>
@@ -29,20 +32,25 @@
 			<version>${jmh.version}</version>
 		</dependency>
 		<dependency>
+				<groupId>dev.blaauwendraad</groupId>
+				<artifactId>json-masker</artifactId>
+				<version>1.1.2</version>
+		</dependency>		
+		<dependency>
 			<groupId>org.openjdk.jmh</groupId>
 			<artifactId>jmh-generator-annprocess</artifactId>
 			<version>${jmh.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.ow2.asm</groupId>
-		    <artifactId>asm</artifactId>
-		    <version>${asm.version}</version>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm</artifactId>
+				<version>${asm.version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.ow2.asm</groupId>
-		    <artifactId>asm-commons</artifactId>
-		    <version>${asm.version}</version>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm-commons</artifactId>
+				<version>${asm.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.skjolber.json-log-filter</groupId>
@@ -58,6 +66,11 @@
 			<version>${arakelian.jsonfilter.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+				<groupId>org.simdjson</groupId>
+				<artifactId>simdjson-java</artifactId>
+				<version>0.4.0</version>
+		</dependency>		
 	</dependencies>
 
 	<prerequisites>
@@ -66,16 +79,30 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<compilerArgs>
+							<arg>--add-modules</arg>
+							<arg>jdk.incubator.vector</arg>
+						</compilerArgs>						
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.openjdk.jmh</groupId>
+								<artifactId>jmh-generator-annprocess</artifactId>
+								<version>${jmh.version}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<forkMode>always</forkMode>
 					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+					<argLine>--add-modules jdk.incubator.vector</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -110,13 +137,13 @@
 					</execution>
 				</executions>
 			</plugin>
-	        <plugin>
-	            <groupId>org.sonatype.central</groupId>
-	            <artifactId>central-publishing-maven-plugin</artifactId>
-	            <configuration>
-	                <skipPublishing>true</skipPublishing>
-	            </configuration>
-	        </plugin>				
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<configuration>
+					<skipPublishing>true</skipPublishing>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
