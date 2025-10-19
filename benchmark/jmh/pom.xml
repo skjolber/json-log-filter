@@ -20,9 +20,9 @@
 
 		<jmh.version>1.37</jmh.version>
 		<asm.version>9.9</asm.version>
-		<arakelian.jsonfilter.version>4.0.1</arakelian.jsonfilter.version>
+		<simdjson-java.version>0.4.0</simdjson-java.version>
 		<uberjar.name>benchmarks</uberjar.name>
-		<sonar.skip>true</sonar.skip>
+		<json-masker.version>1.1.2</json-masker.version>
 	</properties>
 
 	<dependencies>
@@ -32,9 +32,9 @@
 			<version>${jmh.version}</version>
 		</dependency>
 		<dependency>
-				<groupId>dev.blaauwendraad</groupId>
-				<artifactId>json-masker</artifactId>
-				<version>1.1.2</version>
+			<groupId>dev.blaauwendraad</groupId>
+			<artifactId>json-masker</artifactId>
+			<version>${json-masker.version}</version>
 		</dependency>		
 		<dependency>
 			<groupId>org.openjdk.jmh</groupId>
@@ -43,14 +43,14 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-				<groupId>org.ow2.asm</groupId>
-				<artifactId>asm</artifactId>
-				<version>${asm.version}</version>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>${asm.version}</version>
 		</dependency>
 		<dependency>
-				<groupId>org.ow2.asm</groupId>
-				<artifactId>asm-commons</artifactId>
-				<version>${asm.version}</version>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-commons</artifactId>
+			<version>${asm.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.skjolber.json-log-filter</groupId>
@@ -61,16 +61,26 @@
 			<artifactId>jackson</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.arakelian</groupId>
-			<artifactId>json-filter</artifactId>
-			<version>${arakelian.jsonfilter.version}</version>
-			<scope>compile</scope>
+			<groupId>org.simdjson</groupId>
+			<artifactId>simdjson-java</artifactId>
+			<version>${simdjson-java.version}</version>
 		</dependency>
 		<dependency>
-				<groupId>org.simdjson</groupId>
-				<artifactId>simdjson-java</artifactId>
-				<version>0.4.0</version>
-		</dependency>		
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.truth</groupId>
+			<artifactId>truth</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.truth.extensions</groupId>
+			<artifactId>truth-java8-extension</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
 	</dependencies>
 
 	<prerequisites>
