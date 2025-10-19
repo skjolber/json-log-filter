@@ -1,5 +1,6 @@
-package com.github.skjolber.jsonfilter.core;
+package com.github.skjolber.jsonfilter.jmh;
 
+import com.github.skjolber.jsonfilter.core.AbstractRangesSingleCharArrayAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
@@ -159,7 +160,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 							if(filterType == FilterType.PRUNE) {
 								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 							} else {
-								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 							}
 							break;
 						case '"': {
@@ -244,7 +245,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 						if(filterType == FilterType.PRUNE) {
 							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 						} else {
-							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						}
 					} else {
 						if(chars[nextOffset] == '"') {
@@ -316,7 +317,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				switch(chars[nextOffset]) {
 					case '[':
 					case '{':
-						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						break;
 					case '"': {
 						offset = nextOffset;
@@ -510,7 +511,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 			switch(chars[nextOffset]) {
 				case '[':
 				case '{':
-					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 					break;
 				case '"': {
 					offset = nextOffset;
@@ -810,7 +811,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				switch(chars[nextOffset]) {
 					case '[':
 					case '{':
-						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						break;
 					case '"': {
 						offset = nextOffset;
@@ -1004,7 +1005,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 			switch(chars[nextOffset]) {
 				case '[':
 				case '{':
-					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 					break;
 				case '"': {
 					offset = nextOffset;
@@ -1102,7 +1103,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				switch(chars[nextOffset]) {
 					case '[':
 					case '{':
-						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						break;
 					case '"': {
 						offset = nextOffset;
@@ -1308,7 +1309,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 			switch(chars[nextOffset]) {
 				case '[':
 				case '{':
-					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 					break;
 				case '"': {
 					offset = nextOffset;
@@ -1622,7 +1623,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 				switch(chars[nextOffset]) {
 					case '[':
 					case '{':
-						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+						offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						break;
 					case '"': {
 						offset = nextOffset;
@@ -1827,7 +1828,7 @@ public class SingleAnyPathJsonFilter extends AbstractRangesSingleCharArrayAnyPat
 			switch(chars[nextOffset]) {
 				case '[':
 				case '{':
-					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+					offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 					break;
 				case '"': {
 					offset = nextOffset;
