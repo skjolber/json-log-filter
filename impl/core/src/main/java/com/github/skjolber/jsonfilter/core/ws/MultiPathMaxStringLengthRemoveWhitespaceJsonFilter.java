@@ -159,9 +159,9 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
 								if(chars[nextOffset] == '[') {
-									offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1);
+									offset = CharArrayRangesFilter.skipArray(chars, nextOffset);
 								} else {
-									offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1);
+									offset = CharArrayRangesFilter.skipObject(chars, nextOffset);
 								}
 
 								buffer.append(filter.getPruneMessage());
@@ -349,9 +349,9 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
 								if(chars[nextOffset] == '[') {
-									offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1);
+									offset = ByteArrayRangesFilter.skipArray(chars, nextOffset);
 								} else {
-									offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1);
+									offset = ByteArrayRangesFilter.skipObject(chars, nextOffset);
 								}
 								
 								output.write(filter.getPruneMessage());

@@ -35,7 +35,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(anyElementFilters == null && level > pathItem.getLevel()) {
-							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
+							offset = CharArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
 							
@@ -101,9 +101,9 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 								} else {
-									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {
@@ -167,7 +167,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' : 
 						level++;
 						if(anyElementFilters == null && level > pathItem.getLevel()) {
-							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
+							offset = ByteArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
 							
@@ -234,9 +234,9 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 								} else {
-									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {

@@ -105,7 +105,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '{' : {
 					level++;
 					break;
@@ -119,12 +119,20 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' : {
-					offset = scanBeyondQuotedValue(chars, offset);
+					offset = scanQuotedValue(chars, offset);
 					continue;
 				}
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 				default :
 			}
-			offset++;
 		}
 	}
 	
@@ -132,7 +140,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '[' : {
 					level++;
 					break;
@@ -146,11 +154,19 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' :
-					offset = scanBeyondQuotedValue(chars, offset);
+					offset = scanQuotedValue(chars, offset);
 					continue;
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 				default :
 			}
-			offset++;
 		}
 	}	
 	
@@ -293,6 +309,16 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					
 					continue;
 				}
+				case 't': 
+				case 'n': {
+					offset += 4;
+					continue;
+				}
+				case 'f': {
+					offset += 5;
+					continue;
+				}					
+				
 				default :
 			}
 			offset++;
@@ -303,7 +329,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '[' : 
 				case '{' : {
 					level++;
@@ -320,12 +346,20 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 					break;
 				}
 				case '"' :
-					offset = scanBeyondQuotedValue(chars, offset);
+					offset = scanQuotedValue(chars, offset);
 					
 					continue;
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 				default :
 			}
-			offset++;
 		}
 	}
 	
@@ -378,6 +412,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static int anonymizeObjectOrArray(char[] chars, int offset, CharArrayRangesFilter filter) {
+		offset++;
+		
 		int level = 1;
 
 		while(true) {

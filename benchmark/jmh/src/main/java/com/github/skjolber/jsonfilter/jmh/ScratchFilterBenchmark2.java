@@ -25,11 +25,8 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
@@ -45,17 +42,17 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 // for prototyping
 
 @Fork(1)
-public class ScratchFilterBenchmark {
+public class ScratchFilterBenchmark2 {
 
 	public static final String DEFAULT_XPATH = "/address";
-	public static final String DEFAULT_ANY_XPATH = "//product_name";
+	public static final String DEFAULT_ANY_XPATH = "//2product_name";
 
 	private BenchmarkRunner<JsonFilter> original;
 	private BenchmarkRunner<JsonFilter> modified1;
 	private BenchmarkRunner<JsonFilter> modified2;
 	
-	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
+	//@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	@Param(value={"2KB"})
 	private String fileName; 
 	
 	@Setup
@@ -74,29 +71,17 @@ public class ScratchFilterBenchmark {
 		
 		Set<String> hashSet = new HashSet<>();
 		hashSet.add(key);
-		JsonMasker masker = JsonMasker.getMasker(hashSet);
+		//JsonMasker masker = JsonMasker.getMasker(hashSet);
 
-		JsonMasker.getMasker(
+		JsonMasker masker = JsonMasker.getMasker(
 		        JsonMaskingConfig.builder()
-		                .maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
+		                .maskJsonPaths(Set.of(jsonPath))
 		                .build());
 		
 		boolean prettyPrint = false;
 		
-		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true, prettyPrint);
-		
-		var singlePathJsonMasker = JsonMasker.getMasker(
-	        JsonMaskingConfig.builder()
-	                .maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
-	                .build()
-		);
-		
-		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(singlePathJsonMasker), false);
-
-		//original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, "//" + key, FilterType.ANON), true, prettyPrint);
 		//original = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{"//" + key}, null), true, prettyPrint);
-		original = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{"//" + key}, null), true, prettyPrint);
-
+		original = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), true, prettyPrint);
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), true, prettyPrint);
 		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
 
@@ -165,10 +150,11 @@ public class ScratchFilterBenchmark {
 */
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
-				.include(ScratchFilterBenchmark.class.getSimpleName())
+				.include(ScratchFilterBenchmark2.class.getSimpleName())
 				.warmupIterations(3)
 				.measurementIterations(1)
 				.forks(1)
+				//.jvmArgs("-XX:+UnlockExperimentalVMOptions", "-XX:+UseJVMCICompiler")
 				.resultFormat(ResultFormatType.JSON)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();

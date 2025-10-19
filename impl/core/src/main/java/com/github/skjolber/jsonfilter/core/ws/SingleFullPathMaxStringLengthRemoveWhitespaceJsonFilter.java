@@ -174,7 +174,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
-								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 								
 								buffer.append(filter.getPruneMessage());
 								if(metrics != null) {
@@ -373,7 +373,7 @@ public class SingleFullPathMaxStringLengthRemoveWhitespaceJsonFilter extends Abs
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
 								// skip both whitespace and actual content
-								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 
 								output.write(filter.getPruneMessage());
 								if(metrics != null) {

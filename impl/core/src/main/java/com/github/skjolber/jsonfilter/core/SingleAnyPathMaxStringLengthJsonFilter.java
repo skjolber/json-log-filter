@@ -78,9 +78,9 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 				if(path == STAR_CHARS || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+							filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 						} else {
-							offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						}
 					} else {
 						if(chars[nextOffset] == '"') {
@@ -177,9 +177,9 @@ public class SingleAnyPathMaxStringLengthJsonFilter extends AbstractRangesSingle
 				if(path == STAR_BYTES || matchPath(chars, offset + 1, quoteIndex, path)) {
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 						if(filterType == FilterType.PRUNE) {
-							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+							filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 						} else {
-							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+							offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 						}
 					} else {
 						if(chars[nextOffset] == '"') {

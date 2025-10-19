@@ -113,9 +113,9 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					if(type != null) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(type == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 							} else {
-								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -251,9 +251,9 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 					if(type != null) {
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(type == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 							} else {
-								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 							}
 						} else {
 							if(chars[nextOffset] == '"') {

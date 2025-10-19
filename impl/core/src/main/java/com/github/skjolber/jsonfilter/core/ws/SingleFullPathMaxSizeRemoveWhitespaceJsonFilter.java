@@ -285,7 +285,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 						
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+							offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 						} else {
 							if(chars[nextOffset] == '"') {
 								// quoted value
@@ -664,7 +664,7 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						}
 						
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-							offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+							offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 						} else {
 							if(chars[nextOffset] == '"') {
 								// quoted value
