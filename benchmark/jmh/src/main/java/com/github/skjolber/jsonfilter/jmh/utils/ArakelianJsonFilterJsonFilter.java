@@ -41,8 +41,6 @@ public class ArakelianJsonFilterJsonFilter extends DefaultJsonFilter {
 			
 			return true;
 		} catch (IOException e) {
-			buffer.setLength(0);
-			
 			return false;
 		}
 	}
@@ -59,8 +57,6 @@ public class ArakelianJsonFilterJsonFilter extends DefaultJsonFilter {
 			
 			return true;
 		} catch (IOException e) {
-			output.reset();
-			
 			return false;
 		}
 	}

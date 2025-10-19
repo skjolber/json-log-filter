@@ -46,13 +46,14 @@ import com.github.skjolber.jsonfilter.jmh.utils.ArakelianJsonFilterJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 
 @State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
 public class AllFilterBenchmark {
@@ -63,6 +64,7 @@ public class AllFilterBenchmark {
 	private JacksonBenchmarkRunner jacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> singleFullPathAnonymizeMaxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> anyPathJsonMaskerJsonFilter;
+	private BenchmarkRunner<JsonFilter> singlePathJsonMaskerJsonFilter;
 	private BenchmarkRunner<JsonFilter> singlePathArakelianJsonFilter;
 
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
@@ -127,12 +129,19 @@ public class AllFilterBenchmark {
 		// max size
 		multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
 
-		// other
+		// other filters
 		Set<String> hashSet = new HashSet<>();
 		hashSet.add("product_name");
-		JsonMasker masker = JsonMasker.getMasker(hashSet);
+		JsonMasker anyPathJsonMasker = JsonMasker.getMasker(hashSet);
 		
-		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), false);
+		var singlePathJsonMasker = JsonMasker.getMasker(
+	        JsonMaskingConfig.builder()
+	                .maskJsonPaths(Set.of("$.address"))
+	                .build()
+		);
+		
+		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(anyPathJsonMasker), false);
+		singlePathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(singlePathJsonMasker), false);
 		singlePathArakelianJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new ArakelianJsonFilterJsonFilter(DEFAULT_XPATH), prettyPrinted);
 
 		multiAnyPathLogbookJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, PrimitiveJsonPropertyBodyFilter.replaceString((a) -> a.equals("firstName"), "*****"), prettyPrinted);
@@ -194,6 +203,11 @@ public class AllFilterBenchmark {
 	}
 
 	@Benchmark
+	public long anonSingleFullPathJsonMask() throws IOException {
+		return singlePathJsonMaskerJsonFilter.benchmarkBytesAsArray();
+	}
+
+	@Benchmark
 	public long anonSingleAnyPathMaxStringLength() throws IOException {
 		return singleAnyPathAnonymizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
@@ -241,8 +255,8 @@ public class AllFilterBenchmark {
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(AllFilterBenchmark.class.getSimpleName())
-				.warmupIterations(25)
-				.measurementIterations(50)
+				.warmupIterations(1)
+				.measurementIterations(3)
 				.resultFormat(ResultFormatType.JSON)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.build();

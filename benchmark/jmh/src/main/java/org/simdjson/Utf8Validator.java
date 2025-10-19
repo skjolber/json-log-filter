@@ -105,11 +105,11 @@ class Utf8Validator {
     private static ByteVector lastTwoByteSequenceCheck(IntVector utf8Vector, IntVector fourBytesPrevious, ByteVector firstCheck) {
         // the minimum 3byte lead - 1110_0000 is always greater than the max 2byte lead - 110_11111
         ByteVector twoBytesPrevious = previousVectorSlice(utf8Vector, fourBytesPrevious, 2);
-        VectorMask<Byte> is3ByteLead = twoBytesPrevious.compare(VectorOperators.UNSIGNED_GT, (byte) 0b110_11111);
+        VectorMask<Byte> is3ByteLead = twoBytesPrevious.compare(VectorOperators.UGT, (byte) 0b110_11111);
 
         // the minimum 4byte lead - 1111_0000 is always greater than the max 3byte lead - 1110_1111
         ByteVector threeBytesPrevious = previousVectorSlice(utf8Vector, fourBytesPrevious, 3);
-        VectorMask<Byte> is4ByteLead = threeBytesPrevious.compare(VectorOperators.UNSIGNED_GT, (byte) 0b1110_1111);
+        VectorMask<Byte> is4ByteLead = threeBytesPrevious.compare(VectorOperators.UGT, (byte) 0b1110_1111);
 
         // the firstCheck vector contains 0x80 values on continuation byte indexes
         // the 3/4 byte lead bytes should match up with these indexes and zero them out
@@ -130,7 +130,7 @@ class Utf8Validator {
     }
 
     private static long isIncomplete(ByteVector utf8Vector) {
-        return utf8Vector.compare(VectorOperators.UNSIGNED_GE, INCOMPLETE_CHECK).toLong();
+        return utf8Vector.compare(VectorOperators.UGE, INCOMPLETE_CHECK).toLong();
     }
 
     // ASCII will never exceed 01111_1111

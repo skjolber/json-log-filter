@@ -101,7 +101,7 @@ public class JsonFilterDirectoryUnitTestFactory {
 	private Path directory;
 
 	public JsonFilterDirectoryUnitTestFactory(List<?> nullable, Path directory) {
-		this.jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable,  Arrays.asList("removingWhitespace", "validating"));
+		this.jsonFilterPropertiesFactory = new JsonFilterPropertiesFactory(nullable,  Arrays.asList("removingWhitespace", "validating", "removingLinebreaksInStrings"));
 		this.directory = directory;
 	}
 
