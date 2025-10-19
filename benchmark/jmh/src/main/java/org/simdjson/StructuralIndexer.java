@@ -5,7 +5,7 @@ import jdk.incubator.vector.IntVector;
 import jdk.incubator.vector.VectorShape;
 import jdk.incubator.vector.VectorSpecies;
 
-import static jdk.incubator.vector.VectorOperators.UNSIGNED_LE;
+import static jdk.incubator.vector.VectorOperators.ULE;
 
 class StructuralIndexer {
 
@@ -94,13 +94,13 @@ class StructuralIndexer {
     }
 
     private long lteq(ByteVector chunk0, byte scalar) {
-        long r = chunk0.compare(UNSIGNED_LE, scalar).toLong();
+        long r = chunk0.compare(ULE, scalar).toLong();
         return r;
     }
 
     private long lteq(ByteVector chunk0, ByteVector chunk1, byte scalar) {
-        long r0 = chunk0.compare(UNSIGNED_LE, scalar).toLong();
-        long r1 = chunk1.compare(UNSIGNED_LE, scalar).toLong();
+        long r0 = chunk0.compare(ULE, scalar).toLong();
+        long r1 = chunk1.compare(ULE, scalar).toLong();
         return r0 | (r1 << 32);
     }
 

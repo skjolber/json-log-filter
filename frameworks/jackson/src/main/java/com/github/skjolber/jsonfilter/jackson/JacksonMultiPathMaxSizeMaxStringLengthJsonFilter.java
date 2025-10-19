@@ -48,7 +48,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output);
+			return super.process(bytes, offset, length, output, metrics);
 		}
 		output.ensureCapacity(output.length() + length);
 
