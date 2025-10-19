@@ -118,7 +118,7 @@ public class AllFilterBenchmark {
 		// path - single
 		singleFullPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathJsonFilter(-1, xpath, FilterType.ANON), prettyPrinted);
 		singleFullPathMaxStringLengthAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxStringLengthJsonFilter(20, -1, xpath, FilterType.ANON), prettyPrinted);
-		anyPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
+		anyPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{DEFAULT_ANY_XPATH}, null), prettyPrinted);
 		singleAnyPathAnonymizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathMaxStringLengthJsonFilter(20, -1, DEFAULT_ANY_XPATH, FilterType.ANON), prettyPrinted);
 		
 		// path - multiple
