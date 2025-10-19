@@ -151,4 +151,27 @@ public class BenchmarkRunner<T extends JsonFilter> {
 		}
 		return sizeSum;
 	}	
+	
+	public long benchmarkBytesAsArray() throws IOException {
+
+		long sizeSum = 0;
+		for(FileDirectoryValue directory : directories) {
+			
+			for(int i = 0; i < directory.size(); i++) {
+				byte[] bytes = directory.getValueAsBytes(i);
+				
+				byte[] process = jsonFilter.process(bytes);
+				
+				if(process != null) {
+					sizeSum += process.length; // note: string output
+				} else {
+					throw new RuntimeException("Unable to filter using " + jsonFilter + " for source " + directory.getFile(i));
+				}
+			}
+		}
+		if(sizeSum == 0) {
+			throw new IllegalArgumentException();
+		}
+		return sizeSum;
+	}		
 }
