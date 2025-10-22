@@ -159,6 +159,10 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			}
 			return true;
 		}
+		return matchesEncoded(chars, start, end, attribute);
+	}
+
+	public static boolean matchesEncoded(final char[] chars, int start, int end, final char[] attribute) {
 		// check for escape
 		// must be at least one escape within the attribute length
 		int attributeOffset = 0;
@@ -214,6 +218,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			}
 			return true;
 		}
+		
+		return matchesEncoded(source, start, end, attribute);
+	}
+
+	public static boolean matchesEncoded(final byte[] source, int start, int end, final byte[] attribute) {
 		// check for escape
 		// must be at least one escape within the attribute length
 		int attributeOffset = 0;

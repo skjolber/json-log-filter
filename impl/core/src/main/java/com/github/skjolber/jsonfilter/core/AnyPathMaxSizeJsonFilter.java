@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -24,7 +25,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 
 		try {
-			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyElementFiltersChars, maxPathMatches, filter);
+			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
@@ -39,13 +40,13 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		
 		try {
-			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyElementFiltersBytes, maxPathMatches, filter);
+			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);
 		} catch(Exception e) {
 			return null;
 		}
 	}
 
-	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilter[][] anyElementFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyElementFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -111,7 +112,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					// skip colon
 					while(chars[++nextOffset] <= 0x20);
 					
-					FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteEndIndex);
+					FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
 					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
 						
@@ -319,7 +320,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilter[][] anyElementFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyElementFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -382,7 +383,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					// skip colon
 					while(chars[++nextOffset] <= 0x20);
 
-					FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteEndIndex);
+					FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
 					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
 						

@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -22,7 +23,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersChars;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 		
 		int pathMatches = this.maxPathMatches;
 
@@ -191,7 +192,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
+							type = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								
 						// skip whitespace
@@ -351,7 +352,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersBytes;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 
 		int pathMatches = this.maxPathMatches;
 
@@ -520,7 +521,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 						}
 						
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								
 						// skip whitespace

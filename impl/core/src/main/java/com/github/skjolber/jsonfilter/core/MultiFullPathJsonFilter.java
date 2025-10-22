@@ -9,7 +9,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
-		if(anyElementFiltersBytes != null) {
+		if(anyPathFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
 		}
 	}

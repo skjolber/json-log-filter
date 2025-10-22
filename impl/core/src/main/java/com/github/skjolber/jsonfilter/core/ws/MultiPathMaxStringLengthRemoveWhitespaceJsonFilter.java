@@ -20,6 +20,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -53,7 +54,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersChars;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 		
 		int maxStringLength = this.maxStringLength;
 		
@@ -142,7 +143,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					}
 					
 					if(anyElementFilters != null && filterType == null) {
-						filterType = matchAnyElements(chars, offset + 1, endQuoteIndex);
+						filterType = anyElementFilters.matchPath(chars, offset + 1, endQuoteIndex);
 					}
 					
 					if(filterType != null) {
@@ -241,7 +242,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersBytes;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 
 		int maxStringLength = this.maxStringLength;
 
@@ -332,7 +333,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 					}
 					
 					if(anyElementFilters != null && filterType == null) {
-						filterType = matchAnyElements(chars, offset + 1, endQuoteIndex);
+						filterType = anyElementFilters.matchPath(chars, offset + 1, endQuoteIndex);
 					}
 					
 					// was a field name
