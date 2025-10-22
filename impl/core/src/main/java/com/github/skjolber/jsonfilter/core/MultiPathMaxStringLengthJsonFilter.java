@@ -44,7 +44,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 				case '{' : 
 					level++;
 					
-					if(anyElementFiltersBytes == null && level > pathItem.getLevel()) {
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						offset = CharArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
@@ -103,7 +103,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyElementFiltersBytes != null && type == null) {
+					if(anyElementFilters != null && type == null) {
 						type = matchAnyElements(chars, offset + 1, quoteIndex);
 					}					
 							
@@ -182,7 +182,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 				case '{' : 
 					level++;
 					
-					if(anyElementFiltersBytes == null && level > pathItem.getLevel()) {
+					if(anyElementFilters == null && level > pathItem.getLevel()) {
 						offset = ByteArrayRangesFilter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, filter);
 
 						level--;
@@ -241,7 +241,7 @@ public class MultiPathMaxStringLengthJsonFilter extends AbstractRangesMultiPathJ
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyElementFiltersBytes != null && type == null) {
+					if(anyElementFilters != null && type == null) {
 						type = matchAnyElements(chars, offset + 1, quoteIndex);
 					}					
 					

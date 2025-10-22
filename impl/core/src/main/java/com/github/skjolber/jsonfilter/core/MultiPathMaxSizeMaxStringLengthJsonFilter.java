@@ -22,7 +22,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersChars;
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 		
 		int pathMatches = this.maxPathMatches;
 
@@ -351,7 +351,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersBytes;
+		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
 
 		int pathMatches = this.maxPathMatches;
 
