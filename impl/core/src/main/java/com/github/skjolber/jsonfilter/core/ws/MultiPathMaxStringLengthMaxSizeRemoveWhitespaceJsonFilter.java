@@ -61,7 +61,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersChars;
 
 		int maxStringLength = this.maxStringLength;
 		
@@ -466,7 +466,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersBytes;
 		
 		int maxStringLength = this.maxStringLength;
 

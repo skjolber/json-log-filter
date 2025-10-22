@@ -55,7 +55,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	protected final PathItem pathItem; 
 	
 	/** any path expression - //element */
-	protected final AnyPathFilter[] anyElementFilters;
+	protected final AnyPathFilter[][] anyElementFiltersBytes; // outer array: key length in bytes
+	protected final AnyPathFilter[][] anyElementFiltersChars; // outer array: key length in chars
 
 	public AbstractMultiPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
@@ -69,7 +70,11 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			for(int i = 0; i < prunes.length; i++) {
 				String prune = prunes[i];
 				if(hasAnyPrefix(prune)) {
-					any.add(new AnyPathFilter(prune.substring(2), FilterType.PRUNE));
+					String name = prune.substring(2);
+					if(name.equals("*")) {
+						throw new IllegalArgumentException("Unexpected any match for *");
+					}
+					any.add(new AnyPathFilter(name, FilterType.PRUNE));
 				} else {
 					pathsList.add(prune);
 					typesList.add(FilterType.PRUNE);
@@ -81,7 +86,11 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			for(int i = 0; i < anonymizes.length; i++) {
 				String anonymize = anonymizes[i];
 				if(hasAnyPrefix(anonymize)) {
-					any.add(new AnyPathFilter(anonymize.substring(2), FilterType.ANON));
+					String name = anonymize.substring(2);
+					if(name.equals("*")) {
+						throw new IllegalArgumentException("Unexpected any match for *");
+					}
+					any.add(new AnyPathFilter(name, FilterType.ANON));
 				} else {
 					pathsList.add(anonymize);
 					typesList.add(FilterType.ANON);
@@ -90,15 +99,70 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 		}
 		
 		if(!any.isEmpty()) {
-			anyElementFilters = any.toArray(new AnyPathFilter[any.size()]);
+			int maxKeyLengthBytes = 0;
+			int maxKeyLengthChars = 0;
+			for(int i = 0; i < any.size(); i++) {
+				AnyPathFilter anyPathFilter = any.get(i);
+				if(maxKeyLengthBytes < anyPathFilter.pathBytes.length) {
+					maxKeyLengthBytes = anyPathFilter.pathBytes.length;
+				}
+				if(maxKeyLengthChars < anyPathFilter.pathChars.length) {
+					maxKeyLengthChars = anyPathFilter.pathChars.length;
+				}
+			}
+			
+			anyElementFiltersBytes = fillBytes(any, maxKeyLengthBytes);
+			anyElementFiltersChars = fillChars(any, maxKeyLengthChars);
 		} else {
-			anyElementFilters = null;
+			anyElementFiltersBytes = null;
+			anyElementFiltersChars = null;
 		}
 
 		ExpressionNode expressionNode = NODE_FACTORY.toExpressionNode(pathsList, typesList);
 		
 		this.pathItem = FACTORY.create(expressionNode);		
 	}
+	
+	private AnyPathFilter[][] fillBytes(List<AnyPathFilter> any, int length) {
+		List<AnyPathFilter>[] output = new List[length+1];
+		for(int i = 0; i < output.length; i++) {
+			output[i] = new ArrayList<>();
+		}
+		
+		for(AnyPathFilter filter : any) {
+			output[filter.pathBytes.length].add(filter);
+		}
+		
+		AnyPathFilter[][] result = new AnyPathFilter[length + 1][];
+		for(int i = 0; i < result.length; i++) {
+			if(!output[i].isEmpty()) {
+				result[i] = output[i].toArray(new AnyPathFilter[output[i].size()]);
+			}
+		}
+	
+		 return result;
+	}
+	
+	private AnyPathFilter[][] fillChars(List<AnyPathFilter> any, int length) {
+		List<AnyPathFilter>[] output = new List[length+1];
+		for(int i = 0; i < output.length; i++) {
+			output[i] = new ArrayList<>();
+		}
+		
+		for(AnyPathFilter filter : any) {
+			output[filter.pathChars.length].add(filter);
+		}
+		
+		AnyPathFilter[][] result = new AnyPathFilter[length + 1][];
+		for(int i = 0; i < result.length; i++) {
+			if(!output[i].isEmpty()) {
+				result[i] = output[i].toArray(new AnyPathFilter[output[i].size()]);
+			}
+		}
+	
+		 return result;
+	}
+	
 	
 	/**
 	 * Note that the order or the filters establishes precedence (prune over anon).
@@ -108,9 +172,15 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 */
 	
 	protected FilterType matchAnyElements(final String chars) {
-		for(int i = 0; i < anyElementFilters.length; i++) {
-			if(anyElementFilters[i].pathString.equals(chars)) {
-				return anyElementFilters[i].getFilterType();
+		
+		if(chars.length() >= anyElementFiltersChars.length || anyElementFiltersChars[chars.length()] == null) {
+			return null;
+		}
+		AnyPathFilter[] anyPathFilters = anyElementFiltersChars[chars.length()];
+		
+		for(int i = 0; i < anyPathFilters.length; i++) {
+			if(anyPathFilters[i].pathString.equals(chars)) {
+				return anyPathFilters[i].getFilterType();
 			}
 		}
 		return null;
@@ -128,7 +198,15 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 */
 	
 	protected FilterType matchAnyElements(final char[] chars, int start, int end) {
-		return matchAnyElements(anyElementFilters, chars, start, end);
+		return matchAnyElements(anyElementFiltersChars, chars, start, end);
+	}
+	
+	protected static FilterType matchAnyElements(AnyPathFilter[][] anyElementFiltersChars, final char[] chars, int start, int end) {
+		int length = end - start;
+		if(length >= anyElementFiltersChars.length || anyElementFiltersChars[length] == null) {
+			return null;
+		}
+		return matchAnyElements(anyElementFiltersChars[length], chars, start, end);
 	}
 
 	protected static FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final char[] chars, int start, int end) {
@@ -152,13 +230,41 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	 */
 
 	protected FilterType matchAnyElements(final byte[] chars, int start, int end) {
-		return matchAnyElements(anyElementFilters, chars, start, end);
+		return matchAnyElements(anyElementFiltersBytes, chars, start, end);
+	}
+	
+	protected static FilterType matchAnyElements(AnyPathFilter[][] anyElementFiltersBytes, final byte[] chars, int start, int end) {
+		int length = end - start;
+		if(length < anyElementFiltersBytes.length && anyElementFiltersBytes[length] != null) {
+			FilterType type = unencodedMatchAnyElements(anyElementFiltersBytes[length], chars, start, end);
+			if(type != null) {
+				return type;
+			}
+		}
+		
+		
+		
+		return matchAnyElements(anyElementFiltersBytes[length], chars, start, end);
 	}	
 	
 	protected static FilterType matchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
 		for(int i = 0; i < anyElementFilters.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(chars, start, end, anyElementFilters[i].pathBytes)) {
 				return anyElementFilters[i].getFilterType();
+			}
+		}
+		return null;
+	}	
+
+	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
+		
+		main:
+		for(int i = 0; i < anyElementFilters.length; i++) {
+			byte[] pathBytes = anyElementFilters[i].pathBytes;
+			for(int k = 0; i < pathBytes.length; i++) {
+				if(pathBytes[k] != chars[start + k]) {
+					continue main;
+				}
 			}
 		}
 		return null;

@@ -16,12 +16,8 @@ public class SkipObjectJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void passthrough_success() throws Exception {
-		try {
-			SkipObjectJsonFilter filter = new SkipObjectJsonFilter(-1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
-			assertThat(filter).hasPassthrough();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+		SkipObjectJsonFilter filter = new SkipObjectJsonFilter(-1, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
+		assertThat(filter).hasPassthrough();
 	}
 
 }

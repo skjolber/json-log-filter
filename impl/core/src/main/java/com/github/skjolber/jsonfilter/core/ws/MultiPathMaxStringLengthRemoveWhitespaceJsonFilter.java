@@ -53,7 +53,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersChars;
 		
 		int maxStringLength = this.maxStringLength;
 		
@@ -241,7 +241,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilter[][] anyElementFilters = this.anyElementFiltersBytes;
 
 		int maxStringLength = this.maxStringLength;
 
