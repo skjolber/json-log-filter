@@ -45,7 +45,6 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			) {
 			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
 		} catch(final Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -77,7 +76,6 @@ public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends Jacks
 			) {
 			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size(), metrics);
 		} catch(final Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}	
