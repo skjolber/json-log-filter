@@ -136,7 +136,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 					pathItem = pathItem.constrain(level);
 				}
 				
-				if(anyElementFiltersChars != null) {
+				if(anyElementFilters != null) {
 					FilterType filterType = matchAnyElements(parser.currentName());
 					if(filterType == FilterType.ANON) {
 						anon = true;

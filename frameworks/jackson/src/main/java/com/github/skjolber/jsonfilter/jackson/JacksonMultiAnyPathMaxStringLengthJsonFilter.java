@@ -40,10 +40,10 @@ public class JacksonMultiAnyPathMaxStringLengthJsonFilter extends AbstractMultiP
 		super(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		this.jsonFactory = jsonFactory;
 		
-		if(anyElementFiltersBytes == null) {
+		if(anyElementFilters == null) {
 			fields = Collections.emptyMap();
 		} else {
-			fields = new HashMap<>(64);
+			fields = new HashMap<>(anyElementFilters.length * 4);
 		}
 		
 		if(prunes != null) {
