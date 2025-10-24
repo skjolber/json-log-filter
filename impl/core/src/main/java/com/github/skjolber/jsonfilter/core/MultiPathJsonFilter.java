@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
@@ -18,7 +19,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 		
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 
@@ -90,7 +91,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteIndex);
+							type = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 								
 						// skip whitespace
@@ -151,7 +152,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyElementFilters = this.anyPathFilters;
 
 		length += offset;
 
@@ -223,7 +224,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						}
 
 						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteIndex);
+							type = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 
 						// skip whitespace

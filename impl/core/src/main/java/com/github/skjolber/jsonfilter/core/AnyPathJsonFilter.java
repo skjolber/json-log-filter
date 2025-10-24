@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
@@ -22,7 +23,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 		try {
-			AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+			AnyPathFilters anyElementFilters = this.anyPathFilters;
 			if(maxPathMatches != -1) {
 				rangesAnyPath(chars, offset, offset + length, maxPathMatches, anyElementFilters, filter);
 			} else {
@@ -39,7 +40,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches, length);
 		try {
-			AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+			AnyPathFilters anyElementFilters = this.anyPathFilters;
 			if(maxPathMatches != -1) {
 				rangesAnyPath(chars, offset, offset + length, maxPathMatches, anyElementFilters, filter);
 			} else {
@@ -51,7 +52,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		}
 	}
 
-	public static void rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, CharArrayRangesFilter filter) {
+	public static void rangesAnyPath(final char[] chars, int offset, int limit, int pathMatches, AnyPathFilters anyElementFilters, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] != '"') {
 				offset++;
@@ -88,7 +89,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 			// skip whitespace after colon
 			while(chars[++nextOffset] <= 0x20);
 			
-			FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+			FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 			
 			if(filterType != null) {
 				switch(chars[nextOffset]) {
@@ -161,7 +162,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		}
 	}
 
-	public static void rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, AnyPathFilter[] anyElementFilters, ByteArrayRangesFilter filter) {
+	public static void rangesAnyPath(final byte[] chars, int offset, int limit, int pathMatches, AnyPathFilters anyElementFilters, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] != '"') {
 				offset++;
@@ -198,7 +199,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 			// skip whitespace after colon
 			while(chars[++nextOffset] <= 0x20);
 			
-			FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+			FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 			if(filterType != null) {
 				switch(chars[nextOffset]) {
 				case '[':
@@ -270,7 +271,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		}
 	}
 
-	public static void rangesAnyPath(final char[] chars, int offset, int limit, AnyPathFilter[] anyElementFilters, CharArrayRangesFilter filter) {
+	public static void rangesAnyPath(final char[] chars, int offset, int limit, AnyPathFilters anyElementFilters, CharArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
@@ -304,7 +305,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				// skip whitespace after colon
 				while(chars[++nextOffset] <= 0x20);
 				
-				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+				FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 				
 				if(filterType != null) {
 					switch(chars[nextOffset]) {
@@ -374,7 +375,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 		}
 	}
 
-	public static void rangesAnyPath(final byte[] chars, int offset, int limit, AnyPathFilter[] anyElementFilters, ByteArrayRangesFilter filter) {
+	public static void rangesAnyPath(final byte[] chars, int offset, int limit, AnyPathFilters anyElementFilters, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
 			if(chars[offset] == '"') {
 				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
@@ -408,7 +409,7 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				// skip whitespace after colon
 				while(chars[++nextOffset] <= 0x20);
 				
-				FilterType filterType = matchAnyElements(anyElementFilters, chars, offset + 1, quoteIndex);
+				FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
 				if(filterType != null) {
 					switch(chars[nextOffset]) {
 						case '[':
