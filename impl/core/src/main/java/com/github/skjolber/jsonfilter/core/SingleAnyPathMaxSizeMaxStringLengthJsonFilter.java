@@ -127,6 +127,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								filter.addDelete(mark, maxReadLimit);
 								return filter;
 							}
+							
+							if(maxSizeLimit + bracketLevel > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - bracketLevel;
+							}
 
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path and max string length, i.e. keep the rest of the document
@@ -152,7 +156,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								break loop;
 							}
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
@@ -220,6 +224,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								}									
 							}
 						}							
+						
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
+						}
 						
 						if(offset >= maxSizeLimit) {
 							// filtering completed
@@ -369,6 +377,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								return filter;
 							}
 
+							if(maxSizeLimit + bracketLevel > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - bracketLevel;
+							}
+
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path and max string length, i.e. keep the rest of the document
 								filter.setLevel(0);
@@ -393,7 +405,7 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								break loop;
 							}
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+								offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 							} else {
 								if(chars[nextOffset] == '"') {
 									// quoted value
@@ -462,6 +474,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							}
 						}							
 						
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
+						}
 						
 						if(offset >= maxSizeLimit) {
 							// filtering completed

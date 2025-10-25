@@ -17,7 +17,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
-public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
+public class JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
 	private static class MustContrainJacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter extends JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter {
 

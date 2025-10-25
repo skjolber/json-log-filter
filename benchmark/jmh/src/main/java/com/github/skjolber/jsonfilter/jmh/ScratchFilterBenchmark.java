@@ -24,11 +24,8 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleAnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.SingleFullPathJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
@@ -65,6 +62,7 @@ public class ScratchFilterBenchmark {
 
 		//String xpath = DEFAULT_XPATH;
 		String xpath = "/CVE_Items/cve/affects/vendor/vendor_data/vendor_name";
+		String jsonPath = "$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name";
 
 		int size = (int) (file.length() - 1);
 		
@@ -89,8 +87,6 @@ public class ScratchFilterBenchmark {
 		//original = new BenchmarkRunner<JsonFilter>(file, true, new SingleAnyPathJsonFilter(-1, "//" + key, FilterType.ANON), true, prettyPrint);
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), true, prettyPrint);
 		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
-
-		
 		
 		// xml-log-filter
 		//original = new BenchmarkRunner<JsonFilter> (file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(10, size), true);
@@ -111,7 +107,7 @@ public class ScratchFilterBenchmark {
 		// other
 		singlePathArakelianJsonFilter = new BenchmarkRunner(file, true, new ArakelianJsonFilterJsonFilter(DEFAULT_XPATH));
 
-		multiAnyPathLogbookJsonFilter = new BenchmarkRunner(file, true, PrimitiveJsonPropertyBodyFilter.replaceString((a) -> a.equals("firstName"), "*****"));
+		multiAnyPathLogbookJsonFilter = new BenchmarkRunner(file, true, PrimitiveJsonPropertyBodyFilter.replaceString((a) -> a.equals("firstName"), "*"));
 		*/
 	}
 	

@@ -92,8 +92,11 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			} catch(Exception e) {
 				e.printStackTrace();
 				System.out.println(new String(bs));
-				System.out.println(new String(byteArray));
-				fail("Parse failed, got " + byteArray.length + " vs expected " + i);
+				if(byteArray != null) {
+					System.out.println(new String(byteArray));
+					fail("Parse failed, got " + byteArray.length + " vs expected " + i);
+				}
+				fail("Parse failed, got " + null + " vs expected " + i);
 			}
 			if(byteArray.length >= i + 16) {
 				System.out.println(new String(bs, 0, bs.length));
@@ -165,7 +168,10 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			JsonFilter apply = filter.apply(i);
 		
 			byte[] process = apply.process(generateDeepStructure);
-	
+			if(process == null) {
+				System.out.println(new String(generateDeepStructure));
+				throw new RuntimeException("Expected result for level " + levels + " and filter " + apply.getClass().getName());
+			}
 			try {
 				validate(process);
 				assertTrue(process.length + " > " + i + " " + new String(process, StandardCharsets.UTF_8), process.length <= i);
@@ -183,6 +189,10 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			JsonFilter apply = filter.apply(i);
 		
 			String process = apply.process(string);
+			if(process == null) {
+				System.out.println(new String(string));
+				fail("Unable to process " + string + " size " + i) ;
+			}
 	
 			try {
 				validate(process);

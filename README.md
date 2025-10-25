@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/skjolber/json-log-filter/graph/badge.svg?token=8mCiHxVFbz)](https://codecov.io/gh/skjolber/json-log-filter)
 
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput ([by ~3x-9x](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.1.2.jdk17.json&topBar=off)). Typical use-cases:
+High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -16,19 +16,24 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
     * potentially reduce search / visualization latency
     * keep within max log-statement size
        * GCP: [256 KB](https://cloud.google.com/logging/quotas)
-       * Azure: 32 KB
+       * Azure: [64 KB](https://docs.azure.cn/en-us/azure-monitor/fundamentals/service-limits)
 
 Features:
 
- * Truncate large text values
- * Mask (anonymize) scalar values like String, Number, Boolean and so on.
- * Remove (prune) whole subtrees
- * Truncate large documents (max total output size)
- * Skip or speed up filtering for remainder of document after a number of anonymize and/or prune hits 
+ * Mask single values or whole subtrees
+ * Remove single values or whole subtrees
+ * Truncate String values
+ * Truncate document size (max total output size)
  * Remove whitespace (for pretty-printed documents)
- * Metrics for the above operations + total input and output size
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. The equivalent filters are also implemented using [Jackson]. 
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. 
+
+The equivalent filters are also implemented using [Jackson]:
+
+ * filter + verify document structure in the same operation
+ * allows dual filter setup:
+    * trusted (locally produced) JSON: fast filters without strict syntax validation
+    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -131,7 +136,7 @@ Configure anonymize for output like
 
 ```json
 {
-    "password": "*****"
+    "password": "*"
 }
 ```
 
@@ -140,8 +145,8 @@ for scalar values, and/or for objects / arrays all contained scalar values:
 ```json
 {
     "credentials": {
-        "username": "*****",
-        "password": "*****"
+        "username": "*",
+        "password": "*"
     }
 }
 ```

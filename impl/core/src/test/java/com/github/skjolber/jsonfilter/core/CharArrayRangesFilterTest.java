@@ -224,7 +224,7 @@ public class CharArrayRangesFilterTest {
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
 		
 		CharArrayRangesFilter filter = new CharArrayRangesFilter(12, input.length());
-		CharArrayRangesFilter.anonymizeObjectOrArray(input.toCharArray(), 1, filter);
+		CharArrayRangesFilter.anonymizeObjectOrArray(input.toCharArray(), 0, filter);
 		
 		StringBuilder buffer = new StringBuilder();
 		filter.filter(input.toCharArray(), 0, input.length(), buffer);

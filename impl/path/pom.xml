@@ -4,11 +4,13 @@
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
-		<version>4.1.4-SNAPSHOT</version>
+		<version>4.1.5-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>path</artifactId>
 	<packaging>jar</packaging>
+	<name>path</name>
+	<description>path</description>
 
 	<dependencies>
 		<dependency>
@@ -54,10 +56,6 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

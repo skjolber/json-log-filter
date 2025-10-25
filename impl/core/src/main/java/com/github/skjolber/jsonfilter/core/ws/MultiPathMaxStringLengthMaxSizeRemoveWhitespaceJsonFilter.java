@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
@@ -61,7 +62,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		int maxStringLength = this.maxStringLength;
 		
@@ -222,8 +223,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathItem = pathItem.constrain(level);
 				}
 				
-				if(anyElementFilters != null && filterType == null) {
-					filterType = matchAnyElements(chars, offset + 1, endQuoteIndex);
+				if(anyPathFilters != null && filterType == null) {
+					filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 				}				
 
 				if(chars[nextOffset] <= 0x20) {
@@ -242,7 +243,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				flushOffset = nextOffset;
 				
 				if(filterType == null) {
-					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
+					if(anyPathFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;
@@ -300,7 +301,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					}
 					
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-						offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+						offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 					} else {
 						if(chars[nextOffset] == '"') {
 							// quoted value
@@ -317,10 +318,6 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					
 					// adjust max size limit
 					maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
-
-					if(maxSizeLimit >= maxReadLimit) {
-						maxSizeLimit = maxReadLimit;
-					}
 					
 					mark = offset;
 					flushOffset = offset;
@@ -375,16 +372,15 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						
 						maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
-						
 						mark = offset;
 						flushOffset = offset;
-						
 					}
 				}
-
+				
+				if(maxSizeLimit + level > maxReadLimit) {
+					maxSizeLimit = maxReadLimit - level;
+				}
+				
 				if(pathMatches != -1) {
 					pathMatches--;
 					if(pathMatches == 0) {
@@ -466,7 +462,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		int maxStringLength = this.maxStringLength;
 
@@ -627,8 +623,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathItem = pathItem.constrain(level);
 				}
 				
-				if(anyElementFilters != null && filterType == null) {
-					filterType = matchAnyElements(chars, offset + 1, endQuoteIndex);
+				if(anyPathFilters != null && filterType == null) {
+					filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 				}				
 
 				if(chars[nextOffset] <= 0x20) {
@@ -647,7 +643,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				flushOffset = nextOffset;
 
 				if(filterType == null) {
-					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
+					if(anyPathFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;
@@ -705,7 +701,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					}
 					
 					if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-						offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+						offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 					} else {
 						if(chars[nextOffset] == '"') {
 							// quoted value
@@ -723,10 +719,6 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					// adjust max size limit
 					maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 
-					if(maxSizeLimit >= maxReadLimit) {
-						maxSizeLimit = maxReadLimit;
-					}
-					
 					mark = offset;
 					flushOffset = offset;
 				} else {
@@ -779,15 +771,15 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 						}
 						
 						maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
-
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
 						
 						mark = offset;
 						flushOffset = offset;
 					}
 				}
+				
+				if(maxSizeLimit + level > maxReadLimit) {
+					maxSizeLimit = maxReadLimit - level;
+				}							
 
 				if(pathMatches != -1) {
 					pathMatches--;

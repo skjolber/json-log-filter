@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
@@ -18,7 +19,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 
@@ -34,8 +35,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' : 
 						level++;
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
-							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
+							offset = CharArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
 							
@@ -89,8 +90,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							pathItem = pathItem.constrain(level);
 						}
 
-						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 								
 						// skip whitespace
@@ -101,9 +102,9 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 								} else {
-									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {
@@ -151,7 +152,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		length += offset;
 
@@ -166,8 +167,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				switch(chars[offset]) {
 					case '{' : 
 						level++;
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
-							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
+							offset = ByteArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
 							
@@ -222,8 +223,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							pathItem = pathItem.constrain(level);
 						}
 
-						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 
 						// skip whitespace
@@ -234,9 +235,9 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							// matched
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 								} else {
-									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {

@@ -9,7 +9,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public MultiFullPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
-		if(anyElementFilters != null) {
+		if(anyPathFilters != null) {
 			throw new IllegalArgumentException("Expected no any-element searches (i.e. '//myField')");
 		}
 	}
@@ -37,7 +37,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(level > pathItem.getLevel()) {
-							offset = CharArrayRangesFilter.skipObject(chars, offset + 1);
+							offset = CharArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
 									
@@ -89,15 +89,15 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							FilterType type = pathItem.getType();
 							if(chars[nextOffset] == '[') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipArray(chars, nextOffset));
 								} else {
-									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else if(chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObject(chars, nextOffset));
 								} else {
-									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {
@@ -161,7 +161,7 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 						level++;
 						
 						if(level > pathItem.getLevel()) {
-							offset = ByteArrayRangesFilter.skipObject(chars, offset + 1);
+							offset = ByteArrayRangesFilter.skipObject(chars, offset);
 							
 							level--;
 									
@@ -212,15 +212,15 @@ public class MultiFullPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							FilterType type = pathItem.getType();
 							if(chars[nextOffset] == '[') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipArray(chars, nextOffset));
 								} else {
-									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else if(chars[nextOffset] == '{') {
 								if(type == FilterType.PRUNE) {
-									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1));
+									filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObject(chars, nextOffset));
 								} else {
-									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+									offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 								}
 							} else {
 								if(chars[nextOffset] == '"') {

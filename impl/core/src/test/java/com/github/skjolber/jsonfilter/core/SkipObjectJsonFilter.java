@@ -19,7 +19,7 @@ public class SkipObjectJsonFilter extends AbstractJsonFilter {
 		if(chars[offset] != '{') {
 			return true;
 		}
-		return CharArrayRangesFilter.skipObject(chars, offset + 1) == offset + length;
+		return CharArrayRangesFilter.skipObject(chars, offset) == offset + length;
 	}
 
 	@Override
@@ -28,7 +28,7 @@ public class SkipObjectJsonFilter extends AbstractJsonFilter {
 		if(chars[offset] != '{') {
 			return true;
 		}
-		return ByteArrayRangesFilter.skipObject(chars, offset + 1) == offset + length;
+		return ByteArrayRangesFilter.skipObject(chars, offset) == offset + length;
 	}
 
 	@Override

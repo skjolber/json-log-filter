@@ -3,11 +3,13 @@
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
-		<version>4.1.4-SNAPSHOT</version>
+		<version>4.1.5-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>test</artifactId>
 	<packaging>jar</packaging>
+	<name>test</name>
+	<description>test</description>
 
 	<properties>
 		<sonar.skip>true</sonar.skip>	
@@ -73,10 +75,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

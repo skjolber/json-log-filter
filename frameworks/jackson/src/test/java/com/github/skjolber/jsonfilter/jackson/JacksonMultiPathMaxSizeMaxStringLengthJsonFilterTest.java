@@ -16,7 +16,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
-public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
+public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
 	private static class MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMultiPathMaxSizeMaxStringLengthJsonFilter {
 

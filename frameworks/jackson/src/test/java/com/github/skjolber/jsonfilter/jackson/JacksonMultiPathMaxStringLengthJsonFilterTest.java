@@ -15,7 +15,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
-public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractJacksonJsonFilterTest {
+public class JacksonMultiPathMaxStringLengthJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
 	public JacksonMultiPathMaxStringLengthJsonFilterTest() throws Exception {
 		super(true);

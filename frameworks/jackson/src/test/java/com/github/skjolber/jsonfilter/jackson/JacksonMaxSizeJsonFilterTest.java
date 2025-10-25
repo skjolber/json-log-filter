@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-public class JacksonMaxSizeJsonFilterTest extends AbstractJacksonJsonFilterTest {
+public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
 	public JacksonMaxSizeJsonFilterTest() throws Exception {
 		super(false);

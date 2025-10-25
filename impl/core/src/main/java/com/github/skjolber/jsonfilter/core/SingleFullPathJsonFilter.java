@@ -49,7 +49,7 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 		}
 	}
 
-	protected static int rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
+	protected static int rangesFullPath(final char[] chars, int offset, int limit, int level, final char[][] elementPaths, int matches, final FilterType filterType, int pathMatches, final CharArrayRangesFilter filter) {
 		
 		while(offset < limit) {
 			switch(chars[offset]) {
@@ -97,9 +97,9 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					if(elementPaths[level] != STAR_CHARS && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[') {
-							offset = CharArrayRangesFilter.skipArray(chars, nextOffset + 1);
+							offset = CharArrayRangesFilter.skipArray(chars, nextOffset);
 						} else if(chars[nextOffset] == '{') {
-							offset = CharArrayRangesFilter.skipObject(chars, nextOffset + 1);
+							offset = CharArrayRangesFilter.skipObject(chars, nextOffset);
 						} else if(chars[nextOffset] == '"') {
 							offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
@@ -112,9 +112,9 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								filter.addPrune(nextOffset, offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 							} else {
-								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								offset = CharArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 							}
 						} else {
 							if(chars[nextOffset] == '"') {
@@ -199,9 +199,9 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 					if(elementPaths[level] != STAR_BYTES && !matchPath(chars, offset + 1, quoteIndex, elementPaths[level])) {
 						// skip here
 						if(chars[nextOffset] == '[') {
-							offset = ByteArrayRangesFilter.skipArray(chars, nextOffset + 1);
+							offset = ByteArrayRangesFilter.skipArray(chars, nextOffset);
 						} else if(chars[nextOffset] == '{') {
-							offset = ByteArrayRangesFilter.skipObject(chars, nextOffset + 1);
+							offset = ByteArrayRangesFilter.skipObject(chars, nextOffset);
 						} else if(chars[nextOffset] == '"') {
 							offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
 						} else {
@@ -214,9 +214,9 @@ public class SingleFullPathJsonFilter extends AbstractRangesSingleCharArrayFullP
 						// matched
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {
-								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1));
+								filter.addPrune(nextOffset, offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset));
 							} else {
-								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset + 1, filter);
+								offset = ByteArrayRangesFilter.anonymizeObjectOrArray(chars, nextOffset, filter);
 							}
 						} else {
 							if(chars[nextOffset] == '"') {

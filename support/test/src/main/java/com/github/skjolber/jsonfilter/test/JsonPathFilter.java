@@ -30,7 +30,7 @@ public class JsonPathFilter implements JsonFilter {
 	private static JsonPath ANY = JsonPath.compile("$..*");
 	
 	public static final String FILTER_PRUNE_MESSAGE = "PRUNED";
-	public static final String FILTER_ANONYMIZE = "*****";
+	public static final String FILTER_ANONYMIZE = "*";
 	public static final String FILTER_TRUNCATE_MESSAGE = "... + ";
 	
     private static final ParseContext CONTEXT = JsonPath.using(

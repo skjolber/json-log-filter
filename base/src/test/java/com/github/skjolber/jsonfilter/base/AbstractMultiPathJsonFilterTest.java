@@ -52,29 +52,5 @@ public class AbstractMultiPathJsonFilterTest {
 		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc/def/ghi", "/def", "/ghi", "/abc/yyy", "/abc/zzz"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
 	}
 
-	@Test
-	public void testMatchAny() {
-		AbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc/def", "//def"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
-		
-		String def = "def";
-		assertEquals(filter.matchAnyElements(def), FilterType.ANON);
-		assertEquals(filter.matchAnyElements(def.toCharArray(), 0, 3), FilterType.ANON);
-		assertEquals(filter.matchAnyElements(def.getBytes(StandardCharsets.UTF_8), 0, 3), FilterType.ANON);
-
-		String de = "de";
-		assertNull(filter.matchAnyElements(de));
-		assertNull(filter.matchAnyElements(de.toCharArray(), 0, 2));
-		assertNull(filter.matchAnyElements(de.getBytes(StandardCharsets.UTF_8), 0, 2));
-
-		String defgh = "defgh";
-		assertNull(filter.matchAnyElements(defgh));
-		assertNull(filter.matchAnyElements(defgh.toCharArray(), 0, 5));
-		assertNull(filter.matchAnyElements(defgh.getBytes(StandardCharsets.UTF_8), 0, 5));
-		
-		String fgh = "fgh";
-		assertNull(filter.matchAnyElements(fgh));
-		assertNull(filter.matchAnyElements(fgh.toCharArray(), 0, 3));
-		assertNull(filter.matchAnyElements(fgh.getBytes(StandardCharsets.UTF_8), 0, 3));
-	}
 	
 }

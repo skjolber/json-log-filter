@@ -352,10 +352,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '{' : {
 					level++;
-					break;
+					continue;
 				}
 				case '}' : {
 					level--;
@@ -363,18 +363,22 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					if(level == 0) {
 						return offset + 1;
 					}
-					break;
+					continue;
 				}
 				case '"' :
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanQuotedValue(chars, offset);
+					continue;
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 				default :
 			}
-			offset++;
 		}
 	}
 	
@@ -382,10 +386,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '[' : {
 					level++;
-					break;
+					continue;
 				}
 				case ']' : {
 					level--;
@@ -393,18 +397,22 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					if(level == 0) {
 						return offset + 1;
 					}
-					break;
+					continue;
 				}
 				case '"' :
-					do {
-						if(chars[offset] == '\\') {
-							offset++;
-						}
-						offset++;
-					} while(chars[offset] != '"');
+					offset = scanQuotedValue(chars, offset);
+					continue;
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 				default :
 			}
-			offset++;
 		}
 	}
 	
@@ -460,11 +468,11 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		int level = 1;
 
 		while(true) {
-			switch(chars[offset]) {
+			switch(chars[++offset]) {
 				case '[' : 
 				case '{' : {
 					level++;
-					break;
+					continue;
 				}
 	
 				case ']' : 
@@ -474,17 +482,27 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					if(level == 0) {
 						return offset + 1;
 					}
-					break;
+					continue;
 				}
 				case '"' :
 					offset = scanQuotedValue(chars, offset);
-				default :
+					continue;
+				case 't': 
+				case 'n': {
+					offset += 3;
+					continue;
+				}
+				case 'f': {
+					offset += 4;
+					continue;
+				}					
 			}
-			offset++;
 		}
 	}
 
 	public static int anonymizeObjectOrArray(byte[] chars, int offset, ByteArrayRangesFilter filter) {
+		offset++;
+		
 		int level = 1;
 
 		while(true) {
@@ -649,6 +667,15 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					
 					continue;
 				}
+				case 't': 
+				case 'n': {
+					offset += 4;
+					continue;
+				}
+				case 'f': {
+					offset += 5;
+					continue;
+				}					
 				default :
 			}
 			offset++;
@@ -721,6 +748,15 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 					
 					continue;
 				}
+				case 't': 
+				case 'n': {
+					offset += 4;
+					continue;
+				}
+				case 'f': {
+					offset += 5;
+					continue;
+				}					
 				default :
 			}
 			offset++;

@@ -240,7 +240,7 @@ public class ByteArrayRangesFilterTest {
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
 		
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, input.length());
-		ByteArrayRangesFilter.anonymizeObjectOrArray(input.getBytes(), 1, filter);
+		ByteArrayRangesFilter.anonymizeObjectOrArray(input.getBytes(), 0, filter);
 		
 		ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
 		filter.filter(input.getBytes(), 0, input.length(), b);

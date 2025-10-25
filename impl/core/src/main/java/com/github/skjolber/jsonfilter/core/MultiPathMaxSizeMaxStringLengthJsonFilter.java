@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import com.github.skjolber.jsonfilter.base.path.PathItem;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -22,7 +23,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		int pathMatches = this.maxPathMatches;
 
@@ -63,7 +64,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							
 							filter.setLevel(bracketLevel);
 							filter.setMark(offset);
@@ -190,8 +191,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								
 						// skip whitespace
@@ -210,7 +211,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 									break loop;
 								}
 								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-									offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+									offset = CharArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 								} else {
 									if(chars[nextOffset] == '"') {
 										// quoted value
@@ -277,6 +278,10 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 										return filter;
 									}									
 								}
+							}							
+
+							if(maxSizeLimit + level > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - level;
 							}							
 
 							if(offset >= maxSizeLimit) {
@@ -351,7 +356,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilter[] anyElementFilters = this.anyElementFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		int pathMatches = this.maxPathMatches;
 
@@ -392,7 +397,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							
 							filter.setLevel(bracketLevel);
 							filter.setMark(offset);
@@ -519,8 +524,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyElementFilters != null && type == null) {
-							type = matchAnyElements(chars, offset + 1, quoteEndIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								
 						// skip whitespace
@@ -539,7 +544,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 									break loop;
 								}
 								if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
-									offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset + 1);
+									offset = ByteArrayRangesFilter.skipObjectOrArray(chars, nextOffset);
 								} else {
 									if(chars[nextOffset] == '"') {
 										// quoted value
@@ -608,6 +613,10 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								}
 							}							
 							
+							if(maxSizeLimit + level > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - level;
+							}							
+
 							if(offset >= maxSizeLimit) {
 								// filtering completed
 								break loop;

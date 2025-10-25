@@ -4,12 +4,13 @@
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
-		<version>4.1.4-SNAPSHOT</version>
+		<version>4.1.5-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>api</artifactId>
 	<packaging>jar</packaging>
-
+	<name>api</name>
+	<description>api</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

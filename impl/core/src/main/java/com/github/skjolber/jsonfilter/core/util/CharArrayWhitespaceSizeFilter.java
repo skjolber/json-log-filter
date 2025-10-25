@@ -400,11 +400,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 			case '"': {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 
-				if(nextOffset >= maxSizeLimit ) {
-					offset = nextOffset;
-					break loop;
-				}
-				
 				nextOffset++;
 				int endQuoteIndex = nextOffset;
 				
@@ -417,6 +412,11 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				}
 				
 				if(chars[nextOffset] == ':') {
+					if(nextOffset >= maxSizeLimit ) {
+						offset = nextOffset;
+						break loop;
+					}
+
 					// was a key
 					offset = nextOffset + 1;
 
@@ -436,6 +436,11 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 						flushOffset = offset;
 					}
 					continue;
+				}
+				
+				if(offset + anonymizeMessage.length > maxSizeLimit ) {
+					offset = maxSizeLimit;
+					break loop;
 				}
 				
 				// was a value
