@@ -177,31 +177,31 @@ public class AnyPathFilters {
 	}
 	
 
-	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyElementFilters, final byte[] chars, int start, int end) {
+	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyPathFilters, final byte[] chars, int start, int end) {
 		main:
-		for(int i = 0; i < anyElementFilters.length; i++) {
-			byte[] pathBytes = anyElementFilters[i].pathBytes;
+		for(int i = 0; i < anyPathFilters.length; i++) {
+			byte[] pathBytes = anyPathFilters[i].pathBytes;
 			for(int k = 0; k < pathBytes.length; k++) {
 				if(pathBytes[k] != chars[start + k]) {
 					continue main;
 				}
 			}
-			return anyElementFilters[i].filterType;
+			return anyPathFilters[i].filterType;
 		}
 		return null;
 	}
 
-	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyElementFilters, final char[] chars, int start, int end) {
+	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyPathFilters, final char[] chars, int start, int end) {
 		
 		main:
-		for(int i = 0; i < anyElementFilters.length; i++) {
-			char[] pathBytes = anyElementFilters[i].pathChars;
+		for(int i = 0; i < anyPathFilters.length; i++) {
+			char[] pathBytes = anyPathFilters[i].pathChars;
 			for(int k = 0; k < pathBytes.length; k++) {
 				if(pathBytes[k] != chars[start + k]) {
 					continue main;
 				}
 			}
-			return anyElementFilters[i].filterType;
+			return anyPathFilters[i].filterType;
 		}
 		return null;
 	}

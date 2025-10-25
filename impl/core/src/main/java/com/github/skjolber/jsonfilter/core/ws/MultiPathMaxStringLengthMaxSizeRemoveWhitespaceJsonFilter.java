@@ -62,7 +62,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		int maxStringLength = this.maxStringLength;
 		
@@ -223,8 +223,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathItem = pathItem.constrain(level);
 				}
 				
-				if(anyElementFilters != null && filterType == null) {
-					filterType = anyElementFilters.matchPath(chars, offset + 1, endQuoteIndex);
+				if(anyPathFilters != null && filterType == null) {
+					filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 				}				
 
 				if(chars[nextOffset] <= 0x20) {
@@ -243,7 +243,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				flushOffset = nextOffset;
 				
 				if(filterType == null) {
-					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
+					if(anyPathFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;
@@ -462,7 +462,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		int maxStringLength = this.maxStringLength;
 
@@ -623,8 +623,8 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 					pathItem = pathItem.constrain(level);
 				}
 				
-				if(anyElementFilters != null && filterType == null) {
-					filterType = matchAnyElements(chars, offset + 1, endQuoteIndex);
+				if(anyPathFilters != null && filterType == null) {
+					filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 				}				
 
 				if(chars[nextOffset] <= 0x20) {
@@ -643,7 +643,7 @@ public class MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends M
 				flushOffset = nextOffset;
 
 				if(filterType == null) {
-					if(anyElementFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
+					if(anyPathFilters != null || previousPathItem.getLevel() < pathItem.getLevel()) {
 						offset = nextOffset;
 
 						continue;

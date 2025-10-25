@@ -23,7 +23,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		int pathMatches = this.maxPathMatches;
 
@@ -64,7 +64,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							
 							filter.setLevel(bracketLevel);
 							filter.setMark(offset);
@@ -191,8 +191,8 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyElementFilters != null && type == null) {
-							type = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								
 						// skip whitespace
@@ -356,7 +356,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 			return super.ranges(chars, offset, length);
 		}
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		int pathMatches = this.maxPathMatches;
 
@@ -397,7 +397,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							
 							filter.setLevel(bracketLevel);
 							filter.setMark(offset);
@@ -524,7 +524,7 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyElementFilters != null && type == null) {
+						if(anyPathFilters != null && type == null) {
 							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 						}					
 								

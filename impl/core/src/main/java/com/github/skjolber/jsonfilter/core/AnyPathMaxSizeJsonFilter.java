@@ -46,7 +46,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		}
 	}
 
-	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyElementFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -112,7 +112,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					// skip colon
 					while(chars[++nextOffset] <= 0x20);
 					
-					FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
+					FilterType filterType = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
 						
@@ -222,7 +222,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
-							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyElementFilters, filter);
+							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyPathFilters, filter);
 							return filter;
 						}
 					} else {
@@ -324,7 +324,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyElementFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -387,7 +387,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					// skip colon
 					while(chars[++nextOffset] <= 0x20);
 
-					FilterType filterType = anyElementFilters.matchPath(chars, offset + 1, quoteEndIndex);
+					FilterType filterType = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
 					if(filterType != null) {
 						int removedLength = filter.getRemovedLength();
 						
@@ -496,7 +496,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
-							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyElementFilters, filter);
+							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyPathFilters, filter);
 							return filter;
 						}
 					} else {

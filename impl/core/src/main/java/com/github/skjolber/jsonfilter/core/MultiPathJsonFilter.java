@@ -19,7 +19,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		final CharArrayRangesFilter filter = getCharArrayRangesFilter(maxPathMatches, length);
 
@@ -35,7 +35,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 					case '{' : 
 						level++;
 						
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							offset = CharArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
@@ -90,8 +90,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							pathItem = pathItem.constrain(level);
 						}
 
-						if(anyElementFilters != null && type == null) {
-							type = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 								
 						// skip whitespace
@@ -152,7 +152,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
 		int pathMatches = this.maxPathMatches;
 
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		length += offset;
 
@@ -167,7 +167,7 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 				switch(chars[offset]) {
 					case '{' : 
 						level++;
-						if(anyElementFilters == null && level > pathItem.getLevel()) {
+						if(anyPathFilters == null && level > pathItem.getLevel()) {
 							offset = ByteArrayRangesFilter.skipObject(chars, offset);
 
 							level--;
@@ -223,8 +223,8 @@ public class MultiPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 							pathItem = pathItem.constrain(level);
 						}
 
-						if(anyElementFilters != null && type == null) {
-							type = anyElementFilters.matchPath(chars, offset + 1, quoteIndex);
+						if(anyPathFilters != null && type == null) {
+							type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
 						}
 
 						// skip whitespace

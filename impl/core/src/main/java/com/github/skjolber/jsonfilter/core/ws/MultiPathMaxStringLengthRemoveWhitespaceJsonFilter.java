@@ -54,7 +54,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 		
 		int maxStringLength = this.maxStringLength;
 		
@@ -85,7 +85,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				
 				switch(c) {
 				case '{' :
-					if(anyElementFilters == null && level > pathItem.getLevel()) {
+					if(anyPathFilters == null && level > pathItem.getLevel()) {
 						filter.setFlushOffset(flushOffset);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, buffer, metrics);
@@ -142,8 +142,8 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyElementFilters != null && filterType == null) {
-						filterType = anyElementFilters.matchPath(chars, offset + 1, endQuoteIndex);
+					if(anyPathFilters != null && filterType == null) {
+						filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 					}
 					
 					if(filterType != null) {
@@ -242,7 +242,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
-		AnyPathFilters anyElementFilters = this.anyPathFilters;
+		AnyPathFilters anyPathFilters = this.anyPathFilters;
 
 		int maxStringLength = this.maxStringLength;
 
@@ -273,7 +273,7 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 				
 				switch(c) {
 				case '{' :
-					if(anyElementFilters == null && level > pathItem.getLevel()) {
+					if(anyPathFilters == null && level > pathItem.getLevel()) {
 						filter.setFlushOffset(flushOffset);
 						
 						offset = filter.skipObjectMaxStringLength(chars, offset + 1, maxStringLength, output, metrics);
@@ -332,8 +332,8 @@ public class MultiPathMaxStringLengthRemoveWhitespaceJsonFilter  extends Abstrac
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyElementFilters != null && filterType == null) {
-						filterType = anyElementFilters.matchPath(chars, offset + 1, endQuoteIndex);
+					if(anyPathFilters != null && filterType == null) {
+						filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
 					}
 					
 					// was a field name
