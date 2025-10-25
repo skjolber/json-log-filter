@@ -127,6 +127,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								filter.addDelete(mark, maxReadLimit);
 								return filter;
 							}
+							
+							if(maxSizeLimit + bracketLevel > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - bracketLevel;
+							}
 
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path and max string length, i.e. keep the rest of the document
@@ -220,6 +224,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								}									
 							}
 						}							
+						
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
+						}
 						
 						if(offset >= maxSizeLimit) {
 							// filtering completed
@@ -369,6 +377,10 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 								return filter;
 							}
 
+							if(maxSizeLimit + bracketLevel > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - bracketLevel;
+							}
+
 							if(maxSizeLimit >= maxReadLimit) {
 								// filtering only for full path and max string length, i.e. keep the rest of the document
 								filter.setLevel(0);
@@ -462,6 +474,9 @@ public class SingleAnyPathMaxSizeMaxStringLengthJsonFilter extends SingleAnyPath
 							}
 						}							
 						
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
+						}
 						
 						if(offset >= maxSizeLimit) {
 							// filtering completed

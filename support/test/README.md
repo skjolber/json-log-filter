@@ -26,7 +26,7 @@ anonymizeFilters=/grandparent/parent/child1
 This filter will affect the input, so also create an output file `/object/anon/object1.json` with contents
 
 ```json
-{"grandparent":{"parent":{"child1":"*****","child2":true,"child3":{"key":"value"}}}}
+{"grandparent":{"parent":{"child1":"*","child2":true,"child3":{"key":"value"}}}}
 ```
 
 ## Filter properties

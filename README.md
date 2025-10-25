@@ -136,7 +136,7 @@ Configure anonymize for output like
 
 ```json
 {
-    "password": "*****"
+    "password": "*"
 }
 ```
 
@@ -145,8 +145,8 @@ for scalar values, and/or for objects / arrays all contained scalar values:
 ```json
 {
     "credentials": {
-        "username": "*****",
-        "password": "*****"
+        "username": "*",
+        "password": "*"
     }
 }
 ```

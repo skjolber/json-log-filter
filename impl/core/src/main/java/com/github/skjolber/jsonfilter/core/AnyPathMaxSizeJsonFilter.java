@@ -191,6 +191,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							}
 						}
 
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
+						}
+						
 						if(offset >= maxSizeLimit) {
 							// filtering completed
 							break loop;
@@ -460,6 +464,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 									return filter;
 								}									
 							}
+						}
+						
+						if(maxSizeLimit + bracketLevel > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - bracketLevel;
 						}
 						
 						if(offset >= maxSizeLimit) {

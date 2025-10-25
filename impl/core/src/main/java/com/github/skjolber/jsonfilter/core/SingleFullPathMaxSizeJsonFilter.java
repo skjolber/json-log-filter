@@ -260,6 +260,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								}								
 							}
 						}
+						
+						if(maxSizeLimit + level > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - level;
+						}
+
 						if(offset >= maxSizeLimit) {
 							// filtering completed
 							break loop;
@@ -285,8 +290,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						if(maxSizeLimit >= maxReadLimit) {
 							// filtering only for full path, i.e. keep the rest of the document
 							filter.setLevel(0);
-							bracketLevel = 0;
-							
 							rangesFullPath(chars, offset, maxReadLimit, level, elementPaths, matches, filterType, pathMatches, filter);
 							
 							return filter;
@@ -488,7 +491,7 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								filter.setLevel(bracketLevel);
 								filter.addDelete(mark, maxReadLimit);
 								return filter;
-							}				
+							}
 						} else {
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								// filter as tree
@@ -528,10 +531,14 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 									filter.setLevel(bracketLevel);
 									filter.addDelete(mark, maxReadLimit);
 									return filter;
-								}								
+								}
 							}
 						}
-						
+
+						if(maxSizeLimit + level > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - level;
+						}
+
 						if(offset >= maxSizeLimit) {
 							// filtering completed
 							break loop;
@@ -557,7 +564,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 						if(maxSizeLimit >= maxReadLimit) {
 							// filtering only for full path, i.e. keep the rest of the document
 							filter.setLevel(0);
-							bracketLevel = 0;
 							
 							rangesFullPath(chars, offset, maxReadLimit, level, elementPaths, matches, filterType, pathMatches, filter);
 							
@@ -590,7 +596,6 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 				}
 			}
 			filter.addDelete(mark, maxReadLimit);
-
 		}
 		
 		return filter;

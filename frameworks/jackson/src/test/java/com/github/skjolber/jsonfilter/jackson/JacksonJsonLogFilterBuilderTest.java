@@ -27,7 +27,7 @@ public class JacksonJsonLogFilterBuilderTest {
 		assertNotNull(filter);
 		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("truncated\\t");
 		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*****\"");
+		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 	}
 	
 	@Test
@@ -52,7 +52,7 @@ public class JacksonJsonLogFilterBuilderTest {
 				.build();
 		assertNotNull(filter);
 		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*****\"");
+		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
 	}
 	
