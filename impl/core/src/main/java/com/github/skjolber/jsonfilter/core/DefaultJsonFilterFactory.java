@@ -23,8 +23,8 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
-import com.github.skjolber.jsonfilter.core.ws.MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
-import com.github.skjolber.jsonfilter.core.ws.MultiPathMaxStringLengthRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.PathMaxStringLengthRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter;
 
 /**
@@ -74,9 +74,9 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			if(removeWhitespace) {
 				// TODO more filters for removing whitespace
 				if(isActiveMaxSize()) {
-					return new MultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
-				return new MultiPathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				return new PathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				
 			} else {
 				if(anonymizeFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(anonymizeFilters) && pruneFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(pruneFilters)) {
@@ -88,20 +88,20 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 
 				if(isActiveMaxStringLength()) {
 					if(isActiveMaxSize()) {
-						return new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
-					return new MultiPathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new PathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				} else {
 					if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters) && !AbstractPathJsonFilter.hasAnyPrefix(pruneFilters)) {
 						if(!isActiveMaxSize()) {
-							return new MultiFullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+							return new FullPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 						}
 					}
 					if(isActiveMaxSize()) {
 						// TODO MultiPathJsonMaxSizeFilter
-						return new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
-					return new MultiPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new PathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 			}
 		} else if(maxPathMatches != -1) {

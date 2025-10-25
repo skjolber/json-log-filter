@@ -48,7 +48,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			for(int i = 0; i < prunes.length; i++) {
 				String prune = prunes[i];
 				if(hasAnyPrefix(prune)) {
-					String name = prune.substring(2);
+					String name = removeAnyPrefix(prune);
 					if(name.equals("*")) {
 						throw new IllegalArgumentException("Unexpected any match for *");
 					}
@@ -64,7 +64,7 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 			for(int i = 0; i < anonymizes.length; i++) {
 				String anonymize = anonymizes[i];
 				if(hasAnyPrefix(anonymize)) {
-					String name = anonymize.substring(2);
+					String name = removeAnyPrefix(anonymize);
 					if(name.equals("*")) {
 						throw new IllegalArgumentException("Unexpected any match for *");
 					}

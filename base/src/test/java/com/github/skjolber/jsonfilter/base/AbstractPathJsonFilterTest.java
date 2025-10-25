@@ -111,8 +111,8 @@ public class AbstractPathJsonFilterTest {
 	public void testAnyPrefix() {
 		assertTrue(AbstractPathJsonFilter.hasAnyPrefix(new String[] {"//a"}));
 		assertFalse(AbstractPathJsonFilter.hasAnyPrefix(new String[] {"/a"}));
-		assertTrue(AbstractPathJsonFilter.hasAnyPrefix(new String[] {"..a"}));
-		assertFalse(AbstractPathJsonFilter.hasAnyPrefix(new String[] {".a"}));
+		assertTrue(AbstractPathJsonFilter.hasAnyPrefix(new String[] {"$..a"}));
+		assertFalse(AbstractPathJsonFilter.hasAnyPrefix(new String[] {"$.a"}));
 	}
 
 	@Test

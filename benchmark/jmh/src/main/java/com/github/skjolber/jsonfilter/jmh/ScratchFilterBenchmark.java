@@ -26,7 +26,7 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonAnyPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
@@ -93,7 +93,7 @@ public class ScratchFilterBenchmark {
 		original = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{"//" + key}, null), true, prettyPrint);
 
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(masker), true, prettyPrint);
-		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
+		modified2 = new BenchmarkRunner<JsonFilter>(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(-1, new String[] {DEFAULT_ANY_XPATH}, null), true, prettyPrint);
 
 		
 		

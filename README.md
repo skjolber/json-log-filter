@@ -184,7 +184,7 @@ with support for wildcards;
 
 or a simple any-level field name search 
 
-    ..myFieldName
+    $..myFieldName
 
 The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
 

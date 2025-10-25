@@ -27,16 +27,16 @@ import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiFullPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.FullPathJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonPathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.filter.PrimitiveJsonPropertyBodyFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
 
@@ -92,9 +92,9 @@ public class AllFilterBenchmark {
 
 		// generic filters
 		// jackson
-		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, new String[] {xpath}, null), prettyPrinted);
-		multiPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxStringLengthJsonFilter(20, new String[] {xpath}, null), prettyPrinted);
-		multiAnyPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(20, new String[] {DEFAULT_ANY_XPATH}, null), prettyPrinted);
+		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxSizeMaxStringLengthJsonFilter(20, -1, new String[] {xpath}, null), prettyPrinted);
+		multiPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxStringLengthJsonFilter(20, new String[] {xpath}, null), prettyPrinted);
+		multiAnyPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(20, new String[] {DEFAULT_ANY_XPATH}, null), prettyPrinted);
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(20), prettyPrinted);
 		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(128), prettyPrinted);
 		
@@ -106,12 +106,12 @@ public class AllFilterBenchmark {
 		anyPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(-1, new String[]{DEFAULT_ANY_XPATH}, null), prettyPrinted);
 		
 		// path - multiple
-		multiPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
-		multiPathMaxStringLengthAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxStringLengthJsonFilter(20, -1, new String[]{xpath}, null), prettyPrinted);
-		multiPathAnonymizeFullPathJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiFullPathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
+		multiPathAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
+		multiPathMaxStringLengthAnonymizeJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxStringLengthJsonFilter(20, -1, new String[]{xpath}, null), prettyPrinted);
+		multiPathAnonymizeFullPathJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new FullPathJsonFilter(-1, new String[]{xpath}, null), prettyPrinted);
 
 		// max size
-		multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
+		multiPathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
 
 		// other filters
 		Set<String> hashSet = new HashSet<>();
