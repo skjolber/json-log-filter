@@ -60,12 +60,12 @@ public class RemoveWhitespaceBenchmark {
 	}
 	
 	@Benchmark
-	public long test() throws IOException {
+	public long testEnabled() throws IOException {
 		return benchmarkBytes(test0, enabled);
 	}
 
 	@Benchmark
-	public long test0PP() throws IOException {
+	public long testDisabled() throws IOException {
 		return benchmarkBytes(test0, disabled);
 	}
 	

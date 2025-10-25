@@ -41,7 +41,7 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 [Apache 2.0]
 
 ## Obtain
-The project is built with [Maven] and is available on the central Maven repository. 
+The project is built with [Maven] and is available on the central Maven repository. No external dependencies are necessary, except for the opt-in Jackson module.
 
 <details>
   <summary>Maven coordinates</summary>
@@ -194,7 +194,7 @@ Configure max path matches; so that filtering stops after a number of matches. T
 For example if the to-be filtered JSON document has a schema definition with a header + body structure, and the target value is in the header.   
 
 ### Max size
-Configure max size to limit the size of the resulting document. This reduces the size of the document by (silently) deleting the JSON content after the limit is reached.
+Configure max size to limit the size of the resulting document.
 
 ### Metrics
 Pass in a `JsonFilterMetrics` argument to the `process` method like so:
@@ -210,16 +210,11 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Make sure filters are actually operating as intended
 
 ## Performance
-The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
-
- * `core` processors are multiple times as fast as (streaming) `Jackson` processors, where
- * skipping large parts of JSON documents (prune) decreases the difference, and
- * small documents increase the difference, as `Jackson` is more expensive to initialize.
- * working directly on bytes is faster than working on characters for the `core` processors.
+The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance.
 
 For a typical, light-weight web service, the overall system performance improvement for using the `core` filters over the `Jackson`-based filters will most likely be a few percent.
 
-Memory use will be at most 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
+Memory use will be at most 8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept `String`, other raw bytes or chars).
 
 See the benchmark results ([JDK 17](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.1.2.jdk17.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 

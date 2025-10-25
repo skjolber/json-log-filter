@@ -1,8 +1,10 @@
 package com.github.skjolber.jsonfilter.jmh.path;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -24,9 +26,9 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilter;
-import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
+import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
+
+import dev.blaauwendraad.masker.json.JsonMasker;
 
 
 @State(Scope.Thread)
@@ -35,102 +37,67 @@ import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 @Warmup(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-public class AnyPathBenchmark {
+public class AnyPathFilterBenchmark {
 
 	private String[] KEYS = new String[] {"name", "first_name", "last_name", "address1", "address2", "latitude", "longitude", "phone", "email", "user_id",
 			"subtotal_price", "token", "cart_token", "checkout_token", "admin_graphql_api_id", "id", "code", "po_number", "zip", "city"
 	};
 	
-	@Param(value={"1","2","3","4","5","6","7","8","9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
-	//@Param(value={"1","5", "10", "15", "20"})
+	//@Param(value={"1","2","3","4","5","6","7","8","9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+	@Param(value={"1","5", "10", "15", "20"})
 	private String count; 
 
-	private List<char[]> chars;
-	private List<byte[]> bytes;
+	private AnyPathJsonFilter anyPathJsonFilter;
+	private JsonMasker jsonMaskerJsonFilter;
 	
-	private AnyPathFilters anyPathFilters;
+	private byte[] bytes;
+	private char[] chars;
+	private String string;
 	
 	@Setup
 	public void init() throws Exception {
 		File file = new File("./src/test/resources/benchmark/shopify/order.json");
 		
-		List<String> list = ExtractFieldNames.extract(IOUtils.toString(file.toURI(), StandardCharsets.UTF_8));
-		if(list.size() < 100) {
-			throw new RuntimeException();
-		}
-
-		this.chars = new ArrayList<char[]>();
-		this.bytes = new ArrayList<byte[]>();
+		bytes = IOUtils.toByteArray(new FileInputStream(file));
+		string = new String(bytes, StandardCharsets.UTF_8);
+		chars = string.toCharArray();
 		
-		for (String string : list) {
-			chars.add(string.toCharArray());
-			bytes.add(string.getBytes(StandardCharsets.UTF_8));
-		}
+		List<String> keys = new ArrayList<>();
+		List<String> keysWithPrefix = new ArrayList<>();
 		
-		List<AnyPathFilter> keys = new ArrayList<>();
 		int count = Integer.parseInt(this.count);
 		for(int i = 0; i < count; i++) {
-			keys.add(AnyPathFilter.create(KEYS[i], FilterType.ANON));
+			keys.add(KEYS[i]);
+			keysWithPrefix.add("//" + KEYS[i]);
 		}
 		
-		anyPathFilters = AnyPathFilters.create(keys);
+		jsonMaskerJsonFilter = JsonMasker.getMasker(new HashSet<>(keys));
+		anyPathJsonFilter = new AnyPathJsonFilter(-1, keysWithPrefix.toArray(new String[keysWithPrefix.size()]), null);
 	}
 
 	@Benchmark
-	public long jsonLogFilterChars() throws IOException {
-		int count = 0;
-		
-		for(char[] str : chars) {
-			if(anyPathFilters.matchPath(str, 0, str.length) != null) {
-				count++;
-			}
-		}
-		
-		return count;
+	public String mark_chars() throws IOException {
+		return jsonMaskerJsonFilter.mask(string);
 	}
 
 	@Benchmark
-	public long jsonLogFilterBytes() throws IOException {
-		int count = 0;
-		
-		for(byte[] str : bytes) {
-			if(anyPathFilters.matchPath(str, 0, str.length) != null) {
-				count++;
-			}
-		}
-		
-		return count;
+	public byte[] mark_bytes() throws IOException {
+		return jsonMaskerJsonFilter.mask(bytes);
 	}
 	
 	@Benchmark
-	public long jsonLogFilterSetChars() throws IOException {
-		int count = 0;
-		
-		for(char[] str : chars) {
-			if(anyPathFilters.matchPath(new String(str, 0, str.length)) != null) {
-				count++;
-			}
-		}
-		
-		return count;
+	public String core_chars() throws IOException {
+		return anyPathJsonFilter.process(string);
 	}
 	
 	@Benchmark
-	public long jsonLogFilterSetBytes() throws IOException {
-		int count = 0;
-		
-		for(byte[] str : bytes) {
-			if(anyPathFilters.matchPath(new String(str, 0, str.length)) != null) {
-				count++;
-			}
-		}
-		
-		return count;
+	public byte[] core_bytes() throws IOException {
+		return anyPathJsonFilter.process(bytes);
 	}
 	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
-				.include(AnyPathBenchmark.class.getSimpleName())
+				.include(AnyPathFilterBenchmark.class.getName())
 				.warmupIterations(1)
 				.measurementIterations(1)
 				.forks(1)

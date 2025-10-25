@@ -23,7 +23,6 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.core.FullPathJsonFilter;
@@ -88,8 +87,8 @@ public class CveFilterBenchmark {
 
 	private BenchmarkRunner<JsonFilter> removeWhitespaceJsonFilter;
 	
-	//	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	@Param(value={"8KB"})
+	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
+	//@Param(value={"8KB"})
 	private String fileName;
 	private final boolean prettyPrinted = false;
 	

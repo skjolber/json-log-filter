@@ -113,20 +113,17 @@ public class AllFilterBenchmark {
 		pathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
 
 		// other filters
-		Set<String> hashSet = new HashSet<>();
-		hashSet.add("address");
-		JsonMasker anyPathJsonMasker = JsonMasker.getMasker(hashSet);
-		
 		var singlePathJsonMasker = JsonMasker.getMasker(
 	        JsonMaskingConfig.builder()
 	                .maskJsonPaths(Set.of("$.address"))
 	                .build()
 		);
 		
-		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(anyPathJsonMasker), false);
+		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(JsonMasker.getMasker(Set.of("address"))), false);
 		fullPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(singlePathJsonMasker), false);
 
 		anyPathLogbookJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, PrimitiveJsonPropertyBodyFilter.replaceString((a) -> a.equals("address"), "*"), prettyPrinted);
+
 	}
 
 	@Benchmark
