@@ -12,7 +12,7 @@ import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
-
+	
 	public AnyPathMaxSizeJsonFilterTest() throws Exception {
 		super();
 	}

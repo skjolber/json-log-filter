@@ -111,7 +111,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 					//
 					// |-----------------------------------------|
 					// | ["a", "b"]                              | Input
-					// | ["*****", "*****"]                      | Output
+					// | ["*", "*"]                              | Output
 					// |-----------------------------------------|
 
 					// add to the max limit to allow the filter to arrive at the same result

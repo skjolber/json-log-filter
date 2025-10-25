@@ -170,7 +170,7 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			byte[] process = apply.process(generateDeepStructure);
 			if(process == null) {
 				System.out.println(new String(generateDeepStructure));
-				throw new RuntimeException("Expeected result");
+				throw new RuntimeException("Expected result for level " + levels + " and filter " + apply.getClass().getName());
 			}
 			try {
 				validate(process);

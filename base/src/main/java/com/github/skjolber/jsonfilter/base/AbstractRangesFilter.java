@@ -15,7 +15,7 @@ public abstract class AbstractRangesFilter {
 	public static final String FILTER_PRUNE_MESSAGE = "PRUNED";
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	
-	public static final String FILTER_ANONYMIZE = "*****";
+	public static final String FILTER_ANONYMIZE = "*";
 	public static final String FILTER_ANONYMIZE_MESSAGE = '"' + FILTER_ANONYMIZE + '"';
 	public static final String FILTER_TRUNCATE_MESSAGE = "... + ";
 
