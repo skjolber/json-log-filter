@@ -138,10 +138,9 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				continue;
 			case ',' :
 				mark = offset;
-				break;			
-			case '"': 
+				break;
+			case '"':
 				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
-
 				continue;
 			}
 			offset++;
@@ -401,11 +400,6 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 			case '"': {
 				int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
 
-				if(nextOffset >= maxSizeLimit ) {
-					offset = nextOffset;
-					break loop;
-				}
-				
 				nextOffset++;
 				int endQuoteIndex = nextOffset;
 				
@@ -418,6 +412,11 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				}
 
 				if(chars[nextOffset] == ':') {
+					if(nextOffset >= maxSizeLimit ) {
+						offset = nextOffset;
+						break loop;
+					}
+					
 					// was a key
 					offset = nextOffset + 1;
 
@@ -438,6 +437,12 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 					}
 					continue;
 				}
+				
+				if(offset + anonymizeMessage.length > maxSizeLimit ) {
+					offset = maxSizeLimit;
+					break loop;
+				}
+				
 				// was a value
 				if(flushOffset <= mark) {
 					streamMark = buffer.size() + mark - flushOffset; 

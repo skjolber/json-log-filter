@@ -280,6 +280,10 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								}
 							}							
 
+							if(maxSizeLimit + level > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - level;
+							}							
+
 							if(offset >= maxSizeLimit) {
 								// filtering completed
 								break loop;
@@ -609,6 +613,10 @@ public class MultiPathMaxSizeMaxStringLengthJsonFilter extends MultiPathMaxStrin
 								}
 							}							
 							
+							if(maxSizeLimit + level > maxReadLimit) {
+								maxSizeLimit = maxReadLimit - level;
+							}							
+
 							if(offset >= maxSizeLimit) {
 								// filtering completed
 								break loop;

@@ -260,6 +260,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								}								
 							}
 						}
+						
+						if(maxSizeLimit + level > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - level;
+						}
+
 						if(offset >= maxSizeLimit) {
 							// filtering completed
 							break loop;
@@ -529,7 +534,11 @@ public class SingleFullPathMaxSizeJsonFilter extends SingleFullPathJsonFilter {
 								}
 							}
 						}
-						
+
+						if(maxSizeLimit + level > maxReadLimit) {
+							maxSizeLimit = maxReadLimit - level;
+						}
+
 						if(offset >= maxSizeLimit) {
 							// filtering completed
 							break loop;

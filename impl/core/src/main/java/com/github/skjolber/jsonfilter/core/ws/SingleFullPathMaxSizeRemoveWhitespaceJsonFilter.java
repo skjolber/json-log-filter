@@ -303,10 +303,6 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						// adjust max size limit
 						maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
-						
 						mark = offset;
 						flushOffset = offset;
 					} else {
@@ -360,14 +356,13 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 							
 							maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 
-							if(maxSizeLimit >= maxReadLimit) {
-								maxSizeLimit = maxReadLimit;
-							}
-							
 							mark = offset;
 							flushOffset = offset;
-							
 						}
+					}
+					
+					if(maxSizeLimit + level > maxReadLimit) {
+						maxSizeLimit = maxReadLimit - level;
 					}
 
 					if(pathMatches != -1) {
@@ -682,10 +677,6 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 						// adjust max size limit
 						maxSizeLimit += offset - nextOffset - filter.getPruneMessageLength();
 						
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
-						
 						mark = offset;
 						flushOffset = offset;
 						
@@ -742,14 +733,14 @@ public class SingleFullPathMaxSizeRemoveWhitespaceJsonFilter extends SingleFullP
 							
 							maxSizeLimit += offset - nextOffset - filter.getAnonymizeMessageLength();
 							
-							if(maxSizeLimit >= maxReadLimit) {
-								maxSizeLimit = maxReadLimit;
-							}
-							
 							mark = offset;
 							flushOffset = offset;
 
 						}
+					}
+					
+					if(maxSizeLimit + level > maxReadLimit) {
+						maxSizeLimit = maxReadLimit - level;
 					}
 
 					if(pathMatches != -1) {

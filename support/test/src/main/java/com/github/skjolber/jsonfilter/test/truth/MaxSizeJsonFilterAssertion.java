@@ -111,7 +111,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 					//
 					// |-----------------------------------------|
 					// | ["a", "b"]                              | Input
-					// | ["*", "*"]                              | Output
+					// | ["***", "***"]                          | Output
 					// |-----------------------------------------|
 
 					// add to the max limit to allow the filter to arrive at the same result
@@ -130,7 +130,7 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 					
 					byte[] maxSizeBytesOutput = bytesFilter.process(bytesValue, metrics);
 					String maxSizeCharsOutput = charsFilter.process(charsValue, metrics);
-
+					
 					assertEquals(inputFile.getSource(), charsValue, maxSizeCharsOutput, expectedMaxSizeCharsOutput);
 					assertEquals(inputFile.getSource(), bytesValue, maxSizeBytesOutput, expectedMaxSizeBytesOutput);
 				}

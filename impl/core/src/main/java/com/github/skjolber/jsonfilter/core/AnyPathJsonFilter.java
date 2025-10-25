@@ -17,6 +17,10 @@ public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
 	protected AnyPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes,
 			String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		
+		if(anyPathFilters == null) {
+			throw new IllegalArgumentException("Expected at least one anonymize or prune filter");
+		}
 	}
 
 	@Override

@@ -39,5 +39,5 @@ public class PrettyPrinterIteratorTest {
 		PrettyPrintTransformer.escape("acሴefghijklmnopqrst", b);
 		assertTrue(b.toString().contains("\\u"));
 	}
-	
+
 }

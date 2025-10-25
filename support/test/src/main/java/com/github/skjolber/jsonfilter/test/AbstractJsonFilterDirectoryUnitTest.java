@@ -189,6 +189,10 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			JsonFilter apply = filter.apply(i);
 		
 			String process = apply.process(string);
+			if(process == null) {
+				System.out.println(new String(string));
+				fail("Unable to process " + string + " size " + i) ;
+			}
 	
 			try {
 				validate(process);
