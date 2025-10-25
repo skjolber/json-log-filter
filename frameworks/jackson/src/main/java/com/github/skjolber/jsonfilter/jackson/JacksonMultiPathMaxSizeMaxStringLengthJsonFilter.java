@@ -193,7 +193,7 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 							generator.writeFieldName(currentName);
 							generator.copyCurrentEvent(parser);
 							// keep structure, but mark all values
-							if(!JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter.anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, metrics)) {
+							if(!anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, metrics)) {
 								break;
 							}
 						} else {
@@ -272,5 +272,79 @@ public class JacksonMultiPathMaxSizeMaxStringLengthJsonFilter extends JacksonMul
 		
 		return true;
 	}
+	
+
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
+		int level = 1;
+		
+        String fieldName = null;
+		while(level > 0) {
+			JsonToken nextToken = parser.nextToken();
+			if(nextToken == null) {
+				return false;
+			}
+			
+			switch(nextToken) {
+			case START_OBJECT:
+			case START_ARRAY:
+				level++;
+				maxSize--;
+				break;
+			case END_OBJECT:
+			case END_ARRAY:
+				level--;
+				maxSize++;
+				break;
+			case FIELD_NAME: 
+				fieldName = parser.currentName();
+				continue;
+			case VALUE_STRING:
+				parser.getTextLength();
+				break;
+				default: // do nothing
+			}
+
+			long outputSize;
+			if(nextToken.isScalarValue()) {
+				outputSize = anonymizeJsonValue.length;
+			} else {
+				outputSize = 1;
+			}
+			if(fieldName != null) {
+				outputSize += fieldName.length() + 3;
+			}
+			
+			if(parser.getParsingContext().getCurrentIndex() >= 2) {
+				outputSize++;
+			}
+			
+			long size = outputSizeSupplier.getAsLong();
+			
+			if(outputSize + size > maxSize) {
+				if(metrics != null) {
+					metrics.onMaxSize(-1);
+				}
+				return false;
+			}
+
+			if(fieldName != null) {
+				generator.writeFieldName(fieldName);
+				fieldName = null;
+			}
+
+			if(nextToken.isScalarValue()) {
+				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+				
+				if(metrics != null) {
+					metrics.onAnonymize(1);
+				}
+			} else {
+				generator.copyCurrentEvent(parser);
+			}
+		}
+
+		return true;
+	}
+
 
 }

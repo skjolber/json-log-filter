@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 
 public class DefaultJsonLogFilterBuilderTest {
@@ -42,28 +43,5 @@ public class DefaultJsonLogFilterBuilderTest {
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 	}
 	
-	@Test
-	public void testAnonymizeMessage() {
-		SingleFullPathJsonFilter filter = (SingleFullPathJsonFilter) DefaultJsonLogFilterBuilder.createInstance()
-				.withAnonymize("/customer/email") // inserts ***** for values
-				.withAnonymizeStringValue("x\nxxxx")
-				.build();
-		assertNotNull(filter);
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
-	}
-	
-	@Test
-	public void testPruneMessage() {
-		SingleFullPathJsonFilter filter = (SingleFullPathJsonFilter) DefaultJsonLogFilterBuilder.createInstance()
-				.withPrune("/customer/email") // inserts ***** for values
-				.withPruneStringValue("x\nxxxx")
-				.build();
-		assertNotNull(filter);
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
-	}
 	
 }

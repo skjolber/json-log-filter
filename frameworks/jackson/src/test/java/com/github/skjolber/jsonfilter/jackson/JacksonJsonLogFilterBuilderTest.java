@@ -30,30 +30,4 @@ public class JacksonJsonLogFilterBuilderTest {
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 	}
 	
-	@Test
-	public void testAnonymizeMessage() {
-		JacksonSingleFullPathMaxStringLengthJsonFilter filter = (JacksonSingleFullPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
-				.withMaxStringLength(127)
-				.withAnonymize("/customer/email") // inserts ***** for values
-				.withAnonymizeStringValue("x\nxxxx")
-				.build();
-		assertNotNull(filter);
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
-	}
-	
-	@Test
-	public void testPruneMessage() {
-		JacksonSingleFullPathMaxStringLengthJsonFilter filter = (JacksonSingleFullPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.createInstance()
-				.withMaxStringLength(127)
-				.withPrune("/customer/email") // inserts ***** for values
-				.withPruneStringValue("x\nxxxx")
-				.build();
-		assertNotNull(filter);
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
-		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
-	}
-	
 }

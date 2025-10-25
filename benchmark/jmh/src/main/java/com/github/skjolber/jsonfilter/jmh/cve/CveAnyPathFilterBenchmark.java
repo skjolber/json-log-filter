@@ -19,7 +19,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.jmh.AbstractAnyPathFilterBenchmark;
-import com.github.skjolber.jsonfilter.jmh.AbstractSingleFullPathMaxStringLengthFilterBenchmark;
 
 
 @State(Scope.Thread)

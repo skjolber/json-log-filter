@@ -22,11 +22,11 @@ Features:
 
  * Mask single values or whole subtrees
  * Remove single values or whole subtrees
- * Truncate String values
- * Truncate document size (max total output size)
- * Remove whitespace (for pretty-printed documents)
+ * Limit String value size
+ * Limit document size (skip end of document when max size is reached)
+ * Remove whitespace
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. 
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible.
 
 The equivalent filters are also implemented using [Jackson]:
 
@@ -176,15 +176,15 @@ to output like
 ### Path syntax
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
-    /my/field/name
+    $.my.field.name
 
 with support for wildcards; 
 
-    /my/field/*
+    $.my.field.*
 
 or a simple any-level field name search 
 
-    //myFieldName
+    ..myFieldName
 
 The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
 
@@ -212,14 +212,14 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
 ## Performance
 The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
 
- * `core` is something like 3x-9x as fast as `Jackson` processors, where
+ * `core` processors are multiple times as fast as (streaming) `Jackson` processors, where
  * skipping large parts of JSON documents (prune) decreases the difference, and
  * small documents increase the difference, as `Jackson` is more expensive to initialize.
  * working directly on bytes is faster than working on characters for the `core` processors.
 
 For a typical, light-weight web service, the overall system performance improvement for using the `core` filters over the `Jackson`-based filters will most likely be a few percent.
 
-Memory use will be at 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
+Memory use will be at most 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
 
 See the benchmark results ([JDK 17](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.1.2.jdk17.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 

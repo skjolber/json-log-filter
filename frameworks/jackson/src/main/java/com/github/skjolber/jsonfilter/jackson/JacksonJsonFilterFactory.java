@@ -70,21 +70,6 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 
 		if(isActivePathFilters()) {
 			// check for single prune/anon filter
-			if(isSinglePruneFilter()) {
-				if(!AbstractPathJsonFilter.hasAnyPrefix(pruneFilters[0])) {
-					if(isActiveMaxSize()) {	
-						return new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-					}
-					return new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, pruneFilters[0], FilterType.PRUNE, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-				}
-			} else if(isSingleAnonymizeFilter()) {
-				if(!AbstractPathJsonFilter.hasAnyPrefix(anonymizeFilters[0])) {
-					if(isActiveMaxSize()) {
-						return new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-					}
-					return new JacksonSingleFullPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters[0], FilterType.ANON, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
-				}
-			}
 			if(!isFullPrefix(anonymizeFilters) && !isFullPrefix(pruneFilters)) {
 				// TODO multi any max size
 				if(!isActiveMaxSize()) {
