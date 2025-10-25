@@ -1,41 +1,48 @@
 package com.github.skjolber.jsonfilter.jackson;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.spy;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.jackson.AbstractJacksonJsonFilterTest.MyJacksonJsonFilterTest;
 
-import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+public class AbstractJacksonJsonFilterTest {
 
-public abstract class AbstractJacksonJsonFilterTest extends DefaultJsonFilterTest {
+	public class MyJacksonJsonFilterTest extends AbstractJacksonJsonFilter {
 
-	public AbstractJacksonJsonFilterTest(boolean includePrettyPrinting) throws Exception {
-		super(false, includePrettyPrinting, false);
+		public MyJacksonJsonFilterTest(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString,
+				JsonFactory jsonFactory) {
+			super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString, jsonFactory);
+		}
+
+		public MyJacksonJsonFilterTest(JsonFactory jsonFactory) {
+			super(jsonFactory);
+		}
+
+		@Override
+		public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+			throw new RuntimeException();
+		}
+
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output,
+				JsonFilterMetrics filterMetrics) {
+			throw new RuntimeException();
+		}
+		
 	}
 	
-	public void testConvenienceMethods(JacksonJsonFilter successFilter, JacksonJsonFilter failureFilter, JacksonJsonFilter brokenFactory) throws IOException {
-		// returns true
-		byte[] jsonBytes = new byte[] {'{', '}'};
-		char[] jsonChars = new char[] {'{', '}'};
-		
-		assertTrue(successFilter.process(jsonBytes, 0, 2, new StringBuilder()));
-		assertTrue(successFilter.process(jsonChars, 0, 2, new StringBuilder()));
+	private JsonFactory jsonFactory = new JsonFactory();
 
-		assertFalse(failureFilter.process(jsonBytes, 0, 2, new StringBuilder()));
-		assertFalse(failureFilter.process(jsonChars, 0, 2, new StringBuilder()));
+	@org.junit.jupiter.api.Test
+	public void test() {
 		
-		assertFalse(brokenFactory.process(jsonBytes, 0, 2, new StringBuilder()));
-		assertFalse(brokenFactory.process(jsonChars, 0, 2, new StringBuilder()));
-	}
-
-	private JacksonJsonFilter getFilter(JacksonJsonFilter filter) throws IOException {
-		JacksonJsonFilter successFilter = spy(filter);
+		MyJacksonJsonFilterTest filter = new MyJacksonJsonFilterTest(123, 456, "//test", "//me", "abc", jsonFactory);
 		
-		doCallRealMethod().when(successFilter).process(any(byte[].class), any(int.class), any(int.class), any(StringBuilder.class));
-		doCallRealMethod().when(successFilter).process(any(byte[].class), any(int.class), any(int.class), any(StringBuilder.class));
-		return successFilter;
+		assertArrayEquals(filter.getPruneJsonValue(), "//test".toCharArray());
+		assertArrayEquals(filter.getAnonymizeJsonValue(), "//me".toCharArray());
+		assertArrayEquals(filter.getTruncateStringValue(), "abc".toCharArray());
 	}	
 }
