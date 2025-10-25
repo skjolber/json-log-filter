@@ -46,46 +46,32 @@ public class AbstractJsonFilterFactoryTest {
 
 	@Test
 	public void testAnonymize() {
-		factory.setPruneFilters((List<String>)null);
 		assertFalse(factory.isSingleAnonymizeFilter());
 
-		factory.setPruneFilters((String[])null);
+		factory.setPrune(Collections.emptyList());
 		assertFalse(factory.isSingleAnonymizeFilter());
 
-		factory.setPruneFilters(new String[0]);
-		assertFalse(factory.isSingleAnonymizeFilter());
-		
-		factory.setPruneFilters(Collections.emptyList());
+		factory.setAnonymize(Collections.emptyList());
 		assertFalse(factory.isSingleAnonymizeFilter());
 
-		factory.setAnonymizeFilters(Collections.emptyList());
-		assertFalse(factory.isSingleAnonymizeFilter());
-
-		factory.setAnonymizeFilters("/abc");
-		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
+		factory.setAnonymize("/abc");
+		assertThat(factory.getAnonymize()).isEqualTo(Arrays.asList("/abc"));
 		assertTrue(factory.isSingleAnonymizeFilter());
 		assertTrue(factory.isActivePathFilters());
 	}
 
 	@Test
 	public void testPrune() {
-		factory.setAnonymizeFilters((List<String>)null);
 		assertFalse(factory.isSinglePruneFilter());
 		
-		factory.setAnonymizeFilters((String[])null);
-		assertFalse(factory.isSinglePruneFilter());
-
-		factory.setAnonymizeFilters(new String[0]);
-		assertFalse(factory.isSinglePruneFilter());
-
-		factory.setAnonymizeFilters(Collections.emptyList());
+		factory.setAnonymize(Collections.emptyList());
 		assertFalse(factory.isSinglePruneFilter());
 		
-		factory.setPruneFilters(Collections.emptyList());
+		factory.setPrune(Collections.emptyList());
 		assertFalse(factory.isSinglePruneFilter());
 		
-		factory.setPruneFilters("/def");
-		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"/def"});
+		factory.setPrune("/def");
+		assertThat(factory.getPrune()).isEqualTo(Arrays.asList("/def"));
 		assertTrue(factory.isSinglePruneFilter());
 		assertTrue(factory.isActivePathFilters());
 	}
@@ -111,8 +97,8 @@ public class AbstractJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactoryProperty.TRUNCATE_MESSAGE.getPropertyName(), "truncate");
 
 		assertThat(factory.getMaxStringLength()).isEqualTo(123);
-		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
-		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(factory.getAnonymize()).isEqualTo(Arrays.asList("/abc"));
+		assertThat(factory.getPrune()).isEqualTo(Arrays.asList("//def"));
 		assertThat(factory.getMaxPathMatches()).isEqualTo(13);
 		assertThat(factory.getPruneJsonValue()).isEqualTo("\"prune\"");
 		assertThat(factory.getAnonymizeJsonValue()).isEqualTo("\"anon\"");
@@ -128,8 +114,8 @@ public class AbstractJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactoryProperty.MAX_PATH_MATCHES.getPropertyName(), "13");
 
 		assertThat(factory.getMaxStringLength()).isEqualTo(123);
-		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
-		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(factory.getAnonymize()).isEqualTo(Arrays.asList("/abc"));
+		assertThat(factory.getPrune()).isEqualTo(Arrays.asList("//def"));
 		assertThat(factory.getMaxPathMatches()).isEqualTo(13);
 	}
 	
@@ -138,8 +124,8 @@ public class AbstractJsonFilterFactoryTest {
 		factory.setProperty(JsonFilterFactoryProperty.ANONYMIZE.getPropertyName(), new String[] {"/abc"});
 		factory.setProperty(JsonFilterFactoryProperty.PRUNE.getPropertyName(), new String[] {"//def"});
 
-		assertThat(factory.getAnonymizeFilters()).isEqualTo(new String[]{"/abc"});
-		assertThat(factory.getPruneFilters()).isEqualTo(new String[]{"//def"});
+		assertThat(factory.getAnonymize()).isEqualTo(Arrays.asList("/abc"));
+		assertThat(factory.getPrune()).isEqualTo(Arrays.asList("//def"));
 	}
 
 	@Test

@@ -128,7 +128,7 @@ public class AbstractJsonFilterTest {
 	}
 
 	@Test
-	public void testEncoding() throws IOException {
+	public void testEncodingString() throws IOException {
 	
 		StringBuilder output = new StringBuilder();
 		AbstractJsonFilter.quoteAsString("\"", output);
@@ -137,6 +137,31 @@ public class AbstractJsonFilterTest {
 		output.setLength(0);
 		AbstractJsonFilter.quoteAsString(new String(new byte[] {0}), output);
 		assertThat(output.toString()).isEqualTo("\\u0000");
+	}
+	
+	@Test
+	public void testEncodingChars() throws IOException {
+	
+		StringBuilder output = new StringBuilder();
+		char[] charArray = "\"".toCharArray();
+		AbstractJsonFilter.quoteAsString(charArray, 0, charArray.length, output);
+		assertThat(output.toString()).isEqualTo("\\\"");
+
+		output.setLength(0);
+		charArray = new String(new byte[] {0}).toCharArray();
+		AbstractJsonFilter.quoteAsString(charArray, 0, charArray.length, output);
+		assertThat(output.toString()).isEqualTo("\\u0000");
+	}
+	
+	
+	@Test
+	public void testNumberSize() {
+		int value = 1;
+		for(int i = 1; i < 11; i++) {
+			assertEquals(i, AbstractJsonFilter.lengthToDigits(value));
+			
+			value = value * 10;
+		}
 	}
 
 	/*

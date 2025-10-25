@@ -31,10 +31,10 @@ public class JacksonJsonLogFilterBuilder {
 		
 		factory.setMaxStringLength(maxStringLength);
 		if(!anonymizeFilters.isEmpty()) {
-			factory.setAnonymizeFilters(anonymizeFilters);
+			factory.setAnonymize(anonymizeFilters);
 		}
 		if(!pruneFilters.isEmpty()) {
-			factory.setPruneFilters(pruneFilters);
+			factory.setPrune(pruneFilters);
 		}
 		
 		factory.setAnonymizeJsonValue(anonymizeJsonValue);

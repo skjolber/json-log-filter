@@ -67,6 +67,10 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 		if(truncateStringValue == null) {
 			truncateStringValue = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
 		}
+		
+		String[] pruneFilters = this.pruneFilters.isEmpty() ? null : this.pruneFilters.toArray(new String[this.pruneFilters.size()]);
+		String[] anonymizeFilters = this.anonymizeFilters.isEmpty() ? null :  this.anonymizeFilters.toArray(new String[this.anonymizeFilters.size()]);
+		
 		// check for any prune/anon filter
 		if(isActivePathFilters()) {
 			// check for single prune/anon filter

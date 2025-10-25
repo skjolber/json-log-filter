@@ -16,6 +16,7 @@
  */
 package com.github.skjolber.jsonfilter.base;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.github.skjolber.jsonfilter.JsonFilterFactory;
@@ -27,8 +28,8 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	protected int maxPathMatches = -1;
 	protected int maxSize = -1;
 	
-	protected String[] anonymizeFilters;
-	protected String[] pruneFilters;
+	protected List<String> anonymizeFilters = new ArrayList<String>();
+	protected List<String> pruneFilters = new ArrayList<String>();
 
 	/** Raw JSON */
 	protected String pruneJsonValue;
@@ -41,16 +42,16 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	
 	protected boolean isSinglePruneFilter() {
 		return 
-				(anonymizeFilters == null || anonymizeFilters.length == 0)
-				&& pruneFilters != null 
-				&& pruneFilters.length == 1;
+				anonymizeFilters.isEmpty()
+				&& !pruneFilters.isEmpty() 
+				&& pruneFilters.size() == 1;
 	}
 
 	protected boolean isSingleAnonymizeFilter() {
 		return 
-				(pruneFilters == null || pruneFilters.length == 0)
-				&& anonymizeFilters != null 
-				&& anonymizeFilters.length == 1;
+				pruneFilters.isEmpty()
+				&& !anonymizeFilters.isEmpty() 
+				&& anonymizeFilters.size() == 1;
 	}
 
 	protected boolean isActiveMaxStringLength() {
@@ -63,8 +64,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 
 	protected boolean isActivePathFilters() {
 		return 
-				(anonymizeFilters != null && anonymizeFilters.length > 0) 
-				|| (pruneFilters != null && pruneFilters.length > 0);
+				!anonymizeFilters.isEmpty() || !pruneFilters.isEmpty();
 	}
 
 	/**
@@ -112,12 +112,13 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	 * @param filters array of prune expressions
 	 */
 	
-	public void setPruneFilters(String ... filters) {
+	public void setPrune(String ... filters) {
 		if(filters != null) {
-			AbstractPathJsonFilter.validateAnonymizeExpressions(filters);
+			AbstractPathJsonFilter.validatePruneExpressions(filters);
 		}
-		
-		this.pruneFilters = filters;
+		for(String filter : filters) {
+			this.pruneFilters.add(filter);
+		}
 	}
 	
 	/**
@@ -126,15 +127,26 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	 * @param filters list of prune expressions
 	 */
 	
-	public void setPruneFilters(List<String> filters) {
-		if(filters != null && !filters.isEmpty()) {
-			setPruneFilters(filters.toArray(new String[filters.size()]));
-		} else {
-			this.pruneFilters = new String[]{};
+	public void setPrune(List<String> filters) {
+		if(filters != null) {
+			AbstractPathJsonFilter.validatePruneExpressions(filters);
 		}
+		this.pruneFilters.addAll(filters);
 	}
 	
-	public String[] getPruneFilters() {
+	public void addPrune(String filter) {
+		AbstractPathJsonFilter.validatePruneExpression(filter);
+		
+		this.pruneFilters.add(filter);
+	}
+
+	public void addAnonymize(String filter) {
+		AbstractPathJsonFilter.validateAnonymizeExpression(filter);
+		
+		this.anonymizeFilters.add(filter);
+	}
+
+	public List<String> getPrune() {
 		return pruneFilters;
 	}
 	
@@ -144,12 +156,13 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	 * @param filters array of anonymize filters
 	 */
 	
-	public void setAnonymizeFilters(String ... filters) {
+	public void setAnonymize(String ... filters) {
 		if(filters != null) {
 			AbstractPathJsonFilter.validateAnonymizeExpressions(filters);
 		}
-		
-		this.anonymizeFilters = filters;
+		for(String filter : filters) {
+			this.anonymizeFilters.add(filter);
+		}
 	}
 	
 	/**
@@ -159,15 +172,16 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	 * @param filters list of anonymize filters
 	 */
 	
-	public void setAnonymizeFilters(List<String> filters) {
+	public void setAnonymize(List<String> filters) {
 		if(filters != null && !filters.isEmpty()) {
-			setAnonymizeFilters(filters.toArray(new String[filters.size()]));
-		} else {
-			this.anonymizeFilters = new String[]{};
+			AbstractPathJsonFilter.validateAnonymizeExpressions(filters);
+		}
+		for(String filter : filters) {
+			this.anonymizeFilters.add(filter);
 		}
 	}
 	
-	public String[] getAnonymizeFilters() {
+	public List<String> getAnonymize() {
 		return anonymizeFilters;
 	}
 
@@ -205,11 +219,11 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		}		
 		case PRUNE : {
 			if(value instanceof String[]) {
-				setPruneFilters((String[]) value);
+				setPrune((String[]) value);
 			} else if(value instanceof String) {
-				setPruneFilters((String) value);
+				setPrune((String) value);
 			} else if(value instanceof List) {
-				setPruneFilters((List<String>) value);
+				setPrune((List<String>) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set prunes, unexpected value type");
 			}
@@ -217,11 +231,11 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		}
 		case ANONYMIZE : {
 			if(value instanceof String[]) {
-				setAnonymizeFilters((String[]) value);
+				setAnonymize((String[]) value);
 			} else if(value instanceof String) {
-				setAnonymizeFilters((String) value);
+				setAnonymize((String) value);
 			} else if(value instanceof List) {
-				setAnonymizeFilters((List<String>) value);
+				setAnonymize((List<String>) value);
 			} else {
 				throw new IllegalArgumentException("Cannot set anonymize, unexpected value type");
 			}

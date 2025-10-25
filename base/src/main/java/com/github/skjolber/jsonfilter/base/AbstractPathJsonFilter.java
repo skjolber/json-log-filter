@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.base;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
 public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
@@ -100,6 +101,12 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			validateAnonymizeExpression(expression);
 		}
 	}
+	
+	public static void validateAnonymizeExpressions(List<String> expressions) {
+		for(String expression : expressions) {
+			validateAnonymizeExpression(expression);
+		}
+	}
 
 	public static void validateAnonymizeExpression(String expression) {
 		if(!validateExpression(expression)) {
@@ -115,6 +122,12 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public static void validatePruneExpressions(String[] expressions) {
+		for(String expression : expressions) {
+			validatePruneExpression(expression);
+		}
+	}
+	
+	public static void validatePruneExpressions(List<String> expressions) {
 		for(String expression : expressions) {
 			validatePruneExpression(expression);
 		}

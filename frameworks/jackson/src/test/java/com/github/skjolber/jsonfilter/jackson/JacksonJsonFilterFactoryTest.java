@@ -56,7 +56,7 @@ public class JacksonJsonFilterFactoryTest {
 	
 	@Test
 	public void testAnon1() {
-		factory.setAnonymizeFilters("/abc");
+		factory.setAnonymize("/abc");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -65,7 +65,7 @@ public class JacksonJsonFilterFactoryTest {
 	
 	@Test
 	public void testAnon2() {
-		factory.setAnonymizeFilters("//abc");
+		factory.setAnonymize("//abc");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -74,7 +74,7 @@ public class JacksonJsonFilterFactoryTest {
 	
 	@Test
 	public void testAnons() {
-		factory.setAnonymizeFilters("/abc", "/def");
+		factory.setAnonymize("/abc", "/def");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -83,7 +83,7 @@ public class JacksonJsonFilterFactoryTest {
 	
 	@Test
 	public void testAnonsMaxSize() {
-		factory.setAnonymizeFilters("/abc", "/def");
+		factory.setAnonymize("/abc", "/def");
 		factory.setMaxSize(1024);
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
@@ -95,7 +95,7 @@ public class JacksonJsonFilterFactoryTest {
 	@Test
 	public void testPrune1() {
 		factory.setMaxStringLength(123);
-		factory.setPruneFilters("//def");
+		factory.setPrune("//def");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -105,7 +105,7 @@ public class JacksonJsonFilterFactoryTest {
 	@Test
 	public void testPrune2() {
 		factory.setMaxStringLength(123);
-		factory.setPruneFilters("//def");
+		factory.setPrune("//def");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -114,7 +114,7 @@ public class JacksonJsonFilterFactoryTest {
 	
 	@Test
 	public void testPrunes() {
-		factory.setPruneFilters("/abc", "/def");
+		factory.setPrune("/abc", "/def");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -124,7 +124,7 @@ public class JacksonJsonFilterFactoryTest {
 	@Test
 	public void testPrunesMaxSize() {
 		factory.setMaxSize(1024);
-		factory.setPruneFilters("/abc", "/def");
+		factory.setPrune("/abc", "/def");
 		
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();
 		
@@ -135,8 +135,8 @@ public class JacksonJsonFilterFactoryTest {
 	@Test
 	public void testAll() {
 		factory.setMaxStringLength(123);
-		factory.setAnonymizeFilters("/abc");
-		factory.setPruneFilters("//def");
+		factory.setAnonymize("/abc");
+		factory.setPrune("//def");
 		factory.setMaxSize(1024);
 
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter)factory.newJsonFilter();

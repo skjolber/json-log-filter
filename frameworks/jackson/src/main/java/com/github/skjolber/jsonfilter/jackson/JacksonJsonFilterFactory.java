@@ -65,6 +65,9 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 			truncateStringValue = AbstractJsonFilter.FILTER_TRUNCATE_MESSAGE;
 		}
 		
+		String[] pruneFilters = this.pruneFilters.isEmpty() ? null : this.pruneFilters.toArray(new String[this.pruneFilters.size()]);
+		String[] anonymizeFilters = this.anonymizeFilters.isEmpty() ? null :  this.anonymizeFilters.toArray(new String[this.anonymizeFilters.size()]);
+
 		if(isActivePathFilters()) {
 			// check for single prune/anon filter
 			if(isSinglePruneFilter()) {

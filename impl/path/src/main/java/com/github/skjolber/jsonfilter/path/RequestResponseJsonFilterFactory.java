@@ -153,8 +153,8 @@ public class RequestResponseJsonFilterFactory {
 			factory.setTruncateStringValue(replacements.getTruncate());
 		}
 
-		factory.setAnonymizeFilters(request.getAnonymizes());
-		factory.setPruneFilters(request.getPrunes());
+		factory.setAnonymize(request.getAnonymizes());
+		factory.setPrune(request.getPrunes());
 		factory.setMaxStringLength(request.getMaxStringLength());
 		factory.setMaxPathMatches(request.getMaxPathMatches());
 

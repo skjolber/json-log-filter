@@ -51,8 +51,8 @@ public class DefaultJsonLogFilterBuilder {
 		factory.setMaxStringLength(maxStringLength);
 		factory.setMaxPathMatches(maxPathMatches);
 		
-		factory.setAnonymizeFilters(anonymizeFilters);
-		factory.setPruneFilters(pruneFilters);
+		factory.setAnonymize(anonymizeFilters);
+		factory.setPrune(pruneFilters);
 
 		factory.setPruneJsonValue(pruneJsonValue);
 		factory.setAnonymizeJsonValue(anonymizeJsonValue);
