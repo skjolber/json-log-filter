@@ -26,7 +26,7 @@ Features:
  * Limit document size (skip end of document when max size is reached)
  * Remove whitespace
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are necessary.
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are required.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -201,6 +201,9 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Measuring the impact of the filtering, i.e. reduction in data size
  * Make sure filters are actually operating as intended
 
+### Request/response path module
+See the [path](impl/path) module for help facilitating per-path filters for request/response-logging applications. This to further improve performance.
+
 ### Opt-in [Jackson] module
 The filters have also been implemented using [Jackson], in an opt-in module.
 
@@ -215,8 +218,6 @@ Configure filters from `JacksonJsonLogFilterBuilder`.
 This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/serializer approach (like when using [Jackson]). 
 
 See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
-
-There is also a [path](impl/path) artifact which helps facilitate per-path filters for request/response-logging applications, which should further improve performance.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
