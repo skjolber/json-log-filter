@@ -202,9 +202,9 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Make sure filters are actually operating as intended
 
 ### Request/response path module
-See the [path](impl/path) module for help facilitating per-path filters for request/response-logging applications. This to further improve performance.
+See the opt-in [path](impl/path) module for help facilitating per-path filters for request/response-logging applications. This to further improve performance.
 
-### Opt-in [Jackson] module
+### [Jackson] module
 The filters have also been implemented using [Jackson], in an opt-in module.
 
  * filter + verify document structure in the same operation
