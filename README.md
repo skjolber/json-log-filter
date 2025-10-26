@@ -201,7 +201,7 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Measuring the impact of the filtering, i.e. reduction in data size
  * Make sure filters are actually operating as intended
 
-### Opt-in Jackson module
+### Opt-in [Jackson] module
 The filters have also been implemented using [Jackson], in an opt-in module.
 
  * filter + verify document structure in the same operation
@@ -212,7 +212,7 @@ The filters have also been implemented using [Jackson], in an opt-in module.
 Configure filters from `JacksonJsonLogFilterBuilder`.
 
 ## Performance
-This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/writer approach (like when using Jackson). 
+This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/serializer approach (like when using [Jackson]). 
 
 See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
