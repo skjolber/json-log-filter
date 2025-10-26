@@ -106,7 +106,6 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
                        .withAnonymize("$.customer.email") // inserts "*" for values
                        .withPrune("$.customer.account") // removes whole subtree
-                       .withMaxPathMatches(16) // halt anon/prune after a number of hits
                        .withMaxSize(128*1024)
                        .build();
                        
