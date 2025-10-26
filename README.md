@@ -20,13 +20,13 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
 
 Features:
 
- * Mask single values or whole subtrees
- * Remove single values or whole subtrees
- * Limit String value size
+ * Anonymize single values or whole subtrees
+ * Remove whole subtrees
+ * Limit text value size
  * Limit document size (skip end of document when max size is reached)
  * Remove whitespace
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible.
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are necessary, except for the opt-in [Jackson] module (see below).
 
 The equivalent filters are also implemented using [Jackson]:
 
@@ -41,7 +41,7 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 [Apache 2.0]
 
 ## Obtain
-The project is built with [Maven] and is available on the central Maven repository. No external dependencies are necessary, except for the opt-in Jackson module.
+The project is built with [Maven] and is available on the central Maven repository.
 
 <details>
   <summary>Maven coordinates</summary>
@@ -111,7 +111,7 @@ Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configur
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
-                       .withAnonymize("$.customer.email") // inserts ***** for values
+                       .withAnonymize("$.customer.email") // inserts "*" for values
                        .withPrune("$.customer.account") // removes whole subtree
                        .withMaxPathMatches(16) // halt anon/prune after a number of hits
                        .withMaxSize(128*1024)
@@ -131,7 +131,7 @@ Configure max string length for output like
 }
 ```
 
-### Mask (anonymize)
+### anonymize (mask)
 Configure anonymize for output like
 
 ```json
@@ -216,7 +216,7 @@ For a typical, light-weight web service, the overall system performance improvem
 
 Memory use will be at most 8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept `String`, other raw bytes or chars).
 
-See the benchmark results ([JDK 17](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.1.2.jdk17.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 There is also a [path](impl/path) artifact which helps facilitate per-path filters for request/response-logging applications, which should further improve performance.
 
@@ -229,7 +229,7 @@ Using SIMD for parsing JSON:
  
 Alternative JSON filters:
 
- * [json-masker](https://github.com/Breus/json-masker) (included in benchmark).
+ * [json-masker](https://github.com/Breus/json-masker) (included in some of the benchmarks).
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues

@@ -226,8 +226,8 @@ public class CveFilterBenchmark {
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(CveFilterBenchmark.class.getSimpleName())
-				.warmupIterations(5)
-				.measurementIterations(5)
+				.warmupIterations(1)
+				.measurementIterations(3)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();
