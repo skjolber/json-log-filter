@@ -43,5 +43,4 @@ public class DefaultJsonLogFilterBuilderTest {
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 	}
 	
-	
 }

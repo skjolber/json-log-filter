@@ -3,7 +3,11 @@ package com.github.skjolber.jsonfilter;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -40,11 +44,15 @@ public class ResizableByteArrayOutputStreamTest {
 	}
 	
 	@Test
-	public void testWrite1() {
+	public void testWrite1() throws UnsupportedEncodingException {
 		stream.write(data);
 		assertArrayEquals(data, stream.toByteArray());
 		assertEquals(string, stream.toString());
 		assertEquals(string, stream.toString(StandardCharsets.UTF_8));
+		assertEquals(string, stream.toString("UTF-8"));
+		
+		assertNotNull(stream.getBuffer());
+		assertEquals(data[0], stream.getByte(0));
 	}
 	
 	@Test
@@ -68,6 +76,15 @@ public class ResizableByteArrayOutputStreamTest {
 		stream.writeBytes(data);
 		assertArrayEquals(data, stream.toByteArray());
 		assertEquals(string, stream.toString());
+	}
+	
+	@Test
+	public void testWrite5() throws IOException {
+		stream.writeBytes(data);
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		stream.writeTo(bout);
+		assertArrayEquals(data, bout.toByteArray());
+		assertEquals(string, bout.toString());
 	}
 	
 	@Test
