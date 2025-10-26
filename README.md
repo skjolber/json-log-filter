@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/skjolber/json-log-filter/graph/badge.svg?token=8mCiHxVFbz)](https://codecov.io/gh/skjolber/json-log-filter)
 
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
+High-performance filtering of JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -26,14 +26,7 @@ Features:
  * Limit document size (skip end of document when max size is reached)
  * Remove whitespace
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are necessary, except for the opt-in [Jackson] module (see below).
-
-The equivalent filters are also implemented using [Jackson]:
-
- * filter + verify document structure in the same operation
- * allows dual filter setup:
-    * trusted (locally produced) JSON: fast filters without strict syntax validation
-    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are necessary.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -106,7 +99,7 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 </details>
 
 # Usage
-Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
+Use a `DefaultJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
@@ -209,12 +202,18 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Measuring the impact of the filtering, i.e. reduction in data size
  * Make sure filters are actually operating as intended
 
+### Opt-in Jackson module
+The filters have also been implemented using [Jackson], in an opt-in module.
+
+ * filter + verify document structure in the same operation
+ * allows dual filter setup:
+    * trusted (locally produced) JSON: fast filters without strict syntax validation
+    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
+
+Configure filters from `JacksonJsonLogFilterBuilder`.
+
 ## Performance
-The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance.
-
-For a typical, light-weight web service, the overall system performance improvement for using the `core` filters over the `Jackson`-based filters will most likely be a few percent.
-
-Memory use will be at most 8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept `String`, other raw bytes or chars).
+This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/writer approach (like when using Jackson). 
 
 See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
