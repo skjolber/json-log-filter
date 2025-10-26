@@ -34,7 +34,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	
 	protected static final String[] EMPTY = new String[]{};
 	protected static final String ANY_PREFIX_SLASHES = "//";
-	protected static final String ANY_PREFIX_DOTS = "..";
+	protected static final String ANY_PREFIX_DOTS = "$..";
 	
 	public static final String STAR = "*";
 	protected static final char[] STAR_CHARS = STAR.toCharArray();
@@ -64,6 +64,16 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static boolean hasAnyPrefix(String string) {
 		return string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_SLASHES) || string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_DOTS);
+	}
+	
+	public static String removeAnyPrefix(String string) {
+		if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_SLASHES)) {
+			return string.substring(2);
+		}
+		if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_DOTS)) {
+			return string.substring(2);
+		}
+		throw new IllegalArgumentException();
 	}
 	
 	/** strictly not needed, but necessary for testing */

@@ -4,7 +4,7 @@ import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
-public class AnyPathJsonFilter extends AbstractRangesMultiPathJsonFilter {
+public class AnyPathJsonFilter extends AbstractRangesPathJsonFilter {
 
 	public AnyPathJsonFilter(int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
 		this(-1, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);

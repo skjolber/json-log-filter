@@ -87,14 +87,14 @@ public class DefaultJsonFilterFactoryTest {
 	@Test
 	public void testMultipleAnonFullPath() {
 		factory.setAnonymize("/abc", "/def");
-		MultiFullPathJsonFilter filter = (MultiFullPathJsonFilter)factory.newJsonFilter();
+		FullPathJsonFilter filter = (FullPathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "/def"});
 	}
 	
 	@Test
 	public void testMultipleAnonMixedPath() {
 		factory.setAnonymize("/abc", "//def");
-		MultiPathJsonFilter filter = (MultiPathJsonFilter)factory.newJsonFilter();
+		PathJsonFilter filter = (PathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"/abc", "//def"});
 	}
 
@@ -326,7 +326,7 @@ public class DefaultJsonFilterFactoryTest {
 	@Test
 	public void testMultiplePruneMixedPath() {
 		factory.setPrune("/abc", "//def");
-		MultiPathJsonFilter filter = (MultiPathJsonFilter)factory.newJsonFilter();
+		PathJsonFilter filter = (PathJsonFilter)factory.newJsonFilter();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"/abc", "//def"});
 	}
 

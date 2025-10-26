@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/skjolber/json-log-filter/graph/badge.svg?token=8mCiHxVFbz)](https://codecov.io/gh/skjolber/json-log-filter)
 
 # json-log-filter
-High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
+High-performance filtering of JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
 
   * Filter sensitive values from logs (i.e. on request-/response-logging)
      * technical details like passwords and so on
@@ -20,20 +20,13 @@ High-performance filtering of to-be-logged JSON. Reads, filters and writes JSON 
 
 Features:
 
- * Mask single values or whole subtrees
- * Remove single values or whole subtrees
- * Truncate String values
- * Truncate document size (max total output size)
- * Remove whitespace (for pretty-printed documents)
+ * Anonymize single values or whole subtrees
+ * Remove whole subtrees
+ * Limit text value size
+ * Limit document size (skip end of document when max size is reached)
+ * Remove whitespace
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. 
-
-The equivalent filters are also implemented using [Jackson]:
-
- * filter + verify document structure in the same operation
- * allows dual filter setup:
-    * trusted (locally produced) JSON: fast filters without strict syntax validation
-    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
+The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are necessary.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -41,7 +34,7 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 [Apache 2.0]
 
 ## Obtain
-The project is built with [Maven] and is available on the central Maven repository. 
+The project is built with [Maven] and is available on the central Maven repository.
 
 <details>
   <summary>Maven coordinates</summary>
@@ -106,14 +99,13 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 </details>
 
 # Usage
-Use a `DefaultJsonLogFilterBuilder` or `JacksonJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
+Use a `DefaultJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
-                       .withAnonymize("$.customer.email") // inserts ***** for values
+                       .withAnonymize("$.customer.email") // inserts "*" for values
                        .withPrune("$.customer.account") // removes whole subtree
-                       .withMaxPathMatches(16) // halt anon/prune after a number of hits
                        .withMaxSize(128*1024)
                        .build();
                        
@@ -131,7 +123,7 @@ Configure max string length for output like
 }
 ```
 
-### Mask (anonymize)
+### anonymize (mask)
 Configure anonymize for output like
 
 ```json
@@ -176,15 +168,15 @@ to output like
 ### Path syntax
 A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
 
-    /my/field/name
+    $.my.field.name
 
 with support for wildcards; 
 
-    /my/field/*
+    $.my.field.*
 
 or a simple any-level field name search 
 
-    //myFieldName
+    $..myFieldName
 
 The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
 
@@ -194,7 +186,7 @@ Configure max path matches; so that filtering stops after a number of matches. T
 For example if the to-be filtered JSON document has a schema definition with a header + body structure, and the target value is in the header.   
 
 ### Max size
-Configure max size to limit the size of the resulting document. This reduces the size of the document by (silently) deleting the JSON content after the limit is reached.
+Configure max size to limit the size of the resulting document.
 
 ### Metrics
 Pass in a `JsonFilterMetrics` argument to the `process` method like so:
@@ -209,19 +201,20 @@ The resulting metrics could be logged as metadata alongside the JSON payload or 
  * Measuring the impact of the filtering, i.e. reduction in data size
  * Make sure filters are actually operating as intended
 
+### Opt-in Jackson module
+The filters have also been implemented using [Jackson], in an opt-in module.
+
+ * filter + verify document structure in the same operation
+ * allows dual filter setup:
+    * trusted (locally produced) JSON: fast filters without strict syntax validation
+    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
+
+Configure filters from `JacksonJsonLogFilterBuilder`.
+
 ## Performance
-The `core` processors within this project are faster than the `Jackson`-based processors. This is expected as parser/serializer features have been traded for performance:
+This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/writer approach (like when using Jackson). 
 
- * `core` is something like 3x-9x as fast as `Jackson` processors, where
- * skipping large parts of JSON documents (prune) decreases the difference, and
- * small documents increase the difference, as `Jackson` is more expensive to initialize.
- * working directly on bytes is faster than working on characters for the `core` processors.
-
-For a typical, light-weight web service, the overall system performance improvement for using the `core` filters over the `Jackson`-based filters will most likely be a few percent.
-
-Memory use will be at 2-8 times the raw JSON byte size; depending on the invoked `JsonFilter` method (some accept string, other raw bytes or chars).
-
-See the benchmark results ([JDK 17](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-4.1.2.jdk17.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 There is also a [path](impl/path) artifact which helps facilitate per-path filters for request/response-logging applications, which should further improve performance.
 
@@ -234,7 +227,7 @@ Using SIMD for parsing JSON:
  
 Alternative JSON filters:
 
- * [json-masker](https://github.com/Breus/json-masker) (included in benchmark).
+ * [json-masker](https://github.com/Breus/json-masker) (included in some of the benchmarks).
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues

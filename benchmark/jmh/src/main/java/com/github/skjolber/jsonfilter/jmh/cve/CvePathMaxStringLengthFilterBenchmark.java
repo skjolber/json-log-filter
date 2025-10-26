@@ -17,8 +17,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.jmh.AbstractAnyPathFilterBenchmark;
+import com.github.skjolber.jsonfilter.jmh.AbstractPathMaxStringLengthFilterBenchmark;
 
 
 @State(Scope.Thread)
@@ -28,35 +27,40 @@ import com.github.skjolber.jsonfilter.jmh.AbstractAnyPathFilterBenchmark;
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
-public class CveAnyPathFilterBenchmark extends AbstractAnyPathFilterBenchmark {
+public class CvePathMaxStringLengthFilterBenchmark extends AbstractPathMaxStringLengthFilterBenchmark {
 
-	private static String PATH = "//vendor_name";
+	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};
+	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
 
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
 	private String fileName;
 
 	@Override
 	protected File getFile() {
 		return new File("./src/test/resources/benchmark/cves/" + fileName);
 	}
-
-	@Override
-	protected FilterType getFilterType() {
-		return FilterType.ANON;
-	}
-
-	@Override
-	protected String getPath() {
-		return PATH;
-	}
 	
+	@Override
+	protected int getMaxStringLength() {
+		return 64;
+	}
+
+	@Override
+	protected String[] getPrune() {
+		return prune;
+	}
+
+	@Override
+	protected String[] getAnon() {
+		return anon;
+	}
+
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
-				.include(CveAnyPathFilterBenchmark.class.getSimpleName())
+				.include(CvePathMaxStringLengthFilterBenchmark.class.getSimpleName())
 				.warmupIterations(5)
 				.measurementIterations(2)
-				.result("target/" + System.currentTimeMillis() + "." + CveAnyPathFilterBenchmark.class.getSimpleName() + ".json")
+				.result("target/" + System.currentTimeMillis() + "." + CvePathMaxStringLengthFilterBenchmark.class.getSimpleName() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();
 

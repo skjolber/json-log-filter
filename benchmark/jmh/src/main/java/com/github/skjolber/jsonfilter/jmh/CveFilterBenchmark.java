@@ -1,6 +1,8 @@
 package com.github.skjolber.jsonfilter.jmh;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -21,13 +23,13 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.DefaultJsonLogFilterBuilder;
+import com.github.skjolber.jsonfilter.core.FullPathJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.MaxStringLengthMaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.MultiPathMaxSizeMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.core.SingleFullPathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathMaxSizeMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
@@ -36,18 +38,21 @@ import com.github.skjolber.jsonfilter.jackson.JacksonJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonJsonLogFilterBuilder;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeJsonFilter;
 import com.github.skjolber.jsonfilter.jackson.JacksonMaxSizeMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonPathMaxSizeMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
+
+import dev.blaauwendraad.masker.json.JsonMasker;
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 
 @State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 15, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
 
 @Fork(1)
-public abstract class CveFilterBenchmark {
+public class CveFilterBenchmark {
 
 	private final int maxStringLength = 64;
 	private static String[] anon = new String[] {"/CVE_Items/cve/affects/vendor/vendor_data/vendor_name"};
@@ -56,12 +61,15 @@ public abstract class CveFilterBenchmark {
 	private static String[] prune = new String[] {"/CVE_Items/cve/references", "//version"};
 	private static String[] prune2 = new String[] {"$.CVE_Items[?(@.cve.references)]", "$..version"};
 
-	private JacksonBenchmarkRunner jacksonMultiPathMaxSizeMaxStringLengthJsonFilter;
-	private BenchmarkRunner<JsonFilter> multiPathMaxSizeMaxStringLengthJsonFilter;
+	private JacksonBenchmarkRunner jacksonPathMaxSizeMaxStringLengthJsonFilter;
+	private BenchmarkRunner<JsonFilter> pathMaxSizeMaxStringLengthJsonFilter;
 
-	private BenchmarkRunner<JsonFilter> multiPathMaxStringLengthJsonFilter;
-	private BenchmarkRunner<JacksonJsonFilter> multiPathMaxStringLengthJacksonJsonFilter;
-	
+	private BenchmarkRunner<JsonFilter> pathMaxStringLengthJsonFilter;
+	private BenchmarkRunner<JacksonJsonFilter> pathMaxStringLengthJacksonJsonFilter;
+
+	private BenchmarkRunner<JsonFilter> anyPathJsonFilter; 
+	private BenchmarkRunner<JsonFilter> fullPathJsonFilter; 
+
 	private BenchmarkRunner<JsonFilter> maxStringLengthJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> maxStringLengthRemoveWhitespaceJsonFilter;
@@ -70,20 +78,17 @@ public abstract class CveFilterBenchmark {
 	private BenchmarkRunner<JsonFilter> maxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
 	private BenchmarkRunner<JacksonJsonFilter> maxStringLengthMaxSizeJacksonJsonFilter;
 	
-	private BenchmarkRunner<JsonFilter> singlePathMaxStringLengthJsonFilter;
-	private BenchmarkRunner<JacksonJsonFilter> singlePathMaxStringLengthJacksonJsonFilter;
-
 	private JacksonBenchmarkRunner maxSizeJacksonJsonFilter;
 	private BenchmarkRunner<JsonFilter> maxSizeJsonFilter; 
 	private BenchmarkRunner<JsonFilter> maxSizeRemoveWhitespaceJsonFilter; 
 	
-	private BenchmarkRunner<JsonFilter> singleFullPathMaxSizeMaxStringLengthJsonFilter;
-	private JacksonBenchmarkRunner singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter; 
+	private BenchmarkRunner<JsonFilter> anyPathJsonMaskerJsonFilter;
+	private BenchmarkRunner<JsonFilter> fullPathJsonMaskerJsonFilter;
 
 	private BenchmarkRunner<JsonFilter> removeWhitespaceJsonFilter;
 	
 	@Param(value={"2KB","8KB","14KB","22KB","30KB","50KB","70KB","100KB","200KB"})
-	//@Param(value={"2KB"})
+	//@Param(value={"8KB"})
 	private String fileName;
 	private final boolean prettyPrinted = false;
 	
@@ -94,14 +99,11 @@ public abstract class CveFilterBenchmark {
 		//BodyFilter maxLength = JsonPathBodyFilters.jsonPath("$..*[?(@.* =~ /^[\\w\\W]{" + maxStringLength + ",}$/)]").replace("..removed");
 		int size = Integer.parseInt(fileName.substring(0,  fileName.length() - 2)) * 1024 - 1;
 		
-		jacksonMultiPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon, prune), prettyPrinted);
-		multiPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MultiPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon, prune), prettyPrinted);
+		jacksonPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon, prune), prettyPrinted);
+		pathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon, prune), prettyPrinted);
 		
-		multiPathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
-		multiPathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
-
-		singlePathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build(), prettyPrinted);
-		singlePathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon[0]).build(), prettyPrinted);
+		pathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
+		pathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
 
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build(), prettyPrinted);
 		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength), prettyPrinted);
@@ -115,30 +117,40 @@ public abstract class CveFilterBenchmark {
 		maxStringLengthMaxSizeRemoveWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, size), prettyPrinted);
 		maxStringLengthMaxSizeJacksonJsonFilter = new BenchmarkRunner<JacksonJsonFilter>(file, true, new JacksonMaxSizeMaxStringLengthJsonFilter(maxStringLength, size), prettyPrinted);
 		
-		singleFullPathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON), prettyPrinted);
-		singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonSingleFullPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon[0], FilterType.ANON), prettyPrinted);
-
 		removeWhitespaceJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new RemoveWhitespaceJsonFilter(), prettyPrinted);
+		
+		anyPathJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new AnyPathJsonFilter(size, new String[] {"//version"}, null), prettyPrinted);
+		fullPathJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new FullPathJsonFilter(size, anon, null), prettyPrinted);
+		
+		// other filters
+		var singlePathJsonMasker = JsonMasker.getMasker(
+	        JsonMaskingConfig.builder()
+	                .maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
+	                .build()
+		);
+		
+		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(JsonMasker.getMasker(Set.of("version"))), false);
+		fullPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(singlePathJsonMasker), false);
 	}
 	
 	@Benchmark
 	public long all_maxsize_jackson() throws IOException {
-		return jacksonMultiPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
+		return jacksonPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long all_maxsize_core() throws IOException {
-		return multiPathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
+		return pathMaxSizeMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
 	public long all_jackson() throws IOException {
-		return multiPathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
+		return pathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
 	}
 	
 	@Benchmark
 	public long all_core() throws IOException {
-		return multiPathMaxStringLengthJsonFilter.benchmarkBytes();
+		return pathMaxStringLengthJsonFilter.benchmarkBytes();
 	}
 
 	@Benchmark
@@ -156,15 +168,6 @@ public abstract class CveFilterBenchmark {
 		return maxStringLengthRemoveWhitespaceJsonFilter.benchmarkBytes();
 	}	
 	
-	@Benchmark
-	public long anon_single_jackson() throws IOException {
-		return singlePathMaxStringLengthJacksonJsonFilter.benchmarkBytes();
-	}
-
-	@Benchmark
-	public long anon_single_core() throws IOException {
-		return singlePathMaxStringLengthJsonFilter.benchmarkBytes();
-	}
 	@Benchmark
 	public long maxSize_core() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
@@ -186,16 +189,6 @@ public abstract class CveFilterBenchmark {
 	}
 
 	@Benchmark
-	public long all_single() throws IOException {
-		return singleFullPathMaxSizeMaxStringLengthJsonFilter.benchmarkCharacters();
-	}
-
-	@Benchmark
-	public long all_single_jackson() throws IOException {
-		return singleFullPathMaxSizeMaxStringLengthJacksonJsonFilter.benchmarkCharacters();
-	}
-
-	@Benchmark
 	public long maxStringLengthMaxSize_core() throws IOException {
 		return maxStringLengthMaxSizeJsonFilter.benchmarkCharacters();
 	}
@@ -210,11 +203,31 @@ public abstract class CveFilterBenchmark {
 		return maxStringLengthMaxSizeJacksonJsonFilter.benchmarkCharacters();
 	}
 
+	@Benchmark
+	public long anon_any_core() throws IOException {
+		return anyPathJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long anon_any_jsonMask() throws IOException {
+		return anyPathJsonMaskerJsonFilter.benchmarkBytesAsArray();
+	}
+
+	@Benchmark
+	public long anon_full_jsonMask() throws IOException {
+		return fullPathJsonMaskerJsonFilter.benchmarkBytesAsArray();
+	}
+	
+	@Benchmark
+	public long anon_full_core() throws IOException {
+		return fullPathJsonFilter.benchmarkBytesAsArray();
+	}
+
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(CveFilterBenchmark.class.getSimpleName())
-				.warmupIterations(5)
-				.measurementIterations(5)
+				.warmupIterations(1)
+				.measurementIterations(3)
 				.result("target/" + System.currentTimeMillis() + ".json")
 				.resultFormat(ResultFormatType.JSON)
 				.build();

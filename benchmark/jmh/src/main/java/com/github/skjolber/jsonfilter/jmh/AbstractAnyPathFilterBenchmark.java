@@ -16,7 +16,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
-import com.github.skjolber.jsonfilter.jackson.JacksonMultiAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.jackson.JacksonAnyPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.asm.DynamicClassLoader;
 import com.github.skjolber.jsonfilter.jmh.asm.RemoveStaticMethodLabelsClassVisitor;
 
@@ -35,7 +35,7 @@ public abstract class AbstractAnyPathFilterBenchmark {
 		
 		String[] paths = new String[]{path};
 		
-		jacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMultiAnyPathMaxStringLengthJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null), true, false);
+		jacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null), true, false);
 		coreMultipleJsonFilter = new BenchmarkRunner<>(file, true, new AnyPathJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null), true, false);
 
 		JsonFilter filter = null;
