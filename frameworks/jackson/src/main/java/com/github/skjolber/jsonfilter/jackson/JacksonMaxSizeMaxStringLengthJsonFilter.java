@@ -30,6 +30,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 	
+	@Override
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(chars, offset, length, output, metrics);
@@ -46,6 +47,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		}
 	}
 	
+	@Override
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output, metrics);
@@ -62,6 +64,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		}
 	}
 	
+	@Override
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output, metrics);

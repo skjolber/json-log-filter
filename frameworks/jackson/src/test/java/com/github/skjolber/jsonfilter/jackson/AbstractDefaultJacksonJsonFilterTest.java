@@ -8,6 +8,7 @@ import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
 
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public abstract class AbstractDefaultJacksonJsonFilterTest extends DefaultJsonFilterTest {
@@ -23,6 +24,9 @@ public abstract class AbstractDefaultJacksonJsonFilterTest extends DefaultJsonFi
 		
 		assertTrue(successFilter.process(jsonBytes, 0, 2, new StringBuilder()));
 		assertTrue(successFilter.process(jsonChars, 0, 2, new StringBuilder()));
+
+		assertTrue(successFilter.process(jsonBytes, new StringBuilder()));
+		assertTrue(successFilter.process(jsonBytes, new StringBuilder(), new DefaultJsonFilterMetrics()));
 
 		assertFalse(failureFilter.process(jsonBytes, 0, 2, new StringBuilder()));
 		assertFalse(failureFilter.process(jsonChars, 0, 2, new StringBuilder()));

@@ -32,7 +32,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output);
+			return super.process(chars, offset, length, output, metrics);
 		}
 		output.ensureCapacity(output.length() + length);
 

@@ -101,13 +101,4 @@ public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJac
 		);
 	}	
 
-	@Test
-	public void byteInputStringBuilderOutput() throws Exception {		
-		JacksonPathMaxStringLengthJsonFilter filter = new JacksonPathMaxStringLengthJsonFilter(-1, null, null);
-		
-		StringBuilder stringBuilder = new StringBuilder();
-		assertTrue(filter.process("{}", stringBuilder));
-		assertFalse(filter.process("{abcdef}", stringBuilder));
-	}
-
 }

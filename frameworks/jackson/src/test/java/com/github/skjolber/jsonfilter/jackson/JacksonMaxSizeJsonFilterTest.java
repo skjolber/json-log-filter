@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
@@ -61,11 +62,17 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		testConvenienceMethods(
 			new JacksonMaxSizeJsonFilter(1) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
-					return true;					
+					return true;
+				}
+				public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+					return true;
 				}
 			}, 
 			new JacksonMaxSizeJsonFilter(1) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+					return false;
+				}
+				public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
 					return false;
 				}
 			},
@@ -73,8 +80,67 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
+				@Override
+				public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+					throw new RuntimeException();
+				}
 			}
 		);
+		
+		testConvenienceMethods(
+				new JacksonMaxSizeJsonFilter(1024) {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+						return true;					
+					}
+					public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+						return true;	
+					}
+
+					@Override
+					public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+						return true;	
+					}
+					
+					public boolean process(byte[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+						return true;	
+					}
+				}, 
+				new JacksonMaxSizeJsonFilter(1024) {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+						return false;
+					}
+					public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+						return false;
+					}
+
+					@Override
+					public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+						return false;
+					}
+					
+					public boolean process(byte[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+						return false;
+					}
+				},
+				new JacksonMaxSizeJsonFilter(1024, jsonFactory) {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+						throw new RuntimeException();
+					}
+					
+					@Override
+					public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+						throw new RuntimeException();
+					}
+
+					
+				}
+			);
 	}
+	
+	@Test
+	public void testConstructor() {
+		new JacksonMaxSizeJsonFilter(1024, "XXX", "YYY", "ZZZ");
+	}
+	
 	
 }
