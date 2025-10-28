@@ -30,6 +30,7 @@ public class PrefixJsonFilterPathMatcherTest {
 		
 		assertThat(matcher.matches("/abcdef")).isTrue();
 		assertThat(matcher.matches("/cdef")).isFalse();
+		assertThat(matcher.matches(null)).isFalse();
 		
 		assertSame(matcher.getFilter(false, 2), nonvalidatingFilter);
 		assertSame(matcher.getFilter(true, 2), validatingFilter);

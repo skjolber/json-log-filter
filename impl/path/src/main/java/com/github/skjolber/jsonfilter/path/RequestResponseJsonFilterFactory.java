@@ -68,6 +68,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, null, nonvalidatingFilter, null, Integer.MAX_VALUE);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ON_DEMAND) {
+						// TODO this option does not make sense if also the max size is set
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingFilter = nonvalidating.newJsonFilter();
 						
@@ -103,6 +104,7 @@ public class RequestResponseJsonFilterFactory {
 						JsonFilterPathMatcher m = jsonFilterPathMatcherFactory.createMatcher(matcher, validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);
 						requestFilters.add(m);
 					} else if(whitespaceStrategy == WhitespaceStrategy.ON_DEMAND) {
+						// TODO this option does not make sense if also the max size is set
 						JsonFilter validatingFilter = jacksonJsonFilterFactory.newJsonFilter();
 						JsonFilter nonvalidatingFilter = nonvalidating.newJsonFilter();
 
