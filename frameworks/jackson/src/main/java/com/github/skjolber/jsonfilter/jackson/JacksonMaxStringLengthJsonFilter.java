@@ -47,40 +47,6 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}
 	
-	public static void skipMaxStringLength(final JsonParser parser, JsonGenerator generator, int maxStringLength, StringBuilder builder, JsonFilterMetrics metrics, char[] truncateStringValue) throws IOException {
-		int level = 1;
-		
-		while(level > 0) {
-			JsonToken nextToken = parser.nextToken();
-			if(nextToken == null) {
-				break;
-			}
-			
-			switch(nextToken) {
-			case START_OBJECT:
-			case START_ARRAY:
-				level++;
-				break;
-			case END_OBJECT:
-			case END_ARRAY:
-				level--;
-				break;
-			case VALUE_STRING:
-				if(parser.getTextLength() > maxStringLength) {
-					writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
-					
-					if(metrics != null) {
-						metrics.onMaxStringLength(1);
-					}
-					
-					continue;
-				}
-			}
-			
-			generator.copyCurrentEvent(parser);
-		}
-	}
-	
 	protected final JsonFactory jsonFactory;
 
 	public JacksonMaxStringLengthJsonFilter(int maxStringLength) {
@@ -132,6 +98,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 	}
 	
+	@Override
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(bytes.length < offset + length) {
 			return false;

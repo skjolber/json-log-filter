@@ -72,8 +72,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 		}
 
 		if(maxSize >= length) {
-			output.append(new String(bytes, offset, length));
-			return true;
+			return super.process(bytes, offset, length, output, metrics);
 		}
 		output.ensureCapacity(output.length() + length);
 

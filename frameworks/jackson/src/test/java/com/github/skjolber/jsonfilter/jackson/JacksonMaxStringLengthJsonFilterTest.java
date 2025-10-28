@@ -46,7 +46,7 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractDefaultJackson
 			}, 
 			new JacksonMaxStringLengthJsonFilter(-1) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
-					throw new RuntimeException();
+					return false;
 				}
 			},
 			new JacksonMaxStringLengthJsonFilter(-1, jsonFactory) {

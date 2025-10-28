@@ -1,4 +1,6 @@
 package com.github.skjolber.jsonfilter.jackson;
+import java.nio.charset.StandardCharsets;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
@@ -44,6 +46,19 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 		} catch(final Exception e) {
 			return false;
 		}		
+	}
+	
+	public boolean process(byte[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
+		try (JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
+			if(parse(parser)) {
+				output.ensureCapacity(output.length() + length);
+				output.append(new String(chars, offset, length, StandardCharsets.UTF_8));
+				return true;
+			}
+			return false;
+		} catch(final Exception e) {
+			return false;
+		}
 	}
 
 	protected boolean parse(JsonParser parser) {
