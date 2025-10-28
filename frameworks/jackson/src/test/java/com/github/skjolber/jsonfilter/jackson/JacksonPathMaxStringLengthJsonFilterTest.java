@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,7 +90,7 @@ public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJac
 			}, 
 			new JacksonPathMaxStringLengthJsonFilter(-1, null, null) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-					throw new RuntimeException();
+					return false;
 				}
 			},
 			new JacksonPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {
@@ -98,5 +100,14 @@ public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJac
 			}			
 		);
 	}	
+
+	@Test
+	public void byteInputStringBuilderOutput() throws Exception {		
+		JacksonPathMaxStringLengthJsonFilter filter = new JacksonPathMaxStringLengthJsonFilter(-1, null, null);
+		
+		StringBuilder stringBuilder = new StringBuilder();
+		assertTrue(filter.process("{}", stringBuilder));
+		assertFalse(filter.process("{abcdef}", stringBuilder));
+	}
 
 }

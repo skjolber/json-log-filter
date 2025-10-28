@@ -144,7 +144,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 			}, 
 			new JacksonPathMaxStringLengthJsonFilter(-1, null, null) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-					throw new RuntimeException();
+					return false;
 				}
 			},
 			new JacksonPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory) {

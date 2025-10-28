@@ -41,7 +41,6 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {
-		
 		JsonFactory jsonFactory = mock(JsonFactory.class);
 		when(jsonFactory.createGenerator(any(StringBuilderWriter.class))).thenThrow(new RuntimeException());
 		when(jsonFactory.createGenerator(any(ByteArrayOutputStream.class))).thenThrow(new RuntimeException());
@@ -54,7 +53,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 			}, 
 			new JacksonMaxStringLengthJsonFilter(-1) {
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) {
-					throw new RuntimeException();
+					return false;
 				}
 			},
 			new JacksonMaxStringLengthJsonFilter(-1, jsonFactory) {
