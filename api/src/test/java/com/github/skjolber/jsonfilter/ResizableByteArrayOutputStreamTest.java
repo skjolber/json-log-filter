@@ -41,6 +41,11 @@ public class ResizableByteArrayOutputStreamTest {
 		stream.ensureCapacity(1024 + 1);
 		
 		assertEquals(1024 + ResizableByteArrayOutputStream.MIN_INCREMENT, stream.getBufferSize());
+		
+		stream.ensureCapacity(ResizableByteArrayOutputStream.MIN_INCREMENT * 3);
+		
+		assertEquals(ResizableByteArrayOutputStream.MIN_INCREMENT * 3, stream.getBufferSize());
+
 	}
 	
 	@Test
