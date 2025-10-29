@@ -439,7 +439,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 			ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 
-			filter.setLimit(maxSizeLimit);
+			filter.setMaxSizeLimit(maxSizeLimit);
 			
 			processMaxSize(chars, offset, maxReadLimit, 0, output, 0, maxPathMatches, filter, metrics);
 
@@ -466,7 +466,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		
 		int maxStringLength = this.maxStringLength;
 
-		int maxSizeLimit = filter.getLimit();
+		int maxSizeLimit = filter.getMaxSizeLimit();
 
 		int flushOffset = filter.getFlushOffset();
 		int mark = filter.getMark();
@@ -666,7 +666,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						filter.setLevel(bracketLevel);
 						filter.setMark(nextOffset + 1);
 
-						filter.setLimit(maxSizeLimit);
+						filter.setMaxSizeLimit(maxSizeLimit);
 						filter.setFlushOffset(flushOffset);
 						filter.setWrittenMark(streamMark);
 						
@@ -679,7 +679,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						streamMark = filter.getWrittenMark();
 						
 						squareBrackets = filter.getSquareBrackets();
-						maxSizeLimit = filter.getLimit();						
+						maxSizeLimit = filter.getMaxSizeLimit();						
 					} else if(chars[nextOffset] == '"') {
 						flushOffset = nextOffset;
 						
@@ -737,7 +737,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 							squareBrackets = filter.grow(squareBrackets);
 						}
 						
-						filter.setLimit(maxSizeLimit);
+						filter.setMaxSizeLimit(maxSizeLimit);
 						filter.setFlushOffset(flushOffset);
 						filter.setLevel(bracketLevel);
 						filter.setMark(nextOffset + 1);
@@ -750,7 +750,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						mark = filter.getMark();
 						streamMark = filter.getWrittenMark();
 						squareBrackets = filter.getSquareBrackets();
-						maxSizeLimit = filter.getLimit();
+						maxSizeLimit = filter.getMaxSizeLimit();
 					} else {
 						if(nextOffset + filter.getAnonymizeMessageLength() > maxSizeLimit) {
 							offset = nextOffset;
