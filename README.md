@@ -106,7 +106,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
                        .withMaxStringLength(127) // cuts long texts
                        .withAnonymize("$.customer.email") // inserts "*" for values
                        .withPrune("$.customer.account") // removes whole subtree
-                       .withMaxSize(128*1024)
+                       .withMaxSize(128*1024) // max document size
                        .build();
                        
 byte[] json = ...; // obtain JSON
@@ -123,7 +123,7 @@ Configure max string length for output like
 }
 ```
 
-### anonymize (mask)
+### Anonymize (mask)
 Configure anonymize for output like
 
 ```json
@@ -178,7 +178,8 @@ or a simple any-level field name search
 
     $..myFieldName
 
-The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
+> [!NOTE]
+> The filters within this library support using multiple expressions at once. Note that path expressions pass through arrays transparently.
 
 ### Max path matches
 Configure max path matches; so that filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
@@ -228,7 +229,7 @@ Using SIMD for parsing JSON:
  
 Alternative JSON filters:
 
- * [json-masker](https://github.com/Breus/json-masker) (included in some of the benchmarks).
+ * [json-masker](https://github.com/Breus/json-masker) slightly different use-case, included in some of the benchmarks.
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
