@@ -3,8 +3,8 @@ package com.github.skjolber.jsonfilter.test.jackson;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonParser;
 
 public class JsonValidator {
 

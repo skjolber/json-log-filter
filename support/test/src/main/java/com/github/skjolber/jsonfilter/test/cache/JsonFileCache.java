@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import tools.jackson.core.json.JsonFactory;
 import com.github.skjolber.jsonfilter.test.jackson.JsonCharSizeIterator;
 import com.github.skjolber.jsonfilter.test.jackson.JsonValidator;
 import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;

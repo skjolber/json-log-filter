@@ -13,8 +13,8 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.ParseContext;
-import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.json.Jackson3JsonNodeJsonProvider;
+import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 
 /** 
  * Verify as much of the test resources as possible.
@@ -25,8 +25,8 @@ public class JsonPathFilterTest extends DefaultJsonFilterTest {
 
     private static final ParseContext CONTEXT = JsonPath.using(
             Configuration.builder()
-                    .jsonProvider(new JacksonJsonNodeJsonProvider())
-                    .mappingProvider(new JacksonMappingProvider())
+                    .jsonProvider(new Jackson3JsonNodeJsonProvider())
+                    .mappingProvider(new Jackson3MappingProvider())
                     .options(Option.SUPPRESS_EXCEPTIONS)
                     .options(Option.ALWAYS_RETURN_LIST)
                     .build());

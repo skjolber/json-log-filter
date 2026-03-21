@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import tools.jackson.core.json.JsonFactory;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class DefaultJacksonJsonFilterTest {

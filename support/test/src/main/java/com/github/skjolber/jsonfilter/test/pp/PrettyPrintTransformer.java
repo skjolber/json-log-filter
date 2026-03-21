@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import com.github.skjolber.jsonfilter.test.jackson.PrettyPrintWriteContext;
 
 public class PrettyPrintTransformer implements Function<String, String> {
 
@@ -35,12 +36,12 @@ public class PrettyPrintTransformer implements Function<String, String> {
 	
 	@Override
 	public String apply(String t) {
-		
+		DefaultPrettyPrinter instance = prettyPrinter.createInstance();
 		try (
 			StringReader reader = new StringReader(t);
 			CharArrayWriter writer = new CharArrayWriter(t.length() * 2);
 
-			JsonGenerator generator = jsonFactory.createGenerator(writer).setPrettyPrinter(prettyPrinter.createInstance());
+			JsonGenerator generator = jsonFactory.createGenerator(PrettyPrintWriteContext.of(instance), writer);
 			JsonParser parser = jsonFactory.createParser(reader)
 			) {
 			

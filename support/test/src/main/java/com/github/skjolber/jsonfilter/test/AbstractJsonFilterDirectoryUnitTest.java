@@ -11,9 +11,9 @@ import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 import com.github.skjolber.jsonfilter.test.directory.JsonFilterDirectoryUnitTest;
@@ -122,7 +122,7 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 			bout.setLength(0);
 			try {
 				validate(result);
-			} catch(JsonParseException e) {
+			} catch(JacksonException e) {
 				System.out.println(result);
 				fail(bout.length() + " vs " + i );
 			}
@@ -162,7 +162,7 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 	}
 
 	private void validate(Function<Integer, JsonFilter> filter, int levels, byte[] generateDeepStructure)
-			throws IOException, JsonParseException {
+			throws IOException {
 		
 		for(int i = 2; i < generateDeepStructure.length; i++) {		
 			JsonFilter apply = filter.apply(i);
@@ -207,13 +207,13 @@ public abstract class AbstractJsonFilterDirectoryUnitTest {
 		}
 	}
 
-	protected void validate(byte[] process) throws IOException, JsonParseException {
+	protected void validate(byte[] process) throws IOException {
 		try (JsonParser parse = factory.createParser(process)) {
 			while(parse.nextToken() != null);
 		}
 	}
 
-	protected void validate(String process) throws IOException, JsonParseException {
+	protected void validate(String process) throws IOException {
 		try (JsonParser parse = factory.createParser(process)) {
 			while(parse.nextToken() != null);
 		}
