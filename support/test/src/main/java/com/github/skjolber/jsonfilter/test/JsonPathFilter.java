@@ -4,16 +4,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ContainerNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
+import tools.jackson.databind.node.ValueNode;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -22,8 +21,8 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.ParseContext;
-import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.json.Jackson3JsonNodeJsonProvider;
+import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 
 public class JsonPathFilter implements JsonFilter {
 
@@ -35,8 +34,8 @@ public class JsonPathFilter implements JsonFilter {
 	
     private static final ParseContext CONTEXT = JsonPath.using(
             Configuration.builder()
-                    .jsonProvider(new JacksonJsonNodeJsonProvider())
-                    .mappingProvider(new JacksonMappingProvider())
+                    .jsonProvider(new Jackson3JsonNodeJsonProvider())
+                    .mappingProvider(new Jackson3MappingProvider())
                     .options(Option.SUPPRESS_EXCEPTIONS)
                     .options(Option.ALWAYS_RETURN_LIST)
                     .build());
@@ -137,8 +136,8 @@ public class JsonPathFilter implements JsonFilter {
 				String value;
 				if(currentValue instanceof String) {
 					value = (String)currentValue;
-				} else if(currentValue instanceof TextNode) {
-					TextNode textNode = (TextNode)currentValue;
+				} else if(currentValue instanceof StringNode) {
+					StringNode textNode = (StringNode)currentValue;
 					value = textNode.asText();
 				} else {
 					return currentValue;
@@ -174,21 +173,18 @@ public class JsonPathFilter implements JsonFilter {
 				if(jsonNode instanceof ContainerNode) {
 					anonymize((ContainerNode<?>)jsonNode);
 				} else if(jsonNode instanceof ValueNode) {
-					arrayNode.set(i, TextNode.valueOf(FILTER_ANONYMIZE));
+					arrayNode.set(i, StringNode.valueOf(FILTER_ANONYMIZE));
 				}
 			}
 		} else if(containerNode instanceof ObjectNode) {
 			ObjectNode objectNode = (ObjectNode)containerNode;
 			
-			Iterator<String> fieldNames = objectNode.fieldNames();
-			while(fieldNames.hasNext()) {
-				String next = fieldNames.next();
-
-				JsonNode jsonNode = objectNode.findValue(next);
+			for(String propertyName : objectNode.propertyNames()) {
+				JsonNode jsonNode = objectNode.findValue(propertyName);
 				if(jsonNode instanceof ContainerNode) {
 					anonymize((ContainerNode<?>)jsonNode);
 				} else {
-					objectNode.put(next, FILTER_ANONYMIZE);
+					objectNode.put(propertyName, FILTER_ANONYMIZE);
 				}
 			}
 		}

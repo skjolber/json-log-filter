@@ -4,10 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Iterator;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonFactory;
 
 public class JsonByteSizeIterator implements Iterator<byte[]> {
 
@@ -41,17 +41,16 @@ public class JsonByteSizeIterator implements Iterator<byte[]> {
 		events++;
 		
 		try (
-			JsonGenerator generator = jsonFactory.createGenerator(bout);
+			JsonGenerator generator = prettyPrint
+					? jsonFactory.createGenerator(PrettyPrintWriteContext.DEFAULT, bout)
+					: jsonFactory.createGenerator(bout);
 			ByteArrayInputStream bin = new ByteArrayInputStream(input);
 			JsonParser jsonParser = jsonFactory.createParser(bin);
 			) {
-			if(prettyPrint) {
-				generator.useDefaultPrettyPrinter();
-			}
 			int count = events;
 			while(count > 0 && jsonParser.nextToken() != null) {
 				generator.copyCurrentEvent(jsonParser);
-				if(jsonParser.getCurrentToken() != JsonToken.FIELD_NAME) {
+				if(jsonParser.currentToken() != JsonToken.PROPERTY_NAME) {
 					count--;
 					
 					if(count == 0) {

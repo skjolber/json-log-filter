@@ -5,9 +5,9 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Assertions;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 public class JsonComparator {
 
@@ -107,8 +107,8 @@ public class JsonComparator {
 				}
 				
 				switch(expectedToken)  {
-					case FIELD_NAME: {
-						if(!expectedParser.getCurrentName().equals(resultParser.getCurrentName())) {
+					case PROPERTY_NAME: {
+						if(!expectedParser.currentName().equals(resultParser.currentName())) {
 							return false;
 						}
 						break;
@@ -172,8 +172,8 @@ public class JsonComparator {
 				}
 				
 				switch(expectedToken)  {
-					case FIELD_NAME: {
-						if(!expectedParser.getCurrentName().equals(resultParser.getCurrentName())) {
+					case PROPERTY_NAME: {
+						if(!expectedParser.currentName().equals(resultParser.currentName())) {
 							return false;
 						}
 						break;

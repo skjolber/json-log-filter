@@ -1,8 +1,9 @@
 package com.github.skjolber.jsonfilter.test.pp;
 
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.Indenter;
+import tools.jackson.core.util.DefaultIndenter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.util.DefaultPrettyPrinter.Indenter;
+import tools.jackson.core.util.Separators;
 
 public class PrettyPrinterFactory {
 	
@@ -39,9 +40,11 @@ public class PrettyPrinterFactory {
 	
 	public DefaultPrettyPrinter spacesInObjectEntries(DefaultPrettyPrinter prettyPrinter, int[] dimensions) {
 		if(dimensions[spacesInObjectEntries] == 1) {
-			return prettyPrinter.withoutSpacesInObjectEntries();
+			return prettyPrinter.withSeparators(Separators.createDefaultInstance()
+					.withObjectNameValueSpacing(Separators.Spacing.NONE));
 		} else {
-			return prettyPrinter.withSpacesInObjectEntries();
+			return prettyPrinter.withSeparators(Separators.createDefaultInstance()
+					.withObjectNameValueSpacing(Separators.Spacing.BOTH));
 		}
 	}
 	

@@ -1,5 +1,5 @@
 package com.github.skjolber.jsonfilter.jackson;
-import com.fasterxml.jackson.core.JsonFactory;
+import tools.jackson.core.json.JsonFactory;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 public abstract class AbstractJacksonJsonFilter extends AbstractJsonFilter {

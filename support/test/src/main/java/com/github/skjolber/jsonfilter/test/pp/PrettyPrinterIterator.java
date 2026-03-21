@@ -3,7 +3,7 @@ package com.github.skjolber.jsonfilter.test.pp;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
 
 /**
  * 
