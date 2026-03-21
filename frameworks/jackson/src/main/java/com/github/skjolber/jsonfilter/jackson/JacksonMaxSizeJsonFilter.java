@@ -165,7 +165,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 			accurateSize = 0;
 		}
 		
-		if(parser.streamReadContext().hasCurrentIndex()) {
+		if(parser.streamReadContext().getCurrentIndex() >= 1) {
 			accurateSize++;
 		}
 		

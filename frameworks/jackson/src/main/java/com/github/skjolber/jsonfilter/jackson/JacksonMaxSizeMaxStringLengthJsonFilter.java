@@ -169,7 +169,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			accurateSize = 0;
 		}
 		
-		if(parser.streamReadContext().getCurrentIndex() >= 2) {
+		if(parser.streamReadContext().getCurrentIndex() >= 1) {
 			accurateSize++;
 		}
 		

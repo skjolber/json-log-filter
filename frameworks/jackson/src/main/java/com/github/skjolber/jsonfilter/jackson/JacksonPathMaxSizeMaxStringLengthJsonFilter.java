@@ -161,7 +161,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						}
 						
 						long size = currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong();
-						if(parser.streamReadContext().getCurrentIndex() >= 2) {
+						if(parser.streamReadContext().getCurrentIndex() >= 1) {
 							size++;
 						}
 
@@ -179,7 +179,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						if(anon) {
 							
 							long size = currentName.length() + 4 + outputSizeSupplier.getAsLong();
-							if(parser.streamReadContext().getCurrentIndex() >= 2) {
+							if(parser.streamReadContext().getCurrentIndex() >= 1) {
 								size++;
 							}
 							
@@ -198,7 +198,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 							}
 						} else {
 							long size = currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong();
-							if(parser.streamReadContext().getCurrentIndex() >= 2) {
+							if(parser.streamReadContext().getCurrentIndex() >= 1) {
 								size++;
 							}
 							
@@ -314,7 +314,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 				outputSize += fieldName.length() + 3;
 			}
 			
-			if(parser.streamReadContext().getCurrentIndex() >= 2) {
+			if(parser.streamReadContext().getCurrentIndex() >= 1) {
 				outputSize++;
 			}
 			
