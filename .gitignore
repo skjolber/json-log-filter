@@ -42,3 +42,4 @@ target
 .attach_pid*
 
 dependency-reduced-pom.xml
+*.versionsBackup
