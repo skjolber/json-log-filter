@@ -241,6 +241,80 @@ class ByteArrayRangesFilterScanQuotedValueTest {
     }
 
     // -------------------------------------------------------------------------
+    // Direct scanEscapedValue tests
+    //
+    // scanEscapedValue is called when a '"' preceded by '\' is found; it decides
+    // whether that backslash actually escapes the quote (odd backslash count) or
+    // is itself escaped (even backslash count), and advances to the real closing '"'.
+    // -------------------------------------------------------------------------
+
+    static Stream<EscapeCase> escapeCases() {
+        List<EscapeCase> cases = new ArrayList<>();
+
+        // Helper: build array that starts at an already-found '"', with context before it.
+        // The array layout is: padding + prefix + '"' (the escaped candidate) + rest + '"' (real close) + padding
+        // We call scanEscapedValue(buf, quoteIdx) directly.
+
+        // Case 1: single backslash → quote is escaped, advance to next real '"'
+        // buf: \  "  a  b  c  "  (padding follows)
+        cases.add(escapeCaseOf("singleBackslash_shortSuffix", "\\\"abc\"", 1));
+
+        // Case 2: double backslash before '"' → backslash is escaped, '"' closes the string
+        // buf: \\ " (real close)
+        cases.add(escapeCaseOf("doubleBackslash_immediate", "\\\\\"", 2));
+
+        // Case 3: triple backslash before '"' → (\\)(\") = escaped backslash + escaped quote, advance
+        cases.add(escapeCaseOf("tripleBackslash_longSuffix", "\\\\\\\"abcdefghij\"", 3));
+
+        // Case 4: escaped quote then real close within 8-byte loop range
+        cases.add(escapeCaseOf("escapedQuote_in8ByteRange", "\\\"abcdefg\"", 1));
+
+        // Case 5: escaped quote then real close within 16-byte dual-load range
+        cases.add(escapeCaseOf("escapedQuote_in16ByteRange", "\\\"abcdefghijklmno\"", 1));
+
+        // Case 6: multiple escaped quotes before the real closing quote
+        cases.add(escapeCaseOf("multipleEscapedQuotes", "\\\"abc\\\"def\\\"ghi\"", 1));
+
+        // Case 7: escaped quote right at an 8-byte word boundary
+        cases.add(escapeCaseOf("escapedQuote_at8ByteBoundary", "\\\"aaaaaaa\\\"bbbbbbb\"", 1));
+
+        // Case 8: escaped quote right at a 16-byte boundary (second word)
+        cases.add(escapeCaseOf("escapedQuote_at16ByteBoundary", "\\\"aaaaaaaaaaaaaaa\\\"bbb\"", 1));
+
+        // Case 9: real close immediately after the candidate escaped quote (odd slash count)
+        cases.add(escapeCaseOf("realClose_afterOddSlashes", "\\\\\\\"\"", 3));
+
+        return cases.stream();
+    }
+
+    /**
+     * Build an EscapeCase where {@code raw} is the bytes after the opening {@code "},
+     * and {@code quoteIdx} is the index within {@code raw} of the first candidate '"'
+     * (the one we pass to scanEscapedValue).  The full buffer is:
+     * {@code  " } + raw + {@code  "} (padding).
+     *
+     * <p>The opening {@code "} is at index 0; quoteIdx+1 is the candidate quote position.
+     */
+    private static EscapeCase escapeCaseOf(String name, String raw, int quoteIdx) {
+        byte[] rawBytes = raw.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        // Buffer: opening " + rawBytes + closing " + 32 padding bytes
+        byte[] buf = new byte[1 + rawBytes.length + 32];
+        buf[0] = '"';
+        System.arraycopy(rawBytes, 0, buf, 1, rawBytes.length);
+        // Ensure there's a '"' at the end of the real content (raw already contains it)
+        return new EscapeCase(name, buf, 1 + quoteIdx);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("escapeCases")
+    void scanEscapedValue_matchesScalarReference(EscapeCase ec) {
+        int expected = referenceScalarScanEscapedValue(ec.bytes, ec.quoteIdx);
+        int actual   = ByteArrayRangesFilter.scanEscapedValue(ec.bytes, ec.quoteIdx);
+        assertEquals(expected, actual,
+            () -> "scanEscapedValue mismatch for case '" + ec.name + "': bytes=" + describe(ec.bytes));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -258,6 +332,11 @@ class ByteArrayRangesFilterScanQuotedValueTest {
     }
 
     record TestCase(String name, byte[] bytes) {
+        @Override
+        public String toString() { return name; }
+    }
+
+    record EscapeCase(String name, byte[] bytes, int quoteIdx) {
         @Override
         public String toString() { return name; }
     }
