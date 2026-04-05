@@ -16,10 +16,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	private static final VarHandle LONG_LE =
 		MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
 	private static final long QUOTE_MASK     = 0x2222222222222222L; // '"' (0x22) repeated 8×
-	private static final long OPEN_OBJ_MASK  = 0x7B7B7B7B7B7B7B7BL; // '{' (0x7B) repeated 8×
-	private static final long CLOSE_OBJ_MASK = 0x7D7D7D7D7D7D7D7DL; // '}' (0x7D) repeated 8×
-	private static final long OPEN_ARR_MASK  = 0x5B5B5B5B5B5B5B5BL; // '[' (0x5B) repeated 8×
-	private static final long CLOSE_ARR_MASK = 0x5D5D5D5D5D5D5D5DL; // ']' (0x5D) repeated 8×
 	private static final long MAGIC1         = 0x0101010101010101L;
 	private static final long MAGIC2         = 0x8080808080808080L;
 
@@ -448,7 +444,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 *       trick; see <em>Hacker's Delight</em>, 2nd ed., §6-1 "Find First 0-Byte".
 	 *       Early-exit on the first load avoids reading the second when a quote is
 	 *       found quickly (common in dense JSON).
-	 *   <li>8-byte single-load tail and scalar tail for the final < 16 bytes.
+	 *   <li>8-byte single-load tail and scalar tail for the final &lt; 16 bytes.
 	 * </ul>
 	 *
 	 * <p>The scalar preamble break-even: on ARM64 (Apple Silicon, JDK 25), scalar
@@ -457,6 +453,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * cycles for 8 bytes. For strings ≤ 15 bytes scalar is therefore faster or
 	 * equal; for strings ≥ 16 bytes the preamble replaces the first VarHandle
 	 * iteration at equivalent cost, keeping long-string throughput unchanged.
+	 *
+	 * @param chars  the byte array containing the JSON being scanned
+	 * @param offset the index of the opening {@code "} character
+	 * @return the index of the matching closing {@code "} character
 	 */
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		int i = offset + 1;
