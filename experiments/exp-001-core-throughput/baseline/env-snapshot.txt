@@ -1,0 +1,12 @@
+=== Date ===
+søn.  5 apr. 2026 14.55.49 CEST
+=== OS ===
+Darwin MacBookPro 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:54:46 PST 2026; root:xnu-12377.91.3~2/RELEASE_ARM64_T6000 x86_64
+=== Runtime ===
+openjdk version "25.0.1" 2025-10-21 LTS
+OpenJDK Runtime Environment Temurin-25.0.1+8 (build 25.0.1+8-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.1+8 (build 25.0.1+8-LTS, mixed mode, sharing)
+=== Key dependencies ===
+		<jackson.version>3.1.0</jackson.version>
+				<version>${jackson.version}</version>
+				<version>${jackson.version}</version>

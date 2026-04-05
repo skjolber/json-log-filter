@@ -1,0 +1,5 @@
+# Aggregation: median of 5 runs
+# Raw: 122342 119851 118645 120093 121068
+# Sorted: 118645 119851 120093 121068 122342
+# Spread: 3.1% (<5% threshold — stable)
+120093
