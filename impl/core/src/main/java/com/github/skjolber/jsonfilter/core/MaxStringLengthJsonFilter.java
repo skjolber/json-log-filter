@@ -128,11 +128,13 @@ public class MaxStringLengthJsonFilter extends AbstractRangesJsonFilter {
 	
 	public static int ranges(final byte[] chars, int offset, int limit, int maxStringLength, ByteArrayRangesFilter filter) {
 		while(offset < limit) {
-			// Word-at-a-time scan: jump directly to the next '"' instead of incrementing one byte at a time
-			offset = ByteArrayRangesFilter.scanToQuote(chars, offset, limit);
-			if(offset >= limit) break;
-
-			int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);
+			if(chars[offset] != '"') {
+				offset++;
+				
+				continue;
+			}
+			
+			int nextOffset = ByteArrayRangesFilter.scanQuotedValue(chars, offset);;
 
 			if(nextOffset - offset < maxStringLength) {
 				offset = nextOffset + 1;

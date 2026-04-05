@@ -431,29 +431,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		return scanQuotedValue(chars, offset) + 1;
 	}
 
-	/**
-	 * Scans forward from {@code offset} to find the next {@code '"'} (0x22) within
-	 * {@code [offset, limit)}, using word-at-a-time processing for bulk non-quote regions.
-	 *
-	 * @return index of the first {@code '"'} found, or {@code limit} if none.
-	 */
-	public static int scanToQuote(final byte[] chars, int offset, final int limit) {
-		final int safeEnd = Math.min(limit - 8, chars.length - 8);
-		while (offset <= safeEnd) {
-			long word = (long) LONG_LE.get(chars, offset);
-			long x = word ^ QUOTE_MASK;
-			long y = (x - MAGIC1) & ~x & MAGIC2;
-			if (y != 0) {
-				return offset + (Long.numberOfTrailingZeros(y) >>> 3);
-			}
-			offset += 8;
-		}
-		while (offset < limit && chars[offset] != '"') {
-			offset++;
-		}
-		return offset;
-	}
-
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		int i = offset + 1;
 		final int safeEnd = chars.length - 8;
