@@ -1,5 +1,8 @@
 package com.github.skjolber.jsonfilter.core.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
@@ -7,7 +10,15 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
-	
+
+	// Word-at-a-time quote scanning: reads 8 bytes as a long (little-endian) and
+	// uses the Hacker's Delight has-zero-byte trick to detect '"' (0x22) in bulk.
+	private static final VarHandle LONG_LE =
+		MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+	private static final long QUOTE_MASK = 0x2222222222222222L; // '"' repeated 8×
+	private static final long MAGIC1     = 0x0101010101010101L;
+	private static final long MAGIC2     = 0x8080808080808080L;
+
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
 	protected static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 	protected static final byte[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.getBytes(StandardCharsets.UTF_8);
@@ -421,17 +432,31 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
-		while(chars[++offset] != '"');
-		if(chars[offset - 1] != '\\') {
-			return offset;
+		int i = offset + 1;
+		final int safeEnd = chars.length - 8;
+		// Process 8 bytes per iteration using word-at-a-time technique
+		while (i <= safeEnd) {
+			long word = (long) LONG_LE.get(chars, i);
+			long x = word ^ QUOTE_MASK;
+			long y = (x - MAGIC1) & ~x & MAGIC2;
+			if (y != 0) {
+				i += Long.numberOfTrailingZeros(y) >>> 3;
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			i += 8;
 		}
-		
-		return scanEscapedValue(chars, offset);	
+		// Scalar tail for remaining bytes (< 8)
+		while (chars[i] != '"') i++;
+		if (chars[i - 1] != '\\') {
+			return i;
+		}
+		return scanEscapedValue(chars, i);
 	}
 
 	public static int scanEscapedValue(final byte[] chars, int offset) {
 		while(true) {
-			// is there an even number of quotes behind?
+			// is there an even number of slashes behind the last '"'?
 			int slashOffset = offset - 2;
 			while(chars[slashOffset] == '\\') {
 				slashOffset--;
@@ -439,12 +464,24 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-			
-			while(chars[++offset] != '"');
-			
-			if(chars[offset - 1] != '\\') {
+			// Advance past the escaped quote using word-at-a-time scan
+			int i = offset + 1;
+			final int safeEnd = chars.length - 8;
+			while (i <= safeEnd) {
+				long word = (long) LONG_LE.get(chars, i);
+				long x = word ^ QUOTE_MASK;
+				long y = (x - MAGIC1) & ~x & MAGIC2;
+				if (y != 0) {
+					i += Long.numberOfTrailingZeros(y) >>> 3;
+					break;
+				}
+				i += 8;
+			}
+			while (chars[i] != '"') i++;
+			offset = i;
+			if (chars[offset - 1] != '\\') {
 				return offset;
-			}			
+			}
 		}
 	}
 
