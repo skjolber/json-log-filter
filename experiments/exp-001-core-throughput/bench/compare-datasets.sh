@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs both CVE and FDA adverse events benchmarks on the current (optimized) build.
+# Runs CVE, FDA adverse events, and USGS earthquake benchmarks on the current build.
 # Outputs per-dataset average ops/sec and a combined average.
 # Usage: bash experiments/exp-001-core-throughput/bench/compare-datasets.sh
 set -euo pipefail
@@ -17,6 +17,7 @@ fi
 
 CVE_JSON="$JMH_DIR/compare_cve.json"
 FDA_JSON="$JMH_DIR/compare_fda.json"
+USGS_JSON="$JMH_DIR/compare_usgs.json"
 
 cd "$JMH_DIR"
 
@@ -34,6 +35,13 @@ java --add-modules jdk.incubator.vector \
   -p fileName=4KB,29KB -f 1 -wi 3 -i 3 \
   -rf json -rff "$FDA_JSON" >/dev/null 2>&1
 
+echo "Running USGS earthquake benchmark..." >&2
+java --add-modules jdk.incubator.vector \
+  -jar "$JAR" \
+  "UsgsFilterBenchmark\.(all_core|anon_any_core|anon_full_core|maxSize_core|maxStringLength_core|maxStringLengthMaxSize_core|core_remove_whitespace)" \
+  -p fileName=12KB,200KB -f 1 -wi 3 -i 3 \
+  -rf json -rff "$USGS_JSON" >/dev/null 2>&1
+
 python3 -c "
 import json
 
@@ -44,9 +52,11 @@ def avg(f):
 
 cve_avg, cve_n = avg('$CVE_JSON')
 fda_avg, fda_n = avg('$FDA_JSON')
-combined = (cve_avg + fda_avg) / 2
+usgs_avg, usgs_n = avg('$USGS_JSON')
+combined = (cve_avg + fda_avg + usgs_avg) / 3
 print(f'CVE benchmark:         {cve_avg:.0f} ops/sec ({cve_n} variants)')
 print(f'FDA benchmark:         {fda_avg:.0f} ops/sec ({fda_n} variants)')
+print(f'USGS benchmark:        {usgs_avg:.0f} ops/sec ({usgs_n} variants)')
 print(f'Combined average:      {combined:.0f} ops/sec')
 print(f'{combined:.0f}')
 "
