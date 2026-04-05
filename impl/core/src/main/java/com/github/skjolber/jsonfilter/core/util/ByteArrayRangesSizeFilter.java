@@ -121,7 +121,16 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 
 					if(nextOffset - offset <= maxStringLength) {
 						offset = nextOffset;
-						
+						// Inline ':' and ',' to avoid sparse jump-table dispatch for the
+						// two most common structural bytes after a short string.
+						// Guard: only safe to read chars[offset] when still within the size window.
+						if(offset < maxSizeLimit) {
+							if(chars[offset] == ':') {
+								offset++;
+							} else if(chars[offset] == ',') {
+								mark = offset++;
+							}
+						}
 						continue;
 					}
 					// is this a field name or a value? A field name must be followed by a colon
