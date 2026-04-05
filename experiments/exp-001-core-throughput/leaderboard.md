@@ -1,5 +1,5 @@
 # Experiment Leaderboard: exp-001-core-throughput
-Last updated: 2026-04-05 (iter-005)
+Last updated: 2026-04-05 (iter-006)
 
 | Rank | Iteration | Result (ops/s) | Delta | Strategy | Status |
 |------|-----------|----------------|-------|----------|--------|
@@ -9,3 +9,4 @@ Last updated: 2026-04-05 (iter-005)
 | 6 | iter-003-word-at-a-time-char-quote-scan | 120,940 | -3,355 vs best (-2.7%) | Manual 4-char packing + has-zero-short in CharArrayRangesFilter | ❌ Dropped |
 | 7 | iter-004-whitespace-filter-branch-reduction | 120,900 | -3,395 vs best (-2.7%) | Branch reorder + VarHandle whitespace inner loop in ByteArrayWhitespaceFilter.process() | ❌ Dropped |
 | 8 | iter-005-inline-structural-byte-skip | 123,563 | -732 vs best (-0.6%) | Inline ':' and ',' after short strings in ByteArrayRangesSizeFilter to skip switch dispatch | ❌ Dropped |
+| 9 | iter-006-arrays-equals-matchpath | 123,486 | -809 vs best (-0.65%) | Replace byte-by-byte matchPath loop with Arrays.equals range intrinsic | ❌ Dropped |
