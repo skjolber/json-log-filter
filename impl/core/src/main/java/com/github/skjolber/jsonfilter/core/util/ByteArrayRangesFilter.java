@@ -433,9 +433,30 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		int i = offset + 1;
-		final int safeEnd = chars.length - 8;
-		// Process 8 bytes per iteration using word-at-a-time technique
-		while (i <= safeEnd) {
+		// Process 16 bytes per iteration (two consecutive VarHandle loads)
+		final int safeEnd16 = chars.length - 16;
+		while (i <= safeEnd16) {
+			long word1 = (long) LONG_LE.get(chars, i);
+			long x1 = word1 ^ QUOTE_MASK;
+			long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+			if (y1 != 0) {
+				i += Long.numberOfTrailingZeros(y1) >>> 3;
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			long word2 = (long) LONG_LE.get(chars, i + 8);
+			long x2 = word2 ^ QUOTE_MASK;
+			long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+			if (y2 != 0) {
+				i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			i += 16;
+		}
+		// 8-byte loop for 8–15 byte tail
+		final int safeEnd8 = chars.length - 8;
+		while (i <= safeEnd8) {
 			long word = (long) LONG_LE.get(chars, i);
 			long x = word ^ QUOTE_MASK;
 			long y = (x - MAGIC1) & ~x & MAGIC2;
@@ -464,10 +485,28 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-			// Advance past the escaped quote using word-at-a-time scan
+			// Advance past the escaped quote using 16-byte word-at-a-time scan
 			int i = offset + 1;
-			final int safeEnd = chars.length - 8;
-			while (i <= safeEnd) {
+			final int safeEnd16 = chars.length - 16;
+			while (i <= safeEnd16) {
+				long word1 = (long) LONG_LE.get(chars, i);
+				long x1 = word1 ^ QUOTE_MASK;
+				long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+				if (y1 != 0) {
+					i += Long.numberOfTrailingZeros(y1) >>> 3;
+					break;
+				}
+				long word2 = (long) LONG_LE.get(chars, i + 8);
+				long x2 = word2 ^ QUOTE_MASK;
+				long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+				if (y2 != 0) {
+					i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
+					break;
+				}
+				i += 16;
+			}
+			final int safeEnd8 = chars.length - 8;
+			while (i <= safeEnd8) {
 				long word = (long) LONG_LE.get(chars, i);
 				long x = word ^ QUOTE_MASK;
 				long y = (x - MAGIC1) & ~x & MAGIC2;
