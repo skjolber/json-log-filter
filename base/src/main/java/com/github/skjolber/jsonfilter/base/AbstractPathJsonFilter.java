@@ -175,7 +175,12 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			return false;
 		}
 		if(attribute.length == l) {
-			return Arrays.equals(attribute, 0, attribute.length, chars, start, start + attribute.length);
+			for(int i = 0; i < attribute.length; i++) {
+				if(attribute[i] != chars[start + i]) {
+					return false;
+				}
+			}
+			return true;
 		}
 		return matchesEncoded(chars, start, end, attribute);
 	}
@@ -229,7 +234,12 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			return false;
 		}
 		if(attribute.length == l) {
-			return Arrays.equals(attribute, 0, attribute.length, source, start, start + attribute.length);
+			for(int i = 0; i < attribute.length; i++) {
+				if(attribute[i] != source[start + i]) {
+					return false;
+				}
+			}
+			return true;
 		}
 		
 		return matchesEncoded(source, start, end, attribute);
