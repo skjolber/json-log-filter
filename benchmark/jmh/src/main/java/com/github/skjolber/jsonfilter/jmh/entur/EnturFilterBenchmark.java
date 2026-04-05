@@ -51,7 +51,8 @@ import com.github.skjolber.jsonfilter.jmh.BenchmarkRunner;
 @Fork(1)
 public class EnturFilterBenchmark {
 
-    private final int maxStringLength = 64;
+    // Entur strings are short (max ~58 chars); use 32 to exercise maxStringLength truncation
+    private final int maxStringLength = 32;
 
     private static String[] anon = new String[]{"/lines/publicCode"};
     private static String[] prune = new String[]{"/lines/notices", "//quays"};
