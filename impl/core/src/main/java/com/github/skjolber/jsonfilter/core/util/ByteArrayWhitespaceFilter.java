@@ -1,10 +1,24 @@
 package com.github.skjolber.jsonfilter.core.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
+
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayWhitespaceFilter {
+
+	// Word-at-a-time whitespace detection: reads 8 bytes as a long (little-endian).
+	// Uses the Hacker's Delight has-zero-byte trick to detect bytes < 0x21 (i.e., <= 0x20 = whitespace).
+	private static final VarHandle LONG_LE =
+		MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+	private static final long MAGIC2 = 0x8080808080808080L;
+	// For detecting bytes > 0x20 (non-whitespace) in a word: hasGreaterThan(word, 0x20).
+	// Formula: (((word & ~MAGIC2) + WS_GT_MASK) | word) & MAGIC2 != 0  iff any byte > 0x20.
+	// WS_GT_MASK = (0x7F - 0x20) * 0x0101010101010101L = 0x5F * MAGIC1
+	private static final long WS_GT_MASK = 0x5F5F5F5F5F5F5F5FL;
 
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
@@ -29,24 +43,39 @@ public class ByteArrayWhitespaceFilter {
 	
 	public static void process(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream output) {
 		int flushOffset = offset;
-		
+		final int safeEnd = limit - 8;
+
 		while(offset < limit) {
 			byte c = chars[offset];
+			// Fast path: structural JSON bytes (`:`, `,`, `{`, `}`, `[`, `]`, digits, keywords)
+			// are all > 0x22 ('"'). Check this first to avoid the quote and whitespace tests
+			// on the most common non-string bytes.
+			if(c > '"') {
+				offset++;
+				continue;
+			}
 			if(c == '"') {
 				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
 				continue;
-			} else if(c <= 0x20) {
-				// skip this char and any other whitespace
-				output.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
-				
-				flushOffset = offset;
-				
-				continue;
 			}
+			// c <= 0x21: whitespace (c <= 0x20) — skip and flush
+			// (c == 0x21 '!' cannot appear as structural JSON, treated safely as whitespace)
+			output.write(chars, flushOffset, offset - flushOffset);
+			// Word-at-a-time whitespace skip for long runs (pretty-printed JSON)
 			offset++;
+			while(offset <= safeEnd) {
+				long word = (long) LONG_LE.get(chars, offset);
+				// Continue only while ALL 8 bytes are whitespace (none > 0x20).
+				long hasNonWs = (((word & ~MAGIC2) + WS_GT_MASK) | word) & MAGIC2;
+				if(hasNonWs != 0) {
+					break;
+				}
+				offset += 8;
+			}
+			while(chars[offset] <= 0x20) {
+				offset++;
+			}
+			flushOffset = offset;
 		}
 		output.write(chars, flushOffset, offset - flushOffset);
 	}
