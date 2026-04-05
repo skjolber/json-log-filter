@@ -1,11 +1,19 @@
 package com.github.skjolber.jsonfilter.core.util;
 
+import java.lang.foreign.*;
+
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayRangesFilter extends AbstractRangesFilter {
-	
+
+	// Word-at-a-time quote scanning: packs 4 chars into a long and uses the
+	// Hacker's Delight "has-zero-short" trick to detect '"' (0x0022) in bulk.
+	private static final long QUOTE_MASK_CHAR = 0x0022002200220022L; // '"' repeated in every 16-bit lane
+	private static final long MAGIC1_CHAR     = 0x0001000100010001L; // 1 in every 16-bit lane
+	private static final long MAGIC2_CHAR     = 0x8000800080008000L; // high bit in every 16-bit lane
+
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
 	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
 	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
@@ -285,12 +293,25 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static final int scanQuotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != '"');
-		if(chars[offset - 1] != '\\') {
-			return offset;
+		int i = offset + 1;
+		final MemorySegment seg = MemorySegment.ofArray(chars);
+		final int safeEnd = chars.length - 4;
+		while (i <= safeEnd) {
+			long word = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, (long) i * 2);
+			long x = word ^ QUOTE_MASK_CHAR;
+			long y = (x - MAGIC1_CHAR) & ~x & MAGIC2_CHAR;
+			if (y != 0) {
+				i += Long.numberOfTrailingZeros(y) >>> 4;
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			i += 4;
 		}
-		
-		return scanEscapedValue(chars, offset);	
+		while (chars[i] != '"') i++;
+		if (chars[i - 1] != '\\') {
+			return i;
+		}
+		return scanEscapedValue(chars, i);
 	}
 
 	public static int scanEscapedValue(final char[] chars, int offset) {
@@ -303,12 +324,26 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-			
-			while(chars[++offset] != '"');
-			
-			if(chars[offset - 1] != '\\') {
+
+			// Advance past the escaped quote using word-at-a-time scan
+			int i = offset + 1;
+			final MemorySegment seg = MemorySegment.ofArray(chars);
+			final int safeEnd = chars.length - 4;
+			while (i <= safeEnd) {
+				long word = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, (long) i * 2);
+				long x = word ^ QUOTE_MASK_CHAR;
+				long y = (x - MAGIC1_CHAR) & ~x & MAGIC2_CHAR;
+				if (y != 0) {
+					i += Long.numberOfTrailingZeros(y) >>> 4;
+					break;
+				}
+				i += 4;
+			}
+			while (chars[i] != '"') i++;
+			offset = i;
+			if (chars[offset - 1] != '\\') {
 				return offset;
-			}			
+			}
 		}
 	}	
 	
