@@ -1,0 +1,5 @@
+# Benchmark Result: iter-001-word-at-a-time-quote-scan
+# Aggregation: single run
+# Baseline: 120093
+# Delta: +4202 (+3.5%)
+124295
