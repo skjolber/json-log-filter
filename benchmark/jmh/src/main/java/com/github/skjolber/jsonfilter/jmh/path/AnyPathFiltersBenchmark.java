@@ -35,7 +35,7 @@ import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 @Warmup(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 1, time = 3, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-public class AnyPathBenchmark {
+public class AnyPathFiltersBenchmark {
 
 	private String[] KEYS = new String[] {"name", "first_name", "last_name", "address1", "address2", "latitude", "longitude", "phone", "email", "user_id",
 			"subtotal_price", "token", "cart_token", "checkout_token", "admin_graphql_api_id", "id", "code", "po_number", "zip", "city"
@@ -77,7 +77,7 @@ public class AnyPathBenchmark {
 	}
 
 	@Benchmark
-	public long jsonLogFilterChars() throws IOException {
+	public long chars() throws IOException {
 		int count = 0;
 		
 		for(char[] str : chars) {
@@ -90,7 +90,7 @@ public class AnyPathBenchmark {
 	}
 
 	@Benchmark
-	public long jsonLogFilterBytes() throws IOException {
+	public long bytes() throws IOException {
 		int count = 0;
 		
 		for(byte[] str : bytes) {
@@ -103,7 +103,7 @@ public class AnyPathBenchmark {
 	}
 	
 	@Benchmark
-	public long jsonLogFilterSetChars() throws IOException {
+	public long stringFromChars() throws IOException {
 		int count = 0;
 		
 		for(char[] str : chars) {
@@ -116,7 +116,7 @@ public class AnyPathBenchmark {
 	}
 	
 	@Benchmark
-	public long jsonLogFilterSetBytes() throws IOException {
+	public long stringFromBytes() throws IOException {
 		int count = 0;
 		
 		for(byte[] str : bytes) {
@@ -130,7 +130,7 @@ public class AnyPathBenchmark {
 	
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
-				.include(AnyPathBenchmark.class.getSimpleName())
+				.include(AnyPathFiltersBenchmark.class.getSimpleName())
 				.warmupIterations(1)
 				.measurementIterations(1)
 				.forks(1)
