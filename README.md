@@ -60,7 +60,7 @@ Output:
 | **Safe inline JSON logging**² | ✅ | ✅ | ✅ | ❌ |
 | **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
 
-> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..field` (any depth).
+> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (any depth).
 >
 > ² The output is always well-formed JSON, so it can be safely embedded as an inline raw JSON value in structured log entries (e.g. as a field in a JSON log line) without escaping or breaking the outer log parser.
 
