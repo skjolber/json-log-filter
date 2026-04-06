@@ -79,7 +79,7 @@ public class PathItemFactory {
 			return multiPathItem;
 			
 		}
-
+		
 		MultiPathItem multiPathItem = new MultiPathItem(keys, level, parent);
 		for(int k = 0; k < nodeChildren.size(); k++) {
 			ExpressionNode childNode = nodeChildren.get(k);
