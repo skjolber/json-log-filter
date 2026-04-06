@@ -49,7 +49,7 @@ Output:
 
 | Feature | **core** (trusted JSON) | **jackson** (untrusted JSON) | Jackson + Manual | Regex |
 |---|---|---|---|---|
-| **Performance** | 🏎️ Single-pass, no object model | 🚗 Single-pass + structure validation | 🐢 Full parse + serialize | 🐌 No structure awareness |
+| **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐢 Full parse + serialize | 🐌 No structure awareness |
 | **Zero Dependencies** | ✅ | ❌ (Jackson only) | ❌ | ✅ |
 | **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ⚠️ Extra lib | ❌ |
 | **Match at any depth** | ✅ (`$..field`) | ✅ (`$..field`) | ❌ Manual | ❌ |
