@@ -79,6 +79,10 @@ public class StarMultiPathItem extends PathItem {
 			return this;
 		}
 		if(start < end && source[start] != '\\') {
+			// single-entry fast path: direct comparison beats int[]-dispatch overhead for chars
+			if(fieldNameChars.length == 1) {
+				return AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[0]) ? next[0] : any;
+			}
 			int[] candidates = charDispatch[source[start] & 0xFF];
 			if(candidates != null) {
 				char[][] fieldNameChars = this.fieldNameChars;
