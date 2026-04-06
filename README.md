@@ -9,7 +9,7 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 
 ```java
 // One-liner — all filters are thread-safe, create once and reuse
-JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn", "token"));
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
 
 String filtered = filter.process(inputJson);
 ```
@@ -19,8 +19,7 @@ Input:
 ```json
 {
   "user": {
-    "name": "Alice",
-    "password": "s3cr3t",
+    "type": "member",
     "ssn": "123-45-6789"
   },
   "auth": {
@@ -34,8 +33,7 @@ Output:
 ```json
 {
   "user": {
-    "name": "Alice",
-    "password": "*",
+    "type": "member",
     "ssn": "*"
   },
   "auth": {
@@ -343,9 +341,9 @@ A simple syntax is supported where each path segment corresponds to a field name
 `withMaxPathMatches(n)` stops path-based filtering after `n` matches. When the target field appears a known fixed number of times near the start of the document, this lets the filter skip the rest at near pass-through speed.
 
 ```java
-// Stop after finding the single "requestId" field in the header
+// Stop after finding the single "jwt" field
 filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymizePaths("$.header.requestId")
+    .withAnonymizeKeys("jwt")
     .withMaxPathMatches(1)
     .build();
 ```
@@ -403,6 +401,7 @@ Alternative JSON filters:
 
  * [json-masker](https://github.com/Breus/json-masker) slightly different use-case, included in some of the benchmarks.
 
+<<<<<<< HEAD
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:			https://github.com/skjolber/json-log-filter/issues
 [Maven]:					https://maven.apache.org/
@@ -411,3 +410,13 @@ Alternative JSON filters:
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:				https://github.com/FasterXML/jackson-core
 [JSON]:					https://www.json.org/json-en.html
+=======
+[Apache 2.0]:						https://www.apache.org/licenses/LICENSE-2.0.html
+[issue-tracker]:				https://github.com/skjolber/json-log-filter/issues
+[Maven]:								https://maven.apache.org/
+[JMH]:									benchmark/jmh
+[xml-log-filter]:				https://github.com/skjolber/xml-log-filter
+[High-performance]:			https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
+[Jackson]:							https://github.com/FasterXML/jackson-core
+[JSON]:									https://www.json.org/json-en.html
+>>>>>>> 718e7b5cfebb2e7c4d125e2e0e72d2385a9d4bd4
