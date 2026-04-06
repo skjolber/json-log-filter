@@ -15,9 +15,9 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	// uses the Hacker's Delight has-zero-byte trick to detect '"' (0x22) in bulk.
 	private static final VarHandle LONG_LE =
 		MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-	private static final long QUOTE_MASK = 0x2222222222222222L; // '"' repeated 8×
-	private static final long MAGIC1     = 0x0101010101010101L;
-	private static final long MAGIC2     = 0x8080808080808080L;
+	private static final long QUOTE_MASK     = 0x2222222222222222L; // '"' (0x22) repeated 8×
+	private static final long MAGIC1         = 0x0101010101010101L;
+	private static final long MAGIC2         = 0x8080808080808080L;
 
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
 	protected static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
@@ -431,11 +431,45 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		return scanQuotedValue(chars, offset) + 1;
 	}
 
+	/**
+	 * Scan a quoted JSON string value, returning the index of the closing '"'.
+	 *
+	 * <p>Uses a word-at-a-time inner loop processing 16 bytes per iteration via
+	 * two consecutive little-endian {@link java.lang.invoke.VarHandle} loads,
+	 * combined with the Hacker's Delight has-zero-byte trick to detect
+	 * {@code '"'} (0x22) in bulk; see <em>Hacker's Delight</em>, 2nd ed.,
+	 * §6-1 "Find First 0-Byte". An 8-byte single-load tail and scalar tail
+	 * handle the final {@literal <} 16 bytes.
+	 *
+	 * @param chars  the byte array containing the JSON being scanned
+	 * @param offset the index of the opening {@code "} character
+	 * @return the index of the matching closing {@code "} character
+	 */
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		int i = offset + 1;
-		final int safeEnd = chars.length - 8;
-		// Process 8 bytes per iteration using word-at-a-time technique
-		while (i <= safeEnd) {
+		final int safeEnd16 = chars.length - 16;
+		while (i <= safeEnd16) {
+			long word1 = (long) LONG_LE.get(chars, i);
+			long x1 = word1 ^ QUOTE_MASK;
+			long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+			if (y1 != 0) {
+				i += Long.numberOfTrailingZeros(y1) >>> 3;
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			long word2 = (long) LONG_LE.get(chars, i + 8);
+			long x2 = word2 ^ QUOTE_MASK;
+			long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+			if (y2 != 0) {
+				i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
+				if (chars[i - 1] != '\\') return i;
+				return scanEscapedValue(chars, i);
+			}
+			i += 16;
+		}
+		// 8-byte tail
+		final int safeEnd8 = chars.length - 8;
+		while (i <= safeEnd8) {
 			long word = (long) LONG_LE.get(chars, i);
 			long x = word ^ QUOTE_MASK;
 			long y = (x - MAGIC1) & ~x & MAGIC2;
@@ -446,7 +480,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			}
 			i += 8;
 		}
-		// Scalar tail for remaining bytes (< 8)
 		while (chars[i] != '"') i++;
 		if (chars[i - 1] != '\\') {
 			return i;
@@ -464,10 +497,28 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-			// Advance past the escaped quote using word-at-a-time scan
+			// Advance past the escaped quote using 16-byte word-at-a-time scan
 			int i = offset + 1;
-			final int safeEnd = chars.length - 8;
-			while (i <= safeEnd) {
+			final int safeEnd16 = chars.length - 16;
+			while (i <= safeEnd16) {
+				long word1 = (long) LONG_LE.get(chars, i);
+				long x1 = word1 ^ QUOTE_MASK;
+				long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+				if (y1 != 0) {
+					i += Long.numberOfTrailingZeros(y1) >>> 3;
+					break;
+				}
+				long word2 = (long) LONG_LE.get(chars, i + 8);
+				long x2 = word2 ^ QUOTE_MASK;
+				long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+				if (y2 != 0) {
+					i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
+					break;
+				}
+				i += 16;
+			}
+			final int safeEnd8 = chars.length - 8;
+			while (i <= safeEnd8) {
 				long word = (long) LONG_LE.get(chars, i);
 				long x = word ^ QUOTE_MASK;
 				long y = (x - MAGIC1) & ~x & MAGIC2;
