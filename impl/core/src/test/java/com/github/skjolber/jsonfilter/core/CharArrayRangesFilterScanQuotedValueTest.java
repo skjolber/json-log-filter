@@ -128,7 +128,7 @@ class CharArrayRangesFilterScanQuotedValueTest {
             cases.add(new TestCase("plain[" + len + "]", quoted(plain(len))));
         }
         // Extra large strings to exercise many 4-char iterations
-        for (int len : new int[]{32, 47, 48, 63, 64, 65, 100}) {
+        for (int len : new int[]{32, 47, 48, 63, 64, 65, 100, 128, 256}) {
             cases.add(new TestCase("plain[" + len + "]", quoted(plain(len))));
         }
         return cases.stream();
@@ -157,20 +157,20 @@ class CharArrayRangesFilterScanQuotedValueTest {
         List<TestCase> cases = new ArrayList<>();
 
         // Single escaped quote at positions spanning all loop regions
-        int[] escapedQuotePositions = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 15, 16, 20};
+        int[] escapedQuotePositions = intArray(32);
         for (int eqPos : escapedQuotePositions) {
             String content = withEscapedQuoteAt(eqPos + 4, eqPos);
             cases.add(new TestCase("escapedQuoteAt[" + eqPos + "]", quoted(content)));
         }
 
         // Double backslash before closing quote: \\" → terminates
-        for (int prefixLen : new int[]{0, 2, 3, 4, 7, 8, 11, 12}) {
+        for (int prefixLen : intArray(32)) {
             String content = plain(prefixLen) + "\\\\";
             cases.add(new TestCase("doubleBackslashClose_prefix" + prefixLen, quoted(content)));
         }
 
         // Escaped backslash then escaped quote: \\\" → backslash literal + escaped quote (no close)
-        for (int prefixLen : new int[]{0, 3, 4, 7, 8}) {
+        for (int prefixLen : intArray(32)) {
             String content = plain(prefixLen) + "\\\\\\\"" + plain(4);
             cases.add(new TestCase("escapedBackslashThenEscapedQuote_prefix" + prefixLen, quoted(content)));
         }
@@ -315,4 +315,13 @@ class CharArrayRangesFilterScanQuotedValueTest {
         @Override
         public String toString() { return name; }
     }
+    
+
+    private static int[] intArray(int length) {
+    	int[] result = new int[length];
+    	for(int i = 0; i < length; i++) {
+    		result[i] = i;
+    	}
+		return result;
+	}
 }

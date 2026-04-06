@@ -142,7 +142,7 @@ class ByteArrayRangesFilterScanQuotedValueTest {
             cases.add(new TestCase(label, quoted(plain(len))));
         }
         // Extra large strings to exercise multiple 16-byte iterations
-        for (int len : new int[]{48, 63, 64, 65, 100}) {
+        for (int len : new int[]{48, 63, 64, 65, 100, 128, 256}) {
             cases.add(new TestCase("plain[" + len + "]", quoted(plain(len))));
         }
         return cases.stream();
@@ -171,7 +171,7 @@ class ByteArrayRangesFilterScanQuotedValueTest {
         List<TestCase> cases = new ArrayList<>();
 
         // Single escaped quote at various positions throughout all three loop regions
-        int[] escapedQuotePositions = {0, 1, 5, 6, 7, 8, 9, 14, 15, 16, 17, 22, 23, 24, 30};
+        int[] escapedQuotePositions = intArray(40);
         for (int eqPos : escapedQuotePositions) {
             // Content: eqPos plain bytes + \" + 8 more plain bytes (real close at the end)
             String content = withEscapedQuoteAt(eqPos + 8, eqPos);
@@ -180,7 +180,7 @@ class ByteArrayRangesFilterScanQuotedValueTest {
 
         // Double backslash immediately before the closing quote: \\" → terminates
         // (the \\ is an escaped backslash; the " is unescaped and closes the string)
-        for (int prefixLen : new int[]{0, 6, 7, 8, 14, 15, 16, 23}) {
+        for (int prefixLen : intArray(40)) {
             String content = plain(prefixLen) + "\\\\";
             cases.add(new TestCase("doubleBackslashClose_prefix" + prefixLen, quoted(content)));
         }
@@ -188,7 +188,7 @@ class ByteArrayRangesFilterScanQuotedValueTest {
         // Escaped backslash then escaped quote: \\\": should NOT terminate on the \" 
         // The \\\ sequence is: escaped backslash (\) + start of next escape, 
         // so \\\" = (\\)(\") = backslash literal + escaped quote (not a string end)
-        for (int prefixLen : new int[]{0, 7, 8, 15, 16}) {
+        for (int prefixLen : intArray(40)) {
             String content = plain(prefixLen) + "\\\\\\\"" + plain(8);
             cases.add(new TestCase("escapedBackslashThenEscapedQuote_prefix" + prefixLen, quoted(content)));
         }
@@ -201,7 +201,15 @@ class ByteArrayRangesFilterScanQuotedValueTest {
         return cases.stream();
     }
 
-    static Stream<TestCase> emptyAndSingleChar() {
+    private static int[] intArray(int length) {
+    	int[] result = new int[length];
+    	for(int i = 0; i < length; i++) {
+    		result[i] = i;
+    	}
+		return result;
+	}
+
+	static Stream<TestCase> emptyAndSingleChar() {
         return Stream.of(
             new TestCase("empty",          quoted("")),
             new TestCase("singleA",        quoted("a")),
