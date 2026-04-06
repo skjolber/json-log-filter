@@ -9,7 +9,7 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 
 ```java
 // One-liner — all filters are thread-safe, create once and reuse
-JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn", "token"));
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
 
 String filtered = filter.process(inputJson);
 ```
@@ -18,8 +18,7 @@ Input:
 ```json
 {
   "user": {
-    "name": "Alice",
-    "password": "s3cr3t",
+    "type": "member",
     "ssn": "123-45-6789"
   },
   "auth": {
@@ -32,8 +31,7 @@ Output:
 ```json
 {
   "user": {
-    "name": "Alice",
-    "password": "*",
+    "type": "member",
     "ssn": "*"
   },
   "auth": {
