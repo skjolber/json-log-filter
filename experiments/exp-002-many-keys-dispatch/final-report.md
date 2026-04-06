@@ -1,82 +1,65 @@
-# Experiment 002: Many-Keys Dispatch Optimization - Final Report
+# Final Optimization Report: exp-002-many-keys-dispatch
 
-## Objective
+## Best Configuration
 
-Improve JSON path key matching performance when many filter expressions are active simultaneously by using first-byte dispatch tables.
+**Branch `optimizeLengthCheck` at commit `7aeefd00`**  
+Two accumulated changes over master:
 
-## Baseline
+### 1. First-byte dispatch tables (branch-initial)
+`MultiPathItem`, `StarMultiPathItem`, and `AnyPathFilters` build 256-slot dispatch tables at
+construction time. On each key lookup:
+- `byteDispatch[firstByte]` / `charDispatch[firstChar]` — one array read
+- `null` → instant return; non-null → iterate only the O(N/256) sub-bucket
+- Reduces average candidates from N to N/256 for diverse first-byte filter sets
 
-- **Master (linear scan):** 437,074 ops/sec combined average
-- **Branch initial (dispatch tables):** 679,601 ops/sec (+55.5% vs master)
+### 2. Chars-only single-entry bypass (iter-002)
+In `MultiPathItem.matchPath(char[])` and `StarMultiPathItem.matchPath(char[])`:
+when `fieldNameChars.length == 1`, skip the dispatch table and call `matchPath` directly.
+Not applied to `byte[]` — byte dispatch null-checks already reject ~99% of non-matching keys
+instantly.
 
-## Optimization Loop Results
+## Experiment Comparison Table
 
-### Iteration 1: Single-Entry Bypass (Chars Only) ✅ KEPT
+| Rank | Iteration | Total ops/s | vs master | Decision |
+|------|-----------|-------------|-----------|----------|
+| 1 | **iter-002-chars-bypass** | **21,267,629** | **+62.2%** | ✅ Kept |
+| 2 | branch-initial | 20,388,016 | +55.5% | ✅ Kept |
+| — | baseline (master) | 13,112,215 | — | Baseline |
+| — | iter-005-anypath-single-bypass | 21,160,959 | +61.4% | ❌ Dropped (-0.5%) |
+| — | iter-004-anypath-mismatch | 18,825,351 | +43.6% | ❌ Dropped (-11.5%) |
+| — | iter-003-arrays-mismatch | 19,119,862 | +45.8% | ❌ Dropped (-10.1%) |
+| — | iter-001-single-entry-bypass | ~18.9M | ~+44% | ❌ Dropped (-7.1%) |
 
-**Strategy:** For `MultiPathItem` and `StarMultiPathItem`, when `fieldNameChars.length == 1`, skip the dispatch table lookup and perform direct comparison.
+## Performance Analysis (iter2 vs master, 30-variant total)
 
-**Result:** 708,226 ops/sec (+4.2% vs branch baseline)
+| Variant | count=1 | count=5 | count=10 | count=15 | count=20 |
+|---------|---------|---------|----------|----------|----------|
+| MultiPath bytes | +141% | +261% | +360% | +262% | +255% |
+| MultiPath chars | +43% | +24% | +144% | +130% | +126% |
+| StarMultiPath bytes | +141% | +260% | +376% | +268% | +271% |
+| StarMultiPath chars | +27% | +26% | +144% | +109% | +117% |
+| AnyPath bytes | +1% | -2% | +1% | +8% | +6% |
+| AnyPath chars | -3% | -5% | 0% | +2% | +3% |
 
-Key improvements:
-- MultiPath.chars count=1: 2,357k ops/s (+60.5% vs baseline 1,467k)
-- StarMultiPath.chars count=1: 1,858k ops/s (+33.4% vs baseline 1,392k)
+**Overall: +62.2% throughput improvement** vs master.
 
-This fix addresses the count=1 regression identified in the initial branch measurements.
+## Insights
 
-### Iteration 2: Length Pre-filter ❌ TESTS FAILED
+**What worked:**
+- First-byte dispatch eliminates O(N) scan; O(1) null-check rejects ~99% of non-matching keys
+- Chars-only count=1 bypass fixes dispatch overhead penalty; JIT inlines char[] comparison
+  better than int[]-indirection for single-entry buckets
 
-**Strategy:** Add length check inside candidate loop before calling `matchPath()`.
+**What didn't work:**
+- `Arrays.mismatch` in global `matchPath`: per-call setup overhead dominates for short strings
+  called on many non-matching keys; -62% on count=1 chars bypass path
+- `Arrays.mismatch` in `unencodedMatchBytes/Chars`: matching path rarely exercised (~1% of keys)
+- AnyPath single-filter bypass: dispatch null-check + encoding scan already JIT-optimised
+- JIT interference between benchmarks in same session caused misleading regression signals
 
-**Result:** Tests failed - breaks encoded key matching (e.g., `na\u006de` decodes to "name" but has different length).
+## Recommended Next Steps
 
-### Iteration 3: AnyPath Single-Filter Bypass ❌ DROPPED
-
-**Strategy:** For `AnyPathFilters` with single filter, store directly and skip 3D array lookups.
-
-**Result:** 635,808 ops/sec (-10.2% vs current best)
-
-The AnyPath improvements (+37% bytes, +45% chars for count=1) were offset by unexpected massive regressions in MultiPath/StarMultiPath (-52% to -63%). This appears to be JIT compilation interference.
-
-### Iteration 4: Bytes Single-Entry Bypass ❌ DROPPED
-
-**Strategy:** Apply same single-entry bypass to byte[] variants.
-
-**Result:** 566,951 ops/sec (-19.9% vs current best)
-
-Adding the `if(fieldNameBytes.length == 1)` check to byte methods caused severe JIT de-optimization across all benchmarks. The same pattern that works for char[] causes major regression for byte[].
-
-### Iteration 5: Indexed Loop ❌ DROPPED
-
-**Strategy:** Convert enhanced for-loop to indexed loop for better JIT optimization.
-
-**Result:** 704,111 ops/sec (-0.6% vs current best)
-
-No meaningful improvement - modern JVMs handle both loop styles equally well.
-
-## Final Results
-
-| Metric | Master | Final (iter-001) | Improvement |
-|--------|--------|------------------|-------------|
-| Combined avg ops/sec | 437,074 | 708,226 | **+62.0%** |
-
-## Key Learnings
-
-1. **char[] vs byte[] behave differently under JIT:** The same optimization pattern can succeed for char[] but fail catastrophically for byte[]. Always benchmark separately.
-
-2. **JIT interference is real:** Adding code to one class can regress unrelated classes through compiler heuristic changes (inlining thresholds, etc.).
-
-3. **Length pre-filtering breaks encoding:** JSON keys can contain Unicode escapes (`\u006e` = 'n') where the encoded length differs from the decoded length. Simple length checks break this.
-
-4. **Single-entry bypass is valuable for chars:** The dispatch table overhead exceeds the benefit for single-filter cases in char[] methods, but the same doesn't apply to byte[] methods.
-
-## Committed Changes
-
-- `MultiPathItem.matchPath(char[])`: Added single-entry bypass
-- `StarMultiPathItem.matchPath(char[])`: Added single-entry bypass
-
-## Branch Status
-
-Branch `optimizeLengthCheck` is ready for review/merge with:
-- +62.0% improvement vs master baseline
-- All tests passing
-- Iteration 1 changes committed
+1. Add `hasEncodedFilters` flag to skip AnyPath encoding scan when all filter keys are ASCII
+2. Add benchmarks for `SinglePathItem`/`StarPathItem`
+3. Use 2-3 JMH forks to reduce JIT interference between benchmark variants
+4. Add a pathological-case benchmark (all filter keys share the same first byte)

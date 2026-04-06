@@ -1,30 +1,25 @@
 # Experiment Leaderboard: exp-002-many-keys-dispatch
 Last updated: 2026-04-06
 
-## Combined Average ops/sec (30 benchmarks)
+| Rank | Iteration | Total ops/s | Delta vs master | Status |
+|------|-----------|-------------|----------------|--------|
+| 1 | iter-002-chars-bypass | 21,267,629 | +62.2% | ✅ Current best |
+| 2 | branch-initial | 20,388,016 | +55.5% | ✅ Kept |
+| — | baseline (master) | 13,112,215 | — | Baseline |
+| — | iter-005-anypath-single-bypass | 21,160,959 | +61.4% | ❌ Dropped (-0.5% vs iter2) |
+| — | iter-004-anypath-mismatch | 18,825,351 | +43.6% | ❌ Dropped (-11.5% vs iter2, JIT noise) |
+| — | iter-003-arrays-mismatch | 19,119,862 | +45.8% | ❌ Dropped (-10.1% vs iter2) |
+| — | iter-001-single-entry-bypass | — | — | ❌ Dropped (byte[] regressed badly) |
 
-| Rank | Iteration | ops/sec | Delta vs Branch | Status |
-|------|-----------|---------|-----------------|--------|
-| 1 | **iter-001-single-entry-bypass** | 708,226 | **+4.2%** | ✅ **KEPT** |
-| — | branch-initial (baseline) | 679,601 | — | Baseline |
-| 2 | iter-005-loop-unroll | 704,111 | -0.6% | ❌ Dropped |
-| 3 | iter-003-anypath-single-bypass | 635,808 | -6.4% | ❌ Dropped |
-| 4 | iter-004-bytes-single-bypass | 566,951 | -16.6% | ❌ Dropped |
-| — | iter-002-length-prefilter | — | — | ❌ Tests failed |
+## Summary of kept changes
+1. **branch-initial**: First-byte dispatch table in `MultiPathItem`, `StarMultiPathItem`, `AnyPathFilters` (+55.5% vs master)
+2. **iter-002**: Chars-only single-entry bypass in `MultiPathItem`/`StarMultiPathItem` (+4.3% on top, fixed count=1 regression)
 
-## Absolute Comparison to Master
-
-| Metric | Master | Branch | Iter-001 (Final) |
-|--------|--------|--------|------------------|
-| Combined avg | 437,074 | 679,601 (+55.5%) | 708,226 (+62.0%) |
-
-## Final Winning Strategy
-
-**iter-001-single-entry-bypass**: Add single-filter bypass for char[] variants only.
-
-For `MultiPathItem` and `StarMultiPathItem`, when `fieldNameChars.length == 1`, skip the dispatch table lookup and perform a direct comparison. Applied only to char[] methods, NOT byte[] (which showed regression).
-
-Key improvements:
-- MultiPath.chars count=1: +60% vs branch baseline
-- StarMultiPath.chars count=1: +46% vs branch baseline
-
+## Final result vs master (iter2, 30-variant total)
+| Benchmark group | Delta vs master |
+|----------------|----------------|
+| MultiPath bytes | +141% to +360% |
+| MultiPath chars | +44% to +144% |
+| StarMultiPath bytes | +141% to +376% |
+| StarMultiPath chars | +27% to +156% |
+| AnyPath bytes/chars | −6% to +8% (essentially neutral) |
