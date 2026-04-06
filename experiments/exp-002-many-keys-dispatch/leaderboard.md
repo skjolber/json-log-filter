@@ -1,17 +1,30 @@
 # Experiment Leaderboard: exp-002-many-keys-dispatch
 Last updated: 2026-04-06
 
-| Rank | Iteration | Total ops/s | Delta vs master | Status |
-|------|-----------|-------------|----------------|--------|
-| 1 | iter-002-chars-bypass | 21,267,629 | +62.2% | ✅ Current best |
-| 2 | branch-initial | 20,388,016 | +55.5% | ✅ Kept |
-| — | baseline (master) | 13,112,215 | — | Baseline |
-| — | iter-001-single-entry-bypass | 18,934,320 | +44.4% | ❌ Dropped |
+## Combined Average ops/sec (30 benchmarks)
 
-## iter-002 highlights
-- MultiPath.chars count=1: +61% vs branch-initial (fixed count=1 regression)
-- StarMultiPath.chars count=1: +33% vs branch-initial (fixed count=1 regression)
-- Overall +4.3% vs branch-initial
+| Rank | Iteration | ops/sec | Delta vs Branch | Status |
+|------|-----------|---------|-----------------|--------|
+| 1 | **iter-001-single-entry-bypass** | 708,226 | **+4.2%** | ✅ **KEPT** |
+| — | branch-initial (baseline) | 679,601 | — | Baseline |
+| 2 | iter-005-loop-unroll | 704,111 | -0.6% | ❌ Dropped |
+| 3 | iter-003-anypath-single-bypass | 635,808 | -6.4% | ❌ Dropped |
+| 4 | iter-004-bytes-single-bypass | 566,951 | -16.6% | ❌ Dropped |
+| — | iter-002-length-prefilter | — | — | ❌ Tests failed |
 
-## Known remaining issues
-- AnyPath bytes/chars count=1,5: -2% to -5% vs master (slight regression)
+## Absolute Comparison to Master
+
+| Metric | Master | Branch | Iter-001 (Final) |
+|--------|--------|--------|------------------|
+| Combined avg | 437,074 | 679,601 (+55.5%) | 708,226 (+62.0%) |
+
+## Final Winning Strategy
+
+**iter-001-single-entry-bypass**: Add single-filter bypass for char[] variants only.
+
+For `MultiPathItem` and `StarMultiPathItem`, when `fieldNameChars.length == 1`, skip the dispatch table lookup and perform a direct comparison. Applied only to char[] methods, NOT byte[] (which showed regression).
+
+Key improvements:
+- MultiPath.chars count=1: +60% vs branch baseline
+- StarMultiPath.chars count=1: +46% vs branch baseline
+
