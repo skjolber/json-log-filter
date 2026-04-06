@@ -47,7 +47,7 @@ Output:
 
 ## Why json-log-filter?
 
-| Feature | **core** (trusted JSON) | **jackson** (untrusted JSON) | Jackson + Manual | Regex |
+| Feature | **json-log-filter core** (trusted JSON) | **json-log-filter jackson** (untrusted JSON) | Jackson + Manual | Regex |
 |---|---|---|---|---|
 | **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐢 Full parse + serialize | 🐌 No structure awareness |
 | **Zero Dependencies** | ✅ | ❌ (Jackson only) | ❌ | ✅ |
