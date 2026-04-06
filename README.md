@@ -9,7 +9,7 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 
 ```java
 // One-liner — all filters are thread-safe, create once and reuse
-JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn", "token"));
 
 String filtered = filter.process(inputJson);
 ```
@@ -147,18 +147,35 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 
 ## One-liner factory methods
 
-For simple cases, create a ready-to-use filter in a single call. All one-liners accept an optional `maxStringLength` and `maxSize`:
+For simple cases, create a ready-to-use filter in a single call.
+
+Use **varargs** when you know the field names up front:
 
 ```java
-// Anonymize fields by name at any depth
+// Anonymize or prune fields by name at any depth
 JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
-JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(256, "password", "ssn");           // + truncate strings > 256 chars
-JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(256, 128*1024, "password", "ssn"); // + cap output at 128 KB
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys("appMeta", "diagnostics");
 
-// Anonymize fields by precise JSONPath
-JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
-JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, "$.customer.email");
-JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, 128*1024, "$.customer.email");
+// By precise JSONPath
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email", "$..token");
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths("$.context.appMeta");
+```
+
+Use **`Set.of(...)`** when you also need `maxStringLength` or `maxSize`:
+
+```java
+// Anonymize by name — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"));
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"), 256);              // truncate strings > 256 chars
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"), 256, 128 * 1024);  // + cap output at 128 KB
+
+// Prune whole subtrees — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(Set.of("appMeta", "diagnostics"));
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(Set.of("appMeta"), 256, 128 * 1024);
+
+// By JSONPath — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(Set.of("$.customer.email"), 256);
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(Set.of("$.context.appMeta"), 256, 128 * 1024);
 ```
 
 The same one-liners are available on `JacksonJsonLogFilterBuilder` for untrusted JSON — see the [Jackson module](#jackson-module) section.
