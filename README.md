@@ -5,7 +5,7 @@
 # json-log-filter
 High-performance filtering of JSON. Reads, filters and writes JSON in a single pass — drastically increasing throughput compared to parse-then-serialize approaches.
 
-## Quick Example
+## Quickstart
 
 ```java
 // One-liner — all filters are thread-safe, create once and reuse
@@ -15,6 +15,7 @@ String filtered = filter.process(inputJson);
 ```
 
 Input:
+
 ```json
 {
   "user": {
@@ -29,6 +30,7 @@ Input:
 ```
 
 Output:
+
 ```json
 {
   "user": {
@@ -68,7 +70,7 @@ Typical use-cases:
 - **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
 - **Safe structured logging**: selectively apply core/jacksons filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
 
-The library automatically selects the most efficient filter implementation for the configured combination of features. No external dependencies are required for the `core` module.
+The library automatically selects the most efficient filter implementation for the configured combination of features. 
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -183,7 +185,7 @@ Use `newBuilder()` when you need to combine filter types, customize output text,
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymizeKeys("password", "ssn")        // any depth, by field name
+    .withAnonymizeKeys("password", "ssn")         // any depth, by field name
     .withAnonymizePaths("$.customer.email")       // precise path
     .withPrunePaths("$.context.rawPayload")       // remove whole subtree
     .withAnonymizeMessage("[redacted]")           // custom replacement text
@@ -362,9 +364,8 @@ String filtered = filter.process(inputJson, metrics);
 // log or forward metrics.getAnonymizeCount(), metrics.getPruneCount(), etc.
 ```
 
-Useful for:
-- Verifying filters are actually matching fields
-- Measuring data reduction sent to log aggregators
+Useful for measuring data reduction;
+- Flagging that data has been removed
 - Feeding [Micrometer](https://micrometer.io/) counters
 
 ## Request/response path module
@@ -403,8 +404,8 @@ Alternative JSON filters:
  * [json-masker](https://github.com/Breus/json-masker) slightly different use-case, included in some of the benchmarks.
 
 [Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
-[issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
-[Maven]:				https://maven.apache.org/
+[issue-tracker]:			https://github.com/skjolber/json-log-filter/issues
+[Maven]:					https://maven.apache.org/
 [JMH]:					benchmark/jmh
 [xml-log-filter]:      	https://github.com/skjolber/xml-log-filter
 [High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
