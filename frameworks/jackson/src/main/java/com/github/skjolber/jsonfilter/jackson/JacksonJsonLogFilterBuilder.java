@@ -1,128 +1,68 @@
 package com.github.skjolber.jsonfilter.jackson;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.github.skjolber.jsonfilter.JsonFilter;
-import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.base.AbstractJsonLogFilterBuilder;
 
-public class JacksonJsonLogFilterBuilder {
+/**
+ * Fluent builder for a Jackson-backed {@linkplain JsonFilter}.
+ *
+ * <p>The Jackson filter validates document structure during filtering, making it
+ * suitable for untrusted (remotely produced) JSON. For locally produced JSON,
+ * prefer {@code DefaultJsonLogFilterBuilder} for higher throughput.
+ *
+ * <p>All filters produced by this builder are thread-safe and can be reused freely.
+ *
+ * <pre>{@code
+ * JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+ *     .withMaxStringLength(127)
+ *     .withAnonymize("$.customer.email", "$.customer.ssn")
+ *     .withPrune("$.internal.debug")
+ *     .withAnonymizeMessage("[redacted]")
+ *     .build();
+ * }</pre>
+ *
+ * <p>Note: {@code maxPathMatches} is not supported by the Jackson filter and is ignored.
+ */
+public class JacksonJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<JacksonJsonLogFilterBuilder> {
 
+	/**
+	 * Create a new builder instance.
+	 *
+	 * @return a fresh {@linkplain JacksonJsonLogFilterBuilder}
+	 */
+	public static JacksonJsonLogFilterBuilder newBuilder() {
+		return new JacksonJsonLogFilterBuilder();
+	}
+
+	/**
+	 * @deprecated Use {@link #newBuilder()} instead.
+	 */
+	@Deprecated
 	public static JacksonJsonLogFilterBuilder createInstance() {
 		return new JacksonJsonLogFilterBuilder();
 	}
-	
-	protected int maxStringLength = -1;
-	
-	protected List<String> anonymizeFilters = new ArrayList<>();
-	protected List<String> pruneFilters = new ArrayList<>();
 
-	/** Raw JSON */
-	protected String pruneJsonValue;
-	/** Raw JSON */
-	protected String anonymizeJsonValue;
-	
-	/** Raw (escaped) JSON string */
-	protected String truncateStringValue;
-	
+	@Override
 	public JsonFilter build() {
 		JacksonJsonFilterFactory factory = new JacksonJsonFilterFactory();
-		
+
 		factory.setMaxStringLength(maxStringLength);
+		factory.setMaxPathMatches(maxPathMatches);
+
 		if(!anonymizeFilters.isEmpty()) {
 			factory.setAnonymize(anonymizeFilters);
 		}
 		if(!pruneFilters.isEmpty()) {
 			factory.setPrune(pruneFilters);
 		}
-		
+
 		factory.setAnonymizeJsonValue(anonymizeJsonValue);
 		factory.setPruneJsonValue(pruneJsonValue);
 		factory.setTruncateJsonStringValue(truncateStringValue);
 
+		factory.setMaxSize(maxSize);
+		factory.setRemoveWhitespace(removeWhitespace);
+
 		return factory.newJsonFilter();
 	}
-	
-	public JacksonJsonLogFilterBuilder withMaxStringLength(int length) {
-		this.maxStringLength = length;
-		
-		return this;
-	}	
-	
-	public JacksonJsonLogFilterBuilder withPrune(String ... filters) {
-		Collections.addAll(pruneFilters, filters);
-		
-		return this;
-	}
-	
-	public JacksonJsonLogFilterBuilder withAnonymize(String ... filters) {
-		Collections.addAll(anonymizeFilters, filters);
-		return this;
-	}
-		
-	/**
-	 * Set a textual value as use for replacement for pruned value(s)
-	 * 
-	 * @param value the (unescaped) message
-	 * 
-	 * @return this instance
-	 */
-
-	public JacksonJsonLogFilterBuilder withPruneStringValue(String value) {
-		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
-		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(value, stringBuilder);
-		stringBuilder.append('"');
-		return withPruneRawJsonValue(stringBuilder.toString());
-	}
-
-	/**
-	 * Set a textual value as use for replacement for anonymized value(s)
-	 * 
-	 * @param value the (unescaped) message
-	 * 
-	 * @return this instance
-	 */
-
-	public JacksonJsonLogFilterBuilder withAnonymizeStringValue(String value) {
-		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
-		stringBuilder.append('"');
-		AbstractJsonFilter.quoteAsString(value, stringBuilder);
-		stringBuilder.append('"');
-		return withAnonymizeRawJsonValue(stringBuilder.toString());
-	}
-	
-	/**
-	 * Set the truncate textual value.
-	 * 
-	 * @param value the (unescaped) message
-	 * 
-	 * @return this instance
-	 */
-	
-	public JacksonJsonLogFilterBuilder withTruncateStringValue(String value) {
-		StringBuilder stringBuilder = new StringBuilder(value.length() * 2);
-		AbstractJsonFilter.quoteAsString(value, stringBuilder);
-		return withTruncateRawJsonStringValue(stringBuilder.toString());
-	}
-	
-	public JacksonJsonLogFilterBuilder withTruncateRawJsonStringValue(String escaped) {
-		this.truncateStringValue = escaped;
-		
-		return this;
-	}
-	
-	public JacksonJsonLogFilterBuilder withPruneRawJsonValue(String raw) {
-		this.pruneJsonValue = raw;
-		
-		return this;
-	}
-
-	public JacksonJsonLogFilterBuilder withAnonymizeRawJsonValue(String raw) {
-		this.anonymizeJsonValue = raw;
-		
-		return this;
-	}	
-	
 }
