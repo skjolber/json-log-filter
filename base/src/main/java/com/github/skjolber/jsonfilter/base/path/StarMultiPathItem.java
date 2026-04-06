@@ -80,6 +80,7 @@ public class StarMultiPathItem extends PathItem {
 			return this;
 		}
 		if(start < end && source[start] != '\\') {
+			// fast path: dispatch by first char
 			int[] candidates = charDispatch[source[start] & 0xFF];
 			if(candidates != null) {
 				char[][] fieldNameChars = this.fieldNameChars;
@@ -91,6 +92,7 @@ public class StarMultiPathItem extends PathItem {
 			}
 			return any;
 		}
+		// slow path: encoded key or empty key
 		char[][] fieldNameChars = this.fieldNameChars;
 		for(int i = 0; i < fieldNameChars.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[i])) {

@@ -181,7 +181,7 @@ public class AnyPathFilters {
 			}
 		}
 
-		// check for encoded key, which should be quite rare
+		// check for encoded key (rare: JSON field names with Unicode escapes)
 		for(int i = start; i < end; i++) {
 			if(chars[i] == '\\') {
 				int readLength = i - start;

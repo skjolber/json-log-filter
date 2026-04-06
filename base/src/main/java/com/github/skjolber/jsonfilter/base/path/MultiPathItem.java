@@ -77,6 +77,7 @@ public class MultiPathItem extends PathItem {
 			return this;
 		}
 		if(start < end && source[start] != '\\') {
+			// fast path: dispatch by first char, then check only the sub-bucket
 			int[] candidates = charDispatch[source[start] & 0xFF];
 			if(candidates != null) {
 				char[][] fieldNameChars = this.fieldNameChars;
@@ -88,6 +89,7 @@ public class MultiPathItem extends PathItem {
 			}
 			return this;
 		}
+		// slow path: encoded key (starts with '\') or empty key — linear scan
 		char[][] fieldNameChars = this.fieldNameChars;
 		for(int i = 0; i < fieldNameChars.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[i])) {
