@@ -57,7 +57,7 @@ Output:
 | **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Max document size** | ✅ | ✅ | ❌ | ❌ |
 | **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ |
-| **Safe inline JSON logging**² | ✅ | ✅ | ⚠️ Depends | ❌ |
+| **Safe inline JSON logging**² | ✅ | ✅ | ✅ | ❌ |
 | **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
 
 > ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` (wildcard), `$..field` (any depth). Full JSONPath spec (filters, functions, slices) is not supported — use [JsonPath](https://github.com/json-path/JsonPath) for that.
@@ -159,16 +159,6 @@ JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(256, 128*1024, "passwor
 JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
 JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, "$.customer.email");
 JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, 128*1024, "$.customer.email");
-
-// Remove whole subtrees by field name at any depth
-JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys("appMeta", "diagnostics");
-JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(256, "appMeta");
-JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(256, 128*1024, "appMeta");
-
-// Remove whole subtrees by precise JSONPath
-JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths("$.context.appMeta");
-JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(256, "$.context.appMeta");
-JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(256, 128*1024, "$.context.appMeta");
 ```
 
 The same one-liners are available on `JacksonJsonLogFilterBuilder` for untrusted JSON — see the [Jackson module](#jackson-module) section.
