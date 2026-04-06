@@ -57,12 +57,11 @@ Output:
 | **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Max document size** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ |
-| **Safe inline JSON logging**² | ✅ | ✅ | ✅ | ❌ |
 | **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
 
 > ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (any depth).
->
-> ² The output is always well-formed JSON, so it can be safely embedded as an inline raw JSON value in structured log entries (e.g. as a field in a JSON log line) without escaping or breaking the outer log parser.
+
+The dual (core + jackson) filter implementation is key to effectively process in/out-going requests/responses while always outputting well-formed JSON. Thus safely embedding filter output as an inline raw JSON value in structured log entries (e.g. as a field in a JSON log line) without escaping or breaking the outer log parser.
 
 Typical use-cases:
 - **Log sanitization**: strip passwords, tokens, and PII before writing to logs
