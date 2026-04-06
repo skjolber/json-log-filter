@@ -40,8 +40,8 @@ public class StarMultiPathBenchmark {
 			"subtotal_price", "token", "cart_token", "checkout_token", "admin_graphql_api_id", "id", "code", "po_number", "zip", "city"
 	};
 
-	@Param(value={"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"})
-	//@Param(value={"1","5","10","15","20"})
+	@Param(value={"2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"})
+	//@Param(value={"2","5","10","15","20"})
 	private String count;
 
 	private List<char[]> chars;

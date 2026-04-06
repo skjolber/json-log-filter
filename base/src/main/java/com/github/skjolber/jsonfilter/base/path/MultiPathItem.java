@@ -25,6 +25,8 @@ public class MultiPathItem extends PathItem {
 	public MultiPathItem(String[] fieldNames, int level, PathItem parent) {
 		super(level, parent);
 		
+		// note: always expect two or more field names
+		
 		this.fieldNames = fieldNames;
 		this.fieldNameBytes = new byte[fieldNames.length][];
 		this.fieldNameChars = new char[fieldNames.length][];
@@ -75,10 +77,6 @@ public class MultiPathItem extends PathItem {
 			return this;
 		}
 		if(start < end && source[start] != '\\') {
-			// single-entry fast path: direct comparison beats int[]-dispatch overhead for chars
-			if(fieldNameChars.length == 1) {
-				return AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[0]) ? next[0] : this;
-			}
 			int[] candidates = charDispatch[source[start] & 0xFF];
 			if(candidates != null) {
 				char[][] fieldNameChars = this.fieldNameChars;
