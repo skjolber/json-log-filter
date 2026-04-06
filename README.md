@@ -50,16 +50,15 @@ Output:
 | Feature | **json-log-filter core** (trusted JSON) | **json-log-filter jackson** (untrusted JSON) | Jackson + Manual | Regex |
 |---|---|---|---|---|
 | **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐢 Full parse + serialize | 🐌 No structure awareness |
-| **Zero Dependencies** | ✅ | ❌ (Jackson only) | ❌ | ✅ |
+| **Zero Dependencies** | ✅ | ❌ (Jackson) | ❌ (Jackson) | ✅ |
 | **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ⚠️ Extra lib | ❌ |
-| **Match at any depth** | ✅ (`$..field`) | ✅ (`$..field`) | ❌ Manual | ❌ |
 | **Prune whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
-| **Max document size** | ✅ | ✅ | ❌ Manual | ❌ |
-| **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Max document size** | ✅ | ✅ | ❌ Manual | ❌ Manual |
+| **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ Manual |
 | **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
 
-> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (any depth).
+> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (`c` at any depth).
 
 Typical use-cases:
 - **Log sanitization**: strip passwords, tokens, and PII before writing to logs
@@ -311,7 +310,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
     .withAnonymizeKeys("password")
     .withPruneKeys("debugContext")
     .withAnonymizeMessage("[redacted]")   // default: "*"
-    .withPruneMessage("[removed]")        // default: "[removed]"
+    .withPruneMessage("[skipped]")        // default: "[removed]"
     .withTruncateMessage("…")             // default: "... + <count>"
     .build();
 ```
