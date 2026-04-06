@@ -48,5 +48,22 @@ public class AnyPathFiltersTest {
 		byte[] bytes = def.getBytes(StandardCharsets.UTF_8);
 		assertEquals(anyPathFilters.matchPath(bytes, 0, bytes.length), FilterType.ANON);
 	}
-	
+
+	/**
+	 * Verifies that a JSON Unicode escape sequence at offset 0 (entire key is encoded from
+	 * the first character) does not throw a NullPointerException.  Before the fix,
+	 * {@code encodingFilters[0]} was never initialised, causing an NPE when the backslash
+	 * appeared as the very first byte of the key.
+	 */
+	@Test
+	public void testMatchEscapedFirstChar() {
+		AnyPathFilters f = AnyPathFilters.create(AnyPathFilter.create("name", FilterType.ANON));
+
+		// 'n' = 0x006E — encoded with uppercase hex so this test is independent of
+		// the separate case-sensitivity fix in matchesEncoded.
+		String firstEncoded = "\\u006Eame";
+		assertEquals(FilterType.ANON, f.matchPath(firstEncoded.toCharArray(), 0, firstEncoded.length()));
+		assertEquals(FilterType.ANON, f.matchPath(firstEncoded.getBytes(StandardCharsets.UTF_8), 0, firstEncoded.length()));
+	}
+
 }
