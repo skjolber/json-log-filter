@@ -401,16 +401,6 @@ Alternative JSON filters:
 
  * [json-masker](https://github.com/Breus/json-masker) slightly different use-case, included in some of the benchmarks.
 
-<<<<<<< HEAD
-[Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
-[issue-tracker]:			https://github.com/skjolber/json-log-filter/issues
-[Maven]:					https://maven.apache.org/
-[JMH]:					benchmark/jmh
-[xml-log-filter]:      	https://github.com/skjolber/xml-log-filter
-[High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
-[Jackson]:				https://github.com/FasterXML/jackson-core
-[JSON]:					https://www.json.org/json-en.html
-=======
 [Apache 2.0]:						https://www.apache.org/licenses/LICENSE-2.0.html
 [issue-tracker]:				https://github.com/skjolber/json-log-filter/issues
 [Maven]:								https://maven.apache.org/
@@ -419,4 +409,3 @@ Alternative JSON filters:
 [High-performance]:			https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
 [Jackson]:							https://github.com/FasterXML/jackson-core
 [JSON]:									https://www.json.org/json-en.html
->>>>>>> 718e7b5cfebb2e7c4d125e2e0e72d2385a9d4bd4
