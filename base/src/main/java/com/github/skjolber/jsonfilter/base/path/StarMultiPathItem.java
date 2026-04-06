@@ -37,44 +37,6 @@ public class StarMultiPathItem extends PathItem {
 		this.charDispatch = buildCharDispatch(fieldNameChars);
 	}
 
-	private static int[][] buildByteDispatch(byte[][] names) {
-		int[] count = new int[256];
-		for(byte[] name : names) {
-			if(name.length > 0) count[name[0] & 0xFF]++;
-		}
-		int[][] dispatch = new int[256][];
-		for(int b = 0; b < 256; b++) {
-			if(count[b] > 0) dispatch[b] = new int[count[b]];
-		}
-		int[] pos = new int[256];
-		for(int i = 0; i < names.length; i++) {
-			if(names[i].length > 0) {
-				int b = names[i][0] & 0xFF;
-				dispatch[b][pos[b]++] = i;
-			}
-		}
-		return dispatch;
-	}
-
-	private static int[][] buildCharDispatch(char[][] names) {
-		int[] count = new int[256];
-		for(char[] name : names) {
-			if(name.length > 0) count[name[0] & 0xFF]++;
-		}
-		int[][] dispatch = new int[256][];
-		for(int b = 0; b < 256; b++) {
-			if(count[b] > 0) dispatch[b] = new int[count[b]];
-		}
-		int[] pos = new int[256];
-		for(int i = 0; i < names.length; i++) {
-			if(names[i].length > 0) {
-				int b = names[i][0] & 0xFF;
-				dispatch[b][pos[b]++] = i;
-			}
-		}
-		return dispatch;
-	}
-
 	public void setNext(PathItem next, int i) {
 		this.next[i] = next;
 	}

@@ -61,7 +61,6 @@ public class AnyPathFilters {
 				result[i] = output[i].toArray(new AnyPathFilter[0]);
 			}
 		}
-		result[0] = filters.toArray(new AnyPathFilter[0]);
 		
 		return result;
 	}
@@ -105,6 +104,9 @@ public class AnyPathFilters {
 			}
 			result[i + 1] = filters.toArray(new AnyPathFilter[0]);
 		}
+		// result[0] covers keys whose very first character is a backslash (escape at offset 0).
+		// All non-empty filters are candidates in that case.
+		result[0] = filters.toArray(new AnyPathFilter[0]);
 		return result;
 	}
 
