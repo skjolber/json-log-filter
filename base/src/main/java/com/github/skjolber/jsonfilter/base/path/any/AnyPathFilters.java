@@ -29,99 +29,91 @@ public class AnyPathFilters {
 			}
 			map.put(anyPathFilter.pathString, anyPathFilter.filterType);
 		}
-
-		// flat structures (length → filters) are needed by fillEncoded
-		AnyPathFilter[][] flatFiltersBytes = fillFlat(any, maxKeyLengthBytes, false);
-		AnyPathFilter[][] flatFiltersChars = fillFlat(any, maxKeyLengthChars, true);
-
-		// 3D structures add a first-byte dimension for O(1) exact lookup
-		AnyPathFilter[][][] exactFiltersBytes = fillExact(any, maxKeyLengthBytes, false);
-		AnyPathFilter[][][] exactFiltersChars = fillExact(any, maxKeyLengthChars, true);
-
-		AnyPathFilter[][] encodedFiltersBytes = fillEncoded(flatFiltersBytes);
-		AnyPathFilter[][] encodedFiltersChars = fillEncoded(flatFiltersChars);
+		
+		AnyPathFilter[][] exactFiltersBytes = fillBytes(any, maxKeyLengthBytes);
+		AnyPathFilter[][] exactFiltersChars = fillChars(any, maxKeyLengthChars);
+		
+		AnyPathFilter[][] encodedFiltersChars = fillEncoded(exactFiltersChars);
+		AnyPathFilter[][] encodedFiltersBytes = fillEncoded(exactFiltersBytes);
 		
 		return new AnyPathFilters(exactFiltersBytes, exactFiltersChars, encodedFiltersBytes, encodedFiltersChars, map);
 	}
+	
 
-	/** Builds a flat length-indexed structure used by {@link #fillEncoded}. */
-	@SuppressWarnings("unchecked")
-	private static AnyPathFilter[][] fillFlat(List<AnyPathFilter> any, int maxLength, boolean useChars) {
-		List<AnyPathFilter>[] output = new List[maxLength + 1];
-		for(int i = 0; i < output.length; i++) {
-			output[i] = new ArrayList<>();
-		}
-		for(AnyPathFilter filter : any) {
-			int len = useChars ? filter.pathChars.length : filter.pathBytes.length;
-			output[len].add(filter);
-		}
-		AnyPathFilter[][] result = new AnyPathFilter[maxLength + 1][];
-		for(int i = 0; i < result.length; i++) {
-			if(!output[i].isEmpty()) {
-				result[i] = output[i].toArray(new AnyPathFilter[0]);
-			}
-		}
-		return result;
-	}
+	private static AnyPathFilter[][] fillEncoded(AnyPathFilter[][] exactFiltersChars) {
+		AnyPathFilter[][] result = new AnyPathFilter[exactFiltersChars.length + 1][];
 
-	/**
-	 * Builds a 3D structure: {@code [length][firstByte & 0xFF] → AnyPathFilter[]}.
-	 * <p>Within each length bucket, filters are partitioned by the first byte (or char)
-	 * of their path value.  A lookup then needs to scan only the sub-bucket whose first
-	 * byte matches the candidate key, reducing comparisons from O(N) to O(N / alphabet).
-	 */
-	private static AnyPathFilter[][][] fillExact(List<AnyPathFilter> any, int maxLength, boolean useChars) {
-		AnyPathFilter[][][] result = new AnyPathFilter[maxLength + 1][][];
-		for(AnyPathFilter filter : any) {
-			int len  = useChars ? filter.pathChars.length : filter.pathBytes.length;
-			int first = useChars
-					? (filter.pathChars.length > 0 ? filter.pathChars[0] & 0xFF : 0)
-					: (filter.pathBytes.length > 0 ? filter.pathBytes[0] & 0xFF : 0);
-			if(result[len] == null) {
-				result[len] = new AnyPathFilter[256][];
-			}
-			AnyPathFilter[] existing = result[len][first];
-			if(existing == null) {
-				result[len][first] = new AnyPathFilter[]{filter};
-			} else {
-				AnyPathFilter[] updated = Arrays.copyOf(existing, existing.length + 1);
-				updated[existing.length] = filter;
-				result[len][first] = updated;
-			}
-		}
-		return result;
-	}
-
-	private static AnyPathFilter[][] fillEncoded(AnyPathFilter[][] flatFilters) {
-		AnyPathFilter[][] result = new AnyPathFilter[flatFilters.length + 1][];
 		List<AnyPathFilter> filters = new ArrayList<>();
-		for(int i = flatFilters.length - 1; i >= 0; i--) {
-			if(flatFilters[i] != null) {
-				for(AnyPathFilter f : flatFilters[i]) {
+		
+		for(int i = exactFiltersChars.length - 1; i >= 0; i--) {
+			if(exactFiltersChars[i] != null) {
+				for(AnyPathFilter f : exactFiltersChars[i]) {
 					filters.add(f);
 				}
 			}
-			result[i + 1] = filters.toArray(new AnyPathFilter[0]);
+			result[i + 1] = filters.toArray(new AnyPathFilter[filters.size()]);
 		}
 		return result;
 	}
 
-	/** Exact-match lookup: {@code [length][firstByte] → candidates}. */
-	protected final AnyPathFilter[][][] exactFiltersBytes;
-	protected final AnyPathFilter[][][] exactFiltersChars;
+	private static AnyPathFilter[][] fillBytes(List<AnyPathFilter> any, int length) {
+		List<AnyPathFilter>[] output = new List[length+1];
+		for(int i = 0; i < output.length; i++) {
+			output[i] = new ArrayList<>();
+		}
+		
+		for(AnyPathFilter filter : any) {
+			output[filter.pathBytes.length].add(filter);
+		}
+		
+		AnyPathFilter[][] result = new AnyPathFilter[length + 1][];
+		for(int i = 0; i < result.length; i++) {
+			if(!output[i].isEmpty()) {
+				result[i] = output[i].toArray(new AnyPathFilter[output[i].size()]);
+			}
+		}
+	
+		 return result;
+	}
+	
+	private static AnyPathFilter[][] fillChars(List<AnyPathFilter> any, int length) {
+		List<AnyPathFilter>[] output = new List[length+1];
+		for(int i = 0; i < output.length; i++) {
+			output[i] = new ArrayList<>();
+		}
+		
+		for(AnyPathFilter filter : any) {
+			output[filter.pathChars.length].add(filter);
+		}
+		
+		AnyPathFilter[][] result = new AnyPathFilter[length + 1][];
+		for(int i = 0; i < result.length; i++) {
+			if(!output[i].isEmpty()) {
+				result[i] = output[i].toArray(new AnyPathFilter[output[i].size()]);
+			}
+		}
+	
+		 return result;
+	}
+	
+	// for exact match
+	protected final AnyPathFilter[][] exactFiltersBytes;
+	protected final AnyPathFilter[][] exactFiltersChars;
 
 	protected final AnyPathFilter[][] encodingFiltersBytes;
 	protected final AnyPathFilter[][] encodingFiltersChars;
 
 	protected final Map<String, FilterType> names;
 	
-	public AnyPathFilters(AnyPathFilter[][][] exactFiltersBytes, AnyPathFilter[][][] exactFiltersChars,
+	public AnyPathFilters(AnyPathFilter[][] exactFiltersBytes, AnyPathFilter[][] exactFiltersChars,
 			AnyPathFilter[][] encodingFiltersBytes, AnyPathFilter[][] encodingFiltersChars, Map<String, FilterType> names) {
 		super();
 		this.exactFiltersBytes = exactFiltersBytes;
 		this.exactFiltersChars = exactFiltersChars;
+		
 		this.encodingFiltersBytes = encodingFiltersBytes;
 		this.encodingFiltersChars = encodingFiltersChars;
+		
 		this.names = names;
 	}
 
@@ -131,20 +123,14 @@ public class AnyPathFilters {
 	
 	public FilterType matchPath(final byte[] chars, int start, int end) {
 		int length = end - start;
-		if(length > 0 && length < exactFiltersBytes.length) {
-			AnyPathFilter[][] lengthBucket = exactFiltersBytes[length];
-			if(lengthBucket != null) {
-				AnyPathFilter[] candidates = lengthBucket[chars[start] & 0xFF];
-				if(candidates != null) {
-					FilterType type = unencodedMatchBytes(candidates, chars, start);
-					if(type != null) {
-						return type;
-					}
-				}
+		if(length < exactFiltersBytes.length && exactFiltersBytes[length] != null) {
+			FilterType type = unencodedMatchAnyElements(exactFiltersBytes[length], chars, start, end);
+			if(type != null) {
+				return type;
 			}
 		}
-
-		// check for encoded key (rare: JSON field names with Unicode escapes)
+		
+		// check for encoded key
 		for(int i = start; i < end; i++) {
 			if(chars[i] == '\\') {
 				int readLength = i - start;
@@ -164,19 +150,13 @@ public class AnyPathFilters {
 	
 	public FilterType matchPath(final char[] chars, int start, int end) {
 		int length = end - start;
-		if(length > 0 && length < exactFiltersChars.length) {
-			AnyPathFilter[][] lengthBucket = exactFiltersChars[length];
-			if(lengthBucket != null) {
-				AnyPathFilter[] candidates = lengthBucket[chars[start] & 0xFF];
-				if(candidates != null) {
-					FilterType type = unencodedMatchChars(candidates, chars, start);
-					if(type != null) {
-						return type;
-					}
-				}
+		if(length < exactFiltersChars.length && exactFiltersChars[length] != null) {
+			FilterType type = unencodedMatchAnyElements(exactFiltersChars[length], chars, start, end);
+			if(type != null) {
+				return type;
 			}
 		}
-
+		
 		// check for encoded key, which should be quite rare
 		for(int i = start; i < end; i++) {
 			if(chars[i] == '\\') {
@@ -184,6 +164,7 @@ public class AnyPathFilters {
 				if(readLength >= encodingFiltersChars.length) {
 					return null;
 				}
+				
 				for(AnyPathFilter filter : encodingFiltersChars[readLength]) {
 					if(AbstractMultiPathJsonFilter.matchesEncoded(chars, start, end, filter.pathChars)) {
 						return filter.getFilterType();
@@ -194,31 +175,33 @@ public class AnyPathFilters {
 		
 		return null;
 	}
+	
 
-	private static FilterType unencodedMatchBytes(AnyPathFilter[] candidates, final byte[] chars, int start) {
+	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyPathFilters, final byte[] chars, int start, int end) {
 		main:
-		for(int i = 0; i < candidates.length; i++) {
-			byte[] pathBytes = candidates[i].pathBytes;
+		for(int i = 0; i < anyPathFilters.length; i++) {
+			byte[] pathBytes = anyPathFilters[i].pathBytes;
 			for(int k = 0; k < pathBytes.length; k++) {
 				if(pathBytes[k] != chars[start + k]) {
 					continue main;
 				}
 			}
-			return candidates[i].filterType;
+			return anyPathFilters[i].filterType;
 		}
 		return null;
 	}
 
-	private static FilterType unencodedMatchChars(AnyPathFilter[] candidates, final char[] chars, int start) {
+	protected static FilterType unencodedMatchAnyElements(AnyPathFilter[] anyPathFilters, final char[] chars, int start, int end) {
+		
 		main:
-		for(int i = 0; i < candidates.length; i++) {
-			char[] pathChars = candidates[i].pathChars;
-			for(int k = 0; k < pathChars.length; k++) {
-				if(pathChars[k] != chars[start + k]) {
+		for(int i = 0; i < anyPathFilters.length; i++) {
+			char[] pathBytes = anyPathFilters[i].pathChars;
+			for(int k = 0; k < pathBytes.length; k++) {
+				if(pathBytes[k] != chars[start + k]) {
 					continue main;
 				}
 			}
-			return candidates[i].filterType;
+			return anyPathFilters[i].filterType;
 		}
 		return null;
 	}
