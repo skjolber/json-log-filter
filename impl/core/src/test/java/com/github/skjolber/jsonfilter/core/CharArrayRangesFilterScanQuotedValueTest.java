@@ -15,34 +15,22 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
  * Full-coverage tests for {@link CharArrayRangesFilter#scanQuotedValue} and
  * {@link CharArrayRangesFilter#scanEscapedValue}.
  *
- * <p>Strategy: every case is validated by comparing the optimised MemorySegment
- * implementation against the original scalar reference extracted verbatim from
- * the pre-optimisation baseline (git master).  Any divergence is a correctness
- * regression.
+ * <p>Strategy: every case is validated by comparing the production implementation
+ * against an inline scalar reference.  The reference methods capture the correct
+ * semantics; the production code must agree on every input.  Future optimisations
+ * (e.g. word-at-a-time) must continue to match this oracle.
  *
  * <h2>Reference implementation</h2>
  * <p>The {@link #referenceScalarScanQuotedValue} and
  * {@link #referenceScalarScanEscapedValue} methods are verbatim copies of the
- * scalar implementation that existed before the word-at-a-time optimisation
- * (PR #244 / PR #245).  They serve as the ground-truth oracle.
- *
- * <h2>Optimisation under test</h2>
- * <p>The production implementation uses the <em>has-zero-short</em> variant of
- * the has-zero-byte trick, packing 4 {@code char} values (8 bytes) per iteration
- * via {@code MemorySegment.ofArray(chars).get(JAVA_LONG_UNALIGNED, i*2)}.  See:
- * <blockquote>
- *   Henry S. Warren Jr., <em>Hacker's Delight</em>, 2nd ed. (2012),
- *   Addison-Wesley Professional, ISBN 978-0-321-84268-8, §6-1
- *   "Find First 0-Byte", p. 117.
- * </blockquote>
+ * scalar implementation and serve as the ground-truth oracle.
  *
  * <h2>Test-case coverage</h2>
  * <ul>
- *   <li>Scalar tail (string content &lt; 4 chars)</li>
- *   <li>4-char MemorySegment loop (4–7 chars of content)</li>
- *   <li>Multiple 4-char iterations (≥ 8 chars of content)</li>
- *   <li>Quote at every char position within a 4-char word (0–3)</li>
- *   <li>Quote at every position in the first and second 4-char windows</li>
+ *   <li>Empty string and single-char strings</li>
+ *   <li>Short strings (content &lt; 4 chars)</li>
+ *   <li>Medium strings (4–15 chars of content)</li>
+ *   <li>Closing quote at each char position within groups of 4 (0–3)</li>
  *   <li>Escaped quote {@code \"} at each of the above positions</li>
  *   <li>Even/odd backslash counts ({@code \\"} terminates, {@code \\\"} does not)</li>
  *   <li>Multiple escaped quotes before the real closing quote</li>
@@ -53,10 +41,10 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 class CharArrayRangesFilterScanQuotedValueTest {
 
     // -------------------------------------------------------------------------
-    // Reference implementation (scalar baseline from master, pre-optimisation)
+    // Reference implementation (scalar oracle)
     // -------------------------------------------------------------------------
 
-    /** Verbatim copy of scanQuotedValue before the MemorySegment optimisation. */
+    /** Scalar oracle for scanQuotedValue — ground truth for all test assertions. */
     private static int referenceScalarScanQuotedValue(final char[] chars, int offset) {
         while (chars[++offset] != '"') ;
         if (chars[offset - 1] != '\\') {
@@ -65,7 +53,7 @@ class CharArrayRangesFilterScanQuotedValueTest {
         return referenceScalarScanEscapedValue(chars, offset);
     }
 
-    /** Verbatim copy of scanEscapedValue before the MemorySegment optimisation. */
+    /** Scalar oracle for scanEscapedValue — ground truth for all test assertions. */
     private static int referenceScalarScanEscapedValue(final char[] chars, int offset) {
         while (true) {
             int slashOffset = offset - 2;
@@ -88,9 +76,8 @@ class CharArrayRangesFilterScanQuotedValueTest {
 
     /**
      * Builds a {@code char[]} containing {@code "} + rawContent + {@code "} followed
-     * by 16 chars of padding.  The padding ensures that MemorySegment reads 4 chars
-     * ahead never go out of bounds, mirroring the real-world scenario where the
-     * filter always operates on a larger JSON document buffer.
+     * by padding chars.  The padding ensures scanners that read ahead (e.g. a future
+     * word-at-a-time optimisation) never go out of bounds.
      *
      * @param rawContent chars placed between the opening and closing quote
      * @return array where index 0 is the opening {@code "}
@@ -136,7 +123,7 @@ class CharArrayRangesFilterScanQuotedValueTest {
 
     static Stream<TestCase> plainStrings() {
         List<TestCase> cases = new ArrayList<>();
-        // Length 0–19: covers scalar tail (0-3), 4-char word loop (4-7), multiple iterations (8+)
+        // Length 0–19: covers short strings (0-3), medium strings (4-7), longer strings (8+)
         for (int len = 0; len <= 19; len++) {
             cases.add(new TestCase("plain[" + len + "]", quoted(plain(len))));
         }
@@ -147,20 +134,21 @@ class CharArrayRangesFilterScanQuotedValueTest {
         return cases.stream();
     }
 
-    static Stream<TestCase> quotePositionWithinWord() {
-        // For each word-offset (0–3), place the closing quote there by choosing
-        // content lengths that map to that char position within the current word.
+    static Stream<TestCase> quoteAtEachCharPosition() {
+        // Closing quote at each char position within successive groups of 4 (0–3).
+        // Verifies correct termination regardless of where the quote lands relative
+        // to any aligned read window a future optimisation might use.
         List<TestCase> cases = new ArrayList<>();
-        for (int wordPos = 0; wordPos < 4; wordPos++) {
-            // Position within the first 4-char word
-            int len4 = 4 + wordPos;
-            cases.add(new TestCase("4charLoop_word1_pos" + wordPos, quoted(plain(len4))));
-            // Position within the second 4-char word
-            int len8 = 8 + wordPos;
-            cases.add(new TestCase("4charLoop_word2_pos" + wordPos, quoted(plain(len8))));
-            // Position within the third 4-char word
-            int len12 = 12 + wordPos;
-            cases.add(new TestCase("4charLoop_word3_pos" + wordPos, quoted(plain(len12))));
+        for (int groupPos = 0; groupPos < 4; groupPos++) {
+            // First group of 4 (content length 4–7)
+            int len4 = 4 + groupPos;
+            cases.add(new TestCase("group1_pos" + groupPos, quoted(plain(len4))));
+            // Second group of 4 (content length 8–11)
+            int len8 = 8 + groupPos;
+            cases.add(new TestCase("group2_pos" + groupPos, quoted(plain(len8))));
+            // Third group of 4 (content length 12–15)
+            int len12 = 12 + groupPos;
+            cases.add(new TestCase("group3_pos" + groupPos, quoted(plain(len12))));
         }
         return cases.stream();
     }
@@ -207,7 +195,7 @@ class CharArrayRangesFilterScanQuotedValueTest {
     static Stream<TestCase> allCases() {
         return Stream.of(
             plainStrings(),
-            quotePositionWithinWord(),
+            quoteAtEachCharPosition(),
             escapedQuotes(),
             emptyAndSingleChar()
         ).flatMap(s -> s);
