@@ -212,7 +212,7 @@ Multiple paths can be provided in one call, across several calls, or from a coll
 
 ```java
 // All in one call (varargs)
-builder.withAnonymizeKeys("password", "ssn", "token")
+builder.withAnonymizeKeys("ssn", "token")
        .withPrunePaths("$.context.diagnostics", "$.internal.trace");
 
 // From a collection (List, Set, or any Collection<String>)
@@ -227,8 +227,8 @@ builder.withAnonymizeKeys(sensitiveKeys);
 Input:
 ```json
 {
-  "username": "alice",
-  "password": "s3cr3t",
+  "username": "skjolber",
+  "name": "Thomas Skjølberg",
   "credentials": {
     "token": "abc123",
     "key": "xyz789"
@@ -236,11 +236,11 @@ Input:
 }
 ```
 
-After `.withAnonymizeKeys("password", "credentials")`:
+After `.withAnonymizeKeys("name", "credentials")`:
 ```json
 {
-  "username": "alice",
-  "password": "*",
+  "username": "skjolber",
+  "fullName": "*",
   "credentials": {
     "token": "*",
     "key": "*"
@@ -335,6 +335,8 @@ A simple syntax is supported where each path segment corresponds to a field name
 > [!NOTE]
 > Path expressions pass through arrays transparently — `$.items.price` matches `price` inside each element of the `items` array.
 
+Using full paths generally improves performance.
+
 ## Max path matches
 
 `withMaxPathMatches(n)` stops path-based filtering after `n` matches. When the target field appears a known fixed number of times near the start of the document, this lets the filter skip the rest at near pass-through speed.
@@ -380,7 +382,7 @@ JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
     .build();
 ```
 
-Typical dual-filter setup:
+Typical dual-filter setup in a webserver:
 - Locally produced JSON → `DefaultJsonLogFilterBuilder` (fast, no validation)
 - Externally received JSON → `JacksonJsonLogFilterBuilder` (validates structure)
 
