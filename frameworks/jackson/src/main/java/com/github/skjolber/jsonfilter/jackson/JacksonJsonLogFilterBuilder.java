@@ -66,6 +66,30 @@ public class JacksonJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<Ja
 	}
 
 	/**
+	 * Create a filter that anonymizes fields by key name and truncates long strings.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param keys            one or more bare field names
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizeKeys(int maxStringLength, String... keys) {
+		return newBuilder().withMaxStringLength(maxStringLength).withAnonymizeKeys(keys).build();
+	}
+
+	/**
+	 * Create a filter that anonymizes fields by key name, truncates long strings,
+	 * and limits the total output size.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param maxSize         maximum output document size in bytes
+	 * @param keys            one or more bare field names
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizeKeys(int maxStringLength, int maxSize, String... keys) {
+		return newBuilder().withMaxStringLength(maxStringLength).withMaxSize(maxSize).withAnonymizeKeys(keys).build();
+	}
+
+	/**
 	 * Create a filter that anonymizes the values at the given JSONPath expressions.
 	 *
 	 * @param expressions one or more JSONPath expressions (e.g. {@code "$.customer.email"})
@@ -73,6 +97,30 @@ public class JacksonJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<Ja
 	 */
 	public static JsonFilter anonymizePaths(String... expressions) {
 		return newBuilder().withAnonymizePaths(expressions).build();
+	}
+
+	/**
+	 * Create a filter that anonymizes fields by JSONPath and truncates long strings.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param expressions     one or more JSONPath expressions
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizePaths(int maxStringLength, String... expressions) {
+		return newBuilder().withMaxStringLength(maxStringLength).withAnonymizePaths(expressions).build();
+	}
+
+	/**
+	 * Create a filter that anonymizes fields by JSONPath, truncates long strings,
+	 * and limits the total output size.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param maxSize         maximum output document size in bytes
+	 * @param expressions     one or more JSONPath expressions
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizePaths(int maxStringLength, int maxSize, String... expressions) {
+		return newBuilder().withMaxStringLength(maxStringLength).withMaxSize(maxSize).withAnonymizePaths(expressions).build();
 	}
 
 	/**
@@ -87,6 +135,30 @@ public class JacksonJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<Ja
 	}
 
 	/**
+	 * Create a filter that prunes fields by key name and truncates long strings.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param keys            one or more bare field names
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter pruneKeys(int maxStringLength, String... keys) {
+		return newBuilder().withMaxStringLength(maxStringLength).withPruneKeys(keys).build();
+	}
+
+	/**
+	 * Create a filter that prunes fields by key name, truncates long strings,
+	 * and limits the total output size.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param maxSize         maximum output document size in bytes
+	 * @param keys            one or more bare field names
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter pruneKeys(int maxStringLength, int maxSize, String... keys) {
+		return newBuilder().withMaxStringLength(maxStringLength).withMaxSize(maxSize).withPruneKeys(keys).build();
+	}
+
+	/**
 	 * Create a filter that removes (prunes) the subtrees at the given JSONPath expressions.
 	 *
 	 * @param expressions one or more JSONPath expressions (e.g. {@code "$.context.auditLog"})
@@ -94,6 +166,30 @@ public class JacksonJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<Ja
 	 */
 	public static JsonFilter prunePaths(String... expressions) {
 		return newBuilder().withPrunePaths(expressions).build();
+	}
+
+	/**
+	 * Create a filter that prunes by JSONPath and truncates long strings.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param expressions     one or more JSONPath expressions
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter prunePaths(int maxStringLength, String... expressions) {
+		return newBuilder().withMaxStringLength(maxStringLength).withPrunePaths(expressions).build();
+	}
+
+	/**
+	 * Create a filter that prunes by JSONPath, truncates long strings,
+	 * and limits the total output size.
+	 *
+	 * @param maxStringLength maximum string value length before truncation
+	 * @param maxSize         maximum output document size in bytes
+	 * @param expressions     one or more JSONPath expressions
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter prunePaths(int maxStringLength, int maxSize, String... expressions) {
+		return newBuilder().withMaxStringLength(maxStringLength).withMaxSize(maxSize).withPrunePaths(expressions).build();
 	}
 
 	/**

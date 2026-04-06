@@ -8,7 +8,7 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 ## Quick Example
 
 ```java
-// One-liner for the most common case — all filters are thread-safe, create once and reuse
+// One-liner — all filters are thread-safe, create once and reuse
 JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
 
 String filtered = filter.process(inputJson);
@@ -17,41 +17,61 @@ String filtered = filter.process(inputJson);
 Input:
 ```json
 {
-  "user": { "name": "Alice", "password": "s3cr3t", "ssn": "123-45-6789" },
-  "auth": { "token": "eyJhbGci..." }
+  "user": {
+    "name": "Alice",
+    "password": "s3cr3t",
+    "ssn": "123-45-6789"
+  },
+  "auth": {
+    "token": "eyJhbGci..."
+  }
 }
 ```
 
 Output:
 ```json
 {
-  "user": { "name": "Alice", "password": "*", "ssn": "*" },
-  "auth": { "token": "*" }
+  "user": {
+    "name": "Alice",
+    "password": "*",
+    "ssn": "*"
+  },
+  "auth": {
+    "token": "*"
+  }
 }
 ```
 
 > [!TIP]
-> Use [`newBuilder()`](#usage) when you need multiple filter types or extra options like `withMaxStringLength`.
+> Use [`newBuilder()`](#builder--multiple-filters-and-extra-options) when you need to combine filter types or set extra options.
 
 ## Why json-log-filter?
 
-| Feature | json-log-filter | Jackson + Manual | Regex |
-|---|---|---|---|
-| **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐌 No structure awareness |
-| **Zero Dependencies** | ✅ (core) | ❌ | ✅ |
-| **JSONPath Support** | ✅ | ⚠️ Extra lib | ❌ |
-| **Multiple paths at once** | ✅ | ❌ Manual | ❌ |
-| **Prune whole subtrees** | ✅ | ❌ Manual | ❌ |
-| **Max document size** | ✅ | ❌ | ❌ |
-| **Configurable output text** | ✅ | ❌ Manual | ❌ |
+| Feature | **core** (trusted JSON) | **jackson** (untrusted JSON) | Jackson + Manual | Regex |
+|---|---|---|---|---|
+| **Performance** | 🏎️ Single-pass, no object model | 🚗 Single-pass + structure validation | 🐢 Full parse + serialize | 🐌 No structure awareness |
+| **Zero Dependencies** | ✅ | ❌ (Jackson only) | ❌ | ✅ |
+| **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ⚠️ Extra lib | ❌ |
+| **Match at any depth** | ✅ (`$..field`) | ✅ (`$..field`) | ❌ Manual | ❌ |
+| **Prune whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Max document size** | ✅ | ✅ | ❌ | ❌ |
+| **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Safe inline JSON logging**² | ✅ | ✅ | ⚠️ Depends | ❌ |
+| **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
+
+> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` (wildcard), `$..field` (any depth). Full JSONPath spec (filters, functions, slices) is not supported — use [JsonPath](https://github.com/json-path/JsonPath) for that.
+>
+> ² The output is always well-formed JSON, so it can be safely embedded as an inline raw JSON value in structured log entries (e.g. as a field in a JSON log line) without escaping or breaking the outer log parser.
 
 Typical use-cases:
-- **Log sanitization**: strip passwords, tokens, PII before writing to logs
+- **Log sanitization**: strip passwords, tokens, and PII before writing to logs
 - **GDPR compliance**: anonymize personal data in request/response logging
 - **Log readability**: prune large base64 blobs or low-value subtrees
-- **Log size control**: stay within GCP (256 KB) or Azure (64 KB) limits
+- **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
+- **Safe structured logging**: inline filtered JSON directly into a JSON log line — the output is always valid JSON, so log parsers and ingestors never choke on it
 
-The library selects the most efficient filter implementation for the configured combination of features automatically. No external dependencies are required for the `core` module.
+The library automatically selects the most efficient filter implementation for the configured combination of features. No external dependencies are required for the `core` module.
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -127,20 +147,28 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 
 ## One-liner factory methods
 
-For simple cases, create a ready-to-use filter in a single call:
+For simple cases, create a ready-to-use filter in a single call. All one-liners accept an optional `maxStringLength` and `maxSize`:
 
 ```java
-// Anonymize fields by name at any depth (most common)
-JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
+// Anonymize fields by name at any depth
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(256, "password", "ssn");           // + truncate strings > 256 chars
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(256, 128*1024, "password", "ssn"); // + cap output at 128 KB
 
 // Anonymize fields by precise JSONPath
-JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, "$.customer.email");
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(256, 128*1024, "$.customer.email");
 
 // Remove whole subtrees by field name at any depth
-JsonFilter filter = DefaultJsonLogFilterBuilder.pruneKeys("rawPayload", "auditLog");
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys("appMeta", "diagnostics");
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(256, "appMeta");
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(256, 128*1024, "appMeta");
 
 // Remove whole subtrees by precise JSONPath
-JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths("$.context.diagnostics");
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths("$.context.appMeta");
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(256, "$.context.appMeta");
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(256, 128*1024, "$.context.appMeta");
 ```
 
 The same one-liners are available on `JacksonJsonLogFilterBuilder` for untrusted JSON — see the [Jackson module](#jackson-module) section.
@@ -198,7 +226,10 @@ Input:
 {
   "username": "alice",
   "password": "s3cr3t",
-  "credentials": { "token": "abc123", "key": "xyz789" }
+  "credentials": {
+    "token": "abc123",
+    "key": "xyz789"
+  }
 }
 ```
 
@@ -207,35 +238,47 @@ After `.withAnonymizeKeys("password", "credentials")`:
 {
   "username": "alice",
   "password": "*",
-  "credentials": { "token": "*", "key": "*" }
+  "credentials": {
+    "token": "*",
+    "key": "*"
+  }
 }
 ```
 
 ## Prune (remove subtrees)
 
-`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"PRUNED"`. Useful for large blobs or subtrees with low informational value.
+`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"PRUNED"`. The whole subtree is gone in a single replacement.
+
+A common use-case is pruning fields that are always the same across requests (e.g. static application metadata) so they don't waste log space on every request:
 
 Input:
 ```json
 {
-  "header": { "requestId": "abc-123" },
-  "context": {
-    "metadata": { "region": "eu-west-1", "version": "3.2" },
-    "rawPayload": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7..."
+  "request": {
+    "method": "POST",
+    "path": "/api/orders"
+  },
+  "appMeta": {
+    "version": "2.3.1",
+    "region": "eu-west-1",
+    "buildTime": "2026-01-15T08:30:00Z",
+    "dependencies": ["service-A", "service-B", "service-C"]
   }
 }
 ```
 
-After `.withPrunePaths("$.context.rawPayload")`:
+After `.withPruneKeys("appMeta")`:
 ```json
 {
-  "header": { "requestId": "abc-123" },
-  "context": {
-    "metadata": { "region": "eu-west-1", "version": "3.2" },
-    "rawPayload": "PRUNED"
-  }
+  "request": {
+    "method": "POST",
+    "path": "/api/orders"
+  },
+  "appMeta": "PRUNED"
 }
 ```
+
+The entire `appMeta` object — including its nested array — is replaced by a single string token.
 
 ## Truncate long strings
 
@@ -243,12 +286,16 @@ After `.withPrunePaths("$.context.rawPayload")`:
 
 Input:
 ```json
-{ "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg==" }
+{
+  "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg=="
+}
 ```
 
 After `.withMaxStringLength(32)`:
 ```json
-{ "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVl... + 46" }
+{
+  "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVl... + 46"
+}
 ```
 
 ## Customizing output text
@@ -272,7 +319,6 @@ Output:
   "debugContext": "[removed]"
 }
 ```
-
 ## Path syntax
 
 A simple syntax is supported where each path segment corresponds to a field name. Expressions are case-sensitive.

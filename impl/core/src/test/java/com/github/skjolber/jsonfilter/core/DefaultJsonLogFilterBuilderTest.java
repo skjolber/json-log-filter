@@ -109,8 +109,32 @@ public class DefaultJsonLogFilterBuilderTest {
 	}
 
 	@Test
+	public void testStaticAnonymizeKeysWithMaxStringLength() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys(256, "password", "ssn");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticAnonymizeKeysWithMaxStringLengthAndMaxSize() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys(256, 128 * 1024, "password");
+		assertNotNull(filter);
+	}
+
+	@Test
 	public void testStaticAnonymizePaths() {
 		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticAnonymizePathsWithMaxStringLength() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths(256, "$.customer.email");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticAnonymizePathsWithMaxStringLengthAndMaxSize() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths(256, 128 * 1024, "$.customer.email");
 		assertNotNull(filter);
 	}
 
@@ -121,8 +145,32 @@ public class DefaultJsonLogFilterBuilderTest {
 	}
 
 	@Test
+	public void testStaticPruneKeysWithMaxStringLength() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.pruneKeys(256, "rawPayload");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticPruneKeysWithMaxStringLengthAndMaxSize() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.pruneKeys(256, 128 * 1024, "rawPayload");
+		assertNotNull(filter);
+	}
+
+	@Test
 	public void testStaticPrunePaths() {
 		JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths("$.context.auditLog");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticPrunePathsWithMaxStringLength() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths(256, "$.context.auditLog");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticPrunePathsWithMaxStringLengthAndMaxSize() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths(256, 128 * 1024, "$.context.auditLog");
 		assertNotNull(filter);
 	}
 

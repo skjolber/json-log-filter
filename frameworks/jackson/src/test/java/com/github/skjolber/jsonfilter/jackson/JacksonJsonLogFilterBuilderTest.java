@@ -96,8 +96,28 @@ public class JacksonJsonLogFilterBuilderTest {
 	}
 
 	@Test
+	public void testStaticAnonymizeKeysWithMaxStringLength() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizeKeys(256, "password", "ssn"));
+	}
+
+	@Test
+	public void testStaticAnonymizeKeysWithMaxStringLengthAndMaxSize() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizeKeys(256, 128 * 1024, "password"));
+	}
+
+	@Test
 	public void testStaticAnonymizePaths() {
 		assertNotNull(JacksonJsonLogFilterBuilder.anonymizePaths("$.customer.email"));
+	}
+
+	@Test
+	public void testStaticAnonymizePathsWithMaxStringLength() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizePaths(256, "$.customer.email"));
+	}
+
+	@Test
+	public void testStaticAnonymizePathsWithMaxStringLengthAndMaxSize() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizePaths(256, 128 * 1024, "$.customer.email"));
 	}
 
 	@Test
@@ -106,8 +126,28 @@ public class JacksonJsonLogFilterBuilderTest {
 	}
 
 	@Test
+	public void testStaticPruneKeysWithMaxStringLength() {
+		assertNotNull(JacksonJsonLogFilterBuilder.pruneKeys(256, "rawPayload"));
+	}
+
+	@Test
+	public void testStaticPruneKeysWithMaxStringLengthAndMaxSize() {
+		assertNotNull(JacksonJsonLogFilterBuilder.pruneKeys(256, 128 * 1024, "rawPayload"));
+	}
+
+	@Test
 	public void testStaticPrunePaths() {
 		assertNotNull(JacksonJsonLogFilterBuilder.prunePaths("$.context.auditLog"));
+	}
+
+	@Test
+	public void testStaticPrunePathsWithMaxStringLength() {
+		assertNotNull(JacksonJsonLogFilterBuilder.prunePaths(256, "$.context.auditLog"));
+	}
+
+	@Test
+	public void testStaticPrunePathsWithMaxStringLengthAndMaxSize() {
+		assertNotNull(JacksonJsonLogFilterBuilder.prunePaths(256, 128 * 1024, "$.context.auditLog"));
 	}
 
 	@Test
