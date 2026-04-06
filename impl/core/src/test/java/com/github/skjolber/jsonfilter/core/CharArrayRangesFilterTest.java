@@ -235,7 +235,7 @@ public class CharArrayRangesFilterTest {
 	@Test
 	public void testPruneSubtreeScalar() throws IOException {
 		String[] inputs = new String[]{"\"abcde\",", "\"abcde\"}"};
-		String[] outputs = new String[]{"\"PRUNED\",", "\"PRUNED\"}"};
+		String[] outputs = new String[]{"\"[removed]\",", "\"[removed]\"}"};
 		
 		for(int i = 0; i < inputs.length; i++) {
 			String input = inputs[i];
