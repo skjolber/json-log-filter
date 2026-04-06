@@ -55,7 +55,7 @@ Output:
 | **Match at any depth** | ✅ (`$..field`) | ✅ (`$..field`) | ❌ Manual | ❌ |
 | **Prune whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
-| **Max document size** | ✅ | ✅ | ❌ | ❌ |
+| **Max document size** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Safe inline JSON logging**² | ✅ | ✅ | ✅ | ❌ |
 | **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
