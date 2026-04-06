@@ -13,7 +13,7 @@ public class DefaultJsonLogFilterBuilderTest {
 	@Test
 	public void testAnonymizeMessage() {
 		AbstractRangesPathJsonFilter filter = (AbstractRangesPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
-				.withAnonymize("/customer/email")
+				.withAnonymizePaths("/customer/email")
 				.withAnonymizeMessage("x\nxxxx")
 				.build();
 		assertNotNull(filter);
@@ -25,7 +25,7 @@ public class DefaultJsonLogFilterBuilderTest {
 	@Test
 	public void testPruneMessage() {
 		AbstractRangesPathJsonFilter filter = (AbstractRangesPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
-				.withPrune("/customer/email")
+				.withPrunePaths("/customer/email")
 				.withPruneMessage("x\nxxxx")
 				.build();
 		assertNotNull(filter);

@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 
 public class DefaultJsonLogFilterBuilderTest {
@@ -16,8 +17,8 @@ public class DefaultJsonLogFilterBuilderTest {
 	public void testBuilder() {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
 				.withMaxStringLength(127)
-				.withAnonymize("/customer/email")
-				.withPrune("/customer/account")
+				.withAnonymizePaths("/customer/email")
+				.withPrunePaths("/customer/account")
 				.withPruneMessage("pruneMessage")
 				.withAnonymizeMessage("pruneMessage")
 				.withTruncateMessage("truncateMessage")
@@ -34,30 +35,95 @@ public class DefaultJsonLogFilterBuilderTest {
 	}
 
 	@Test
-	public void testMultiplePathsVarargs() {
+	public void testAnonymizeKeys() {
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
-				.withAnonymize("$.customer.email", "$.customer.ssn")
-				.withPrune("$.internal.debug", "$.internal.trace")
+				.withAnonymizeKeys("password", "ssn")
 				.build();
-		assertNotNull(filter);
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"$..password", "$..ssn"});
+	}
 
+	@Test
+	public void testPruneKeys() {
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withPruneKeys("rawPayload", "auditLog")
+				.build();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"$..rawPayload", "$..auditLog"});
+	}
+
+	@Test
+	public void testAnonymizeKeysCollection() {
+		List<String> keys = Arrays.asList("password", "ssn");
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withAnonymizeKeys(keys)
+				.build();
+		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"$..password", "$..ssn"});
+	}
+
+	@Test
+	public void testPruneKeysCollection() {
+		List<String> keys = Arrays.asList("rawPayload", "auditLog");
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withPruneKeys(keys)
+				.build();
+		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"$..rawPayload", "$..auditLog"});
+	}
+
+	@Test
+	public void testAnonymizePathsVarargs() {
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withAnonymizePaths("$.customer.email", "$.customer.ssn")
+				.build();
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"$.customer.email", "$.customer.ssn"});
+	}
+
+	@Test
+	public void testPrunePathsVarargs() {
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withPrunePaths("$.internal.debug", "$.internal.trace")
+				.build();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"$.internal.debug", "$.internal.trace"});
 	}
 
 	@Test
-	public void testMultiplePathsCollection() {
-		List<String> anonymize = Arrays.asList("$.customer.email", "$.customer.ssn");
-		List<String> prune = Arrays.asList("$.internal.debug", "$.internal.trace");
-
+	public void testAnonymizePathsCollection() {
+		List<String> paths = Arrays.asList("$.customer.email", "$.customer.ssn");
 		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
-				.withAnonymize(anonymize)
-				.withPrune(prune)
+				.withAnonymizePaths(paths)
 				.build();
-		assertNotNull(filter);
-
 		assertThat(filter.getAnonymizeFilters()).isEqualTo(new String[]{"$.customer.email", "$.customer.ssn"});
+	}
+
+	@Test
+	public void testPrunePathsCollection() {
+		List<String> paths = Arrays.asList("$.internal.debug", "$.internal.trace");
+		AbstractPathJsonFilter filter = (AbstractPathJsonFilter) DefaultJsonLogFilterBuilder.newBuilder()
+				.withPrunePaths(paths)
+				.build();
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"$.internal.debug", "$.internal.trace"});
+	}
+
+	@Test
+	public void testStaticAnonymizeKeys() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticAnonymizePaths() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticPruneKeys() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.pruneKeys("rawPayload");
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticPrunePaths() {
+		JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths("$.context.auditLog");
+		assertNotNull(filter);
 	}
 
 	@Test

@@ -24,13 +24,29 @@ import com.github.skjolber.jsonfilter.base.AbstractJsonLogFilterBuilder;
  *
  * <p>All filters produced by this builder are thread-safe and can be reused freely.
  *
+ * <p>Quick one-liner factory methods for the most common cases:
+ * <pre>{@code
+ * // Anonymize fields by name at any depth
+ * JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn");
+ *
+ * // Anonymize fields by precise JSONPath
+ * JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+ *
+ * // Remove whole subtrees by name at any depth
+ * JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys("rawPayload");
+ *
+ * // Remove whole subtrees by precise JSONPath
+ * JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths("$.context.auditLog");
+ * }</pre>
+ *
+ * <p>Use {@link #newBuilder()} for more control:
  * <pre>{@code
  * JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
- *     .withMaxStringLength(127)
- *     .withAnonymize("$.customer.email", "$.customer.ssn")
- *     .withPrune("$.internal.debug", "$.internal.trace")
+ *     .withAnonymizeKeys("password", "ssn")
+ *     .withAnonymizePaths("$.customer.email")
+ *     .withPrunePaths("$.context.rawPayload")
  *     .withAnonymizeMessage("[redacted]")
- *     .withPruneMessage("[removed]")
+ *     .withMaxStringLength(256)
  *     .withMaxSize(128 * 1024)
  *     .build();
  * }</pre>
@@ -44,6 +60,52 @@ public class DefaultJsonLogFilterBuilder extends AbstractJsonLogFilterBuilder<De
 	 */
 	public static DefaultJsonLogFilterBuilder newBuilder() {
 		return new DefaultJsonLogFilterBuilder();
+	}
+
+	// -------------------------------------------------------------------------
+	// Static one-liner factory methods
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Create a filter that anonymizes every field matching any of the given keys,
+	 * at any depth in the document.
+	 *
+	 * @param keys one or more bare field names (e.g. {@code "password"})
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizeKeys(String... keys) {
+		return newBuilder().withAnonymizeKeys(keys).build();
+	}
+
+	/**
+	 * Create a filter that anonymizes the values at the given JSONPath expressions.
+	 *
+	 * @param expressions one or more JSONPath expressions (e.g. {@code "$.customer.email"})
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter anonymizePaths(String... expressions) {
+		return newBuilder().withAnonymizePaths(expressions).build();
+	}
+
+	/**
+	 * Create a filter that removes (prunes) every subtree whose field name matches
+	 * any of the given keys, at any depth in the document.
+	 *
+	 * @param keys one or more bare field names (e.g. {@code "rawPayload"})
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter pruneKeys(String... keys) {
+		return newBuilder().withPruneKeys(keys).build();
+	}
+
+	/**
+	 * Create a filter that removes (prunes) the subtrees at the given JSONPath expressions.
+	 *
+	 * @param expressions one or more JSONPath expressions (e.g. {@code "$.context.auditLog"})
+	 * @return a ready-to-use, thread-safe filter
+	 */
+	public static JsonFilter prunePaths(String... expressions) {
+		return newBuilder().withPrunePaths(expressions).build();
 	}
 
 	/**

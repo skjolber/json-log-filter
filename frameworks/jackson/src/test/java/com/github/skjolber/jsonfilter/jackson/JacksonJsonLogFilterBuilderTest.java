@@ -16,31 +16,98 @@ public class JacksonJsonLogFilterBuilderTest {
 	public void testBuilder() {
 		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
 				.withMaxStringLength(127)
-				.withAnonymize("/customer/email")
-				.withPrune("/customer/account")
+				.withAnonymizePaths("/customer/email")
+				.withPrunePaths("/customer/account")
 				.build();
 		assertNotNull(filter);
 	}
 
 	@Test
-	public void testMultiplePathsVarargs() {
+	public void testAnonymizeKeys() {
 		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
-				.withAnonymize("$.customer.email", "$.customer.ssn")
-				.withPrune("$.internal.debug", "$.internal.trace")
+				.withAnonymizeKeys("password", "ssn")
 				.build();
 		assertNotNull(filter);
 	}
 
 	@Test
-	public void testMultiplePathsCollection() {
-		List<String> anonymize = Arrays.asList("$.customer.email", "$.customer.ssn");
-		List<String> prune = Arrays.asList("$.internal.debug", "$.internal.trace");
-
+	public void testPruneKeys() {
 		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
-				.withAnonymize(anonymize)
-				.withPrune(prune)
+				.withPruneKeys("rawPayload", "auditLog")
 				.build();
 		assertNotNull(filter);
+	}
+
+	@Test
+	public void testAnonymizeKeysCollection() {
+		List<String> keys = Arrays.asList("password", "ssn");
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withAnonymizeKeys(keys)
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testPruneKeysCollection() {
+		List<String> keys = Arrays.asList("rawPayload", "auditLog");
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withPruneKeys(keys)
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testAnonymizePathsVarargs() {
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withAnonymizePaths("$.customer.email", "$.customer.ssn")
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testPrunePathsVarargs() {
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withPrunePaths("$.internal.debug", "$.internal.trace")
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testAnonymizePathsCollection() {
+		List<String> paths = Arrays.asList("$.customer.email", "$.customer.ssn");
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withAnonymizePaths(paths)
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testPrunePathsCollection() {
+		List<String> paths = Arrays.asList("$.internal.debug", "$.internal.trace");
+		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+				.withPrunePaths(paths)
+				.build();
+		assertNotNull(filter);
+	}
+
+	@Test
+	public void testStaticAnonymizeKeys() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizeKeys("password", "ssn"));
+	}
+
+	@Test
+	public void testStaticAnonymizePaths() {
+		assertNotNull(JacksonJsonLogFilterBuilder.anonymizePaths("$.customer.email"));
+	}
+
+	@Test
+	public void testStaticPruneKeys() {
+		assertNotNull(JacksonJsonLogFilterBuilder.pruneKeys("rawPayload"));
+	}
+
+	@Test
+	public void testStaticPrunePaths() {
+		assertNotNull(JacksonJsonLogFilterBuilder.prunePaths("$.context.auditLog"));
 	}
 
 	@Test

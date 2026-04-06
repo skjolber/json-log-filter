@@ -8,13 +8,8 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 ## Quick Example
 
 ```java
-// Create once, reuse freely — all filters are thread-safe
-JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.customer.email", "$.customer.ssn")  // replace with "*"
-    .withPrune("$.internal.stackTrace")                   // replace with "PRUNED"
-    .withMaxStringLength(256)                             // truncate long strings
-    .withMaxSize(128 * 1024)                              // drop content beyond 128 KB
-    .build();
+// One-liner for the most common case — all filters are thread-safe, create once and reuse
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
 
 String filtered = filter.process(inputJson);
 ```
@@ -22,18 +17,21 @@ String filtered = filter.process(inputJson);
 Input:
 ```json
 {
-  "customer": { "name": "Alice", "email": "alice@example.com", "ssn": "123-45-6789" },
-  "internal": { "stackTrace": "java.lang.Exception: ...(very long)..." }
+  "user": { "name": "Alice", "password": "s3cr3t", "ssn": "123-45-6789" },
+  "auth": { "token": "eyJhbGci..." }
 }
 ```
 
 Output:
 ```json
 {
-  "customer": { "name": "Alice", "email": "*", "ssn": "*" },
-  "internal": { "stackTrace": "PRUNED" }
+  "user": { "name": "Alice", "password": "*", "ssn": "*" },
+  "auth": { "token": "*" }
 }
 ```
+
+> [!TIP]
+> Use [`newBuilder()`](#usage) when you need multiple filter types or extra options like `withMaxStringLength`.
 
 ## Why json-log-filter?
 
@@ -127,49 +125,73 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 
 # Usage
 
-Use `DefaultJsonLogFilterBuilder.newBuilder()` to configure a filter. All produced filters are thread-safe and should be created once and reused.
+## One-liner factory methods
+
+For simple cases, create a ready-to-use filter in a single call:
+
+```java
+// Anonymize fields by name at any depth (most common)
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
+
+// Anonymize fields by precise JSONPath
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email");
+
+// Remove whole subtrees by field name at any depth
+JsonFilter filter = DefaultJsonLogFilterBuilder.pruneKeys("rawPayload", "auditLog");
+
+// Remove whole subtrees by precise JSONPath
+JsonFilter filter = DefaultJsonLogFilterBuilder.prunePaths("$.context.diagnostics");
+```
+
+The same one-liners are available on `JacksonJsonLogFilterBuilder` for untrusted JSON — see the [Jackson module](#jackson-module) section.
+
+## Builder — multiple filters and extra options
+
+Use `newBuilder()` when you need to combine filter types, customize output text, or set size limits:
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withMaxStringLength(127)          // truncate long string values
-    .withAnonymize("$.customer.email") // replace with "*"
-    .withPrune("$.customer.account")   // replace whole subtree with "PRUNED"
-    .withMaxSize(128 * 1024)           // limit output to 128 KB
+    .withAnonymizeKeys("password", "ssn")        // any depth, by field name
+    .withAnonymizePaths("$.customer.email")       // precise path
+    .withPrunePaths("$.context.rawPayload")       // remove whole subtree
+    .withAnonymizeMessage("[redacted]")           // custom replacement text
+    .withMaxStringLength(256)                     // truncate long strings
+    .withMaxSize(128 * 1024)                      // limit output to 128 KB
     .build();
 
 String filtered = filter.process(inputJson);
 ```
 
+## Keys vs paths
+
+There are two ways to target fields:
+
+| Method | Input | Matches |
+|---|---|---|
+| `withAnonymizeKeys("password")` | bare field name | `password` at **any depth** |
+| `withAnonymizePaths("$.user.password")` | JSONPath expression | `password` only at that **exact path** |
+| `withPruneKeys("rawPayload")` | bare field name | `rawPayload` at **any depth** |
+| `withPrunePaths("$.context.rawPayload")` | JSONPath expression | only at that **exact path** |
+
+`withAnonymizeKeys("password")` is equivalent to `withAnonymizePaths("$..password")`.
+
 ## Adding multiple path filters
 
-Multiple paths can be specified in a single call or across several calls — both are equivalent:
+Multiple paths can be provided in one call, across several calls, or from a collection:
 
 ```java
 // All in one call (varargs)
-filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.customer.email", "$.customer.phone", "$.customer.ssn")
-    .withPrune("$.internal.debug", "$.internal.stackTrace")
-    .build();
-
-// Chained calls
-filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.customer.email")
-    .withAnonymize("$.customer.phone")
-    .withAnonymize("$.customer.ssn")
-    .withPrune("$.internal.debug")
-    .withPrune("$.internal.stackTrace")
-    .build();
+builder.withAnonymizeKeys("password", "ssn", "token")
+       .withPrunePaths("$.context.diagnostics", "$.internal.trace");
 
 // From a collection (List, Set, or any Collection<String>)
-List<String> sensitiveFields = loadSensitiveFieldsFromConfig();
-filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize(sensitiveFields)
-    .build();
+Set<String> sensitiveKeys = loadSensitiveKeysFromConfig();
+builder.withAnonymizeKeys(sensitiveKeys);
 ```
 
 ## Anonymize (mask values)
 
-`withAnonymize(...)` replaces matching scalar values with `"*"`. For objects and arrays, all nested scalars are replaced recursively.
+`withAnonymizeKeys(...)` and `withAnonymizePaths(...)` replace matching scalar values with `"*"`. For objects and arrays, all nested scalars are replaced recursively.
 
 Input:
 ```json
@@ -180,7 +202,7 @@ Input:
 }
 ```
 
-After `.withAnonymize("$.password", "$.credentials")`:
+After `.withAnonymizeKeys("password", "credentials")`:
 ```json
 {
   "username": "alice",
@@ -191,24 +213,27 @@ After `.withAnonymize("$.password", "$.credentials")`:
 
 ## Prune (remove subtrees)
 
-`withPrune(...)` removes entire values — scalars, objects, or arrays — and replaces them with `"PRUNED"`.
+`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"PRUNED"`. Useful for large blobs or subtrees with low informational value.
 
 Input:
 ```json
 {
   "header": { "requestId": "abc-123" },
   "context": {
-    "boringData": { "flag1": true, "flag2": false },
-    "staticData": [1, 2, 3, 4, 5]
+    "metadata": { "region": "eu-west-1", "version": "3.2" },
+    "rawPayload": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7..."
   }
 }
 ```
 
-After `.withPrune("$.context")`:
+After `.withPrunePaths("$.context.rawPayload")`:
 ```json
 {
   "header": { "requestId": "abc-123" },
-  "context": "PRUNED"
+  "context": {
+    "metadata": { "region": "eu-west-1", "version": "3.2" },
+    "rawPayload": "PRUNED"
+  }
 }
 ```
 
@@ -232,8 +257,8 @@ The replacement text for all three operations can be overridden:
 
 ```java
 JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.password")
-    .withPrune("$.debugContext")
+    .withAnonymizeKeys("password")
+    .withPruneKeys("debugContext")
     .withAnonymizeMessage("[redacted]")   // default: "*"
     .withPruneMessage("[removed]")        // default: "PRUNED"
     .withTruncateMessage("…")             // default: "... + <count>"
@@ -268,7 +293,7 @@ A simple syntax is supported where each path segment corresponds to a field name
 ```java
 // Stop after finding the single "requestId" field in the header
 filter = DefaultJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.header.requestId")
+    .withAnonymizePaths("$.header.requestId")
     .withMaxPathMatches(1)
     .build();
 ```
@@ -301,8 +326,8 @@ For **untrusted or externally produced JSON**, use `JacksonJsonLogFilterBuilder`
 
 ```java
 JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
-    .withAnonymize("$.customer.email", "$.customer.ssn")
-    .withPrune("$.internal.debug")
+    .withAnonymizeKeys("password", "ssn")
+    .withPrunePaths("$.internal.debug")
     .withAnonymizeMessage("[redacted]")
     .build();
 ```

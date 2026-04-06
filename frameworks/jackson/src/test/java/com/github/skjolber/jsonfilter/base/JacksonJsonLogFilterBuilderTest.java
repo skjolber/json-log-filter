@@ -15,8 +15,8 @@ public class JacksonJsonLogFilterBuilderTest {
 	public void testBuilder() {
 		JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
 				.withMaxStringLength(127)
-				.withAnonymize("/customer/email")
-				.withPrune("/customer/account")
+				.withAnonymizePaths("/customer/email")
+				.withPrunePaths("/customer/account")
 				.build();
 		assertNotNull(filter);
 	}
@@ -25,7 +25,7 @@ public class JacksonJsonLogFilterBuilderTest {
 	public void testAnonymizeMessage() {
 		JacksonPathMaxStringLengthJsonFilter filter = (JacksonPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.newBuilder()
 				.withMaxStringLength(127)
-				.withAnonymize("/customer/email")
+				.withAnonymizePaths("/customer/email")
 				.withAnonymizeMessage("x\nxxxx")
 				.build();
 		assertNotNull(filter);
@@ -38,7 +38,7 @@ public class JacksonJsonLogFilterBuilderTest {
 	public void testPruneMessage() {
 		JacksonPathMaxStringLengthJsonFilter filter = (JacksonPathMaxStringLengthJsonFilter) JacksonJsonLogFilterBuilder.newBuilder()
 				.withMaxStringLength(127)
-				.withPrune("/customer/email")
+				.withPrunePaths("/customer/email")
 				.withPruneMessage("x\nxxxx")
 				.build();
 		assertNotNull(filter);
