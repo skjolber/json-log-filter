@@ -215,7 +215,7 @@ return self();
 /**
  * Remove (prune) the subtrees matched by the given JSONPath expressions. The entire
  * value – whether a scalar, object, or array – is replaced by the prune
- * placeholder (default {@code "PRUNED"}).
+ * placeholder (default {@code "[removed]"}).
  *
  * <p>Use {@link #withPruneKeys} when you want to match a field name at
  * <em>any</em> depth without writing a full path.
@@ -294,7 +294,7 @@ return self();
  * Set the replacement text inserted in place of pruned subtrees.
  * The value is automatically JSON-escaped and wrapped in quotes.
  *
- * <p>Default: {@code "PRUNED"}
+ * <p>Default: {@code "[removed]"}
  *
  * @param value the unescaped replacement text (e.g. {@code "[removed]"})
  * @return this builder

@@ -195,7 +195,7 @@ assertNotNull(JacksonJsonLogFilterBuilder.prunePaths(Set.of("$.context.appMeta")
 public void testDeprecatedAliases() {
 JsonFilter filter = JacksonJsonLogFilterBuilder.createInstance()
 .withMaxStringLength(127)
-.withPruneStringValue("PRUNED")
+.withPruneStringValue("[removed]")
 .withAnonymizeStringValue("*")
 .withTruncateStringValue("truncated\t")
 .build();

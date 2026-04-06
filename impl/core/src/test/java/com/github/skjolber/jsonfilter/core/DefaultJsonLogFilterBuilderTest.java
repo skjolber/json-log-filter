@@ -203,7 +203,7 @@ MaxStringLengthJsonFilter filter = (MaxStringLengthJsonFilter) DefaultJsonLogFil
 .build();
 assertNotNull(filter);
 assertThat(new String(filter.getTruncateStringValue())).isEqualTo("truncated\\t");
-assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
+assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"[removed]\"");
 assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 }
 
@@ -213,7 +213,7 @@ assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"*\"");
 public void testDeprecatedAliases() {
 MaxStringLengthJsonFilter filter = (MaxStringLengthJsonFilter) DefaultJsonLogFilterBuilder.createInstance()
 .withMaxStringLength(127)
-.withPruneStringValue("PRUNED")
+.withPruneStringValue("[removed]")
 .withAnonymizeStringValue("*")
 .withTruncateStringValue("truncated\t")
 .build();

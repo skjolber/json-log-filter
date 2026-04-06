@@ -253,7 +253,7 @@ After `.withAnonymizeKeys("password", "credentials")`:
 
 ## Prune (remove subtrees)
 
-`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"PRUNED"`. The whole subtree is gone in a single replacement.
+`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"[removed]"`. The whole subtree is gone in a single replacement.
 
 A common use-case is pruning fields that are always the same across requests (e.g. static application metadata) so they don't waste log space on every request:
 
@@ -280,7 +280,7 @@ After `.withPruneKeys("appMeta")`:
     "method": "POST",
     "path": "/api/orders"
   },
-  "appMeta": "PRUNED"
+  "appMeta": "[removed]"
 }
 ```
 
@@ -313,7 +313,7 @@ JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
     .withAnonymizeKeys("password")
     .withPruneKeys("debugContext")
     .withAnonymizeMessage("[redacted]")   // default: "*"
-    .withPruneMessage("[removed]")        // default: "PRUNED"
+    .withPruneMessage("[removed]")        // default: "[removed]"
     .withTruncateMessage("…")             // default: "... + <count>"
     .build();
 ```

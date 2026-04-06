@@ -30,7 +30,7 @@ public class JacksonJsonLogFilterBuilderTest {
 				.build();
 		assertNotNull(filter);
 		assertThat(new String(filter.getAnonymizeJsonValue())).isEqualTo("\"x\\nxxxx\"");
-		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"PRUNED\"");
+		assertThat(new String(filter.getPruneJsonValue())).isEqualTo("\"[removed]\"");
 		assertThat(new String(filter.getTruncateStringValue())).isEqualTo("... + ");
 	}
 
