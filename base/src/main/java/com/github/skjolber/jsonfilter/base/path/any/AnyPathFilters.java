@@ -61,6 +61,8 @@ public class AnyPathFilters {
 				result[i] = output[i].toArray(new AnyPathFilter[0]);
 			}
 		}
+		result[0] = filters.toArray(new AnyPathFilter[0]);
+		
 		return result;
 	}
 
