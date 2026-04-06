@@ -19,7 +19,7 @@ jobs:
         java: [25]
     name: Java ${{ matrix.java }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -27,11 +27,11 @@ jobs:
         java-version: ${{ matrix.java }}
         cache: maven
     - name: Test
-      run: mvn clean test
+      run: mvn clean test --no-transfer-progress
     - name: Verify
       run: mvn verify -DskipTests
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5.5.1
+      uses: codecov/codecov-action@v6.0.0
       with:
           token: ${{ secrets.CODECOV_TOKEN }}      
           
