@@ -434,25 +434,12 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	/**
 	 * Scan a quoted JSON string value, returning the index of the closing '"'.
 	 *
-	 * <p>Uses a 16-byte scalar preamble followed by a dual-VarHandle inner loop:
-	 * <ul>
-	 *   <li>Scalar preamble (first 16 bytes): simple ldrb+cmp per byte, runs at
-	 *       ~1 cycle/byte on ARM64. Handles short strings (≤ 15 bytes) without
-	 *       VarHandle setup cost — typical for compact JSON field names and IDs.
-	 *   <li>Dual-VarHandle loop (bytes 16+): two consecutive {@code getLong} loads
-	 *       per iteration (16 bytes/iter) using the Hacker's Delight has-zero-byte
-	 *       trick; see <em>Hacker's Delight</em>, 2nd ed., §6-1 "Find First 0-Byte".
-	 *       Early-exit on the first load avoids reading the second when a quote is
-	 *       found quickly (common in dense JSON).
-	 *   <li>8-byte single-load tail and scalar tail for the final &lt; 16 bytes.
-	 * </ul>
-	 *
-	 * <p>The scalar preamble break-even: on ARM64 (Apple Silicon, JDK 25), scalar
-	 * byte-by-byte comparison executes at near 1 cycle/byte with correct branch
-	 * prediction, while one VarHandle load + has-zero-byte arithmetic costs ~6–8
-	 * cycles for 8 bytes. For strings ≤ 15 bytes scalar is therefore faster or
-	 * equal; for strings ≥ 16 bytes the preamble replaces the first VarHandle
-	 * iteration at equivalent cost, keeping long-string throughput unchanged.
+	 * <p>Uses a word-at-a-time inner loop processing 16 bytes per iteration via
+	 * two consecutive little-endian {@link java.lang.invoke.VarHandle} loads,
+	 * combined with the Hacker's Delight has-zero-byte trick to detect
+	 * {@code '"'} (0x22) in bulk; see <em>Hacker's Delight</em>, 2nd ed.,
+	 * §6-1 "Find First 0-Byte". An 8-byte single-load tail and scalar tail
+	 * handle the final {@literal <} 16 bytes.
 	 *
 	 * @param chars  the byte array containing the JSON being scanned
 	 * @param offset the index of the opening {@code "} character
@@ -460,18 +447,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 */
 	public static final int scanQuotedValue(final byte[] chars, int offset) {
 		int i = offset + 1;
-		// Scalar preamble: scan the first 16 bytes char-by-char.
-		// Short strings (≤ 15 bytes, e.g. JSON keys, IDs, enum values) finish
-		// here without incurring VarHandle overhead.
-		final int preambleEnd = Math.min(i + 16, chars.length);
-		while (i < preambleEnd) {
-			if (chars[i] == '"') {
-				if (chars[i - 1] != '\\') return i;
-				return scanEscapedValue(chars, i);
-			}
-			i++;
-		}
-		// Process 16 bytes per iteration (two consecutive VarHandle loads)
 		final int safeEnd16 = chars.length - 16;
 		while (i <= safeEnd16) {
 			long word1 = (long) LONG_LE.get(chars, i);
@@ -492,8 +467,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			}
 			i += 16;
 		}
-
-		// 8-byte loop for 8–15 byte tail
+		// 8-byte tail
 		final int safeEnd8 = chars.length - 8;
 		while (i <= safeEnd8) {
 			long word = (long) LONG_LE.get(chars, i);
@@ -506,8 +480,6 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			}
 			i += 8;
 		}
-
-		// Scalar tail for remaining bytes (< 8)
 		while (chars[i] != '"') i++;
 		if (chars[i - 1] != '\\') {
 			return i;
