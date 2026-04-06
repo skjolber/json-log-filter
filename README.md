@@ -61,14 +61,12 @@ Output:
 
 > ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (any depth).
 
-The dual (core + jackson) filter implementation is key to effectively process in/out-going requests/responses while always outputting well-formed JSON. Thus safely embedding filter output as an inline raw JSON value in structured log entries (e.g. as a field in a JSON log line) without escaping or breaking the outer log parser.
-
 Typical use-cases:
 - **Log sanitization**: strip passwords, tokens, and PII before writing to logs
 - **GDPR compliance**: anonymize personal data in request/response logging
 - **Log readability**: prune large base64 blobs or low-value subtrees
 - **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
-- **Safe structured logging**: inline filtered JSON directly into a JSON log line — the output is always valid JSON, so log parsers and ingestors never choke on it
+- **Safe structured logging**: selectively apply core/jacksons filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
 
 The library automatically selects the most efficient filter implementation for the configured combination of features. No external dependencies are required for the `core` module.
 
