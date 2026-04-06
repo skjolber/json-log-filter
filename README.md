@@ -65,7 +65,7 @@ Typical use-cases:
 - **GDPR compliance**: anonymize personal data in request/response logging
 - **Log readability**: prune large base64 blobs or low-value subtrees
 - **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
-- **Safe structured logging**: selectively apply core/jacksons filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
+- **Safe structured logging**: selectively apply core/Jackson filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
 
 The library automatically selects the most efficient filter implementation for the configured combination of features. 
 
