@@ -14,12 +14,18 @@ public class StarMultiPathItem extends PathItem {
 	public PathItem[] next;
 	private PathItem any;
 
+	/** {@code byteDispatch[b]} lists the indices {@code i} where {@code fieldNameBytes[i][0] & 0xFF == b}. */
+	private final int[][] byteDispatch;
+	/** {@code charDispatch[c]} lists the indices {@code i} where {@code fieldNameChars[i][0] & 0xFF == c}. */
+	private final int[][] charDispatch;
+
 	public StarMultiPathItem(List<String> fieldNames, int index, PathItem previous) {
 		this(fieldNames.toArray(new String[fieldNames.size()]), index, previous);
 	}
 	
 	public StarMultiPathItem(String[] fieldNames, int level, PathItem parent) {
 		super(level, parent);
+		
 		this.fieldNames = fieldNames;
 		this.fieldNameBytes = new byte[fieldNames.length][];
 		this.fieldNameChars = new char[fieldNames.length][];
@@ -28,6 +34,8 @@ public class StarMultiPathItem extends PathItem {
 			fieldNameChars[i] = fieldNames[i].toCharArray();
 		}
 		this.next = new PathItem[fieldNames.length];
+		this.byteDispatch = buildByteDispatch(fieldNameBytes);
+		this.charDispatch = buildCharDispatch(fieldNameChars);
 	}
 
 	public void setNext(PathItem next, int i) {
@@ -43,6 +51,20 @@ public class StarMultiPathItem extends PathItem {
 		if(level != this.level) {
 			return this;
 		}
+		if(start < end && source[start] != '\\') {
+			// fast path: dispatch by first byte
+			int[] candidates = byteDispatch[source[start] & 0xFF];
+			if(candidates != null) {
+				byte[][] fieldNameBytes = this.fieldNameBytes;
+				for(int idx : candidates) {
+					if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes[idx])) {
+						return next[idx];
+					}
+				}
+			}
+			return any;
+		}
+		// slow path: encoded key or empty key
 		byte[][] fieldNameBytes = this.fieldNameBytes;
 		for(int i = 0; i < fieldNameBytes.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameBytes[i])) {
@@ -57,6 +79,20 @@ public class StarMultiPathItem extends PathItem {
 		if(level != this.level) {
 			return this;
 		}
+		if(start < end && source[start] != '\\') {
+			// fast path: dispatch by first char
+			int[] candidates = charDispatch[source[start] & 0xFF];
+			if(candidates != null) {
+				char[][] fieldNameChars = this.fieldNameChars;
+				for(int idx : candidates) {
+					if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[idx])) {
+						return next[idx];
+					}
+				}
+			}
+			return any;
+		}
+		// slow path: encoded key or empty key
 		char[][] fieldNameChars = this.fieldNameChars;
 		for(int i = 0; i < fieldNameChars.length; i++) {
 			if(AbstractPathJsonFilter.matchPath(source, start, end, fieldNameChars[i])) {

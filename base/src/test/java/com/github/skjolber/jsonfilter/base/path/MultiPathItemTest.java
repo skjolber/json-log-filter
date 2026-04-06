@@ -33,7 +33,7 @@ public class MultiPathItemTest {
 	@Test
 	public void testEncodedKeys() {
 		SinglePathItem p = new SinglePathItem(0, "name", null);
-		MultiPathItem item = new MultiPathItem(Arrays.asList("name"), 0, null);
+		MultiPathItem item = new MultiPathItem(Arrays.asList("name", "my"), 0, null);
 		item.setNext(p, 0);
 
 		// raw "\\u006eame" has 'n' encoded at the first position; decodes to "name"
