@@ -55,14 +55,14 @@
 		<json-path.version>3.0.0</json-path.version>
 
 		<indent.version>1.0.0</indent.version>
-		<jackson.version>3.1.0</jackson.version>
+		<jackson.version>3.1.1</jackson.version>
 		<google-truth.version>1.4.5</google-truth.version>
-		<commons-io.version>2.20.0</commons-io.version>
+		<commons-io.version>2.21.0</commons-io.version>
 		<commons-codec.version>1.19.0</commons-codec.version>
 		<jimfs.version>1.3.1</jimfs.version>
-		<mockito.version>5.20.0</mockito.version>
+		<mockito.version>5.23.0</mockito.version>
 		<junit.version>6.0.3</junit.version>
-		<slf4j.version>2.0.7</slf4j.version>
+		<slf4j.version>2.0.17</slf4j.version>
 		<classgraph.version>4.8.184</classgraph.version>
 		<!-- plugins -->
 		<build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
