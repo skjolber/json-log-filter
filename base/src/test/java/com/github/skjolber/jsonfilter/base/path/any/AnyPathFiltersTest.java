@@ -36,9 +36,9 @@ public class AnyPathFiltersTest {
 		assertNull(anyPathFilters.matchPath(fgh.getBytes(StandardCharsets.UTF_8), 0, 3));
 	}
 
+	// note: does not have to be a smiley, all chars can be encoded using \\u
 	@Test
 	public void testMatchEscaped() {
-		// note: does not have to be a smiley, all chars can be encoded using \\u
 		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("xx😀yy", FilterType.ANON));
 		
 		String def = "xx\\uD83D\\uDE00yy";
@@ -48,5 +48,31 @@ public class AnyPathFiltersTest {
 		byte[] bytes = def.getBytes(StandardCharsets.UTF_8);
 		assertEquals(anyPathFilters.matchPath(bytes, 0, bytes.length), FilterType.ANON);
 	}
-	
+
+	/**
+	 * Verifies that lowercase hex digits in a JSON Unicode escape sequence are accepted.
+	 * RFC 8259 §7 states "The hexadecimal letters A through F can be upper or lower case."
+	 * Tests escapes at mid-key and end-of-key positions, plus a non-matching case.
+	 */
+	@Test
+	public void testMatchEscapedMidKey() {
+		AnyPathFilters f = AnyPathFilters.create(AnyPathFilter.create("name", FilterType.ANON));
+
+		// middle char encoded with lowercase hex: "na\\u006de" decodes to "name" ('m' = 0x006d)
+		String midEsc = "na\\u006de";
+		assertEquals(FilterType.ANON, f.matchPath(midEsc.toCharArray(), 0, midEsc.length()));
+		assertEquals(FilterType.ANON, f.matchPath(midEsc.getBytes(StandardCharsets.UTF_8), 0, midEsc.length()));
+
+		// last char encoded with lowercase hex: "nam\\u0065" decodes to "name" ('e' = 0x0065)
+		String lastEsc = "nam\\u0065";
+		assertEquals(FilterType.ANON, f.matchPath(lastEsc.toCharArray(), 0, lastEsc.length()));
+		assertEquals(FilterType.ANON, f.matchPath(lastEsc.getBytes(StandardCharsets.UTF_8), 0, lastEsc.length()));
+
+		// encoded key that decodes to "naoe" (not "name") — must not match
+		String noMatch = "na\\u006fe";
+		assertNull(f.matchPath(noMatch.toCharArray(), 0, noMatch.length()));
+		assertNull(f.matchPath(noMatch.getBytes(StandardCharsets.UTF_8), 0, noMatch.length()));
+	}
+
 }
+

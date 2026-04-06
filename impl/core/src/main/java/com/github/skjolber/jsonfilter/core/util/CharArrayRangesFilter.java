@@ -5,7 +5,7 @@ import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
 import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayRangesFilter extends AbstractRangesFilter {
-	
+
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
 	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
 	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
@@ -289,13 +289,12 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		if(chars[offset - 1] != '\\') {
 			return offset;
 		}
-		
-		return scanEscapedValue(chars, offset);	
+		return scanEscapedValue(chars, offset);
 	}
 
 	public static int scanEscapedValue(final char[] chars, int offset) {
 		while(true) {
-			// is there an even number of quotes behind?
+			// is there an even number of slashes behind the last '"'?
 			int slashOffset = offset - 2;
 			while(chars[slashOffset] == '\\') {
 				slashOffset--;
@@ -303,12 +302,12 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			if((offset - slashOffset) % 2 == 1) {
 				return offset;
 			}
-			
+
 			while(chars[++offset] != '"');
-			
+
 			if(chars[offset - 1] != '\\') {
 				return offset;
-			}			
+			}
 		}
 	}	
 	
