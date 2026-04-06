@@ -27,7 +27,7 @@ jobs:
         java-version: ${{ matrix.java }}
         cache: maven
     - name: Test
-      run: mvn clean test
+      run: mvn clean test --no-transfer-progress
     - name: Verify
       run: mvn verify -DskipTests
     - name: Upload coverage reports to Codecov
