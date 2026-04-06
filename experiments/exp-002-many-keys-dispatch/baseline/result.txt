@@ -1,0 +1,11 @@
+# Aggregation: single JMH run (1 fork, 3 warmup, 5 measurement iters)
+# All ops/sec values: median of 5 measurement iterations per variant
+# Variants: AnyPathFiltersBenchmark + MultiPathBenchmark + StarMultiPathBenchmark
+#           count=1,5,10,15,20 x bytes/chars = 30 variants total
+#
+# Master baseline (linear scan, no dispatch tables):
+#   AnyPath    avg:  525,964 ops/sec
+#   MultiPath  avg:  405,532 ops/sec
+#   StarMulti  avg:  379,726 ops/sec
+#
+437074
