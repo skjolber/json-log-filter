@@ -319,7 +319,7 @@ Output:
 ```json
 {
   "password": "[redacted]",
-  "debugContext": "[removed]"
+  "debugContext": "[skipped]"
 }
 ```
 ## Path syntax
