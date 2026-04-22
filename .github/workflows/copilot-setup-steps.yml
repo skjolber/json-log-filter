@@ -24,4 +24,4 @@ jobs:
           java-version: 25
           cache: maven
       - name: Pre-install dependencies
-        run: mvn dependency:resolve dependency:resolve-plugins --no-transfer-progress -q
+        run: mvn install -DskipTests dependency:resolve dependency:resolve-plugins --no-transfer-progress -q
