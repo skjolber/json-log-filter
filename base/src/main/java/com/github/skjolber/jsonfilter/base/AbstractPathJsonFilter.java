@@ -58,8 +58,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
+			return true;
 		}
-		return true;
+		throw new IllegalArgumentException();
 	}
 
 	public static boolean hasAnyPrefix(String string) {

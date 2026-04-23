@@ -371,11 +371,6 @@ public class AbstractPathJsonFilterTest {
 	}
 
 	@Test
-	public void testHasAllAnyPrefixNull() {
-		assertTrue(AbstractPathJsonFilter.hasAllAnyPrefix(null));
-	}
-
-	@Test
 	public void testRemoveAnyPrefixSlashes() {
 		assertEquals("abc", AbstractPathJsonFilter.removeAnyPrefix("//abc"));
 	}

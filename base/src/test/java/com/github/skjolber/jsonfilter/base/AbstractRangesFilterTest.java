@@ -78,7 +78,7 @@ public class AbstractRangesFilterTest {
 	}
 
 	@Test
-	public void testAddWithFilterTypeDeleteDoesNothing() {
+	public void testAddWithFilterTypeDelete() {
 		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
 		int before = filter.getFilterIndex();
 		filter.add(FilterType.DELETE, 4, 5);

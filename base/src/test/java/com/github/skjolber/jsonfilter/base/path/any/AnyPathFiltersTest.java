@@ -123,7 +123,6 @@ public class AnyPathFiltersTest {
 
 	@Test
 	public void testEmptyKey() {
-		// Empty key: length == 0 → length > 0 is false → skip exact match checks
 		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("def", FilterType.ANON));
 		assertNull(anyPathFilters.matchPath("".toCharArray(), 0, 0));
 		assertNull(anyPathFilters.matchPath("".getBytes(StandardCharsets.UTF_8), 0, 0));
@@ -131,9 +130,6 @@ public class AnyPathFiltersTest {
 
 	@Test
 	public void testEncodedKeyPrefixTooLong() {
-		// AnyPathFilters line 156 (byte) and 189 (char): return null when readLength >= encodingFiltersBytes/Chars.length
-		// Filter path "ab" (2 chars) → encodingFilters*.length = 3.
-		// Key "abc\\u006e" has 3 plain chars before '\\', readLength=3 >= 3 → return null (line 156/189)
 		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("ab", FilterType.ANON));
 
 		String longPrefixEsc = "abcd\\u006e"; // 4 plain chars before \\, then unicode escape; readLength=4 >= encodingFilters.length=4
@@ -141,18 +137,14 @@ public class AnyPathFiltersTest {
 		assertNull(anyPathFilters.matchPath(longPrefixEsc.getBytes(StandardCharsets.UTF_8), 0, longPrefixEsc.length()));
 	}
 
-@Test
-public void testEmptyPathName() {
-// AnyPathFilters lines 79-80: covers the ': 0' branch when pathChars/pathBytes.length == 0
-// AnyPathFilter with empty path name "" has pathChars.length = 0 and pathBytes.length = 0
-// In fillExact: (filter.pathChars.length > 0 ? pathChars[0] & 0xFF : 0) → 0 (line 79/80)
-// Just creating the AnyPathFilters exercises fillExact with the empty-path case
-AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("", FilterType.ANON));
-assertNotNull(anyPathFilters);
-// An empty-name filter won't match any key via matchPath (exact or encoded check)
-assertNull(anyPathFilters.matchPath("".toCharArray(), 0, 0));
-assertNull(anyPathFilters.matchPath("".getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, 0));
-}
+	@Test
+	public void testEmptyPathName() {
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("", FilterType.ANON));
+		assertNotNull(anyPathFilters);
+		// An empty-name filter won't match any key via matchPath (exact or encoded check)
+		assertNull(anyPathFilters.matchPath("".toCharArray(), 0, 0));
+		assertNull(anyPathFilters.matchPath("".getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, 0));
+	}
 
 
 }

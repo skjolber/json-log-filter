@@ -88,10 +88,10 @@ public class ExpressionNodeFactoryTest {
 		assertNotNull(expressionNode);
 		// The map gets overwritten by the last type (PRUNE), and only one copy kept by filter
 		// Just verify the tree was built without error and has the expected structure
-		String printed = expressionNode.print();
-		assertTrue(printed.contains("a"));
-		assertTrue(printed.contains("b"));
-		assertTrue(printed.contains("c"));
+		assertEquals(
+				  "a\n"
+				+ " b\n"
+				+ "  c (PRUNE)", expressionNode.print());
 	}
 
 	@Test
@@ -101,6 +101,11 @@ public class ExpressionNodeFactoryTest {
 		String[] expressions = new String[]{"$.a.b.c"};
 		ExpressionNode expressionNode = expressionNodeFactory.toExpressionNode(expressions, types);
 		assertNotNull(expressionNode);
+		
+		assertEquals(
+				  "a\n"
+				+ " b\n"
+				+ "  c (ANON)", expressionNode.print());
 	}
 
 	@Test
@@ -132,10 +137,7 @@ public class ExpressionNodeFactoryTest {
 
 	@Test
 	public void testPrefixPathBreaksLoop() {
-		// ExpressionNodeFactory line 36: break when current.hasFilterType()
 		// Occurs when a prefix path (/one) is followed by an extension (/one/two):
-		//   After adding /one, its node has a filter type set.
-		//   When processing /one/two, at k=1, one_node.hasFilterType() → break (line 36).
 		FilterType[] types = new FilterType[] {FilterType.ANON, FilterType.PRUNE};
 		String[] expressions = new String[]{"/one", "/one/two"};
 		ExpressionNode expressionNode = expressionNodeFactory.toExpressionNode(expressions, types);

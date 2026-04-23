@@ -97,7 +97,7 @@ public class MultiPathItemTest {
 		assertSame(item, item.matchPath(0, noMatchBytes,   0, noMatchBytes.length));
 		assertSame(item, item.matchPath(0, noMatchChars,   0, noMatchChars.length));
 
-		// Slow path for keys that start with '\\' but don't match (line 66-71 byte, 94-99 char):
+		// Slow path for keys that start with '\\' but don't match when decoded.
 		// "\\u006fame" starts with '\\' → slow path. Decodes to "oame" ≠ "name"/"my" → return this
 		byte[] noMatchEscBytes = "\\u006fame".getBytes(StandardCharsets.UTF_8);
 		char[] noMatchEscChars = "\\u006fame".toCharArray();
