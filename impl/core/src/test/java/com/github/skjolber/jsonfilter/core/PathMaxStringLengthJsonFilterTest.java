@@ -100,4 +100,11 @@ public class PathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
 			.hasAnonymized("/key1").hasAnonymizeMetrics();
 	}
 
+	@Test
+	public void anonymizeObjectSibling() throws Exception {
+		// Triggers skipObjectMaxStringLength when non-targeted key has object value at depth > target level
+		assertThat(new PathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, new String[]{"/key1"}, null)).hasAnonymized("/key1");
+		assertThat(new PathMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, null, new String[]{"/key1"})).hasPruned("/key1");
+	}
+
 }

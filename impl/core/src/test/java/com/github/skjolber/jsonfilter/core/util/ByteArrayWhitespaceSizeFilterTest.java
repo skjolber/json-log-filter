@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core.util;
 
+import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.charset.StandardCharsets;
@@ -83,5 +84,14 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		assertEquals(offset, text.length() - 4);
 	}
 
+	@Test
+	public void testGetTruncateString() {
+		byte[] truncate = "truncate".getBytes(StandardCharsets.UTF_8);
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(
+			"prune".getBytes(StandardCharsets.UTF_8),
+			"anon".getBytes(StandardCharsets.UTF_8),
+			truncate);
+		assertSame(truncate, filter.getTruncateString());
+	}
 
 }

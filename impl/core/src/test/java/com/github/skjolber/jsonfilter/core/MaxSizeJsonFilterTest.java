@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -86,6 +87,31 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void maxSize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
+	}
+
+	@Test
+	public void testGrowSquareBrackets() throws Exception {
+		// Build 35 levels of nested objects/arrays to trigger grow() in processMaxSize
+		// grow() fires when bracketLevel >= squareBrackets.length (32)
+		// Use a long string value so maxSize < json.length() while still covering all 35 '{'
+		StringBuilder deepJson = new StringBuilder();
+		for (int i = 0; i < 35; i++) {
+			deepJson.append("{\"k").append(i).append("\":");
+		}
+		deepJson.append("\"").append("x".repeat(500)).append("\""); // long string to ensure maxSize < json.length()
+		for (int i = 0; i < 35; i++) {
+			deepJson.append("}");
+		}
+		String json = deepJson.toString();
+
+		// maxSize covers all 35 '{' (at positions ~0-350) but truncates before the long string
+		MustContrainMaxSizeJsonFilter filter = new MustContrainMaxSizeJsonFilter(400);
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
+
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
 
 }

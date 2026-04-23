@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.base.path;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,5 +22,11 @@ public class EndPathItemTest {
 	    assertThrows(UnsupportedOperationException.class, () -> {
 		       endPath.matchPath(0, (byte[])null, 0, 0);
 	    });
+	}
+
+	@Test
+	public void testHasTypeReturnsTrueOnEndPathItem() {
+		EndPathItem endPath = new EndPathItem(0, null, null);
+		assertTrue(endPath.hasType());
 	}
 }

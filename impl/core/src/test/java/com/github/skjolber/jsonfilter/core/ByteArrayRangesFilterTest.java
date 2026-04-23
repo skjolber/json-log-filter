@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 
 public class ByteArrayRangesFilterTest {
 
@@ -264,5 +266,82 @@ public class ByteArrayRangesFilterTest {
 			assertThat(b.toString()).isEqualTo(outputs[i]);
 		}
 	}
-	
+
+	@Test
+	public void testSkipArray() {
+		byte[] json = "[1,2,3]x".getBytes(StandardCharsets.UTF_8);
+		int end = ByteArrayRangesFilter.skipArray(json, 0);
+		assertEquals(7, end);
+
+		byte[] nested = "[[1,2],[3,4]]x".getBytes(StandardCharsets.UTF_8);
+		end = ByteArrayRangesFilter.skipArray(nested, 0);
+		assertEquals(13, end);
+	}
+
+	@Test
+	public void testSetSquareBrackets() {
+		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(-1, 100,
+			"prune".getBytes(StandardCharsets.UTF_8),
+			"anon".getBytes(StandardCharsets.UTF_8),
+			"trunc".getBytes(StandardCharsets.UTF_8));
+		boolean[] brackets = new boolean[]{true, false, true};
+		filter.setSquareBrackets(brackets);
+		assertSame(brackets, filter.getSquareBrackets());
+	}
+
+	@Test
+	public void testScanQuotedValueScalarWithDoubleBackslashBeforeClose() {
+		// Line 487 in ByteArrayRangesFilter.scanQuotedValue:
+		//   `return scanEscapedValue(chars, i)` in the scalar tail when chars[i-1] == '\\'
+		// Need a SHORT byte array (no padding) so 16-byte and 8-byte loops are skipped.
+		// String "ab\\" = open + a + b + \ + \ + close = 6 bytes total.
+		// safeEnd8=6-8=-2, safeEnd16=6-16=-10 → both loops skipped → scalar loop used.
+		// Scalar: i goes 1,2,3,4,5(=close). chars[4]='\' → scanEscapedValue called (line 487).
+		byte[] shortBuf = new byte[]{ '"', 'a', 'b', '\\', '\\', '"' };
+		int result = ByteArrayRangesFilter.scanQuotedValue(shortBuf, 0);
+		assertEquals(5, result); // closing " at index 5
+
+		// Lines 529-530 in ByteArrayRangesFilter.scanEscapedValue: `i += 8` in 8-byte scan
+		// Need a string where after escaped quote, the remaining content is 8+ bytes,
+		// so the 8-byte scan runs at least one iteration with i+=8 (no quote found).
+		// String: "aaaaaaa\"bbbbbbbbbb" (7 a's + \" + 10 b's + closing ")
+		// = 7 + 2 + 10 + 2 = 21 bytes. After \" at position 8-9: remaining "bbbbbbbbbb" + "
+		// is 11 bytes. 8-byte scan runs once with i+=8 before finding closing ".
+		String escapedContent = "aaaaaaa\\\"bbbbbbbbbb";
+		byte[] medBuf = ('"' + escapedContent + '"').getBytes(StandardCharsets.UTF_8);
+		int result2 = ByteArrayRangesFilter.scanQuotedValue(medBuf, 0);
+		assertEquals(medBuf.length - 1, result2);
+	}
+
+	@Test
+	public void testSkipObjectMaxStringLengthWithFalseValue() {
+		// Line 764-765 in ByteArrayRangesFilter.skipObjectMaxStringLength: case 'f' (false)
+		// Need to call skipObjectMaxStringLength with an object containing "false" value
+		// skipObjectMaxStringLength is package-private, so use it via a filter that calls it
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(100, 100);
+		// Directly test skipObjectMaxStringLength which contains case 'f'
+		byte[] json = "{\"flag\":false,\"other\":true}".getBytes(StandardCharsets.UTF_8);
+		int result = ByteArrayRangesFilter.skipObjectMaxStringLength(json, 1, 10, filter);
+		assertTrue(result > 0);
+	}
+
+	@Test
+	public void testWriteIntNegative() {
+		// getChars() is only invoked from writeInt(). Passing a negative value exercises
+		// the negative-number branch in getChars (lines 73-74, 97-98 in ByteArrayRangesFilter).
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
+		ResizableByteArrayOutputStream buffer = new ResizableByteArrayOutputStream(20);
+		filter.writeInt(buffer, -12345);
+		String result = buffer.toString(java.nio.charset.StandardCharsets.ISO_8859_1);
+		assertTrue(result.contains("-12345"));
+	}
+
+	@Test
+	public void testAddMaxLengthNegativeLength() {
+		// addMaxLength() throws IllegalArgumentException for negative length (lines 203-204).
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
+		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+			() -> filter.addMaxLength(new byte[10], 0, 5, -1));
+	}
+
 }

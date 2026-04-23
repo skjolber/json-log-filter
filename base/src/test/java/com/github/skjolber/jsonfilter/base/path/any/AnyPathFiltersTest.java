@@ -1,13 +1,16 @@
 package com.github.skjolber.jsonfilter.base.path.any;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilter;
 
 public class AnyPathFiltersTest {
 
@@ -34,6 +37,42 @@ public class AnyPathFiltersTest {
 		assertNull(anyPathFilters.matchPath(fgh));
 		assertNull(anyPathFilters.matchPath(fgh.toCharArray(), 0, 3));
 		assertNull(anyPathFilters.matchPath(fgh.getBytes(StandardCharsets.UTF_8), 0, 3));
+	}
+
+	@Test
+	public void testMatchAnySameFirstCharNoMatch() {
+		// "dog" has same first char 'd' and same length 3 as "def" → candidates not null but no match
+		// This covers: unencodedMatch continue main, matchPath type==null fallthrough
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("def", FilterType.ANON));
+
+		String dog = "dog";
+		assertNull(anyPathFilters.matchPath(dog.toCharArray(), 0, 3));
+		assertNull(anyPathFilters.matchPath(dog.getBytes(StandardCharsets.UTF_8), 0, 3));
+	}
+
+	@Test
+	public void testMultipleFiltersWithSameFirstChar() {
+		// Two filters "def" and "dog" with same first char 'd' and same length 3
+		// This covers fillExact Arrays.copyOf path AND unencodedMatch continue main then find match
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(
+			AnyPathFilter.create("def", FilterType.ANON),
+			AnyPathFilter.create("dog", FilterType.PRUNE)
+		);
+
+		// Match second filter
+		String dog = "dog";
+		assertEquals(FilterType.PRUNE, anyPathFilters.matchPath(dog.toCharArray(), 0, 3));
+		assertEquals(FilterType.PRUNE, anyPathFilters.matchPath(dog.getBytes(StandardCharsets.UTF_8), 0, 3));
+
+		// Match first filter
+		String def = "def";
+		assertEquals(FilterType.ANON, anyPathFilters.matchPath(def.toCharArray(), 0, 3));
+		assertEquals(FilterType.ANON, anyPathFilters.matchPath(def.getBytes(StandardCharsets.UTF_8), 0, 3));
+
+		// No match among multiple same-first-char candidates
+		String dxy = "dxy";
+		assertNull(anyPathFilters.matchPath(dxy.toCharArray(), 0, 3));
+		assertNull(anyPathFilters.matchPath(dxy.getBytes(StandardCharsets.UTF_8), 0, 3));
 	}
 
 	// note: does not have to be a smiley, all chars can be encoded using \\u
@@ -73,6 +112,48 @@ public class AnyPathFiltersTest {
 		assertNull(f.matchPath(noMatch.toCharArray(), 0, noMatch.length()));
 		assertNull(f.matchPath(noMatch.getBytes(StandardCharsets.UTF_8), 0, noMatch.length()));
 	}
+
+	@Test
+	public void testAnyPathFilterToString() {
+		AnyPathFilter filter = AnyPathFilter.create("mykey", FilterType.ANON);
+		String str = filter.toString();
+		assertNotNull(str);
+		assertTrue(str.contains("mykey"));
+	}
+
+	@Test
+	public void testEmptyKey() {
+		// Empty key: length == 0 → length > 0 is false → skip exact match checks
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("def", FilterType.ANON));
+		assertNull(anyPathFilters.matchPath("".toCharArray(), 0, 0));
+		assertNull(anyPathFilters.matchPath("".getBytes(StandardCharsets.UTF_8), 0, 0));
+	}
+
+	@Test
+	public void testEncodedKeyPrefixTooLong() {
+		// AnyPathFilters line 156 (byte) and 189 (char): return null when readLength >= encodingFiltersBytes/Chars.length
+		// Filter path "ab" (2 chars) → encodingFilters*.length = 3.
+		// Key "abc\\u006e" has 3 plain chars before '\\', readLength=3 >= 3 → return null (line 156/189)
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("ab", FilterType.ANON));
+
+		String longPrefixEsc = "abcd\\u006e"; // 4 plain chars before \\, then unicode escape; readLength=4 >= encodingFilters.length=4
+		assertNull(anyPathFilters.matchPath(longPrefixEsc.toCharArray(), 0, longPrefixEsc.length()));
+		assertNull(anyPathFilters.matchPath(longPrefixEsc.getBytes(StandardCharsets.UTF_8), 0, longPrefixEsc.length()));
+	}
+
+@Test
+public void testEmptyPathName() {
+// AnyPathFilters lines 79-80: covers the ': 0' branch when pathChars/pathBytes.length == 0
+// AnyPathFilter with empty path name "" has pathChars.length = 0 and pathBytes.length = 0
+// In fillExact: (filter.pathChars.length > 0 ? pathChars[0] & 0xFF : 0) → 0 (line 79/80)
+// Just creating the AnyPathFilters exercises fillExact with the empty-path case
+AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("", FilterType.ANON));
+assertNotNull(anyPathFilters);
+// An empty-name filter won't match any key via matchPath (exact or encoded check)
+assertNull(anyPathFilters.matchPath("".toCharArray(), 0, 0));
+assertNull(anyPathFilters.matchPath("".getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, 0));
+}
+
 
 }
 

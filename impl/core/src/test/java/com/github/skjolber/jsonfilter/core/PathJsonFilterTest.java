@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.nio.charset.StandardCharsets;
@@ -8,12 +9,51 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class PathJsonFilterTest extends DefaultJsonFilterTest {
 
+	/**
+	 * A subclass that calls the 1-param getCharArrayRangesFilter(int) method
+	 * to cover the otherwise-unreachable method.
+	 */
+	private static class TestAbstractRangesPathJsonFilter extends AbstractRangesPathJsonFilter {
+		public TestAbstractRangesPathJsonFilter() {
+			super(-1, -1, -1, new String[]{"/key"}, null, "p", "a", "t");
+		}
+		@Override
+		protected CharArrayRangesFilter ranges(char[] chars, int offset, int length) {
+			return getCharArrayRangesFilter(length); // calls the 1-param version
+		}
+		@Override
+		protected ByteArrayRangesFilter ranges(byte[] chars, int offset, int length) {
+			return null;
+		}
+	}
+
 	public PathJsonFilterTest() throws Exception {
 		super();
+	}
+
+	@Test
+	public void testGetCharArrayRangesFilterOneParam() {
+		// Covers AbstractRangesPathJsonFilter.getCharArrayRangesFilter(int)
+		TestAbstractRangesPathJsonFilter filter = new TestAbstractRangesPathJsonFilter();
+		StringBuilder sb = new StringBuilder();
+		filter.process("{\"key\":\"value\"}".toCharArray(), 0, 15, sb);
+		assertNotNull(sb.toString());
+	}
+
+	@Test
+	public void exception_returns_false_with_metrics() throws Exception {
+		// AbstractRangesPathJsonFilter.process(char/byte, ..., JsonFilterMetrics) returns false on exception
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		FullPathJsonFilter filter = new FullPathJsonFilter(-1, new String[]{"/key"}, null);
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder(), metrics));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}
 
 	@Test

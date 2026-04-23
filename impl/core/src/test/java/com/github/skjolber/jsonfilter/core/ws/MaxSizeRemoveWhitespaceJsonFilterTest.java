@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +17,16 @@ import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
+
+	private static class MustContrainMaxSizeRemoveWhitespaceJsonFilter extends MaxSizeRemoveWhitespaceJsonFilter {
+		public MustContrainMaxSizeRemoveWhitespaceJsonFilter(int maxSize) {
+			super(maxSize);
+		}
+		@Override
+		protected boolean mustConstrainMaxSize(int length) {
+			return true;
+		}
+	};
 
 	public MaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
 		super(false);
@@ -74,6 +85,51 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	public void maxSize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
 		assertThat(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
+	}
+
+	@Test
+	public void testGrowSquareBrackets() throws Exception {
+		// Build 35 levels of nested objects to trigger grow() in process
+		// Use a long string value and capped maxSize to avoid reading past array bounds
+		StringBuilder deepJson = new StringBuilder();
+		for (int i = 0; i < 35; i++) {
+			deepJson.append("{\"k").append(i).append("\":");
+		}
+		deepJson.append("\"").append("x".repeat(500)).append("\"");
+		for (int i = 0; i < 35; i++) {
+			deepJson.append("}");
+		}
+		String json = deepJson.toString();
+
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(400);
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
+
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+	}
+
+	@Test
+	public void testWithMetrics() throws Exception {
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(1000);
+		com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
+		String json = "{ \"key\" : \"value\" }";
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
+
+		byte[] jsonBytes2 = json.getBytes(StandardCharsets.UTF_8);
+		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
+		metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
+		assertTrue(filter.process(jsonBytes2, 0, jsonBytes2.length, byteOut, metrics));
+	}
+
+	@Test
+	public void testMetricsExceptionReturnsFalse() throws Exception {
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(100);
+		com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
+		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder(), metrics));
+		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.nio.charset.StandardCharsets;
@@ -95,6 +96,21 @@ public class FullPathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasPruned(DEEP_PATH3).hasPruneMetrics()
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 
-	}	
+	}
+
+	@Test
+	public void testAnonymizeObjectValue() throws Exception {
+		// Covers the 'else' branch in ANON case when value is an object (not array)
+		// Line 100: anonymizeObjectOrArray for '{' value type
+		FullPathJsonFilter filter = new FullPathJsonFilter(-1, new String[]{"/key"}, null);
+		String json = "{\"key\":{\"nested\":\"value\"},\"other\":\"data\"}";
+		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
+		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+
+		filter = new FullPathJsonFilter(-1, new String[]{"/a/key"}, null);
+		String json2 = "{\"a\":{\"key\":{\"nested\":\"v\"}}}";
+		assertNotNull(filter.process(json2.toCharArray(), 0, json2.length(), new StringBuilder()));
+		assertNotNull(filter.process(json2.getBytes(StandardCharsets.UTF_8)));
+	}
 
 }

@@ -26,6 +26,45 @@ public class MultiPathItemTest {
 		assertSame(item, item.matchPath(0, "x"));
 	}
 
+	@Test
+	public void testLevelMismatch() {
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		MultiPathItem item = new MultiPathItem(Arrays.asList("name", "my"), 0, null);
+		item.setNext(p, 0);
+		item.setNext(p, 1);
+
+		// level mismatch -> returns self
+		assertSame(item, item.matchPath(1, "name"));
+		assertSame(item, item.matchPath(1, "name".getBytes(StandardCharsets.UTF_8), 0, 4));
+		assertSame(item, item.matchPath(1, "name".toCharArray(), 0, 4));
+	}
+
+	@Test
+	public void testFastPathNullCandidates() {
+		// Key starts with a char ('z') not in the dispatch table of "name"/"my"
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		MultiPathItem item = new MultiPathItem(Arrays.asList("name", "my"), 0, null);
+		item.setNext(p, 0);
+		item.setNext(p, 1);
+
+		assertSame(item, item.matchPath(0, "xyz".getBytes(StandardCharsets.UTF_8), 0, 3));
+		assertSame(item, item.matchPath(0, "xyz".toCharArray(), 0, 3));
+	}
+
+	@Test
+	public void testFastPathMatchFound() {
+		// Direct byte/char match via fast path
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		MultiPathItem item = new MultiPathItem(Arrays.asList("name", "my"), 0, null);
+		item.setNext(p, 0);
+		item.setNext(p, 1);
+
+		assertSame(p, item.matchPath(0, "name".getBytes(StandardCharsets.UTF_8), 0, 4));
+		assertSame(p, item.matchPath(0, "name".toCharArray(), 0, 4));
+		assertSame(p, item.matchPath(0, "my".getBytes(StandardCharsets.UTF_8), 0, 2));
+		assertSame(p, item.matchPath(0, "my".toCharArray(), 0, 2));
+	}
+
 	/**
 	 * Verifies that a JSON Unicode escape sequence at any offset in a JSON key is matched
 	 * correctly. Tests each character position of "name" encoded, and a non-matching case.
@@ -57,5 +96,13 @@ public class MultiPathItemTest {
 		assertSame(p,    item.matchPath(0, lastEscChars,   0, lastEscChars.length));
 		assertSame(item, item.matchPath(0, noMatchBytes,   0, noMatchBytes.length));
 		assertSame(item, item.matchPath(0, noMatchChars,   0, noMatchChars.length));
+
+		// Slow path for keys that start with '\\' but don't match (line 66-71 byte, 94-99 char):
+		// "\\u006fame" starts with '\\' → slow path. Decodes to "oame" ≠ "name"/"my" → return this
+		byte[] noMatchEscBytes = "\\u006fame".getBytes(StandardCharsets.UTF_8);
+		char[] noMatchEscChars = "\\u006fame".toCharArray();
+		assertSame(item, item.matchPath(0, noMatchEscBytes, 0, noMatchEscBytes.length));
+		assertSame(item, item.matchPath(0, noMatchEscChars, 0, noMatchEscChars.length));
 	}
 }
+

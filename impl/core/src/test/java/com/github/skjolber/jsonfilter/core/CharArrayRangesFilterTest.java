@@ -250,4 +250,18 @@ public class CharArrayRangesFilterTest {
 		}
 	}
 
+	@Test
+	public void testSkipArray() {
+		// Simple array [1,2,3] - offset starts BEFORE the opening bracket 
+		char[] json = "[1,2,3]x".toCharArray();
+		// offset 0 is the '[', skipArray increments immediately, scanning from 1
+		int end = CharArrayRangesFilter.skipArray(json, 0);
+		assertEquals(7, end);
+
+		// Nested arrays [[1,2],[3,4]]
+		char[] nested = "[[1,2],[3,4]]x".toCharArray();
+		end = CharArrayRangesFilter.skipArray(nested, 0);
+		assertEquals(13, end);
+	}
+
 }

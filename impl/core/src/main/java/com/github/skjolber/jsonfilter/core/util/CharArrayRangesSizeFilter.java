@@ -279,14 +279,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 								addAnon(offset, nextOffset);
 								maxSizeLimit += getRemovedLength() - removedLength;
 								
-								if(nextOffset <= maxSizeLimit) {
-									mark = nextOffset;
-								} else {
-									maxSizeLimit -= getRemovedLength() - removedLength;
-									
-									removeLastFilter();
-									break loop;
-								}
+								mark = nextOffset;
 							} else {
 								// make sure to stop scanning here
 								offset = nextOffset;
@@ -319,12 +312,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 									addAnon(offset, end);
 									maxSizeLimit += getRemovedLength() - removedLength;
 									
-									if(end <= maxSizeLimit) {
-										mark = end;
-									} else {
-										removeLastFilter();
-										break loop;
-									}
+									mark = end;
 								} else {
 									// make sure to stop scanning here
 									offset = nextOffset;
@@ -348,12 +336,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 						addAnon(offset, nextOffset);
 						maxSizeLimit += getRemovedLength() - removedLength;
 						
-						if(nextOffset <= maxSizeLimit) {
-							mark = nextOffset;
-						} else {
-							removeLastFilter();
-							break loop;
-						}
+						mark = nextOffset;
 					} else {
 						// make sure to stop scanning here
 						offset = nextOffset;

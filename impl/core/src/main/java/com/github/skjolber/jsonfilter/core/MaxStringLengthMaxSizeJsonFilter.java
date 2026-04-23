@@ -181,13 +181,6 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
 							maxSizeLimit = maxReadLimit - bracketLevel;
 						}
-						
-						if(maxSizeLimit >= maxReadLimit) {
-							// filter only for max string length
-							filter.setLevel(0);
-							
-							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
-						}
 					}
 					mark = nextOffset;
 					offset = nextOffset;
@@ -289,13 +282,6 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
 							maxSizeLimit = maxReadLimit - bracketLevel;
-						}
-						
-						if(maxSizeLimit >= maxReadLimit) {
-							// filter only for max string length
-							filter.setLevel(0);
-							
-							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
 						}
 						
 						mark = nextOffset;

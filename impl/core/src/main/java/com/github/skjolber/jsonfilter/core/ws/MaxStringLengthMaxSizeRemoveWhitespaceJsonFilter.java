@@ -218,12 +218,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						return 0;
 					}
 				}
-					
-				if(maxSizeLimit >= maxReadLimit) {
-					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, buffer, metrics, maxStringLength, truncateStringValue);
-
-					return 0;
-				}
 				
 				flushedOffset = nextOffset;
 				offset = nextOffset;
@@ -445,12 +439,6 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 						return 0;
 					}
-				}
-					
-				if(maxSizeLimit >= maxReadLimit) {
-					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
-
-					return 0;
 				}
 				
 				flushedOffset = nextOffset;
