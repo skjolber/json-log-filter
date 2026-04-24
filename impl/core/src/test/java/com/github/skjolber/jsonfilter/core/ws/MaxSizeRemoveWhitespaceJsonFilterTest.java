@@ -89,23 +89,15 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 
 	@Test
 	public void testGrowSquareBrackets() throws Exception {
-		// Build 35 levels of nested objects to trigger grow() in process
-		// Use a long string value and capped maxSize to avoid reading past array bounds
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(i).append("\":");
-		}
-		deepJson.append("\"").append("x".repeat(500)).append("\"");
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x".repeat(500), false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(400);
 		StringBuilder output = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}

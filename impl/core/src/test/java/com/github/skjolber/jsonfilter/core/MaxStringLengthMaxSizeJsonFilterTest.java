@@ -14,6 +14,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
@@ -70,28 +71,20 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 
 	@Test
 	public void testGrowSquareBrackets() throws Exception {
-		// Build 35 levels of nested objects to trigger grow() in rangesMaxSizeMaxStringLength
-		// Use a long string value and capped maxSize to avoid reading past array bounds
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(i).append("\":");
-		}
-		deepJson.append("\"").append("x".repeat(500)).append("\"");
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x".repeat(500), false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(5, 400);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testExceptionCaughtInRanges() throws Exception {
-		// ranges(char[]) and ranges(byte[]) catch Exception → return null → process returns false
+		// An invalid input offset causes the filter to return false rather than throw.
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 100);
 		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
@@ -99,26 +92,22 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 
 	@Test
 	public void testLongKeyIsNotTruncated() throws Exception {
-		// A key (field name) that's >= maxStringLength should NOT be truncated (just skipped)
-		// Covers the 'was a field name' path: if(chars[nextOffset] == ':') → offset = nextOffset+1; continue
-		// maxSize must be < JSON length to ensure loop terminates normally
+		// A field name that is longer than maxStringLength is not truncated — only values are truncated.
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 20);
 		String json = "{\"longlongkey\":\"value\"}";
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		// Use assertFalse for byte to avoid null-assertion when maxSizeLimit > maxReadLimit
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		// Process bytes correctly with large enough maxSize via validate path:
 		MustContrainMaxStringLengthMaxSizeJsonFilter filterB = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 22);
 		assertNotNull(filterB.process(json.getBytes(StandardCharsets.UTF_8)));
 	}
 
 	@Test
 	public void testLongValueRemoveLastFilter() throws Exception {
-		// Long value with large truncate message → after addMaxLength, nextOffset > new maxSizeLimit → removeLastFilter
-		// Use maxSize smaller than JSON to prevent overflow past maxReadLimit
+		// When a long value is truncated and the truncation message itself is longer than the remaining allowed size,
+		// the filter removes the last partial entry to stay within bounds.
 		String json = "{\"k\":\"abcdefg\",\"n\":\"v\"}";
-		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 
+		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3,
 			json.length() - 1,
 			"\"***SKIPPED***\"", "\"***\"", "X".repeat(50));
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
@@ -127,8 +116,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 
 	@Test
 	public void testLongKeyWithWhitespaceBeforeColon() throws Exception {
-		// Long key with whitespace before colon → covers multi-whitespace skip on line 149
-		// maxSize must be <= JSON length
+		// A long key followed by multiple whitespace characters before the colon is handled without truncating the key.
 		String json = "{\"longkey\"   :\"value\"}";
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, json.length() - 1);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));

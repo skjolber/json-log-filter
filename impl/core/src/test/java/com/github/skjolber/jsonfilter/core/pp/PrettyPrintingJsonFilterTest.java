@@ -71,16 +71,9 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testGrowSquareBracketsWithMetrics() throws Exception {
-		// 35 levels of nesting to trigger grow() in both char and byte process methods
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(i).append("\":");
-		}
-		deepJson.append("\"value\"");
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity in both char and byte paths.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
@@ -88,7 +81,6 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, metrics));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, metrics));

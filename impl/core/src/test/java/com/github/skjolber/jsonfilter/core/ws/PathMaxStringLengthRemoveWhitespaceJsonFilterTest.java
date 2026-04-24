@@ -1,10 +1,6 @@
 package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +31,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/k"}, null)).hasAnonymized("/k").hasAnonymizeMetrics();
 	}
 	
 	@Test
@@ -95,75 +92,21 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 	}
 
 	@Test
-	public void testSkipObjectWithWhitespaceBeforeColon() throws Exception {
-		// Tests skipObjectMaxStringLength with whitespace before colon inside a skipped object
-		// /k path at level 1 with nested JSON containing whitespace-before-colon keys
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, null, new String[]{"/k"});
-		String json = "{\"k\":{\"inner key\"  :  \"longlongvalue\",\"b\":\"x\"},\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+	public void anonymizeWithShortPathAndMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null))
+			.hasAnonymized("/k").hasMaxStringLength(3).hasAnonymizeMetrics();
 	}
 
 	@Test
-	public void testSkipObjectWithLongValues() throws Exception {
-		// skipObjectMaxStringLength with long values that exceed maxStringLength
-		// The object being skipped has a value longer than maxStringLength=3
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null);
-		String json = "{\"k\":{\"inner\":\"longlonglong\"},\"other\":\"more\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+	public void pruneWithShortPathAndMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, null, new String[]{"/k"}))
+			.hasPruned("/k").hasMaxStringLength(3).hasPruneMetrics();
 	}
 
 	@Test
-	public void testSkipNestedObjectWithMaxStringLength() throws Exception {
-		// Deep nesting: level > pathItem.getLevel() → skipObjectMaxStringLength called
-		// The nested object also has whitespace and long values
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(5, -1, new String[]{"/top"}, null);
-		String json = "{\"top\":\"value\",\"other\":{\"deep\":\"longlongvalue\",\"k2\":\"x\"}}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
-	}
-
-	@Test
-	public void testSkipObjectWithWhitespaceAfterColon() throws Exception {
-		// skipObjectMaxStringLength: long key without whitespace before colon
-		// but with whitespace AFTER colon → covers lines 251-261 (char) / 251-261 (byte)
-		// Need level > pathItem.getLevel() to trigger skipObjectMaxStringLength
-		// Path /k at level 1, JSON has 3 levels: {k:v, b:{c:{longlongkey: "value"}}}
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null);
-		// "longlongkey": "value" - no whitespace before colon, whitespace after colon
-		String json = "{\"k\":\"v\",\"b\":{\"c\":{\"longlongkey\":  \"value\"}}}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
-	}
-
-	@Test
-	public void testAnonymizeObjectOrArrayWithLargeMaxSize() throws Exception {
-		// anonymizeObjectOrArrayMaxSize/skipObjectOrArrayMaxSizeMaxStringLength:
-		// Anonymize an object value at level > pathItem.getLevel() with deep nesting
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null);
-		// deep nesting inside the non-path object to trigger long key paths
-		String json = "{\"k\":\"v\",\"outer\":{\"inner\":{\"longlongkey\":  \"val\",\"longlongkey2\":\"v2\"}}}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
-	}
-
-	@Test
-	public void testAnonObjectValueWithInternalWhitespace() throws Exception {
-		// CharArrayWhitespaceFilter.anonymizeObjectOrArray line 74 (char):
-		// and ByteArrayWhitespaceFilter line 99 (byte):
-		// the break for whitespace chars (' ', '\t', '\n', '\r') inside an anonymized object
-		// Need JSON with whitespace inside the matched key's object value
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter =
-			new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/k"}, null);
-		String json = "{\"k\":{ \"a\": \"value\" , \"b\" : 1 }}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+	public void anonymizeTopWithMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(5, -1, new String[]{"/top"}, null))
+			.hasAnonymized("/top").hasMaxStringLength(5).hasAnonymizeMetrics().hasMaxStringLengthMetrics();
 	}
 
 }

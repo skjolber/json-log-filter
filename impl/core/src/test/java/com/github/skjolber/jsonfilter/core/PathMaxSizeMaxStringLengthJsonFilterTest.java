@@ -13,6 +13,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
@@ -220,18 +221,9 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testGrowSquareBrackets() throws Exception {
-		// 35 levels of nesting to trigger grow() in ranges()
-		// Use //targetKey (any-path) so the skip-nested-object optimization doesn't fire,
-		// ensuring bracketLevel actually reaches 32 and triggers grow()
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(i).append("\":");
-		}
-		deepJson.append("\"longvaluelongvaluelongvalue\"");
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking to grow. An any-path filter is used so all nested objects are traversed rather than skipped.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "longvaluelongvaluelongvalue", false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(5, json.length() + 100, -1, new String[]{"//targetKey"}, null);
@@ -239,7 +231,6 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
@@ -320,10 +311,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testPruneWithRemoveLastFilter() throws Exception {
-		// After pruning a value with small prune message, offset > maxSizeLimit → removeLastFilter
-		// maxSize=15, custom prune message = "X" (1 char), JSON has "k"="longlonglong" (12 chars)
-		// After prune: value "longlonglong" (12) replaced by "X" (1) → removedLength=11
-		// maxSizeLimit adjustment = 11. But if offset is still > maxSizeLimit, removeLastFilter is called.
+		// After pruning, if the cursor moves past the size limit, the filter removes the partial entry to stay within bounds.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 15, -1, null, new String[]{"/k"}, "X", "X", "X");
 		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
@@ -333,7 +321,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testAnonWithRemoveLastFilter() throws Exception {
-		// After anonymizing a value, offset > maxSizeLimit → removeLastFilter
+		// After anonymizing, if the cursor moves past the size limit, the filter removes the partial entry.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 15, -1, new String[]{"/k"}, null, "X", "X", "X");
 		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
@@ -363,7 +351,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testExceptionInRangesReturnsFalse() throws Exception {
-		// ranges() catches Exception and returns null → process() returns false
+		// An invalid input offset causes the filter to return false rather than throw.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 100, -1, new String[]{"/k"}, null);
 		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder()));
@@ -372,8 +360,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testPathMatchesExhausted() throws Exception {
-		// pathMatches=1, after first prune, pathMatches becomes 0 → pathMatches<=0 block
-		// maxSize=200 >> JSON length → maxSizeLimit >= maxReadLimit → rangesMultiPathMaxStringLength
+		// After the single allowed path match is consumed and the size limit covers the whole document, the filter uses the unconstrained multi-path path.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 200, 1, null, new String[]{"/k"});
 		String json = "{\"k\":\"value1\",\"k\":\"value2\",\"other\":\"data\"}";
@@ -383,7 +370,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testPathMatchesExhaustedWithMaxSize() throws Exception {
-		// pathMatches=1 AND tight maxSize → maxSizeLimit < maxReadLimit → rangesMaxSizeMaxStringLength
+		// After the single allowed match is consumed with a tight size limit, the filter switches to the size-constrained path.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 15, 1, null, new String[]{"/k"});
 		String json = "{\"k\":\"v\",\"other\":\"data and more and more and more\"}";
@@ -393,8 +380,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testPruneRemoveLastFilterLargePruneMessage() throws Exception {
-		// After addPrune with large prune message, offset > maxSizeLimit → removeLastFilter + return
-		// Large prune message (25 chars), small value ("v") → prune message ADDS size → maxSizeLimit drops below offset
+		// When the prune message is much larger than the value being replaced, the added size may push the cursor past the size limit, and the filter removes the partial entry.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 20, -1, null, new String[]{"/k"},
 				"X".repeat(25), "X".repeat(25), "X".repeat(25));
@@ -405,7 +391,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testAnonRemoveLastFilterLargeAnonMessage() throws Exception {
-		// After addAnon with large anon message, offset > maxSizeLimit → removeLastFilter + return
+		// When the anonymization message is larger than the value being replaced, the added size may push the cursor past the size limit, and the filter removes the partial entry.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 20, -1, new String[]{"/k"}, null,
 				"X".repeat(25), "X".repeat(25), "X".repeat(25));
@@ -416,11 +402,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testStringLengthBreakLoop() throws Exception {
-		// Non-matched string value too long AND can't fit even truncated version in maxSize
-		// offset + maxStringLength > maxSizeLimit → break loop
-		// Filter has path /other (not matching "k"), so "k" value is plain string truncation
-		// maxStringLength=3, maxSize=8 → after { → maxSizeLimit=7. "k" value starts at ~5.
-		// 5 + 3 = 8 > 7 → break loop
+		// When the string-length limit added to the current position exceeds the size limit, the filter stops and truncates.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(3, 8, -1, new String[]{"/other"}, null);
 		String json = "{\"k\":\"longlonglong\",\"other\":\"v\"}";
@@ -430,12 +412,10 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testStringLengthRemoveLastFilter() throws Exception {
-		// Non-matched long string value that after truncation causes nextOffset > maxSizeLimit
-		// Large truncate message so truncation ADDS size, shrinking effective maxSizeLimit
+		// Truncating a non-matched long value with a message larger than the original causes the cursor to move past the size limit, so the filter removes the partial entry.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(3, 50, -1, new String[]{"/other"}, null,
 				"X".repeat(25), "X".repeat(25), "X".repeat(25));
-		// "k" has a 4-char value (>= maxStringLength 3) → triggers addMaxLength → large truncate message → nextOffset > maxSizeLimit → removeLastFilter
 		String json = "{\"k\":\"vvvv\",\"other\":\"v\"}";
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
@@ -443,7 +423,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testDeepArrayGrowSquareBrackets() throws Exception {
-		// 34 nested arrays - triggers grow() for the case '[' path (line 109 char/442 byte)
+		// 34 nested arrays force the bracket-tracking array to grow while traversing the array path.
 		StringBuilder deepJson = new StringBuilder();
 		deepJson.append("{\"k\":");
 		for (int i = 0; i < 34; i++) {
@@ -474,8 +454,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testAnonObjectValueRemoveLastFilter() throws Exception {
-		// Anonymize object value where anonymizeSubtree causes remaining > maxSizeLimit
-		// After anonymizeSubtree, getMaxSizeLimit < offset means we truncated the tree
+		// When anonymizing an object value and the anonymized subtree is larger than the remaining allowed size, the filter truncates cleanly.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 25, -1, new String[]{"/k"}, null);
 		String json = "{\"k\":{\"a\":\"b\",\"c\":\"d\",\"e\":\"f\"},\"other\":\"v\"}";
@@ -485,10 +464,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testStringLengthRemoveLastFilterViaLongValue() throws Exception {
-		// Long non-path string value: after addMaxLength, nextOffset > new maxSizeLimit → removeLastFilter
-		// pathFilter=/other. "notapath":"verylongvalue" is processed via string length.
-		// With maxSize=24: maxSizeLimit=23 after {, addMaxLength returns true (remove=1>0),
-		// maxSizeLimit=24, nextOffset=26 > 24 → removeLastFilter
+		// Truncating a long non-path string value with a tight size limit may move the cursor past the limit, causing the filter to remove the partial entry.
 		String json = "{\"notapath\":\"verylongvalue\",\"other\":\"v\"}";
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(5, 24, -1, new String[]{"/other"}, null);
@@ -498,10 +474,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testSkipObjectOrArrayWithLongKeys() throws Exception {
-		// skipObjectOrArrayMaxSizeMaxStringLength is called when level > pathItem.getLevel()
-		// The skipped object has long keys → covers key handling in skipObjectOrArrayMaxSizeMaxStringLength
-		// Path /a at level 1. At level 2 (inside "b"), encountering "c" value → skip
-		// "c" = {"longlongkey":"val","longlongkey2":"v"} with maxStringLength=5
+		// Verifies that long field names inside a non-matched nested object are handled correctly when skipping and truncating.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(5, 300, -1, new String[]{"/a"}, null);
 		String json = "{\"a\":\"v\",\"b\":{\"c\":{\"longlongkey\":\"value\",\"longlongkey2\":\"v\"}}}";
@@ -521,8 +494,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testSkipObjectWithLongValueBreakLoop() throws Exception {
-		// skipObjectOrArrayMaxSizeMaxStringLength: long value where offset+maxStringLength>=maxSizeLimit → break loop
-		// Use small maxSize so the loop breaks on the long value
+		// When a string inside a skipped nested object hits both the string-length limit and the size limit simultaneously, the filter stops cleanly.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(5, 35, -1, new String[]{"/a"}, null);
 		String json = "{\"a\":\"v\",\"b\":{\"c\":{\"key\":\"verylongvaluehere\",\"other\":\"v\"}}}";
@@ -532,10 +504,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testSkipDeepObjectGrow() throws Exception {
-		// skipObjectOrArrayMaxSizeMaxStringLength: 35 levels of nesting inside the skipped object
-		// Triggers grow() in CharArrayRangesSizeFilter.skipObjectOrArrayMaxSizeMaxStringLength (line 90)
-		// and ByteArrayRangesSizeFilter equivalent (line 95)
-		// Need maxSize close to JSON length to avoid crash from maxSizeLimit >> maxReadLimit
+		// Deep nesting inside a non-matched object forces the bracket-tracking array to grow during the skip-and-truncate path.
 		StringBuilder deepValue = new StringBuilder();
 		for (int i = 0; i < 35; i++) {
 			deepValue.append("{\"n").append(String.format("%02d", i)).append("\":");
@@ -555,10 +524,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testAnonDeepObjectGrow() throws Exception {
-		// anonymizeSubtree: 35 levels of nesting inside the anonymized object
-		// Triggers grow() in CharArrayRangesSizeFilter.anonymizeSubtree (line 221)
-		// and ByteArrayRangesSizeFilter equivalent (line 226)
-		// Need maxSize close to JSON length to avoid crash
+		// The anonymized value contains 35 levels of nesting, forcing the filter's bracket-tracking to grow during subtree anonymization.
 		StringBuilder deepValue = new StringBuilder();
 		for (int i = 0; i < 35; i++) {
 			deepValue.append("{\"n").append(String.format("%02d", i)).append("\":");
@@ -578,10 +544,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testByteStringWithEscapedQuote() throws Exception {
-		// ByteArrayRangesFilter line 487: scanEscapedValue called when chars[i-1] == '\\'
-		// Need a string value containing escaped quote \" in byte processing
-		// Also covers lines 529-530 (word-at-a-time scan) if string is long enough
-		// JSON value: "Hello \"World\" how are you doing today"
+		// A string value containing an escaped quote character is processed correctly in the byte path.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 5000, -1, new String[]{"/k"}, null);
 		// String with escaped quote: "He said \"hello\" to everyone in the room"
@@ -594,10 +557,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testByteSkipSubtreeWithFalseValue() throws Exception {
-		// ByteArrayRangesFilter line 764: skipObjectMaxStringLength case 'f' (false value)
-		// Need a false value inside a skipped subtree in byte processing
-		// Path /a, "b" key not matched → skipObjectOrArrayMaxSizeMaxStringLength or skipObject
-		// The skipped subtree contains: "flag":false
+		// A false value inside a non-matched nested object is handled correctly in the byte path.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 5000, -1, new String[]{"/a"}, null);
 		String json = "{\"a\":\"v\",\"b\":{\"flag\":false,\"other\":true}}";
@@ -607,10 +567,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testPathMatchesExhaustedWithMaxSizeLargerThanReadLimit() throws Exception {
-		// After matching and exhausting pathMatches, maxSizeLimit >= maxReadLimit
-		// Covers lines 297-299 (char) and 630-632 (byte) in PathMaxSizeMaxStringLengthJsonFilter
-		// With maxSize=30, JSON length=31, prune "XXXXXXXXXXXX" (12Xs):
-		//   removedLength=14-11=3, maxSizeLimit=29+3=32>=31=maxReadLimit → lines 297-299
+		// After the single allowed match is consumed, if pruning increases the size limit to cover the document, the filter transitions to unconstrained processing.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 30, 1, null, new String[]{"/k"});
 		String json = "{\"k\":\"XXXXXXXXXXXX\",\"other\":\"v\"}";
@@ -620,10 +577,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testMaxSizeLargerThanReadLimitAfterMatch() throws Exception {
-		// After matching (pathMatches not exhausted), maxSizeLimit >= maxReadLimit
-		// Covers lines 316-317 (char) and 649-650 (byte) in PathMaxSizeMaxStringLengthJsonFilter
-		// With maxSize=30, JSON length ~31, prune "XXXXXXXXXXXX" (12Xs), pathMatches=2:
-		//   after first match: maxSizeLimit>=maxReadLimit but pathMatches=1>0 → lines 316-317
+		// After a match with remaining budget, if pruning causes the size limit to cover the rest of the document, the filter transitions to unconstrained processing.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 30, 2, null, new String[]{"/k"});
 		String json = "{\"k\":\"XXXXXXXXXXXX\",\"other\":\"v\"}";
@@ -633,9 +587,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testKeyWithWhitespaceBeforeColonInSkippedSubtree() throws Exception {
-		// skipObjectOrArrayMaxSizeMaxStringLength: key with whitespace before colon
-		// Covers line 205 (char) in PathMaxSizeMaxStringLengthJsonFilter
-		// Need whitespace BEFORE colon in a key inside a skipped subtree
+		// A key with whitespace before its colon inside a non-matched nested object is handled correctly.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 5000, -1, new String[]{"/a"}, null);
 		// "b"'s value has key "c" with whitespace before colon: "c"   :"v"
@@ -646,11 +598,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testSkipObjectMaxSizeOverflow() throws Exception {
-		// skipObjectOrArrayMaxSizeMaxStringLength: long string causes maxSizeLimit > maxReadLimit
-		// Covers CharArrayRangesSizeFilter line 166 and ByteArrayRangesSizeFilter line 171
-		// JSON: {"a":{"b":{"inner":"aaa...(200 a's)..."}}, "path":"v"} (~235 chars)
-		// Path /path, level > pathItem.getLevel() at b's value { → skip b's subtree
-		// Inside skip: long string truncation → maxSizeLimit exceeds maxReadLimit → cap
+		// Truncating a long string inside a non-matched nested object can bring the remaining size limit up to the document length, causing the filter to transition to unconstrained processing.
 		String longVal = "a".repeat(200);
 		String json = "{\"a\":{\"b\":{\"inner\":\"" + longVal + "\"}},\"path\":\"v\"}";
 		int maxSize = json.length() - 4; // mustConstrainMaxSize returns true
@@ -662,12 +610,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testAnonSubtreeScalarCannotFit() throws Exception {
-		// anonymizeSubtree: scalar value (true) at matched path cannot fit anon message
-		// Covers CharArrayRangesSizeFilter lines 359, 361 and ByteArrayRangesSizeFilter lines 370, 372
-		// JSON: {"key":{"val":true}} (20 chars), path /key, maxSize=17
-		// ranges: maxSizeLimit=17, after outer {: 16. Call anonymizeSubtree(chars, 7, 16).
-		// Inside subtree: { at 7 → maxSizeLimit=15. "val" key → offset=14.
-		// 14 + anonMsgLen(3) = 17 > maxSizeLimit(15) → else → lines 359/361 fired
+		// When the anonymization message for a scalar value inside a matched subtree does not fit in the remaining size budget, the filter truncates cleanly.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 17, -1, new String[]{"/key"}, null);
 		String json = "{\"key\":{\"val\":true}}";

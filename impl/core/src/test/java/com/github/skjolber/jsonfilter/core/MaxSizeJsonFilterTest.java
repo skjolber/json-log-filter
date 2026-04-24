@@ -91,25 +91,15 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testGrowSquareBrackets() throws Exception {
-		// Build 35 levels of nested objects/arrays to trigger grow() in processMaxSize
-		// grow() fires when bracketLevel >= squareBrackets.length (32)
-		// Use a long string value so maxSize < json.length() while still covering all 35 '{'
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(i).append("\":");
-		}
-		deepJson.append("\"").append("x".repeat(500)).append("\""); // long string to ensure maxSize < json.length()
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x".repeat(500), false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
-		// maxSize covers all 35 '{' (at positions ~0-350) but truncates before the long string
 		MustContrainMaxSizeJsonFilter filter = new MustContrainMaxSizeJsonFilter(400);
 		StringBuilder output = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}

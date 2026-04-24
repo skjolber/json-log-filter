@@ -123,8 +123,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testMustConstrainClosingBraceMaxSizeLimit() {
-		// JSON where the closing '}' pushes maxSizeLimit to maxReadLimit
-		// {"k":"v"} = 9 chars, maxSize=9 -> '{' decrements to 8; when '}' encountered, maxSizeLimit++=9=maxReadLimit
+		// When a closing bracket increases the size limit to exactly the document length, the filter transitions to the unconstrained path.
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 9);
 		String json = "{\"k\":\"v\"}";
@@ -138,9 +137,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testMustConstrainWhitespaceMaxSizeLimit() {
-		// JSON with many spaces such that whitespace skipping drives maxSizeLimit to maxReadLimit
-		// {"k": followed by 10 spaces then "v"} - total ~19 chars, maxSize=10
-		// The 10 whitespace chars are skipped, incrementing maxSizeLimit each time -> maxSizeLimit reaches maxReadLimit
+		// Skipping many whitespace characters can bring the remaining size limit up to the document length, causing the filter to transition to unconstrained processing.
 		String json = "{\"k\":          \"v\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 10);
@@ -154,9 +151,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testMustConstrainKeyWithWhitespaceBeforeColon() {
-		// Long key (>= maxStringLength) with whitespace before colon, where whitespace skip
-		// causes maxSizeLimit to reach maxReadLimit
-		// {"longlonglong"     :"v"} = 25 chars, maxSize=21, maxStringLength=5
+		// Whitespace before a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
 		String json = "{\"longlonglong\"     :\"v\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 21);
@@ -185,8 +180,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testMustConstrainBracketLevelGreaterThanZero() {
-		// JSON where the loop exits with bracketLevel > 0 (partial processing)
-		// {"k": "v" } = 12 chars, maxSize=9 -> loop exits after "v" with bracketLevel > 0
+		// When the size limit is hit inside a nested structure, the filter exits with unmatched brackets and closes them before returning the truncated result.
 		String json = "{\"k\": \"v\" }";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 9);
@@ -217,8 +211,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testMustConstrainLongValueTruncated() {
-		// Long VALUE (not key) with MustConstrain - covers the value truncation path
-		// maxStringLength=3 means "longvalue" (9 chars) should be truncated
+		// A value longer than the string limit is truncated when the filter operates in size-constrained mode.
 		String json = "{\"k\":\"longvalue\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, 1000);
@@ -232,8 +225,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testStreamMarkWithMultipleValues() throws Exception {
-		// Multiple key-value pairs: after processing "k1":"short", mark is updated.
-		// Then "k2":"longlonglong" → flushedOffset <= mark → streamMark update path.
+		// After processing an earlier field, the stream mark is updated; a subsequent long value correctly picks up the updated mark position.
 		String json = "{\"k1\":\"short\",\"k2\":\"longlonglong\",\"k3\":\"v\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 100);
@@ -247,8 +239,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testValueMaxSizeLimitReached() throws Exception {
-		// Value whose addMaxLength causes maxSizeLimit >= maxReadLimit
-		// maxStringLength=3, maxSize = large but close to total size
+		// Truncating a long value can make the remaining size limit cover the rest of the document, causing the filter to transition to unconstrained processing.
 		String json = "{\"k\":\"longlonglongvalue\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, json.length() - 5);
@@ -261,8 +252,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	}
 	@Test
 	public void testMarkLimitFound() throws Exception {
-		// bracketLevel > 0 at loop exit, mark <= maxSizeLimit, markToLimit returns a valid value
-		// Use multi-key JSON with tight maxSize so the loop exits partway, then markLimit path is taken
+		// When the size limit is reached inside a nested structure, the filter correctly closes open brackets and returns a well-formed truncated result.
 		String json = "{\"k1\":\"v1\",\"k2\":\"v2\",\"k3\":\"v3\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 18);
@@ -276,7 +266,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testKeyWhitespaceBeforeColonMaxSizeReached() throws Exception {
-		// Key with whitespace before colon, maxSizeLimit >= maxReadLimit after skip
+		// Whitespace before a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
 		String json = "{\"longlonglong\"   :\"v\"}";
 		int totalLen = json.length();
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
@@ -291,8 +281,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testWhitespaceAtStartCausingMaxSizeLimitBranchWithValue() throws Exception {
-		// Value where after whitespace skip causes maxSizeLimit >= maxReadLimit (line 169-173)
-		// Long string value prefixed by whitespace and close to the maxSize boundary
+		// Whitespace after a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
 		String json = "{\"k\"  :   \"longlonglong\"}";
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, json.length() - 6);
@@ -306,17 +295,10 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testGrowSquareBracketsInProcess() throws Exception {
-		// 35 nested brackets triggers grow() in processMaxStringLengthMaxSize (bracketLevel >= 32)
-		// maxSize=JSON_LEN-1 to avoid crash when maxSizeLimit > maxReadLimit
-		StringBuilder deepJson = new StringBuilder();
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("{\"k").append(String.format("%02d", i)).append("\":");
-		}
-		deepJson.append("\"x\"");
-		for (int i = 0; i < 35; i++) {
-			deepJson.append("}");
-		}
-		String json = deepJson.toString();
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// maxSize is set just below the full document length so the filter runs in size-constrained mode.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x", false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = json.length() - 1;
 
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
@@ -324,15 +306,13 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut));
 	}
 
 	@Test
 	public void testBracketLevelZeroAtLoopExit() throws Exception {
-		// Covers the 'else' branch when bracketLevel==0 at end of loop (lines 259-260 char, 487 byte)
-		// This happens when maxSize=0 (or maxSizeLimit=0): loop never executes, bracketLevel stays 0
+		// When maxSize is zero the processing loop never runs, and the filter correctly returns an empty output.
 		String json = "{\"k\":\"v\"}";
 
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
@@ -347,9 +327,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 	@Test
 	public void testWhitespaceAfterColonCausesMaxSizeLimitOverflow() throws Exception {
-		// Key with whitespace AFTER colon: after skipping whitespace, maxSizeLimit >= maxReadLimit
-		// This covers lines 223-225 (char) and 451-453 (byte)
-		// Need tight maxSize so after skipping post-colon whitespace, maxSizeLimit covers rest
+		// Whitespace between a key colon and its value is skipped by the filter; this verifies the filter handles the case where doing so causes the remaining document to fit within the size limit.
 		String json = "{\"k\":  \"longlonglongvalue\"}";
 		int maxSize = json.length() - 3; // tight: loop processes until near end
 
