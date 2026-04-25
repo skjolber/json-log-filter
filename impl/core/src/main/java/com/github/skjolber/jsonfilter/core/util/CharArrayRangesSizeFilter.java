@@ -276,11 +276,16 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 								
 								int removedLength = getRemovedLength();
-								// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 								addAnon(offset, nextOffset);
 								maxSizeLimit += getRemovedLength() - removedLength;
-								
-								mark = nextOffset;
+
+								if(nextOffset <= maxSizeLimit) {
+									mark = nextOffset;
+								} else {
+									maxSizeLimit -= getRemovedLength() - removedLength;
+									removeLastFilter();
+									break loop;
+								}
 							} else {
 								// make sure to stop scanning here
 								offset = nextOffset;
@@ -310,11 +315,16 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 								if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 									
 									int removedLength = getRemovedLength();
-									// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 									addAnon(offset, end);
 									maxSizeLimit += getRemovedLength() - removedLength;
-									
-									mark = end;
+
+									if(end <= maxSizeLimit) {
+										mark = end;
+									} else {
+										maxSizeLimit -= getRemovedLength() - removedLength;
+										removeLastFilter();
+										break loop;
+									}
 								} else {
 									// make sure to stop scanning here
 									offset = nextOffset;
@@ -335,11 +345,16 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 					if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 						
 						int removedLength = getRemovedLength();
-						// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 						addAnon(offset, nextOffset);
 						maxSizeLimit += getRemovedLength() - removedLength;
-						
-						mark = nextOffset;
+
+						if(nextOffset <= maxSizeLimit) {
+							mark = nextOffset;
+						} else {
+							maxSizeLimit -= getRemovedLength() - removedLength;
+							removeLastFilter();
+							break loop;
+						}
 					} else {
 						// make sure to stop scanning here
 						offset = nextOffset;
