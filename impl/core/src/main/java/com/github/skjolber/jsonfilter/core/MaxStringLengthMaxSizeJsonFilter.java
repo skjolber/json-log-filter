@@ -179,11 +179,14 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						}
 						
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
+							// The remaining input is small enough that it cannot push the output over maxSize.
+							// Delegate the rest to the string-length-only filter, which is simpler and faster.
+							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							filter.setLevel(bracketLevel);
+							filter.setMark(nextOffset);
+							filter.setMaxSizeLimit(maxSizeLimit);
+							return maxReadLimit;
 						}
-						// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
-						// remains active throughout; there is no early exit to a string-length-only path
-						// because that would allow output to exceed maxSize.
 					}
 					mark = nextOffset;
 					offset = nextOffset;
@@ -284,11 +287,14 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						}
 						
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
+							// The remaining input is small enough that it cannot push the output over maxSize.
+							// Delegate the rest to the string-length-only filter, which is simpler and faster.
+							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							filter.setLevel(bracketLevel);
+							filter.setMark(nextOffset);
+							filter.setMaxSizeLimit(maxSizeLimit);
+							return maxReadLimit;
 						}
-						// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
-						// remains active throughout; there is no early exit to a string-length-only path
-						// because that would allow output to exceed maxSize.
 						
 						mark = nextOffset;
 					}
