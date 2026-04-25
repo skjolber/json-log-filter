@@ -554,8 +554,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKQuotedValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		// Byte version triggers ByteArrayRangesFilter.scanEscapedValue (line 487)
-		// and the word-at-a-time scan if string after escaped quote is long enough (lines 529-530)
+		// The byte path handles a string value containing an escaped quote followed by a long suffix.
 		assertNotNull(filter.process(jsonBytes));
 	}
 

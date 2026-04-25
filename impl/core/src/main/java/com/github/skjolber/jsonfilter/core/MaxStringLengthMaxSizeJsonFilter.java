@@ -181,6 +181,9 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
 							maxSizeLimit = maxReadLimit - bracketLevel;
 						}
+						// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
+						// remains active throughout; there is no early exit to a string-length-only path
+						// because that would allow output to exceed maxSize.
 					}
 					mark = nextOffset;
 					offset = nextOffset;
@@ -283,6 +286,9 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
 							maxSizeLimit = maxReadLimit - bracketLevel;
 						}
+						// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
+						// remains active throughout; there is no early exit to a string-length-only path
+						// because that would allow output to exceed maxSize.
 						
 						mark = nextOffset;
 					}

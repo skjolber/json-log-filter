@@ -82,7 +82,7 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testAnyPathPruneWithStarThrowsIllegalArgumentException() {
-		// AbstractMultiPathJsonFilter line 53: throw when prune path is "//*" (any-match with star)
+		// A wildcard-any prune path ("//*") is not a valid filter expression and must throw an IllegalArgumentException.
 		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new AnyPathJsonFilter(-1, null, new String[]{"//*"});
 		});
@@ -90,7 +90,7 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testAnyPathAnonWithStarThrowsIllegalArgumentException() {
-		// AbstractMultiPathJsonFilter line 69: throw when anonymize path is "//*" (any-match with star)
+		// A wildcard-any anonymize path ("//*") is not a valid filter expression and must throw an IllegalArgumentException.
 		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new AnyPathJsonFilter(-1, new String[]{"//*"}, null);
 		});

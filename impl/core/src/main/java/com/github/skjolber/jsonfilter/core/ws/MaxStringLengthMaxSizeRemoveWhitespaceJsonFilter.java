@@ -57,6 +57,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
+			// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
+			// remains active throughout; there is no early exit to a string-length-only path
+			// because that would allow output to exceed maxSize.
 			
 			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, level, squareBrackets, mark, writtenMark, maxStringLength, truncateStringValue, metrics);
 			
@@ -280,6 +283,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
+			// maxSizeLimit is always capped to maxReadLimit - bracketLevel. The size constraint
+			// remains active throughout; there is no early exit to a string-length-only path
+			// because that would allow output to exceed maxSize.
 
 			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, output, level, squareBrackets, mark, writtenMark, digit, maxStringLength, truncateStringValueAsBytes, metrics);
 			

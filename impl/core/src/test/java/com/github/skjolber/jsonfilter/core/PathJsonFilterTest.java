@@ -24,7 +24,7 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 		}
 		@Override
 		protected CharArrayRangesFilter ranges(char[] chars, int offset, int length) {
-			return getCharArrayRangesFilter(length); // calls the 1-param version
+			return getCharArrayRangesFilter(length); // Delegates to the single-argument overload, which uses the full array length.
 		}
 		@Override
 		protected ByteArrayRangesFilter ranges(byte[] chars, int offset, int length) {
@@ -47,7 +47,7 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void exception_returns_false_with_metrics() throws Exception {
-		// AbstractRangesPathJsonFilter.process(char/byte, ..., JsonFilterMetrics) returns false on exception
+		// Processing invalid input with metrics tracking must return false rather than throw an exception.
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		FullPathJsonFilter filter = new FullPathJsonFilter(-1, new String[]{"/key"}, null);
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder(), metrics));

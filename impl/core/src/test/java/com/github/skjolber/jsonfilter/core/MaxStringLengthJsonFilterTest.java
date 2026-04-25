@@ -27,7 +27,7 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 
 	@Test
 	public void exception_returns_false_with_metrics() throws Exception {
-		// AbstractRangesJsonFilter.process(char/byte, ..., JsonFilterMetrics) returns false when ranges() returns null
+		// Processing invalid input with metrics tracking must return false rather than throw an exception.
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		assertFalse(new MaxStringLengthJsonFilter(10).process(new char[] {}, 1, 1, new StringBuilder(), metrics));
 		assertFalse(new MaxStringLengthJsonFilter(10).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));

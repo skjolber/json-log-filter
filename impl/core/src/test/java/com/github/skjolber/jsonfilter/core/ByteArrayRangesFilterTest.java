@@ -291,22 +291,14 @@ public class ByteArrayRangesFilterTest {
 
 	@Test
 	public void testScanQuotedValueScalarWithDoubleBackslashBeforeClose() {
-		// Line 487 in ByteArrayRangesFilter.scanQuotedValue:
-		//   `return scanEscapedValue(chars, i)` in the scalar tail when chars[i-1] == '\\'
-		// Need a SHORT byte array (no padding) so 16-byte and 8-byte loops are skipped.
-		// String "ab\\" = open + a + b + \ + \ + close = 6 bytes total.
-		// safeEnd8=6-8=-2, safeEnd16=6-16=-10 → both loops skipped → scalar loop used.
-		// Scalar: i goes 1,2,3,4,5(=close). chars[4]='\' → scanEscapedValue called (line 487).
+		// A short string ending with a double-backslash causes the scalar path to detect a backslash
+		// before the closing quote and hand off to the escaped-value scanner.
 		byte[] shortBuf = new byte[]{ '"', 'a', 'b', '\\', '\\', '"' };
 		int result = ByteArrayRangesFilter.scanQuotedValue(shortBuf, 0);
 		assertEquals(5, result); // closing " at index 5
 
-		// Lines 529-530 in ByteArrayRangesFilter.scanEscapedValue: `i += 8` in 8-byte scan
-		// Need a string where after escaped quote, the remaining content is 8+ bytes,
-		// so the 8-byte scan runs at least one iteration with i+=8 (no quote found).
-		// String: "aaaaaaa\"bbbbbbbbbb" (7 a's + \" + 10 b's + closing ")
-		// = 7 + 2 + 10 + 2 = 21 bytes. After \" at position 8-9: remaining "bbbbbbbbbb" + "
-		// is 11 bytes. 8-byte scan runs once with i+=8 before finding closing ".
+		// A string containing an escaped quote followed by enough content to exercise the
+		// bulk scan path within the escaped-value scanner.
 		String escapedContent = "aaaaaaa\\\"bbbbbbbbbb";
 		byte[] medBuf = ('"' + escapedContent + '"').getBytes(StandardCharsets.UTF_8);
 		int result2 = ByteArrayRangesFilter.scanQuotedValue(medBuf, 0);
@@ -315,11 +307,8 @@ public class ByteArrayRangesFilterTest {
 
 	@Test
 	public void testSkipObjectMaxStringLengthWithFalseValue() {
-		// Line 764-765 in ByteArrayRangesFilter.skipObjectMaxStringLength: case 'f' (false)
-		// Need to call skipObjectMaxStringLength with an object containing "false" value
-		// skipObjectMaxStringLength is package-private, so use it via a filter that calls it
+		// An object containing a JSON false value is skipped correctly when the string length limit is active.
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(100, 100);
-		// Directly test skipObjectMaxStringLength which contains case 'f'
 		byte[] json = "{\"flag\":false,\"other\":true}".getBytes(StandardCharsets.UTF_8);
 		int result = ByteArrayRangesFilter.skipObjectMaxStringLength(json, 1, 10, filter);
 		assertTrue(result > 0);
@@ -327,8 +316,7 @@ public class ByteArrayRangesFilterTest {
 
 	@Test
 	public void testWriteIntNegative() {
-		// getChars() is only invoked from writeInt(). Passing a negative value exercises
-		// the negative-number branch in getChars (lines 73-74, 97-98 in ByteArrayRangesFilter).
+		// Writing a negative integer to the output buffer must produce the correct sign and digits.
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
 		ResizableByteArrayOutputStream buffer = new ResizableByteArrayOutputStream(20);
 		filter.writeInt(buffer, -12345);
@@ -338,7 +326,7 @@ public class ByteArrayRangesFilterTest {
 
 	@Test
 	public void testAddMaxLengthNegativeLength() {
-		// addMaxLength() throws IllegalArgumentException for negative length (lines 203-204).
+		// Specifying a negative maximum string length must throw an IllegalArgumentException.
 		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
 		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
 			() -> filter.addMaxLength(new byte[10], 0, 5, -1));

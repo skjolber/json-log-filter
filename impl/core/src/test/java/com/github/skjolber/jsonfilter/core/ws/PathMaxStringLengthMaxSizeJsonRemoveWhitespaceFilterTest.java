@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
@@ -178,27 +179,29 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 	@Test
 	public void testAnonymizeObjectValueWithMaxSize() throws Exception {
-		// Triggers anonymizeObjectOrArrayMaxSize when matched path key has object/array value + maxSize active
+		// Anonymizing an object value at the matched path when maxSize is active must produce valid output.
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter;
-		String json = "{\"key2\":{\"a\":\"b\"},\"other\":\"data\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKey2NestedOther.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 50, -1, new String[]{"/key2"}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 
 		filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 50, -1, null, new String[]{"/key2"});
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 
-		// Triggers skipObjectOrArrayMaxSizeMaxStringLength for non-matched object sibling + maxSize
-		String json2 = "{\"key1\":\"v\",\"key2\":{\"n\":\"longlonglong\"}}";
+		// Skipping a non-matched sibling that contains a nested object, when both maxSize and string-length limits are active, must produce valid output.
+		byte[] json2Bytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKey1ShortKey2NestedLong.json"));
+		String json2 = new String(json2Bytes, StandardCharsets.UTF_8);
 		filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 50, -1, new String[]{"/key1"}, null);
 		assertNotNull(filter.process(json2.toCharArray(), 0, json2.length(), new StringBuilder()));
-		assertNotNull(filter.process(json2.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(json2Bytes));
 
 		filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 50, -1, null, new String[]{"/key1"});
 		assertNotNull(filter.process(json2.toCharArray(), 0, json2.length(), new StringBuilder()));
-		assertNotNull(filter.process(json2.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(json2Bytes));
 	}
 
 	@Test
@@ -214,7 +217,7 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		StringBuilder charOutput = new StringBuilder();
 		org.junit.jupiter.api.Assertions.assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream byteOutput = new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(128);
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		org.junit.jupiter.api.Assertions.assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
 
@@ -230,32 +233,34 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 	@Test
 	public void testProcessWithMatchAndMaxSize() throws Exception {
-		// Test processMaxSize path with a matching path and tight maxSize
-		// maxSize causes the filter to use MustConstrain branch
+		// Filtering a matched path with a tight maxSize constraint must produce valid output.
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, 30, -1, new String[]{"/key"}, null);
-		String json = "{\"key\":\"longvaluelongvalue\",\"other\":\"data\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKeyLongvaluelongvalueOther.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testProcessWithPruneAndMaxSize() throws Exception {
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, 30, -1, null, new String[]{"/key"});
-		String json = "{\"key\":\"longvaluelongvalue\",\"other\":\"data\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKeyLongvaluelongvalueOther.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testProcessMatchDoesNotFit() throws Exception {
-		// Very small maxSize where the match result doesn't fit
+		// Filtering a matched value when the output would exceed maxSize must produce valid output.
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 10, -1, new String[]{"/k"}, null);
-		String json = "{\"k\":\"longlongvalue\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKLonglongvalue.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
@@ -263,10 +268,11 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		// When the document is much smaller than maxSize, the filter delegates to the base path-filter without size constraints.
 		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 100, -1, new String[]{"/k"}, null);
-		String json = "{\"k\":\"value\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKValue.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8), 0, json.length(), new ResizableByteArrayOutputStream(128), metrics));
+		assertNotNull(filter.process(jsonBytes, 0, json.length(), new ResizableByteArrayOutputStream(128), metrics));
 	}
 
 	@Test
@@ -333,64 +339,70 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		// Verifies that keys with whitespace before the colon inside an anonymized subtree are handled correctly.
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 1000, -1, new String[]{"/k"}, null);
-		String json = "{\"k\":{\"a\"   :\"v\",\"b\":\"x\"}}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedWhitespaceSibling.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testAnonSubtreeScalarValueMaxSizeCap() throws Exception {
 		// Verifies that anonymizing a scalar value inside an object subtree where the size limit equals the document length is handled correctly.
-		String json = "{\"k\":{\"a\":123456789012345}}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedLongNumber.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = 17;
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testAnonSubtreeStringValueMaxSizeCap() throws Exception {
 		// Verifies that truncating a long string inside a skipped (non-matched) object subtree, where the size limit equals the document length, is handled correctly.
-		String json = "{\"target\":\"v\",\"skip\":{\"str\":\"verylongstringxx\"}}";
-		int maxSize = json.length(); // exact length so maxSizeLimit=maxReadLimit
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectTargetValueSkipNested.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+		int maxSize = json.length();
 
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, maxSize, -1, new String[]{"/target"}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testAnonSubtreeBreakLoopOnBracket() throws Exception {
 		// Verifies that a nested bracket inside an anonymized subtree that pushes the position past the size limit causes the filter to stop and truncate cleanly.
-		String json = "{\"k\":[[{\"v\":1}]]}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedArrayLevels.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = 11;
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testAnonSubtreeSquareBracketsAssignment() throws Exception {
 		// Verifies that an array nested inside an anonymized object subtree is handled correctly.
-		String json = "{\"k\":{\"arr\":[1,2,3],\"c\":\"v\"}}";
-		int maxSize = 1000; // large enough to avoid tight maxSize issues
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedObjectWithArray.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+		int maxSize = 1000;
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 @Test
 public void testAnonSubtreeWithInternalWhitespace() throws Exception {
 	// Verifies that whitespace inside an anonymized object value is handled correctly.
-	String json = "{\"k\":{ \"a\": \"value\" }}";
+	byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedWhitespaceValue.json"));
+	String json = new String(jsonBytes, StandardCharsets.UTF_8);
 	MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 		new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 1000, -1, new String[]{"/k"}, null);
 	assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-	assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+	assertNotNull(filter.process(jsonBytes));
 }
 
 	@Test
@@ -410,7 +422,7 @@ public void testAnonSubtreeWithInternalWhitespace() throws Exception {
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1, new String[]{path}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(128)));
+		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test
@@ -430,7 +442,7 @@ public void testAnonSubtreeWithInternalWhitespace() throws Exception {
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1, null, new String[]{path});
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(128)));
+		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128)));
 	}
 
 }

@@ -276,6 +276,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 								
 								int removedLength = getRemovedLength();
+								// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 								addAnon(offset, nextOffset);
 								maxSizeLimit += getRemovedLength() - removedLength;
 								
@@ -309,6 +310,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 								if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 									
 									int removedLength = getRemovedLength();
+									// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 									addAnon(offset, end);
 									maxSizeLimit += getRemovedLength() - removedLength;
 									
@@ -333,6 +335,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 					if(offset + getAnonymizeMessageLength() <= maxSizeLimit) {
 						
 						int removedLength = getRemovedLength();
+						// Anonymization shrinks the output, so the updated maxSizeLimit is always valid after addAnon.
 						addAnon(offset, nextOffset);
 						maxSizeLimit += getRemovedLength() - removedLength;
 						

@@ -58,14 +58,14 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 
 	@Test
 	public void testLiteralNewlineInString() throws Exception {
-		// literal \n (ASCII 10) inside a JSON string value - covers the newline replacement branch
+		// A literal newline character inside a JSON string value must be replaced with a space.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/newlineString/objectKeyNewline.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
-		// newline should be replaced with space
+		// The newline is replaced with a space so the output remains on a single line.
 		assertFalse(charOutput.toString().contains("\n"));
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
@@ -75,9 +75,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 
 	@Test
 	public void testEscapedQuoteAfterBackslash() throws Exception {
-		// JSON string ending with \\\" - backslash before quote
-		// "value\\\"" means the string ends with backslash+quote (where \" is escaped)
-		// This covers the even-number-of-slashes logic
+		// A string value ending with a backslash followed by an escaped quote is parsed correctly.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/newlineString/objectKeyEscapedQuote.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
@@ -115,9 +113,8 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 
 	@Test
 	public void testStringWithEscapedBackslashBeforeClosingQuote() throws Exception {
-		// Lines 79 (char) and 153 (byte): `break` when even number of backslashes before `"`
-		// JSON string value "\\\\" = string containing two backslashes: value ends with \\
-		// `chars[offset-1]='\'` triggers the chain. Two backslashes → count=2, 3%2=1 → break
+		// A string value ending with an even number of backslashes is correctly identified as
+		// a closed string — the final quote is not escaped.
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 		String json2 = "{\"key\":\"a\\\\\\\\\"}";
 		byte[] json2Bytes = json2.getBytes(StandardCharsets.UTF_8);
