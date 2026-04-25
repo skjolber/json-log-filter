@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
@@ -38,7 +39,8 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void testGetCharArrayRangesFilterOneParam() throws Exception {
 		TestAbstractRangesPathJsonFilter filter = new TestAbstractRangesPathJsonFilter();
-		String json = "{\"key\":\"value\"}";
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/simple/objectKeyValue.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), sb));
 	}

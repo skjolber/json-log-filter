@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -101,21 +103,21 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	@Test
 	public void testWithMetrics() throws Exception {
 		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(1000);
-		com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
-		String json = "{ \"key\" : \"value\" }";
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKeyValueSpaced.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
 
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
-		metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
+		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut, metrics));
 	}
 
 	@Test
 	public void testMetricsExceptionReturnsFalse() throws Exception {
 		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(100);
-		com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder(), metrics));
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}

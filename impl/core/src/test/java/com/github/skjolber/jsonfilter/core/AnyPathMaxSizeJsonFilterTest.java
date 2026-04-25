@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -160,8 +161,8 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void testPruneWithRemoveLastFilter() throws Exception {
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, null, new String[]{"//k"}, "X", "X", "X");
-		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLongN.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
 	}
@@ -170,8 +171,8 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void testAnonWithRemoveLastFilter() throws Exception {
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, new String[]{"//k"}, null, "X", "X", "X");
-		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLongN.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
 	}
