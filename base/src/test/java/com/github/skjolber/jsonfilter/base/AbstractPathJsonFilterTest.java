@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +50,9 @@ public class AbstractPathJsonFilterTest {
 				JsonFilterMetrics filterMetrics) {
 			return false;
 		}
+
+		public char[][] exposedToCharArray(String[] filters) { return toCharArray(filters); }
+		public byte[][] exposedToByteArray(String[] filters) { return toByteArray(filters); }
 	}
 	
 	@Test
@@ -349,5 +353,107 @@ public class AbstractPathJsonFilterTest {
 		
 		return b.toString();
 	}
-	
+
+	@Test
+	public void testHasAllAnyPrefixAllAny() {
+		assertTrue(AbstractPathJsonFilter.hasAllAnyPrefix(new String[]{"//a", "//b"}));
+		assertTrue(AbstractPathJsonFilter.hasAllAnyPrefix(new String[]{"$..a", "$..b"}));
+	}
+
+	@Test
+	public void testHasAllAnyPrefixMixed() {
+		assertFalse(AbstractPathJsonFilter.hasAllAnyPrefix(new String[]{"/a", "//b"}));
+	}
+
+	@Test
+	public void testHasAllAnyPrefixNone() {
+		assertFalse(AbstractPathJsonFilter.hasAllAnyPrefix(new String[]{"/a", "/b"}));
+	}
+
+	@Test
+	public void testRemoveAnyPrefixSlashes() {
+		assertEquals("abc", AbstractPathJsonFilter.removeAnyPrefix("//abc"));
+	}
+
+	@Test
+	public void testRemoveAnyPrefixDots() {
+		assertEquals(".abc", AbstractPathJsonFilter.removeAnyPrefix("$..abc"));
+	}
+
+	@Test
+	public void testRemoveAnyPrefixInvalid() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			AbstractPathJsonFilter.removeAnyPrefix("/abc");
+		});
+	}
+
+	@Test
+	public void testGetAnonymizeFilters() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a", "/b"}, null, "p", "a", "t");
+		assertThat(Arrays.asList(filter.getAnonymizeFilters())).containsExactly("//a", "/b");
+	}
+
+	@Test
+	public void testGetPruneFilters() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, null, new String[]{"//c", "/d"}, "p", "a", "t");
+		assertThat(Arrays.asList(filter.getPruneFilters())).containsExactly("//c", "/d");
+	}
+
+	@Test
+	public void testToCharArray() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a"}, null, "p", "a", "t");
+		char[][] result = filter.exposedToCharArray(new String[]{"abc", "def"});
+		assertNotNull(result);
+		assertEquals(2, result.length);
+		assertThat(new String(result[0])).isEqualTo("abc");
+		assertThat(new String(result[1])).isEqualTo("def");
+	}
+
+	@Test
+	public void testToByteArray() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a"}, null, "p", "a", "t");
+		byte[][] result = filter.exposedToByteArray(new String[]{"abc", "def"});
+		assertNotNull(result);
+		assertEquals(2, result.length);
+		assertThat(new String(result[0])).isEqualTo("abc");
+		assertThat(new String(result[1])).isEqualTo("def");
+	}
+
+	@Test
+	public void testToStringNotNull() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a"}, new String[]{"/b"}, "p", "a", "t");
+		assertNotNull(filter.toString());
+	}
+
+	@Test
+	public void testSplitDollarPrefix() {
+		// expression starting with '$' triggers the startsWith("$") branch in parse()
+		String[] parse1 = AbstractPathJsonFilter.parse("$.a.bc");
+		assertNull(parse1[0]);
+		assertEquals(parse1[1], "a");
+		assertEquals(parse1[2], "bc");
+	}
+
+	@Test
+	public void testToCharArrayWithNullElement() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a"}, null, "p", "a", "t");
+		char[][] result = filter.exposedToCharArray(new String[]{"abc", null, "def"});
+		assertNotNull(result);
+		assertEquals(3, result.length);
+		assertNotNull(result[0]);
+		assertNull(result[1]);
+		assertNotNull(result[2]);
+	}
+
+	@Test
+	public void testToByteArrayWithNullElement() {
+		MyAbstractPathJsonFilter filter = new MyAbstractPathJsonFilter(1, 5, new String[]{"//a"}, null, "p", "a", "t");
+		byte[][] result = filter.exposedToByteArray(new String[]{"abc", null, "def"});
+		assertNotNull(result);
+		assertEquals(3, result.length);
+		assertNotNull(result[0]);
+		assertNull(result[1]);
+		assertNotNull(result[2]);
+	}
+
 }

@@ -6,6 +6,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
+
 public class AbstractRangesFilterTest {
 
 	public class MyAbstractRangesFilter extends AbstractRangesFilter {
@@ -59,5 +61,56 @@ public class AbstractRangesFilterTest {
 		assertEquals(8, AbstractRangesFilter.lengthToDigits(10000000));
 		assertEquals(9, AbstractRangesFilter.lengthToDigits(100000000));
 		assertEquals(10, AbstractRangesFilter.lengthToDigits(1000000000));
+	}
+
+	@Test
+	public void testAddWithFilterTypePrune() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
+		filter.add(FilterType.PRUNE, 0, 1);
+		assertThat(filter.getFilterIndex()).isEqualTo(3);
+	}
+
+	@Test
+	public void testAddWithFilterTypeAnon() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
+		filter.add(FilterType.ANON, 2, 3);
+		assertThat(filter.getFilterIndex()).isEqualTo(3);
+	}
+
+	@Test
+	public void testAddWithFilterTypeDelete() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
+		int before = filter.getFilterIndex();
+		filter.add(FilterType.DELETE, 4, 5);
+		assertThat(filter.getFilterIndex()).isEqualTo(before);
+	}
+
+	@Test
+	public void testAddDelete() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
+		filter.addDelete(10, 20);
+		assertThat(filter.getFilterIndex()).isEqualTo(3);
+	}
+
+	@Test
+	public void testRemoveLastFilter() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1024);
+		filter.addAnon(0, 1);
+		filter.addPrune(2, 3);
+		assertThat(filter.getFilterIndex()).isEqualTo(6);
+		filter.removeLastFilter();
+		assertThat(filter.getFilterIndex()).isEqualTo(3);
+	}
+
+	@Test
+	public void testGetMaxOutputLength() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1000);
+		assertThat(filter.getMaxOutputLength()).isEqualTo(1000);
+	}
+
+	@Test
+	public void testGetRemovedLength() {
+		MyAbstractRangesFilter filter = new MyAbstractRangesFilter(1024, 1000);
+		assertThat(filter.getRemovedLength()).isEqualTo(0);
 	}
 }

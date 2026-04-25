@@ -39,6 +39,35 @@ public class StarMultiPathItemTest extends AbstractPathTest {
 		assertSame(star, item.matchPath(0, dBytes, 0, 1));
 	}
 
+	@Test
+	public void testLevelMismatch() {
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		SinglePathItem star = new SinglePathItem(2, "c", null);
+		StarMultiPathItem item = new StarMultiPathItem(Arrays.asList("a", "b"), 0, null);
+		item.setAny(star);
+		item.setNext(p, 0);
+		item.setNext(p, 1);
+
+		// level mismatch -> returns self
+		assertSame(item, item.matchPath(1, "a"));
+		assertSame(item, item.matchPath(1, aBytes, 0, 1));
+		assertSame(item, item.matchPath(1, aChars, 0, 1));
+	}
+
+	@Test
+	public void testEmptyKey() {
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		SinglePathItem star = new SinglePathItem(1, "x", null);
+		StarMultiPathItem item = new StarMultiPathItem(Arrays.asList("a", "b"), 0, null);
+		item.setAny(star);
+		item.setNext(p, 0);
+		item.setNext(p, 1);
+
+		// empty key -> slow path -> no match -> returns any
+		assertSame(star, item.matchPath(0, new byte[0], 0, 0));
+		assertSame(star, item.matchPath(0, new char[0], 0, 0));
+	}
+
 	/**
 	 * Verifies that a JSON Unicode escape sequence at any offset in a JSON key is matched
 	 * correctly, and that unrecognised encoded keys fall through to the wildcard item.
