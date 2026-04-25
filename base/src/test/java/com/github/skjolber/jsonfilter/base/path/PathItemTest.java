@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.base.path;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
@@ -83,6 +85,26 @@ public class PathItemTest extends AbstractPathTest {
 		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, cBytes, 0, 1).matchPath(2, fBytes, 0, 1).getType());
 		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, dBytes, 0, 1).matchPath(2, gBytes, 0, 1).getType());
 		assertNotNull(p1.matchPath(0, aBytes, 0, 1).matchPath(1, eBytes, 0, 1).matchPath(2, hBytes, 0, 1).getType());
+	}
+
+	@Test
+	public void testGetTypeOnEndPathItem() {
+		PathItem endItem = new EndPathItem(3, null, FilterType.ANON);
+		assertNotNull(endItem.getType());
+		assertEquals(FilterType.ANON, endItem.getType());
+	}
+
+	@Test
+	public void testHasTypeOnNonEndPathItem() {
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		assertFalse(p.hasType());
+	}
+
+	@Test
+	public void testGetTypeOnNonEndPathItem() {
+		// PathItem.getType() base method returns null; it is only overridden by EndPathItem
+		SinglePathItem p = new SinglePathItem(0, "a", null);
+		assertEquals(null, p.getType());
 	}
 
 }
