@@ -3,14 +3,10 @@ package com.github.skjolber.jsonfilter.core.ws;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
@@ -107,13 +103,13 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(1000);
 		com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
 		String json = "{ \"key\" : \"value\" }";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
 
-		byte[] jsonBytes2 = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
 		metrics = new com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics();
-		assertTrue(filter.process(jsonBytes2, 0, jsonBytes2.length, byteOut, metrics));
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut, metrics));
 	}
 
 	@Test
@@ -123,5 +119,6 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder(), metrics));
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}
+
 
 }

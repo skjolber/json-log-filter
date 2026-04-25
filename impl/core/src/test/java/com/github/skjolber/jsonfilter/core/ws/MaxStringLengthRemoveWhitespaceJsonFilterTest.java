@@ -2,14 +2,9 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
@@ -48,16 +43,13 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	@Test
 	public void testWhitespaceAroundColon() throws Exception {
 		// Long key + whitespace before/after colon triggers the whitespace-around-colon branches
-		// maxStringLength=3 means string >= 3 chars triggers processing
-		// "longkeyname" = 11 chars: triggers the key processing path
-		// Space before and after colon: triggers whitespace handling  
 		String json = "{\"longkeyname\"  :  \"value\",\"k\"  :  \"longvaluelongvalue\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
@@ -66,12 +58,12 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	public void testWhitespaceBeforeColonOnly() throws Exception {
 		// long key followed by whitespace THEN colon (no whitespace after colon)
 		String json = "{\"longkeyname\"  :\"value\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
@@ -80,13 +72,13 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	public void testWithMetrics() throws Exception {
 		// Test with non-null metrics to cover metrics branches
 		String json = "{\"key\":\"longvaluelongvalue\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, metrics));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, metrics));
@@ -97,12 +89,12 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 		// Long key with colon DIRECTLY after closing quote, then whitespace before value
 		// Covers the else-branch "was a key" path where nextOffset++ -> whitespace
 		String json = "{\"longlonglong\": \"longvaluelongvalue\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
@@ -112,14 +104,15 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 		// Long key with colon directly after, no whitespace - key length >= maxStringLength
 		// Covers the else-branch "was a key" path where nextOffset++ -> no whitespace
 		String json = "{\"longlonglong\":\"longvaluelongvalue\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
+
 
 }

@@ -3,13 +3,10 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
@@ -119,110 +116,70 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testNonStringValuesWithMaxSize() throws Exception {
-		// Test rangesAnyPathMaxSize with true/false/null/number values
-		MustContrainAnyPathMaxSizeJsonFilter filter;
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//boolKey"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//boolKey"}, null)).hasAnonymized("//boolKey").hasAnonymizeMetrics();
 
-		// true value
-		filter = new MustContrainAnyPathMaxSizeJsonFilter(200, -1, new String[]{"//boolKey"}, null);
-		String jsonTrue = "{\"boolKey\":true,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonTrue.toCharArray(), 0, jsonTrue.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonTrue.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSizeNull = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//nullKey"}, null);
+		assertThat(maxSizeNull, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//nullKey"}, null)).hasAnonymized("//nullKey").hasAnonymizeMetrics();
 
-		// null value
-		filter = new MustContrainAnyPathMaxSizeJsonFilter(200, -1, new String[]{"//nullKey"}, null);
-		String jsonNull = "{\"nullKey\":null,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonNull.toCharArray(), 0, jsonNull.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonNull.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSizeFalse = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//falseKey"}, null);
+		assertThat(maxSizeFalse, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//falseKey"}, null)).hasAnonymized("//falseKey").hasAnonymizeMetrics();
 
-		// false value
-		filter = new MustContrainAnyPathMaxSizeJsonFilter(200, -1, new String[]{"//falseKey"}, null);
-		String jsonFalse = "{\"falseKey\":false,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonFalse.toCharArray(), 0, jsonFalse.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonFalse.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSizeNum = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//numKey"}, null);
+		assertThat(maxSizeNum, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//numKey"}, null)).hasAnonymized("//numKey").hasAnonymizeMetrics();
 
-		// number value
-		filter = new MustContrainAnyPathMaxSizeJsonFilter(200, -1, new String[]{"//numKey"}, null);
-		String jsonNum = "{\"numKey\":12345,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonNum.toCharArray(), 0, jsonNum.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonNum.getBytes(StandardCharsets.UTF_8)));
-
-		// prune with non-string values
-		filter = new MustContrainAnyPathMaxSizeJsonFilter(200, -1, null, new String[]{"//boolKey"});
-		assertNotNull(filter.process(jsonTrue.toCharArray(), 0, jsonTrue.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonTrue.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSizePruneBool = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, null, new String[]{"//boolKey"});
+		assertThat(maxSizePruneBool, new AnyPathMaxSizeJsonFilter(-1, -1, null, new String[]{"//boolKey"})).hasPruned("//boolKey").hasPruneMetrics();
 	}
 
 	@Test
 	public void testPruneMessageDoesNotFit() throws Exception {
-		// When the prune message is larger than the remaining allowed size, the filter stops processing and truncates.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(10, -1, null, new String[]{"//k"});
-		String json = "{\"k\":\"longlonglongvalue\",\"next\":\"more\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, null, new String[]{"//k"});
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, null, new String[]{"//k"})).hasPruned("//k").hasPruneMetrics();
 	}
 
 	@Test
 	public void testAnonMessageDoesNotFit() throws Exception {
-		// Same as above but with anonymize path
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(10, -1, new String[]{"//k"}, null);
-		String json = "{\"k\":\"longlonglongvalue\",\"next\":\"more\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void testPruneObjectValueWithMaxSize() throws Exception {
-		// Prune where value is an object - tests skipObjectOrArray path
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(200, -1, null, new String[]{"//k"});
-		String json = "{\"k\":{\"nested\":\"value\"},\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, null, new String[]{"//k"});
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, null, new String[]{"//k"})).hasPruned("//k").hasPruneMetrics();
 	}
 
 	@Test
 	public void testAnonObjectValueWithMaxSize() throws Exception {
-		// Anonymize an object value
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(200, -1, new String[]{"//k"}, null);
-		String json = "{\"k\":{\"nested\":\"value\"},\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void testPruneWithRemoveLastFilter() throws Exception {
-		// After pruning, if the result exceeds the size limit, the filter removes the partial entry to stay within bounds.
 		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(
-				15, -1, null, new String[]{"//k"},
-				"X", "X", "X");
+			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, null, new String[]{"//k"}, "X", "X", "X");
 		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testAnonWithRemoveLastFilter() throws Exception {
-		// After anonymizing, if the cursor moves past the size limit, the filter removes the partial entry.
 		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(
-				15, -1, new String[]{"//k"}, null,
-				"X", "X", "X");
+			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, new String[]{"//k"}, null, "X", "X", "X");
 		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testMustConstrainFalseCallsSuper() throws Exception {
-		// When the document is much smaller than maxSize, the filter delegates to the base path-filter without size constraints.
-		AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(100000, -1, new String[]{"//k"}, null);
-		String json = "{\"k\":\"value\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
@@ -236,43 +193,26 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testPathMatchesExhaustedLargeMaxSize() throws Exception {
-		// When only one path match is allowed and the size limit covers the whole document, the filter switches to the unconstrained path after the match.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(500, 1, new String[]{"//k"}, null);
-		String json = "{\"k\":\"v1\",\"k\":\"v2\",\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, 1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, 1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void testPathMatchesExhaustedSmallMaxSize() throws Exception {
-		// When only one match is allowed and the size limit is tight, the filter switches to the size-constrained path after the match.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(15, 1, new String[]{"//k"}, null);
-		String json = "{\"k\":\"v\",\"other\":\"data and more data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, 1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, 1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void testMaxSizeLimitReachedAfterMatch() throws Exception {
-		// After the path match, removing the value makes the size limit cover the rest of the document, so the filter continues without the size constraint.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(500, -1, new String[]{"//k"}, null);
-		// large maxSize so after matching and removing, maxSizeLimit >= maxReadLimit
-		String json = "{\"k\":\"longlonglongvalue\",\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void testRangesMaxSizeBreakLoopOnOpenBracket() throws Exception {
-		// A nested bracket that takes the position past the size limit causes the filter to stop and truncate.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(23, 1, null, new String[]{"//k"});
-		String json = "{\"k\":\"verylongvalueXX\",\"n\":[1]}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, 1, null, new String[]{"//k"});
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, 1, null, new String[]{"//k"})).hasPruned("//k").hasPruneMetrics();
 	}
 
 	@Test
@@ -290,12 +230,9 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testAnonBreakLoopMessageTooLarge() throws Exception {
-		// When the anonymization replacement is too large to fit in the remaining allowed size, the filter stops and truncates.
-		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(8, -1, new String[]{"//k"}, null);
-		String json = "{\"k\":\"val\",\"other\":\"v\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
+		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
+
 
 }

@@ -4,12 +4,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
@@ -63,6 +59,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	public void testLiteralNewlineInString() throws Exception {
 		// literal \n (ASCII 10) inside a JSON string value - covers the newline replacement branch
 		String json = "{\"key\":\"value\nwith newline\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
 		StringBuilder charOutput = new StringBuilder();
@@ -70,7 +67,6 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 		// newline should be replaced with space
 		assertFalse(charOutput.toString().contains("\n"));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 		assertFalse(new String(byteOutput.toByteArray(), StandardCharsets.UTF_8).contains("\n"));
@@ -82,12 +78,12 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 		// "value\\\"" means the string ends with backslash+quote (where \" is escaped)
 		// This covers the even-number-of-slashes logic
 		String json = "{\"key\":\"value\\\\\\\"\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
@@ -96,13 +92,13 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	public void testWithMetrics() throws Exception {
 		// Test the metrics branch (when metrics != null) in both char and byte variants
 		String json = "{\"key\":\"value\nwith newline\",\"other\":\"data\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, metrics));
 
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, metrics));
@@ -122,15 +118,11 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 		// JSON string value "\\\\" = string containing two backslashes: value ends with \\
 		// `chars[offset-1]='\'` triggers the chain. Two backslashes → count=2, 3%2=1 → break
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
-		// Value is "ab\\" in JSON = ab\ in actual string (ends with backslash + closing quote)
-		// Actually need chars: "ab\\\\"  = 4 chars in string where offset at closing " has offset-1=\
-		// but we need TWO backslashes before the closing quote: "ab\\\\" means string = ab\\
-		String json = "{\"k\":\"ab\\\\\"}"; // JSON value "ab\\" = string ab\ (odd backslashes? No)
-		// Let's use: "a\\\\" = string a\\ (two backslashes)
-		// In Java source: "\"a\\\\\\\\\"" = "a\\\\" in JSON = a\\ actual
-		String json2 = "{\"key\":\"a\\\\\\\\\"}"; // "a\\\\" in JSON = a\\ actual string
+		String json2 = "{\"key\":\"a\\\\\\\\\"}";
+		byte[] json2Bytes = json2.getBytes(StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json2.toCharArray(), 0, json2.length(), new StringBuilder()));
-		assertNotNull(filter.process(json2.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(json2Bytes));
 	}
+
 
 }

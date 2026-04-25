@@ -1,13 +1,10 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
+import static org.junit.Assert.assertNotNull;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -39,12 +36,11 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
-	public void testGetCharArrayRangesFilterOneParam() {
-		// Covers AbstractRangesPathJsonFilter.getCharArrayRangesFilter(int)
+	public void testGetCharArrayRangesFilterOneParam() throws Exception {
 		TestAbstractRangesPathJsonFilter filter = new TestAbstractRangesPathJsonFilter();
+		String json = "{\"key\":\"value\"}";
 		StringBuilder sb = new StringBuilder();
-		filter.process("{\"key\":\"value\"}".toCharArray(), 0, 15, sb);
-		assertNotNull(sb.toString());
+		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), sb));
 	}
 
 	@Test
@@ -140,5 +136,6 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasPruned(DEEP_PATH3).hasPruneMetrics()
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();		
 	}
+
 
 }

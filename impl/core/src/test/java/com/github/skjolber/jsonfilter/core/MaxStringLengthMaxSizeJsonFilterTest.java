@@ -4,13 +4,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
-
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -95,11 +92,12 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		// A field name that is longer than maxStringLength is not truncated — only values are truncated.
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 20);
 		String json = "{\"longlongkey\":\"value\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		MustContrainMaxStringLengthMaxSizeJsonFilter filterB = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 22);
-		assertNotNull(filterB.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filterB.process(jsonBytes));
 	}
 
 	@Test
@@ -107,20 +105,23 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		// When a long value is truncated and the truncation message itself is longer than the remaining allowed size,
 		// the filter removes the last partial entry to stay within bounds.
 		String json = "{\"k\":\"abcdefg\",\"n\":\"v\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3,
 			json.length() - 1,
 			"\"***SKIPPED***\"", "\"***\"", "X".repeat(50));
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
 
 	@Test
 	public void testLongKeyWithWhitespaceBeforeColon() throws Exception {
 		// A long key followed by multiple whitespace characters before the colon is handled without truncating the key.
 		String json = "{\"longkey\"   :\"value\"}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, json.length() - 1);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
+		assertNotNull(filter.process(jsonBytes));
 	}
+
 
 }

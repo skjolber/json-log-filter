@@ -1,13 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
@@ -71,58 +66,18 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void anonymizeNonStringValuesWithPathMatches() throws Exception {
-		// Test rangesAnyPath with pathMatches: covers true/false/null/number value branches
-		AnyPathJsonFilter filter = new AnyPathJsonFilter(5, new String[]{"//boolKey"}, null);
-
-		// true value
-		String jsonTrue = "{\"boolKey\":true,\"boolKey\":true,\"boolKey\":true}";
-		assertNotNull(filter.process(jsonTrue.toCharArray(), 0, jsonTrue.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonTrue.getBytes(StandardCharsets.UTF_8)));
-
-		// null value
-		filter = new AnyPathJsonFilter(5, new String[]{"//nullKey"}, null);
-		String jsonNull = "{\"nullKey\":null,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonNull.toCharArray(), 0, jsonNull.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonNull.getBytes(StandardCharsets.UTF_8)));
-
-		// false value
-		filter = new AnyPathJsonFilter(5, new String[]{"//falseKey"}, null);
-		String jsonFalse = "{\"falseKey\":false,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonFalse.toCharArray(), 0, jsonFalse.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonFalse.getBytes(StandardCharsets.UTF_8)));
-
-		// number value
-		filter = new AnyPathJsonFilter(5, new String[]{"//numKey"}, null);
-		String jsonNum = "{\"numKey\":12345,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonNum.toCharArray(), 0, jsonNum.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonNum.getBytes(StandardCharsets.UTF_8)));
-
-		// object value
-		filter = new AnyPathJsonFilter(5, new String[]{"//objKey"}, null);
-		String jsonObj = "{\"objKey\":{\"inner\":\"val\"},\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonObj.toCharArray(), 0, jsonObj.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonObj.getBytes(StandardCharsets.UTF_8)));
+		assertThat(new AnyPathJsonFilter(5, new String[]{"//boolKey"}, null)).hasAnonymized("//boolKey").hasAnonymizeMetrics();
+		assertThat(new AnyPathJsonFilter(5, new String[]{"//nullKey"}, null)).hasAnonymized("//nullKey").hasAnonymizeMetrics();
+		assertThat(new AnyPathJsonFilter(5, new String[]{"//falseKey"}, null)).hasAnonymized("//falseKey").hasAnonymizeMetrics();
+		assertThat(new AnyPathJsonFilter(5, new String[]{"//numKey"}, null)).hasAnonymized("//numKey").hasAnonymizeMetrics();
+		assertThat(new AnyPathJsonFilter(5, new String[]{"//objKey"}, null)).hasAnonymized("//objKey").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void pruneNonStringValuesWithPathMatches() throws Exception {
-		// Prune with non-string values + pathMatches
-		AnyPathJsonFilter filter = new AnyPathJsonFilter(3, null, new String[]{"//boolKey"});
-		String json = "{\"boolKey\":true,\"boolKey\":false,\"boolKey\":null,\"other\":\"data\"}";
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(json.getBytes(StandardCharsets.UTF_8)));
-
-		// prune number
-		filter = new AnyPathJsonFilter(3, null, new String[]{"//numKey"});
-		String jsonNum = "{\"numKey\":42,\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonNum.toCharArray(), 0, jsonNum.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonNum.getBytes(StandardCharsets.UTF_8)));
-
-		// prune object
-		filter = new AnyPathJsonFilter(3, null, new String[]{"//objKey"});
-		String jsonObj = "{\"objKey\":{\"a\":1},\"other\":\"data\"}";
-		assertNotNull(filter.process(jsonObj.toCharArray(), 0, jsonObj.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonObj.getBytes(StandardCharsets.UTF_8)));
+		assertThat(new AnyPathJsonFilter(3, null, new String[]{"//boolKey"})).hasPruned("//boolKey").hasPruneMetrics();
+		assertThat(new AnyPathJsonFilter(3, null, new String[]{"//numKey"})).hasPruned("//numKey").hasPruneMetrics();
+		assertThat(new AnyPathJsonFilter(3, null, new String[]{"//objKey"})).hasPruned("//objKey").hasPruneMetrics();
 	}
 
 	@Test
@@ -140,5 +95,6 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 			new AnyPathJsonFilter(-1, new String[]{"//*"}, null);
 		});
 	}
+
 
 }
