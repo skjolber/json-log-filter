@@ -5,10 +5,10 @@ import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
@@ -30,6 +30,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 	}
 	
+	@Override
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(chars, offset, length, output, metrics);
@@ -40,12 +41,13 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
 	
+	@Override
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output, metrics);
@@ -56,12 +58,13 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
 	}
 	
+	@Override
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(maxSize >= length) {
 			return super.process(bytes, offset, length, output, metrics);
@@ -71,7 +74,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
@@ -103,7 +106,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			case END_OBJECT:
 				maxSize++;
 				break;
-			case FIELD_NAME:
+			case PROPERTY_NAME:
 				fieldName = parser.currentName();
 				continue;
 			case VALUE_STRING:
@@ -133,7 +136,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			}			
 
 			if(fieldName != null) {
-				generator.writeFieldName(fieldName);
+				generator.writeName(fieldName);
 				fieldName = null;
 			}
 
@@ -166,7 +169,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			accurateSize = 0;
 		}
 		
-		if(parser.getParsingContext().getCurrentIndex() >= 2) {
+		if(parser.streamReadContext().getCurrentIndex() >= 2) {
 			accurateSize++;
 		}
 		

@@ -12,7 +12,7 @@ public abstract class AbstractRangesFilter {
 	protected static final int FILTER_DELETE = 2;
 	protected static final int FILTER_MAX_LENGTH = 3;
 	
-	public static final String FILTER_PRUNE_MESSAGE = "PRUNED";
+	public static final String FILTER_PRUNE_MESSAGE = "[removed]";
 	public static final String FILTER_PRUNE_MESSAGE_JSON = '"' + FILTER_PRUNE_MESSAGE + '"';
 	
 	public static final String FILTER_ANONYMIZE = "*";

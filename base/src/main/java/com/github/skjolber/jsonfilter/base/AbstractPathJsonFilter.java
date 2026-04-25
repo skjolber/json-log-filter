@@ -58,8 +58,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
+			return true;
 		}
-		return true;
+		throw new IllegalArgumentException();
 	}
 
 	public static boolean hasAnyPrefix(String string) {
@@ -197,19 +198,19 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					// uXXXX
 					sourceOffset++;
 					
-					if(HC[ (attribute[attributeOffset] >> 12) & 0xF] != chars[sourceOffset] ) {
+					if(HC[ (attribute[attributeOffset] >> 12) & 0xF] != hexUpper(chars[sourceOffset]) ) {
 						return false;
 					}
 					sourceOffset++;
-					if(HC[ (attribute[attributeOffset] >> 8) & 0xF] != chars[sourceOffset] ) {
+					if(HC[ (attribute[attributeOffset] >> 8) & 0xF] != hexUpper(chars[sourceOffset]) ) {
 						return false;
 					}
 					sourceOffset++;
-					if(HC[ (attribute[attributeOffset] >> 4) & 0xF] != chars[sourceOffset] ) {
+					if(HC[ (attribute[attributeOffset] >> 4) & 0xF] != hexUpper(chars[sourceOffset]) ) {
 						return false;
 					}
 					sourceOffset++;
-					if(HC[ attribute[attributeOffset] & 0xF] != chars[sourceOffset] ) {
+					if(HC[ attribute[attributeOffset] & 0xF] != hexUpper(chars[sourceOffset]) ) {
 						return false;
 					}
 				} else {
@@ -285,11 +286,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[(b >> 4) & 0xF] != source[sourceOffset] ) {
+						if(HC[(b >> 4) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[b & 0xF] != source[sourceOffset] ) {
+						if(HC[b & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 					} else if ((b & 0xe0) == 0xc0) {
@@ -304,17 +305,17 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ (b >> 2) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (b >> 2) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						attributeOffset++;
 						byte b2 = attribute[attributeOffset];
 						sourceOffset++;
-						if(HC[ ((b2 >> 4) & 0x3) | (b << 2) & 0xC] != source[sourceOffset] ) {
+						if(HC[ ((b2 >> 4) & 0x3) | (b << 2) & 0xC] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ b2 & 0xF] != source[sourceOffset] ) {
+						if(HC[ b2 & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 					} else if ((b & 0xf0) == 0xe0) {
@@ -325,7 +326,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 						// 1110	 10	   10  xxxx
 						//
 						// FFFF
-						if(HC[b & 0xF] != source[sourceOffset] ) {
+						if(HC[b & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						
@@ -333,7 +334,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 						byte b2 = attribute[attributeOffset];
 						
 						sourceOffset++;
-						if(HC[ (b2 >> 2) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (b2 >> 2) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 
@@ -341,12 +342,12 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 						byte b3 = attribute[attributeOffset];
 
 						sourceOffset++;
-						if(HC[ ((b3 >> 4) & 0x3) | (b2 << 2) & 0xC] != source[sourceOffset] ) {
+						if(HC[ ((b3 >> 4) & 0x3) | (b2 << 2) & 0xC] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 
 						sourceOffset++;
-						if(HC[ b3 & 0xF] != source[sourceOffset] ) {
+						if(HC[ b3 & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 					} else if ((b & 0xf8) == 0xf0) {
@@ -376,19 +377,19 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 						 
 						char a = (char) (((value - 0x10000) >> 10) + 0xd800);
 						 
-						if(HC[ (a >> 12) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 12) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ (a >> 8) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 8) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ (a >> 4) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 4) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ a & 0xF] != source[sourceOffset] ) {
+						if(HC[ a & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						
@@ -410,19 +411,19 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 						a = (char) (((value - 0x10000) & 0x3ff) + 0xdc00);			 
 
 						sourceOffset++;
-						if(HC[ (a >> 12) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 12) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ (a >> 8) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 8) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ (a >> 4) & 0xF] != source[sourceOffset] ) {
+						if(HC[ (a >> 4) & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}
 						sourceOffset++;
-						if(HC[ a & 0xF] != source[sourceOffset] ) {
+						if(HC[ a & 0xF] != hexUpper(source[sourceOffset]) ) {
 							return false;
 						}						 
 					} else {
@@ -444,6 +445,11 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		return sourceOffset == end && attributeOffset == attribute.length;
 	}	
 	
+	/** Normalises a hex digit character to uppercase for case-insensitive comparison per RFC 8259. */
+	private static int hexUpper(int c) {
+		return (c >= 'a') ? (c ^ 32) : c;
+	}
+
 	protected static boolean isEscape(int c, int expected) {
 		switch(c) {
 			case '"' : return '"' == expected;

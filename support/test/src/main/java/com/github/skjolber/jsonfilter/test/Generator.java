@@ -3,12 +3,18 @@ package com.github.skjolber.jsonfilter.test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.json.JsonFactory;
+import com.github.skjolber.jsonfilter.test.jackson.PrettyPrintWriteContext;
 
 public class Generator {
 
-	private static JsonFactory factory = new JsonFactory();
+	private static JsonFactory factory = JsonFactory.builder()
+			.streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(Integer.MAX_VALUE).build())
+			.streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(Integer.MAX_VALUE).build())
+			.build();
 
 	public static byte[] generateDeepObjectStructure(int levels, boolean prettyPrint) throws IOException {
 		levels--;
@@ -16,18 +22,18 @@ public class Generator {
 		
 		JsonGenerator generator;
 		if(prettyPrint) {
-			generator = factory.createGenerator(bout).useDefaultPrettyPrinter();
+			generator = factory.createGenerator(PrettyPrintWriteContext.DEFAULT, bout);
 		} else {
 			generator = factory.createGenerator(bout);
 		}
 		try {			
 			generator.writeStartObject();
 			for(int i = 0; i < levels; i++) {
-				generator.writeFieldName("f" + i);
+				generator.writeName("f" + i);
 				generator.writeStartObject();
 			}
 
-			generator.writeStringField("deep", "value");
+			generator.writeStringProperty("deep", "value");
 
 			for(int i = 0; i < levels; i++) {
 				generator.writeEndObject();
@@ -47,7 +53,7 @@ public class Generator {
 
 		JsonGenerator generator;
 		if(prettyPrint) {
-			generator = factory.createGenerator(bout).useDefaultPrettyPrinter();
+			generator = factory.createGenerator(PrettyPrintWriteContext.DEFAULT, bout);
 		} else {
 			generator = factory.createGenerator(bout);
 		}
@@ -76,7 +82,7 @@ public class Generator {
 		
 		JsonGenerator generator;
 		if(prettyPrint) {
-			generator = factory.createGenerator(bout).useDefaultPrettyPrinter();
+			generator = factory.createGenerator(PrettyPrintWriteContext.DEFAULT, bout);
 		} else {
 			generator = factory.createGenerator(bout);
 		}
@@ -86,7 +92,7 @@ public class Generator {
 				if(i % 2 == 0) {
 					generator.writeStartObject();
 				} else {
-					generator.writeFieldName("f" + i);
+					generator.writeName("f" + i);
 					generator.writeStartArray();
 				}
 			}

@@ -4,10 +4,10 @@ import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
@@ -32,7 +32,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output);
+			return super.process(chars, offset, length, output, metrics);
 		}
 		output.ensureCapacity(output.length() + length);
 
@@ -40,7 +40,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
@@ -56,7 +56,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.length(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
@@ -71,7 +71,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.getOutputBuffered() + output.size(), metrics);
+			return process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size(), metrics);
 		} catch(final Exception e) {
 			return false;
 		}
@@ -117,7 +117,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 				default: // do nothing
 			}
 
-			if(nextToken == JsonToken.FIELD_NAME) {
+			if(nextToken == JsonToken.PROPERTY_NAME) {
 				String currentName = parser.currentName();
 				
 				boolean prune = false;
@@ -161,7 +161,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						}
 						
 						long size = currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong();
-						if(parser.getParsingContext().getCurrentIndex() >= 2) {
+						if(parser.streamReadContext().getCurrentIndex() >= 2) {
 							size++;
 						}
 
@@ -172,14 +172,14 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 							break;
 						}
 						
-						generator.writeFieldName(currentName);
+						generator.writeName(currentName);
 						generator.writeRawValue(message, 0, message.length);
 					} else {
 						// array or object
 						if(anon) {
 							
 							long size = currentName.length() + 4 + outputSizeSupplier.getAsLong();
-							if(parser.getParsingContext().getCurrentIndex() >= 2) {
+							if(parser.streamReadContext().getCurrentIndex() >= 2) {
 								size++;
 							}
 							
@@ -190,7 +190,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 								break;
 							}
 							
-							generator.writeFieldName(currentName);
+							generator.writeName(currentName);
 							generator.copyCurrentEvent(parser);
 							// keep structure, but mark all values
 							if(!anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, metrics)) {
@@ -198,7 +198,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 							}
 						} else {
 							long size = currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong();
-							if(parser.getParsingContext().getCurrentIndex() >= 2) {
+							if(parser.streamReadContext().getCurrentIndex() >= 2) {
 								size++;
 							}
 							
@@ -209,7 +209,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 								break;
 							}
-							generator.writeFieldName(currentName);
+							generator.writeName(currentName);
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
 							
 							parser.skipChildren(); // skip children
@@ -249,7 +249,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			}			
 
 			if(fieldName != null) {
-				generator.writeFieldName(fieldName);
+				generator.writeName(fieldName);
 				fieldName = null;
 			}
 
@@ -295,7 +295,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 				level--;
 				maxSize++;
 				break;
-			case FIELD_NAME: 
+			case PROPERTY_NAME: 
 				fieldName = parser.currentName();
 				continue;
 			case VALUE_STRING:
@@ -314,7 +314,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 				outputSize += fieldName.length() + 3;
 			}
 			
-			if(parser.getParsingContext().getCurrentIndex() >= 2) {
+			if(parser.streamReadContext().getCurrentIndex() >= 2) {
 				outputSize++;
 			}
 			
@@ -328,7 +328,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			}
 
 			if(fieldName != null) {
-				generator.writeFieldName(fieldName);
+				generator.writeName(fieldName);
 				fieldName = null;
 			}
 

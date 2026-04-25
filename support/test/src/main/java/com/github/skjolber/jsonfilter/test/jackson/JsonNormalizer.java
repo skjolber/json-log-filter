@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.io.CharTypes;
+import tools.jackson.core.io.CharTypes;
 
 /**
  * 
@@ -20,7 +20,7 @@ public class JsonNormalizer {
     private final static char BYTE_0 = '0';
     private final static char BYTE_BACKSLASH = '\\';
 
-    private final static char[] HEX_CHARS = CharTypes.copyHexChars();
+    private final static char[] HEX_CHARS = CharTypes.copyHexChars(true);
 
     public static String normalize(byte[] value) {
     	return normalize(new String(value, StandardCharsets.UTF_8));

@@ -52,6 +52,23 @@ public class AbstractJsonFilterTest {
 		}
 		
 	}
+
+	private static class FilterWithMaxSize extends AbstractJsonFilter {
+		public FilterWithMaxSize(int maxSize) {
+			super(0, maxSize, "p", "a", "t");
+		}
+		@Override
+		public boolean process(char[] chars, int offset, int length, StringBuilder output) { return false; }
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) { return false; }
+		@Override
+		public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics m) { return false; }
+		@Override
+		public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics m) { return false; }
+		public boolean testMustConstrain(int length) {
+			return mustConstrainMaxSize(length);
+		}
+	}
 	
 	@Test
 	public void testConstructor() throws IOException {
@@ -180,5 +197,117 @@ public class AbstractJsonFilterTest {
 		assertEquals(new String(byteArrayRangesFilter.pruneMessage), new String(filter.getPruneJsonValue()));
 		assertEquals(new String(byteArrayRangesFilter.truncateMessage), new String(filter.getTruncateStringValue()));
 	}
-*/	
+*/
+
+	@Test
+	public void testGetMaxSizeDefault() {
+		MyAbstractJsonFilter filter = new MyAbstractJsonFilter(-1, "p", "a", "t");
+		assertThat(filter.getMaxSize()).isEqualTo(Integer.MAX_VALUE);
+	}
+
+	@Test
+	public void testGetMaxStringLength() {
+		MyAbstractJsonFilter filter = new MyAbstractJsonFilter(50, "p", "a", "t");
+		assertThat(filter.getMaxStringLength()).isEqualTo(50);
+	}
+
+	@Test
+	public void testGetMaxStringLengthDefault() {
+		MyAbstractJsonFilter filter = new MyAbstractJsonFilter(-1, "p", "a", "t");
+		assertThat(filter.getMaxStringLength()).isGreaterThan(0);
+	}
+
+	@Test
+	public void testGetMaxSizeWithLimit() {
+		AbstractJsonFilter withSize = new AbstractJsonFilter(0, 100, "p", "a", "t") {
+			@Override
+			public boolean process(char[] chars, int offset, int length, StringBuilder output) { return false; }
+			@Override
+			public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) { return false; }
+			@Override
+			public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics m) { return false; }
+			@Override
+			public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics m) { return false; }
+		};
+		assertThat(withSize.getMaxSize()).isEqualTo(100);
+	}
+
+	@Test
+	public void testQuoteAsStringCharsWithTab() {
+		StringBuilder output = new StringBuilder();
+		char[] tabChar = new char[]{'\t'};
+		AbstractJsonFilter.quoteAsString(tabChar, 0, 1, output);
+		assertThat(output.toString()).isEqualTo("\\t");
+	}
+
+	@Test
+	public void testConvenienceMethodsWithMetrics() throws Exception {
+		AbstractJsonFilter mockFilter = getJsonFilterMockWithMetrics();
+		JsonFilterMetrics metrics = mock(JsonFilterMetrics.class);
+
+		when(mockFilter.process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class), any(JsonFilterMetrics.class))).thenReturn(true);
+		when(mockFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class), any(JsonFilterMetrics.class))).thenReturn(true);
+
+		// process(String, StringBuilder, JsonFilterMetrics)
+		assertThat(mockFilter.process("{}", new StringBuilder(), metrics)).isTrue();
+
+		// process(String, JsonFilterMetrics) via process(char[], JsonFilterMetrics)
+		assertNotNull(mockFilter.process("{}", metrics));
+
+		// process(byte[], int, int, JsonFilterMetrics)
+		assertNotNull(mockFilter.process(new byte[]{'{', '}'}, 0, 2, metrics));
+
+		// process(byte[], JsonFilterMetrics) - 2-param version
+		assertNotNull(mockFilter.process(new byte[]{'{', '}'}, metrics));
+	}
+
+	@Test
+	public void testConvenienceMethodsWithMetricsReturnNull() throws Exception {
+		AbstractJsonFilter mockFilter = getJsonFilterMockWithMetrics();
+		JsonFilterMetrics metrics = mock(JsonFilterMetrics.class);
+
+		// When underlying process returns false, the convenience methods should return null
+		when(mockFilter.process(any(char[].class), any(Integer.class), any(Integer.class), any(StringBuilder.class), any(JsonFilterMetrics.class))).thenReturn(false);
+		when(mockFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class), any(JsonFilterMetrics.class))).thenReturn(false);
+
+		// process(char[], JsonFilterMetrics) returns null when underlying returns false
+		assertNull(mockFilter.process("{}".toCharArray(), metrics));
+
+		// process(byte[], int, int, JsonFilterMetrics) returns null when underlying returns false
+		assertNull(mockFilter.process(new byte[]{'{', '}'}, 0, 2, metrics));
+	}
+
+
+	private AbstractJsonFilter getJsonFilterMockWithMetrics() throws IOException {
+		AbstractJsonFilter m = mock(AbstractJsonFilter.class);
+		when(m.process(any(String.class), any(StringBuilder.class), any(JsonFilterMetrics.class))).thenCallRealMethod();
+		when(m.process(any(String.class), any(JsonFilterMetrics.class))).thenCallRealMethod();
+		when(m.process(any(char[].class), any(JsonFilterMetrics.class))).thenCallRealMethod();
+		when(m.process(any(byte[].class), any(Integer.class), any(Integer.class), any(JsonFilterMetrics.class))).thenCallRealMethod();
+		when(m.process(any(byte[].class), any(JsonFilterMetrics.class))).thenCallRealMethod();
+		return m;
+	}
+
+	@Test
+	public void testMustConstrainMaxSize() {
+		FilterWithMaxSize filter = new FilterWithMaxSize(100);
+		assertTrue(filter.testMustConstrain(101));  // length > maxSize → true
+		assertFalse(filter.testMustConstrain(50));   // length <= maxSize → false
+		assertFalse(filter.testMustConstrain(100));  // length == maxSize → false
+	}
+
+	@Test
+	public void testQuoteAsStringCharsNoEscaping() {
+		// chars that don't need escaping - covers the 'return' in inner loop
+		StringBuilder output = new StringBuilder();
+		char[] noEscapeChars = new char[]{'a', 'b', 'c'};
+		AbstractJsonFilter.quoteAsString(noEscapeChars, 0, noEscapeChars.length, output);
+		assertThat(output.toString()).isEqualTo("abc");
+
+		// mixed: some chars need escaping, some don't
+		output.setLength(0);
+		char[] mixedChars = new char[]{'a', '"', 'b'};
+		AbstractJsonFilter.quoteAsString(mixedChars, 0, mixedChars.length, output);
+		assertThat(output.toString()).isEqualTo("a\\\"b");
+	}
 }

@@ -85,6 +85,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 		this.maxSize = length;
 	}
 	
+	public int getMaxSize() {
+		return maxSize;
+	}
 	
 	public int getMaxStringLength() {
 		return maxStringLength;
@@ -115,9 +118,10 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	public void setPrune(String ... filters) {
 		if(filters != null) {
 			AbstractPathJsonFilter.validatePruneExpressions(filters);
-		}
-		for(String filter : filters) {
-			this.pruneFilters.add(filter);
+			
+			for(String filter : filters) {
+				this.pruneFilters.add(filter);
+			}
 		}
 	}
 	
@@ -130,8 +134,9 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	public void setPrune(List<String> filters) {
 		if(filters != null) {
 			AbstractPathJsonFilter.validatePruneExpressions(filters);
+			
+			this.pruneFilters.addAll(filters);
 		}
-		this.pruneFilters.addAll(filters);
 	}
 	
 	public void addPrune(String filter) {
@@ -159,9 +164,10 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	public void setAnonymize(String ... filters) {
 		if(filters != null) {
 			AbstractPathJsonFilter.validateAnonymizeExpressions(filters);
-		}
-		for(String filter : filters) {
-			this.anonymizeFilters.add(filter);
+			
+			for(String filter : filters) {
+				this.anonymizeFilters.add(filter);
+			}
 		}
 	}
 	
@@ -173,11 +179,12 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	 */
 	
 	public void setAnonymize(List<String> filters) {
-		if(filters != null && !filters.isEmpty()) {
+		if(filters != null) {
 			AbstractPathJsonFilter.validateAnonymizeExpressions(filters);
-		}
-		for(String filter : filters) {
-			this.anonymizeFilters.add(filter);
+			
+			for(String filter : filters) {
+				this.anonymizeFilters.add(filter);
+			}
 		}
 	}
 	

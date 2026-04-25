@@ -52,11 +52,11 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		this.mark = mark;
 	}
 
-	public void setLimit(int limit) {
+	public void setMaxSizeLimit(int limit) {
 		this.limit = limit;
 	}
 	
-	public int getLimit() {
+	public int getMaxSizeLimit() {
 		return limit;
 	}
 
@@ -69,7 +69,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		int bracketLevel = getLevel();
 		int levelLimit = bracketLevel - 1;
 
-		int maxSizeLimit = getLimit();
+		int maxSizeLimit = getMaxSizeLimit();
 
 		boolean[] squareBrackets = getSquareBrackets();
 
@@ -226,7 +226,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		setFlushOffset(flushOffset);
 		setMark(mark);
 		setLevel(bracketLevel);
-		setLimit(maxSizeLimit);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}
@@ -235,7 +235,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		int levelLimit = getLevel() - 1;
 		int bracketLevel = getLevel();
 
-		int maxSizeLimit = getLimit();
+		int maxSizeLimit = getMaxSizeLimit();
 
 		boolean[] squareBrackets = getSquareBrackets();
 
@@ -410,7 +410,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 		setFlushOffset(flushOffset);
 		setMark(mark);
 		setLevel(bracketLevel);
-		setLimit(maxSizeLimit);
+		setMaxSizeLimit(maxSizeLimit);
 
 		return offset;
 	}

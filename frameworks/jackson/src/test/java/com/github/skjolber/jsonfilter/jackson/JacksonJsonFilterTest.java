@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
 
 public class JacksonJsonFilterTest {
 

@@ -4,11 +4,11 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Iterator;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.PrettyPrinter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.json.JsonFactory;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonItem;
 import com.github.skjolber.jsonfilter.test.pp.PrettyPrintTransformer;
 
@@ -72,22 +72,21 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 		
 		int level = 0;
 		try (
-			JsonGenerator generator = jsonFactory.createGenerator(bout);
+			JsonGenerator generator = jsonFactory.createGenerator(PrettyPrintWriteContext.of(prettyPrinter), bout);
 			StringReader bin = new StringReader(input);
 			JsonParser jsonParser = jsonFactory.createParser(bin);
 			) {
-			generator.setPrettyPrinter(prettyPrinter);
 			
 			int count = events;
 			while(jsonParser.nextToken() != null) {
 				generator.copyCurrentEvent(jsonParser);
-				if(jsonParser.getCurrentToken().isStructStart()) {
+				if(jsonParser.currentToken().isStructStart()) {
 					level++;
-				} else if(jsonParser.getCurrentToken().isStructEnd()) {
+				} else if(jsonParser.currentToken().isStructEnd()) {
 					level--;
 				}
 
-				if(jsonParser.getCurrentToken() != JsonToken.FIELD_NAME) {
+				if(jsonParser.currentToken() != JsonToken.PROPERTY_NAME) {
 					count--;
 					if(count == 0) {
 						generator.flush();
@@ -146,13 +145,13 @@ public class JsonCharSizeIterator implements Iterator<MaxSizeJsonItem> {
 			while(jsonParser.nextToken() != null) {
 				generator.copyCurrentEvent(jsonParser);
 				
-				if(jsonParser.getCurrentToken().isStructStart()) {
+				if(jsonParser.currentToken().isStructStart()) {
 					level++;
-				} else if(jsonParser.getCurrentToken().isStructEnd()) {
+				} else if(jsonParser.currentToken().isStructEnd()) {
 					level--;
 				}
 
-				if(jsonParser.getCurrentToken() != JsonToken.FIELD_NAME) {
+				if(jsonParser.currentToken() != JsonToken.PROPERTY_NAME) {
 					count--;
 					if(count == 0) {
 						generator.flush();

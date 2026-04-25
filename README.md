@@ -3,30 +3,71 @@
 [![codecov](https://codecov.io/gh/skjolber/json-log-filter/graph/badge.svg?token=8mCiHxVFbz)](https://codecov.io/gh/skjolber/json-log-filter)
 
 # json-log-filter
-High-performance filtering of JSON. Reads, filters and writes JSON in a single step - drastically increasing throughput. Typical use-cases:
+High-performance filtering of JSON. Reads, filters and writes JSON in a single pass — drastically increasing throughput compared to parse-then-serialize approaches.
 
-  * Filter sensitive values from logs (i.e. on request-/response-logging)
-     * technical details like passwords and so on
-     * sensitive personal information, for [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation) compliance and such
-  * Improve log readability, filtering
-     * large String elements like base64-encoded binary data, or
-     * whole JSON subtrees with low informational value
-  * Reduce amount of data sent to log accumulation tools
-    * lower cost
-    * potentially reduce search / visualization latency
-    * keep within max log-statement size
-       * GCP: [256 KB](https://cloud.google.com/logging/quotas)
-       * Azure: [64 KB](https://docs.azure.cn/en-us/azure-monitor/fundamentals/service-limits)
+## Quickstart
 
-Features:
+```java
+// One-liner — all filters are thread-safe, create once and reuse
+JsonFilter filter = DefaultJsonLogFilterBuilder.anonymizeKeys("ssn", "token");
 
- * Anonymize single values or whole subtrees
- * Remove whole subtrees
- * Limit text value size
- * Limit document size (skip end of document when max size is reached)
- * Remove whitespace
+String filtered = filter.process(inputJson);
+```
 
-The library contains multiple filter implementations as to accommodate combinations of the above features with as little overhead as possible. No external dependencies are required.
+Input:
+
+```json
+{
+  "user": {
+    "type": "member",
+    "ssn": "123-45-6789"
+  },
+  "auth": {
+    "token": "eyJhbGci..."
+  }
+}
+```
+
+Output:
+
+```json
+{
+  "user": {
+    "type": "member",
+    "ssn": "*"
+  },
+  "auth": {
+    "token": "*"
+  }
+}
+```
+
+> [!TIP]
+> Use [`newBuilder()`](#builder--multiple-filters-and-extra-options) when you need to combine filter types or set extra options.
+
+## Why json-log-filter?
+
+| Feature | **json-log-filter core** (trusted JSON) | **json-log-filter jackson** (untrusted JSON) | Jackson + Manual | Regex |
+|---|---|---|---|---|
+| **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐢 Full parse + serialize | 🐌 No structure awareness |
+| **Zero Dependencies** | ✅ | ❌ (Jackson) | ❌ (Jackson) | ✅ |
+| **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ⚠️ Extra lib | ❌ |
+| **Prune whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Max document size** | ✅ | ✅ | ❌ Manual | ❌ Manual |
+| **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ Manual |
+| **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
+
+> ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (`c` at any depth).
+
+Typical use-cases:
+- **Log sanitization**: strip passwords, tokens, and PII before writing to logs
+- **GDPR compliance**: anonymize personal data in request/response logging
+- **Log readability**: prune large base64 blobs or low-value subtrees
+- **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
+- **Safe structured logging**: selectively apply core/Jackson filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
+
+The library automatically selects the most efficient filter implementation for the configured combination of features. 
 
 Bugs, feature suggestions and help requests can be filed with the [issue-tracker].
 
@@ -99,125 +140,256 @@ api("com.github.skjolber.json-log-filter:jackson:${jsonLogFilterVersion}")
 </details>
 
 # Usage
-Use a `DefaultJsonLogFilterBuilder` to configure a filter instance (all filters are thread safe): 
+
+## One-liner factory methods
+
+For simple cases, create a ready-to-use filter in a single call.
+
+Use **varargs** when you know the field names up front:
 
 ```java
-JsonFilter filter = DefaultJsonLogFilterBuilder.createInstance()
-                       .withMaxStringLength(127) // cuts long texts
-                       .withAnonymize("$.customer.email") // inserts "*" for values
-                       .withPrune("$.customer.account") // removes whole subtree
-                       .withMaxSize(128*1024)
-                       .build();
-                       
-byte[] json = ...; // obtain JSON
+// Anonymize or prune fields by name at any depth
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys("password", "ssn", "token");
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys("appMeta", "diagnostics");
 
-String filtered = filter.process(json); // perform filtering                       
+// By precise JSONPath
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths("$.customer.email", "$..token");
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths("$.context.appMeta");
 ```
 
-### Max string sizes
-Configure max string length for output like
+Use **`Set.of(...)`** when you also need `maxStringLength` or `maxSize`:
 
+```java
+// Anonymize by name — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"));
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"), 256);              // truncate strings > 256 chars
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizeKeys(Set.of("password", "ssn"), 256, 128 * 1024);  // + cap output at 128 KB
+
+// Prune whole subtrees — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(Set.of("appMeta", "diagnostics"));
+JsonFilter f = DefaultJsonLogFilterBuilder.pruneKeys(Set.of("appMeta"), 256, 128 * 1024);
+
+// By JSONPath — with optional size limits
+JsonFilter f = DefaultJsonLogFilterBuilder.anonymizePaths(Set.of("$.customer.email"), 256);
+JsonFilter f = DefaultJsonLogFilterBuilder.prunePaths(Set.of("$.context.appMeta"), 256, 128 * 1024);
+```
+
+The same one-liners are available on `JacksonJsonLogFilterBuilder` for untrusted JSON — see the [Jackson module](#jackson-module) section.
+
+## Builder — multiple filters and extra options
+
+Use `newBuilder()` when you need to combine filter types, customize output text, or set size limits:
+
+```java
+JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
+    .withAnonymizeKeys("password", "ssn")         // any depth, by field name
+    .withAnonymizePaths("$.customer.email")       // precise path
+    .withPrunePaths("$.context.rawPayload")       // remove whole subtree
+    .withAnonymizeMessage("[redacted]")           // custom replacement text
+    .withMaxStringLength(256)                     // truncate long strings
+    .withMaxSize(128 * 1024)                      // limit output to 128 KB
+    .build();
+
+String filtered = filter.process(inputJson);
+```
+
+## Keys vs paths
+
+There are two ways to target fields:
+
+| Method | Input | Matches |
+|---|---|---|
+| `withAnonymizeKeys("password")` | bare field name | `password` at **any depth** |
+| `withAnonymizePaths("$.user.password")` | JSONPath expression | `password` only at that **exact path** |
+| `withPruneKeys("rawPayload")` | bare field name | `rawPayload` at **any depth** |
+| `withPrunePaths("$.context.rawPayload")` | JSONPath expression | only at that **exact path** |
+
+`withAnonymizeKeys("password")` is equivalent to `withAnonymizePaths("$..password")`.
+
+## Adding multiple path filters
+
+Multiple paths can be provided in one call, across several calls, or from a collection:
+
+```java
+// All in one call (varargs)
+builder.withAnonymizeKeys("ssn", "token")
+       .withPrunePaths("$.context.diagnostics", "$.internal.trace");
+
+// From a collection (List, Set, or any Collection<String>)
+Set<String> sensitiveKeys = loadSensitiveKeysFromConfig();
+builder.withAnonymizeKeys(sensitiveKeys);
+```
+
+## Anonymize (mask values)
+
+`withAnonymizeKeys(...)` and `withAnonymizePaths(...)` replace matching scalar values with `"*"`. For objects and arrays, all nested scalars are replaced recursively.
+
+Input:
 ```json
 {
-    "icon": "QUJDREVGR0hJSktMTU5PUFFSU1... + 46"
+  "username": "skjolber",
+  "name": "Thomas Skjølberg",
+  "credentials": {
+    "token": "abc123",
+    "key": "xyz789"
+  }
 }
 ```
 
-### anonymize (mask)
-Configure anonymize for output like
-
+After `.withAnonymizeKeys("name", "credentials")`:
 ```json
 {
-    "password": "*"
+  "username": "skjolber",
+  "fullName": "*",
+  "credentials": {
+    "token": "*",
+    "key": "*"
+  }
 }
 ```
 
-for scalar values, and/or for objects / arrays all contained scalar values:
+## Prune (remove subtrees)
 
+`withPruneKeys(...)` and `withPrunePaths(...)` remove entire values — scalars, objects, or arrays — replacing them with `"[removed]"`. The whole subtree is gone in a single replacement.
+
+A common use-case is pruning fields that are always the same across requests (e.g. static application metadata) so they don't waste log space on every request:
+
+Input:
 ```json
 {
-    "credentials": {
-        "username": "*",
-        "password": "*"
-    }
+  "request": {
+    "method": "POST",
+    "path": "/api/orders"
+  },
+  "appMeta": {
+    "version": "2.3.1",
+    "region": "eu-west-1",
+    "buildTime": "2026-01-15T08:30:00Z",
+    "dependencies": ["service-A", "service-B", "service-C"]
+  }
 }
 ```
 
-### Remove arrays or objects (prune subtrees) 
-Configure prune to turn input
-
+After `.withPruneKeys("appMeta")`:
 ```json
 {
-    "context": {
-        "boringData": {
-        ...
-        },
-        "staticData": [ ... ]
-    }
+  "request": {
+    "method": "POST",
+    "path": "/api/orders"
+  },
+  "appMeta": "[removed]"
 }
 ```
 
-to output like
+The entire `appMeta` object — including its nested array — is replaced by a single string token.
 
+## Truncate long strings
+
+`withMaxStringLength(n)` cuts string values that exceed `n` characters and appends a suffix indicating how many characters were omitted.
+
+Input:
 ```json
 {
-    "context": "PRUNED"
+  "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg=="
 }
 ```
 
-### Path syntax
-A simple syntax is supported, where each path segment corresponds to a `field name`. Expressions are case-sensitive. Supported syntax:
-
-    $.my.field.name
-
-with support for wildcards; 
-
-    $.my.field.*
-
-or a simple any-level field name search 
-
-    $..myFieldName
-
-The filters within this library support using multiple expressions at once. Note that path expressions are see through arrays.
-
-### Max path matches
-Configure max path matches; so that filtering stops after a number of matches. This means the __filter speed can be increased considerably if the number of matches is known to be a fixed number__; and will approach pass-through performance if those matches are in the beginning of the document.
-
-For example if the to-be filtered JSON document has a schema definition with a header + body structure, and the target value is in the header.   
-
-### Max size
-Configure max size to limit the size of the resulting document.
-
-### Metrics
-Pass in a `JsonFilterMetrics` argument to the `process` method like so:
-
-```
-JsonFilterMetrics myMetrics = new DefaultJsonFilterMetrics();
-String filtered = filter.process(json, myMetrics); // perform filtering
+After `.withMaxStringLength(32)`:
+```json
+{
+  "icon": "QUJDREVGR0hJSktMTU5PUFFSU1RVVl... + 46"
+}
 ```
 
-The resulting metrics could be logged as metadata alongside the JSON payload or passed to sensors like [Micrometer](https://micrometer.io/) for further processing, for example for
+## Customizing output text
 
- * Measuring the impact of the filtering, i.e. reduction in data size
- * Make sure filters are actually operating as intended
+The replacement text for all three operations can be overridden:
 
-### Request/response path module
-See the opt-in [path](impl/path) module for help facilitating per-path filters for request/response-logging applications. This to further improve performance.
+```java
+JsonFilter filter = DefaultJsonLogFilterBuilder.newBuilder()
+    .withAnonymizeKeys("password")
+    .withPruneKeys("debugContext")
+    .withAnonymizeMessage("[redacted]")   // default: "*"
+    .withPruneMessage("[skipped]")        // default: "[removed]"
+    .withTruncateMessage("…")             // default: "... + <count>"
+    .build();
+```
 
-### [Jackson] module
-The filters have also been implemented using [Jackson], in an opt-in module.
+Output:
+```json
+{
+  "password": "[redacted]",
+  "debugContext": "[skipped]"
+}
+```
+## Path syntax
 
- * filter + verify document structure in the same operation
- * allows dual filter setup:
-    * trusted (locally produced) JSON: fast filters without strict syntax validation
-    * untrusted (remotely produced) JSON: slower filter with strict syntax validation
+A simple syntax is supported where each path segment corresponds to a field name. Expressions are case-sensitive.
 
-Configure filters from `JacksonJsonLogFilterBuilder`.
+| Syntax | Description | Example |
+|---|---|---|
+| `$.a.b.c` | Exact path | `$.customer.email` |
+| `$.a.b.*` | Wildcard (any field at this level) | `$.customer.*` |
+| `$..fieldName` | Any-level search (all depths) | `$..password` |
+
+> [!NOTE]
+> Path expressions pass through arrays transparently — `$.items.price` matches `price` inside each element of the `items` array.
+
+Using full paths generally improves performance.
+
+## Max path matches
+
+`withMaxPathMatches(n)` stops path-based filtering after `n` matches. When the target field appears a known fixed number of times near the start of the document, this lets the filter skip the rest at near pass-through speed.
+
+```java
+// Stop after finding the single "jwt" field
+filter = DefaultJsonLogFilterBuilder.newBuilder()
+    .withAnonymizeKeys("jwt")
+    .withMaxPathMatches(1)
+    .build();
+```
+
+## Max size
+
+`withMaxSize(bytes)` limits the size of the output document. Content beyond the limit is dropped.
+
+## Metrics
+
+Pass a `JsonFilterMetrics` to `process` to measure filtering impact:
+
+```java
+JsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+String filtered = filter.process(inputJson, metrics);
+// log or forward metrics.getAnonymizeCount(), metrics.getPruneCount(), etc.
+```
+
+Useful for measuring data reduction;
+- Flagging that data has been removed
+- Feeding [Micrometer](https://micrometer.io/) counters
+
+## Request/response path module
+See the opt-in [path](impl/path) module for per-path filter selection in request/response-logging pipelines, for further performance gains.
+
+## [Jackson] module
+
+For **untrusted or externally produced JSON**, use `JacksonJsonLogFilterBuilder` instead. It validates document structure during filtering at the cost of some throughput.
+
+```java
+JsonFilter filter = JacksonJsonLogFilterBuilder.newBuilder()
+    .withAnonymizeKeys("password", "ssn")
+    .withPrunePaths("$.internal.debug")
+    .withAnonymizeMessage("[redacted]")
+    .build();
+```
+
+Typical dual-filter setup in a webserver:
+- Locally produced JSON → `DefaultJsonLogFilterBuilder` (fast, no validation)
+- Externally received JSON → `JacksonJsonLogFilterBuilder` (validates structure)
 
 ## Performance
-This project trades parser/serializer features for performance, and runs multiple times faster than a "traditional" parser/serializer approach (like when using [Jackson]). 
+This project trades parser/serializer features for performance, running multiple times faster than a traditional parse-then-serialize approach.
 
-See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/benchmark/jmh/results/jmh-results-5.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
@@ -228,13 +400,13 @@ Using SIMD for parsing JSON:
  
 Alternative JSON filters:
 
- * [json-masker](https://github.com/Breus/json-masker) (included in some of the benchmarks).
+ * [json-masker](https://github.com/Breus/json-masker) slightly different use-case, included in some of the benchmarks.
 
-[Apache 2.0]:			https://www.apache.org/licenses/LICENSE-2.0.html
-[issue-tracker]:		https://github.com/skjolber/json-log-filter/issues
-[Maven]:				https://maven.apache.org/
-[JMH]:					benchmark/jmh
-[xml-log-filter]:      	https://github.com/skjolber/xml-log-filter
-[High-performance]:		https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
-[Jackson]:				https://github.com/FasterXML/jackson-core
-[JSON]:					https://www.json.org/json-en.html
+[Apache 2.0]:						https://www.apache.org/licenses/LICENSE-2.0.html
+[issue-tracker]:				https://github.com/skjolber/json-log-filter/issues
+[Maven]:								https://maven.apache.org/
+[JMH]:									benchmark/jmh
+[xml-log-filter]:				https://github.com/skjolber/xml-log-filter
+[High-performance]:			https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/master/docs/benchmark/jmh-result.json&topBar=off
+[Jackson]:							https://github.com/FasterXML/jackson-core
+[JSON]:									https://www.json.org/json-en.html

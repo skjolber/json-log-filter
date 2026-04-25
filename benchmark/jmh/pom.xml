@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.skjolber.json-log-filter</groupId>
 		<artifactId>parent</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>6.0.1-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -19,10 +19,10 @@
 		<maven.compiler.target>17</maven.compiler.target>
 
 		<jmh.version>1.37</jmh.version>
-		<asm.version>9.9</asm.version>
+		<asm.version>9.9.1</asm.version>
 		<simdjson-java.version>0.4.0</simdjson-java.version>
 		<uberjar.name>benchmarks</uberjar.name>
-		<json-masker.version>1.1.2</json-masker.version>
+		<json-masker.version>1.1.4</json-masker.version>
 	</properties>
 
 	<dependencies>

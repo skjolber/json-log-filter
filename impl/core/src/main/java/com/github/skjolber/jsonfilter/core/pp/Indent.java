@@ -51,10 +51,6 @@ public class Indent {
 			return this;
 		}
 		
-		public Builder withoutLinebreak() {
-			return withLinebreak(LinebreakType.NONE);
-		}
-
 		public Builder withWindowsLinebreak() {
 			return withLinebreak(LinebreakType.CarriageReturnLineFeed);
 		}
@@ -190,9 +186,6 @@ public class Indent {
 	}
 	
 	public String asLinebreak() {
-		if(linebreakType != null) {
-			return linebreakType.characters;
-		}
-		return null;
+		return linebreakType.characters;
 	}
 }

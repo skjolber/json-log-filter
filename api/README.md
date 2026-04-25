@@ -12,9 +12,9 @@ JsonFilterFactory jsonFilterFactory = DefaultJsonFilterFactory.newInstance();
 
 ```xml
 <dependency>
-    <groupId>com.github.skjolber.xml-log-filter</groupId>
-    <artifactId>json-log-filter-api</artifactId>
-    <version>1.0.0</version>
+    <groupId>com.github.skjolber.json-log-filter</groupId>
+    <artifactId>api</artifactId>
+    <version>x.x.x</version>
 </dependency>
 ```
 

@@ -36,4 +36,50 @@ public abstract class PathItem {
 		return false;
 	}
 
+	protected static int[][] buildByteDispatch(byte[][] names) {
+		int[] count = new int[256];
+		for(byte[] name : names) {
+			if(name.length > 0) {
+				count[name[0] & 0xFF]++;
+			}
+		}
+		int[][] dispatch = new int[256][];
+		for(int b = 0; b < 256; b++) {
+			if(count[b] > 0) {
+				dispatch[b] = new int[count[b]];
+			}
+		}
+		int[] pos = new int[256];
+		for(int i = 0; i < names.length; i++) {
+			if(names[i].length > 0) {
+				int b = names[i][0] & 0xFF;
+				dispatch[b][pos[b]++] = i;
+			}
+		}
+		return dispatch;
+	}
+
+	protected static int[][] buildCharDispatch(char[][] names) {
+		int[] count = new int[256];
+		for(char[] name : names) {
+			if(name.length > 0) {
+				count[name[0] & 0xFF]++;
+			}
+		}
+		int[][] dispatch = new int[256][];
+		for(int b = 0; b < 256; b++) {
+			if(count[b] > 0) {
+				dispatch[b] = new int[count[b]];
+			}
+		}
+		int[] pos = new int[256];
+		for(int i = 0; i < names.length; i++) {
+			if(names[i].length > 0) {
+				int b = names[i][0] & 0xFF;
+				dispatch[b][pos[b]++] = i;
+			}
+		}
+		return dispatch;
+	}
+
 }

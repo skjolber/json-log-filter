@@ -59,10 +59,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 		return maxSizeLimit;
 	}
 
-	public char[] getTruncateString() {
-		return truncateMessage;
-	}
-
 	public int skipObjectOrArrayMaxSizeMaxStringLength(final char[] chars, int offset, int maxReadLimit, final StringBuilder buffer, int maxStringLength, JsonFilterMetrics metrics) {
 
 		int bracketLevel = getLevel();

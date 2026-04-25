@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.skjolber.json-log-filter</groupId>
 	<artifactId>parent</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+	<version>6.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>json-log-filter</name>
 	<description>Project for JSON filtering for logging purposes</description>
@@ -52,17 +52,17 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
-		<json-path.version>2.9.0</json-path.version>
+		<json-path.version>3.0.0</json-path.version>
 
 		<indent.version>1.0.0</indent.version>
-		<jackson.version>2.20.0</jackson.version>
+		<jackson.version>3.1.1</jackson.version>
 		<google-truth.version>1.4.5</google-truth.version>
-		<commons-io.version>2.20.0</commons-io.version>
+		<commons-io.version>2.21.0</commons-io.version>
 		<commons-codec.version>1.19.0</commons-codec.version>
 		<jimfs.version>1.3.1</jimfs.version>
-		<mockito.version>5.20.0</mockito.version>
-		<junit.version>6.0.0</junit.version>
-		<slf4j.version>2.0.7</slf4j.version>
+		<mockito.version>5.23.0</mockito.version>
+		<junit.version>6.0.3</junit.version>
+		<slf4j.version>2.0.17</slf4j.version>
 		<classgraph.version>4.8.184</classgraph.version>
 		<!-- plugins -->
 		<build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
@@ -119,12 +119,12 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
+				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
+				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
@@ -153,6 +153,12 @@
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-params</artifactId>
 				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
