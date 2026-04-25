@@ -289,7 +289,9 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 									mark = nextOffset;
 								} else {
 									maxSizeLimit -= getRemovedLength() - removedLength;
+									
 									removeLastFilter();
+									
 									break loop;
 								}
 							} else {
@@ -323,11 +325,12 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 									int removedLength = getRemovedLength();
 									addAnon(offset, end);
 									maxSizeLimit += getRemovedLength() - removedLength;
-
+	
 									if(end <= maxSizeLimit) {
 										mark = end;
 									} else {
 										maxSizeLimit -= getRemovedLength() - removedLength;
+										
 										removeLastFilter();
 										break loop;
 									}
@@ -358,6 +361,7 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 							mark = nextOffset;
 						} else {
 							maxSizeLimit -= getRemovedLength() - removedLength;
+
 							removeLastFilter();
 							break loop;
 						}
