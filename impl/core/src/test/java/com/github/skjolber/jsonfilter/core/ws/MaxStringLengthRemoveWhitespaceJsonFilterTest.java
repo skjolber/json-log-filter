@@ -44,7 +44,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	@Test
 	public void testWhitespaceAroundColon() throws Exception {
 		// Long key + whitespace before/after colon triggers the whitespace-around-colon branches
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLongKeyWhitespaceBothSides.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeyWhitespaceBothSides.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
@@ -58,7 +58,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	@Test
 	public void testWhitespaceBeforeColonOnly() throws Exception {
 		// long key followed by whitespace THEN colon (no whitespace after colon)
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLongKeyWhitespaceBefore.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeyWhitespaceBefore.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
@@ -72,7 +72,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	@Test
 	public void testWithMetrics() throws Exception {
 		// Test with non-null metrics to cover metrics branches
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKeyLongvaluelongvalue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKeyLongvaluelongvalue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
@@ -89,7 +89,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	public void testWhitespaceAfterColonOnly() throws Exception {
 		// Long key with colon DIRECTLY after closing quote, then whitespace before value
 		// Covers the else-branch "was a key" path where nextOffset++ -> whitespace
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLonglonglongSpaceAfter.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongSpaceAfter.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
@@ -104,7 +104,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	public void testLongKeyNoWhitespace() throws Exception {
 		// Long key with colon directly after, no whitespace - key length >= maxStringLength
 		// Covers the else-branch "was a key" path where nextOffset++ -> no whitespace
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLonglonglongNoSpace.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongNoSpace.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 

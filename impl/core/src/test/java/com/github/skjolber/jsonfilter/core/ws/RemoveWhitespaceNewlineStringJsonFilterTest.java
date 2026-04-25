@@ -59,7 +59,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	@Test
 	public void testLiteralNewlineInString() throws Exception {
 		// literal \n (ASCII 10) inside a JSON string value - covers the newline replacement branch
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/newlineString/objectKeyNewline.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/newlineString/objectKeyNewline.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
@@ -78,7 +78,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 		// JSON string ending with \\\" - backslash before quote
 		// "value\\\"" means the string ends with backslash+quote (where \" is escaped)
 		// This covers the even-number-of-slashes logic
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/newlineString/objectKeyEscapedQuote.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/newlineString/objectKeyEscapedQuote.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 
@@ -92,7 +92,7 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	@Test
 	public void testWithMetrics() throws Exception {
 		// Test the metrics branch (when metrics != null) in both char and byte variants
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/newlineString/objectKeyNewlineOther.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/newlineString/objectKeyNewlineOther.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();

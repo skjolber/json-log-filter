@@ -92,7 +92,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	public void testLongKeyIsNotTruncated() throws Exception {
 		// A field name that is longer than maxStringLength is not truncated — only values are truncated.
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 20);
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/maxSize/objectLongKeyValue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectLongKeyValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
@@ -105,7 +105,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	public void testLongValueRemoveLastFilter() throws Exception {
 		// When a long value is truncated and the truncation message itself is longer than the remaining allowed size,
 		// the filter removes the last partial entry to stay within bounds.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/maxSize/objectKAbcN.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKAbcN.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3,
 			jsonBytes.length - 1,
@@ -117,7 +117,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	@Test
 	public void testLongKeyWithWhitespaceBeforeColon() throws Exception {
 		// A long key followed by multiple whitespace characters before the colon is handled without truncating the key.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLongKeySpacedValue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeySpacedValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, jsonBytes.length - 1);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));

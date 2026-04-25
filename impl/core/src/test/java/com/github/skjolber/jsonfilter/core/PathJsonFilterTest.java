@@ -39,7 +39,7 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void testGetCharArrayRangesFilterOneParam() throws Exception {
 		TestAbstractRangesPathJsonFilter filter = new TestAbstractRangesPathJsonFilter();
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/simple/objectKeyValue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/single/objectKeyValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), sb));

@@ -161,7 +161,7 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void testPruneWithRemoveLastFilter() throws Exception {
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, null, new String[]{"//k"}, "X", "X", "X");
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLongN.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
@@ -171,7 +171,7 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void testAnonWithRemoveLastFilter() throws Exception {
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, new String[]{"//k"}, null, "X", "X", "X");
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLongN.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));

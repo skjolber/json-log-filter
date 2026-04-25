@@ -96,7 +96,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, DEFAULT_MAX_SIZE);
 
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKeyValueOtherSpaced.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKeyValueOtherSpaced.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		boolean result = filter.process(json.toCharArray(), 0, json.length(), sb);
@@ -125,7 +125,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		// When a closing bracket increases the size limit to exactly the document length, the filter transitions to the unconstrained path.
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 9);
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKV.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKV.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
@@ -137,7 +137,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainWhitespaceMaxSizeLimit() throws IOException {
 		// Skipping many whitespace characters can bring the remaining size limit up to the document length, causing the filter to transition to unconstrained processing.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKManySpacesV.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKManySpacesV.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 10);
@@ -151,7 +151,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainKeyWithWhitespaceBeforeColon() throws IOException {
 		// Whitespace before a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLonglonglongV.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongV.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 21);
@@ -166,7 +166,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	public void testMustConstrainKeyWithWhitespaceAfterColon() throws IOException {
 		// Long key (>= maxStringLength) with whitespace ONLY after colon
 		// {"longlonglong": "v"} = 22 chars, maxSize=21, maxStringLength=5
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLonglonglongVSpace.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongVSpace.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 21);
@@ -180,7 +180,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainBracketLevelGreaterThanZero() throws IOException {
 		// When the size limit is hit inside a nested structure, the filter exits with unmatched brackets and closes them before returning the truncated result.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKSpacedV.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKSpacedV.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 9);
@@ -194,7 +194,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainWithMetrics() throws IOException {
 		// Test the metrics branch in process(char/byte, ..., JsonFilterMetrics)
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKeyLongOtherSpaced.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKeyLongOtherSpaced.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 100);
@@ -211,7 +211,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainLongValueTruncated() throws IOException {
 		// A value longer than the string limit is truncated when the filter operates in size-constrained mode.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLongvalue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongvalue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, 1000);
@@ -225,7 +225,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testStreamMarkWithMultipleValues() throws Exception {
 		// After processing an earlier field, the stream mark is updated; a subsequent long value correctly picks up the updated mark position.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectK1K2K3.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectK1K2K3.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 100);
@@ -239,7 +239,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testValueMaxSizeLimitReached() throws Exception {
 		// Truncating a long value can make the remaining size limit cover the rest of the document, causing the filter to transition to unconstrained processing.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKLonglonglongvalue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLonglonglongvalue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(3, jsonBytes.length - 5);
@@ -252,7 +252,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMarkLimitFound() throws Exception {
 		// When the size limit is reached inside a nested structure, the filter correctly closes open brackets and returns a well-formed truncated result.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectK1V1K2V2K3V3.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectK1V1K2V2K3V3.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 18);
@@ -266,7 +266,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testKeyWhitespaceBeforeColonMaxSizeReached() throws Exception {
 		// Whitespace before a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectLonglonglongV3Spaces.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongV3Spaces.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, jsonBytes.length - 4);
@@ -280,7 +280,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testWhitespaceAtStartCausingMaxSizeLimitBranchWithValue() throws Exception {
 		// Whitespace after a key colon is skipped, and if doing so brings the size limit to the document length, the filter transitions to unconstrained processing.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKSpacedLonglonglong.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKSpacedLonglonglong.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, jsonBytes.length - 6);
@@ -311,7 +311,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testBracketLevelZeroAtLoopExit() throws Exception {
 		// When maxSize is zero the processing loop never runs, and the filter correctly returns an empty output.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/pathShortKey/objectKV.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKV.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
@@ -326,7 +326,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testWhitespaceAfterColonCausesMaxSizeLimitOverflow() throws Exception {
 		// Whitespace between a key colon and its value is skipped by the filter; this verifies the filter handles the case where doing so causes the remaining document to fit within the size limit.
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKSpacedLonglonglongvalue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKSpacedLonglonglongvalue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = jsonBytes.length - 3; // tight: loop processes until near end
 

@@ -104,7 +104,7 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	public void testWithMetrics() throws Exception {
 		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(1000);
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/cornercases/irregularWhitespace/objectKeyValueSpaced.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKeyValueSpaced.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
