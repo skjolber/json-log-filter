@@ -90,8 +90,6 @@ public class CharArrayWhitespaceSizeFilterTest {
 
 	@Test
 	public void testBaseClassGetMessageLengths() {
-		// Cover CharArrayWhitespaceFilter.getPruneMessageLength() and getAnonymizeMessageLength()
-		// on a direct base class instance (not subclass, since subclass overrides these)
 		CharArrayWhitespaceFilter baseFilter = new CharArrayWhitespaceFilter(
 			"prune".toCharArray(), "anon".toCharArray(), "trunc".toCharArray());
 		assertEquals(5, baseFilter.getPruneMessageLength());

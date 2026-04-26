@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -159,6 +160,7 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testPruneWithRemoveLastFilter() throws Exception {
+		// Exercises the "remove last filter" path when the pruned value pushes output beyond maxSize
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, null, new String[]{"//k"}, "X", "X", "X");
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));
@@ -169,6 +171,7 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testAnonWithRemoveLastFilter() throws Exception {
+		// Exercises the "remove last filter" path when the anonymized value pushes output beyond maxSize
 		MustContrainAnyPathMaxSizeJsonFilter filter =
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, new String[]{"//k"}, null, "X", "X", "X");
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));

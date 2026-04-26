@@ -127,7 +127,7 @@ public class JsonComparator {
 						break;
 					}
 					case VALUE_NUMBER_INT: {
-						if(expectedParser.getIntValue() != resultParser.getIntValue()) {
+						if(expectedParser.getLongValue() != resultParser.getLongValue()) {
 							return false;
 						}
 						break;
@@ -192,7 +192,7 @@ public class JsonComparator {
 						break;
 					}
 					case VALUE_NUMBER_INT: {
-						if(expectedParser.getIntValue() != resultParser.getIntValue()) {
+						if(expectedParser.getLongValue() != resultParser.getLongValue()) {
 							return false;
 						}
 						break;

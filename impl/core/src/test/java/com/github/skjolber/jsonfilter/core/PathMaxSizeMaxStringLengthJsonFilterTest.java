@@ -620,7 +620,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		// When the anonymization message for a scalar value inside a matched subtree does not fit in the remaining size budget, the filter truncates cleanly.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
 			new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 17, -1, new String[]{"/key"}, null);
-		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/nestedObject/objectKeyValTrue.json"));
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKeyNestedBool.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));

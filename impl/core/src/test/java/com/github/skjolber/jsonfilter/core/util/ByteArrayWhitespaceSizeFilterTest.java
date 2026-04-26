@@ -94,4 +94,11 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		assertSame(truncate, filter.getTruncateString());
 	}
 
+	@Test
+	public void testBaseClassGetMessageLengths() {
+		ByteArrayWhitespaceSizeFilter baseFilter = new ByteArrayWhitespaceSizeFilter(
+			"prune".getBytes(StandardCharsets.UTF_8), "anon".getBytes(StandardCharsets.UTF_8), "trunc".getBytes(StandardCharsets.UTF_8));
+		assertEquals(5, baseFilter.getPruneMessageLength());
+		assertEquals(4, baseFilter.getAnonymizeMessageLength());
+	}
 }

@@ -3,8 +3,10 @@ package com.github.skjolber.jsonfilter.core.pp;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
+
 import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -84,7 +86,7 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testWhitespaceInInput() throws Exception {
-		// Input JSON with structural whitespace - covers if(chars[offset] > 0x20) == false path
+		// Input JSON with structural whitespace — covers the `chars[offset] <= 0x20` path
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectKeyExtraSpaces.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
@@ -99,7 +101,7 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testEmptyArray() throws Exception {
-		// JSON with empty array [] - covers the empty-array shortcut in second switch
+		// JSON with empty array [] — covers the empty-array shortcut in the second switch
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyArray.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
@@ -114,7 +116,7 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testEmptyArrayWithWhitespace() throws Exception {
-		// JSON with empty array [ ] (space inside) - covers while loop in empty array detection
+		// JSON with empty array containing whitespace [ ] — covers the while loop in empty-array detection
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyArraySpace.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
@@ -129,14 +131,12 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testNonAsciiBytes() throws Exception {
-		// JSON with non-ASCII UTF-8 character - covers chars[offset] < 0 path in byte version
+		// JSON with non-ASCII UTF-8 character ('é') — covers the `chars[offset] < 0` path in the byte variant
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectKeyCafe.json"));
-		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
-		// The non-ASCII bytes ('é' = 0xC3 0xA9) should be written via the chars[offset] < 0 path
 		assertTrue(byteOutput.size() > 0);
 	}
 

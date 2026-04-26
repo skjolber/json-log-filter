@@ -165,7 +165,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	@Test
 	public void testMustConstrainKeyWithWhitespaceAfterColon() throws IOException {
 		// Long key (>= maxStringLength) with whitespace ONLY after colon
-		// {"longlonglong": "v"} = 22 chars, maxSize=21, maxStringLength=5
+		// {"longlonglong": "v"} = 21 chars, maxSize=21, maxStringLength=5
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongVSpace.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustConstrainMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
