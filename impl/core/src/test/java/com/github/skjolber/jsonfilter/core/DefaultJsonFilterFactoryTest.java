@@ -13,6 +13,12 @@ import com.github.skjolber.jsonfilter.JsonFilterFactoryProperty;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.core.AnyPathJsonFilter;
+import com.github.skjolber.jsonfilter.core.AnyPathMaxSizeJsonFilter;
+import com.github.skjolber.jsonfilter.core.FullPathJsonFilter;
+import com.github.skjolber.jsonfilter.core.MaxStringLengthMaxSizeJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathJsonFilter;
+import com.github.skjolber.jsonfilter.core.PathMaxSizeMaxStringLengthJsonFilter;
 
 public class DefaultJsonFilterFactoryTest {
 
@@ -465,5 +471,63 @@ public class DefaultJsonFilterFactoryTest {
 			factory.setProperty("", new Object());
 		});
 	}	
+
+	@Test
+	public void testAllAnyAnonAndAllAnyPrune() {
+		factory.setAnonymize("//abc");
+		factory.setPrune("//def");
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(AnyPathJsonFilter.class);
+	}
+
+	@Test
+	public void testAllAnyAnonAndAllAnyPruneMaxSize() {
+		factory.setAnonymize("//abc");
+		factory.setPrune("//def");
+		factory.setMaxSize(1024);
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(AnyPathMaxSizeJsonFilter.class);
+	}
+
+	@Test
+	public void testAllAnyAnonNonAnyPrune() {
+		factory.setAnonymize("//abc");
+		factory.setPrune("/def");
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(PathJsonFilter.class);
+	}
+
+	@Test
+	public void testAllAnyAnonNonAnyPruneMaxSize() {
+		factory.setAnonymize("//abc");
+		factory.setPrune("/def");
+		factory.setMaxSize(1024);
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(PathMaxSizeMaxStringLengthJsonFilter.class);
+	}
+
+	@Test
+	public void testRemoveWhitespaceOnly() {
+		factory.setRemoveWhitespace(true);
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(com.github.skjolber.jsonfilter.core.ws.RemoveWhitespaceJsonFilter.class);
+	}
+
+	@Test
+	public void testMaxStringLengthAndMaxSize() {
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(MaxStringLengthMaxSizeJsonFilter.class);
+	}
+
+	@Test
+	public void testMaxStringLengthMaxSizeWithRemoveWhitespace() {
+		factory.setMaxStringLength(123);
+		factory.setMaxSize(1024);
+		factory.setRemoveWhitespace(true);
+		com.github.skjolber.jsonfilter.JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.class);
+	}
 
 }

@@ -2,12 +2,9 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-
 import java.nio.charset.StandardCharsets;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
@@ -95,6 +92,13 @@ public class FullPathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasPruned(DEEP_PATH3).hasPruneMetrics()
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 
-	}	
+	}
+
+	@Test
+	public void testAnonymizeObjectValue() throws Exception {
+		assertThat(new FullPathJsonFilter(-1, new String[]{"/key"}, null)).hasAnonymized("/key").hasAnonymizeMetrics();
+		assertThat(new FullPathJsonFilter(-1, new String[]{"/a/key"}, null)).hasAnonymized("/a/key").hasAnonymizeMetrics();
+	}
+
 
 }

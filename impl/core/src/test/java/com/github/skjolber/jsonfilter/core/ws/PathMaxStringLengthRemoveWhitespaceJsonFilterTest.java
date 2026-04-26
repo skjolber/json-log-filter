@@ -2,8 +2,6 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 
-import java.io.ByteArrayOutputStream;
-
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -33,6 +31,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/k"}, null)).hasAnonymized("/k").hasAnonymizeMetrics();
 	}
 	
 	@Test
@@ -90,6 +89,24 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 			.hasMaxPathMatches(2)
 			.hasPruned("/key3").hasPruneMetrics()
 			.hasAnonymized("/key1").hasAnonymizeMetrics();
+	}
+
+	@Test
+	public void anonymizeWithShortPathAndMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null))
+			.hasAnonymized("/k").hasAnonymizeMetrics();
+	}
+
+	@Test
+	public void pruneWithShortPathAndMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, null, new String[]{"/k"}))
+			.hasPruned("/k").hasPruneMetrics();
+	}
+
+	@Test
+	public void anonymizeTopWithMaxStringLength() throws Exception {
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(5, -1, new String[]{"/top"}, null))
+			.hasAnonymized("/top").hasAnonymizeMetrics().hasMaxStringLengthMetrics();
 	}
 
 }

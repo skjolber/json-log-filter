@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
@@ -22,6 +23,14 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxStringLengthJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new MaxStringLengthJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_returns_false_with_metrics() throws Exception {
+		// Processing invalid input with metrics tracking must return false rather than throw an exception.
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertFalse(new MaxStringLengthJsonFilter(10).process(new char[] {}, 1, 1, new StringBuilder(), metrics));
+		assertFalse(new MaxStringLengthJsonFilter(10).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}
 
 	@Test

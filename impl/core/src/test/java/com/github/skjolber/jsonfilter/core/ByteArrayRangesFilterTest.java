@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 
 public class ByteArrayRangesFilterTest {
 
@@ -264,5 +266,70 @@ public class ByteArrayRangesFilterTest {
 			assertThat(b.toString()).isEqualTo(outputs[i]);
 		}
 	}
-	
+
+	@Test
+	public void testSkipArray() {
+		byte[] json = "[1,2,3]x".getBytes(StandardCharsets.UTF_8);
+		int end = ByteArrayRangesFilter.skipArray(json, 0);
+		assertEquals(7, end);
+
+		byte[] nested = "[[1,2],[3,4]]x".getBytes(StandardCharsets.UTF_8);
+		end = ByteArrayRangesFilter.skipArray(nested, 0);
+		assertEquals(13, end);
+	}
+
+	@Test
+	public void testSetSquareBrackets() {
+		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(-1, 100,
+			"prune".getBytes(StandardCharsets.UTF_8),
+			"anon".getBytes(StandardCharsets.UTF_8),
+			"trunc".getBytes(StandardCharsets.UTF_8));
+		boolean[] brackets = new boolean[]{true, false, true};
+		filter.setSquareBrackets(brackets);
+		assertSame(brackets, filter.getSquareBrackets());
+	}
+
+	@Test
+	public void testScanQuotedValueScalarWithDoubleBackslashBeforeClose() {
+		// A short string ending with a double-backslash causes the scalar path to detect a backslash
+		// before the closing quote and hand off to the escaped-value scanner.
+		byte[] shortBuf = new byte[]{ '"', 'a', 'b', '\\', '\\', '"' };
+		int result = ByteArrayRangesFilter.scanQuotedValue(shortBuf, 0);
+		assertEquals(5, result); // closing " at index 5
+
+		// A string containing an escaped quote followed by enough content to exercise the
+		// bulk scan path within the escaped-value scanner.
+		String escapedContent = "aaaaaaa\\\"bbbbbbbbbb";
+		byte[] medBuf = ('"' + escapedContent + '"').getBytes(StandardCharsets.UTF_8);
+		int result2 = ByteArrayRangesFilter.scanQuotedValue(medBuf, 0);
+		assertEquals(medBuf.length - 1, result2);
+	}
+
+	@Test
+	public void testSkipObjectMaxStringLengthWithFalseValue() {
+		// An object containing a JSON false value is skipped correctly when the string length limit is active.
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(100, 100);
+		byte[] json = "{\"flag\":false,\"other\":true}".getBytes(StandardCharsets.UTF_8);
+		int result = ByteArrayRangesFilter.skipObjectMaxStringLength(json, 1, 10, filter);
+		assertTrue(result > 0);
+	}
+
+	@Test
+	public void testWriteIntNegative() {
+		// Writing a negative integer to the output buffer must produce the correct sign and digits.
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
+		ResizableByteArrayOutputStream buffer = new ResizableByteArrayOutputStream(20);
+		filter.writeInt(buffer, -12345);
+		String result = buffer.toString(java.nio.charset.StandardCharsets.ISO_8859_1);
+		assertTrue(result.contains("-12345"));
+	}
+
+	@Test
+	public void testAddMaxLengthNegativeLength() {
+		// Specifying a negative maximum string length must throw an IllegalArgumentException.
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(10, 100);
+		org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+			() -> filter.addMaxLength(new byte[10], 0, 5, -1));
+	}
+
 }

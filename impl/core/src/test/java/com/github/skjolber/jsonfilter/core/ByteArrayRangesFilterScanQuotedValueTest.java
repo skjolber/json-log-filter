@@ -51,7 +51,7 @@ import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 class ByteArrayRangesFilterScanQuotedValueTest {
 
     // -------------------------------------------------------------------------
-    // Reference implementation (scalar baseline from master, pre-optimisation)
+    // Baseline reference implementation for verifying correctness of optimised variants.
     // -------------------------------------------------------------------------
 
     /** Verbatim copy of scanQuotedValue before the word-at-a-time optimisation. */

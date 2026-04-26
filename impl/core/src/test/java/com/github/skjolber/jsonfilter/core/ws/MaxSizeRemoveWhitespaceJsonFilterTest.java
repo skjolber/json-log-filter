@@ -2,20 +2,30 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-
-import java.io.ByteArrayOutputStream;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
 public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
+
+	private static class MustContrainMaxSizeRemoveWhitespaceJsonFilter extends MaxSizeRemoveWhitespaceJsonFilter {
+		public MustContrainMaxSizeRemoveWhitespaceJsonFilter(int maxSize) {
+			super(maxSize);
+		}
+		@Override
+		protected boolean mustConstrainMaxSize(int length) {
+			return true;
+		}
+	};
 
 	public MaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
 		super(false);
@@ -75,5 +85,45 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxSizeRemoveWhitespaceJsonFilter(size);
 		assertThat(maxSize, new RemoveWhitespaceJsonFilter()).hasMaxSize().hasMaxSizeMetrics();
 	}
+
+	@Test
+	public void testGrowSquareBrackets() throws Exception {
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x".repeat(500), false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(400);
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+	}
+
+	@Test
+	public void testWithMetrics() throws Exception {
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(1000);
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectKeyValueSpaced.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
+		assertEquals("{\"key\":\"value\"}", sb.toString());
+
+		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
+		metrics = new DefaultJsonFilterMetrics();
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut, metrics));
+		assertEquals("{\"key\":\"value\"}", byteOut.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testMetricsExceptionReturnsFalse() throws Exception {
+		MustContrainMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMaxSizeRemoveWhitespaceJsonFilter(100);
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertFalse(filter.process(new char[]{}, 1, 1, new StringBuilder(), metrics));
+		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
+	}
+
 
 }

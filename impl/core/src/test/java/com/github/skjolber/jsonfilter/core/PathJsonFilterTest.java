@@ -2,18 +2,59 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-
+import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
-
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
-
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class PathJsonFilterTest extends DefaultJsonFilterTest {
 
+	/**
+	 * A subclass that calls the 1-param getCharArrayRangesFilter(int) method
+	 * to cover the otherwise-unreachable method.
+	 */
+	private static class TestAbstractRangesPathJsonFilter extends AbstractRangesPathJsonFilter {
+		public TestAbstractRangesPathJsonFilter() {
+			super(-1, -1, -1, new String[]{"/key"}, null, "p", "a", "t");
+		}
+		@Override
+		protected CharArrayRangesFilter ranges(char[] chars, int offset, int length) {
+			return getCharArrayRangesFilter(length); // Delegates to the single-argument overload, which uses the full array length.
+		}
+		@Override
+		protected ByteArrayRangesFilter ranges(byte[] chars, int offset, int length) {
+			return null;
+		}
+	}
+
 	public PathJsonFilterTest() throws Exception {
 		super();
+	}
+
+	@Test
+	public void testGetCharArrayRangesFilterOneParam() throws Exception {
+		TestAbstractRangesPathJsonFilter filter = new TestAbstractRangesPathJsonFilter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/single/objectKeyValue.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals("{\"key\":\"value\"}", sb.toString());
+	}
+
+	@Test
+	public void exception_returns_false_with_metrics() throws Exception {
+		// Processing invalid input with metrics tracking must return false rather than throw an exception.
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		FullPathJsonFilter filter = new FullPathJsonFilter(-1, new String[]{"/key"}, null);
+		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder(), metrics));
+		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128), metrics));
 	}
 
 	@Test
@@ -100,5 +141,6 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 		.hasPruned(DEEP_PATH3).hasPruneMetrics()
 		.hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();		
 	}
+
 
 }

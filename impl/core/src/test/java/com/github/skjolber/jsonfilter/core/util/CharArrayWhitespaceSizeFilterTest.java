@@ -77,4 +77,20 @@ public class CharArrayWhitespaceSizeFilterTest {
 		int offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text.toCharArray(), 1, 20, builder, 1, null);
 		assertEquals(offset, text.length() - 4);
 	}
+
+	@Test
+	public void testGetMessageLengths() {
+		CharArrayWhitespaceSizeFilter filter = new CharArrayWhitespaceSizeFilter(
+			"prune".toCharArray(), "anon".toCharArray(), "trunc".toCharArray());
+		assertEquals(5, filter.getPruneMessageLength());
+		assertEquals(4, filter.getAnonymizeMessageLength());
+	}
+
+	@Test
+	public void testBaseClassGetMessageLengths() {
+		CharArrayWhitespaceFilter baseFilter = new CharArrayWhitespaceFilter(
+			"prune".toCharArray(), "anon".toCharArray(), "trunc".toCharArray());
+		assertEquals(5, baseFilter.getPruneMessageLength());
+		assertEquals(4, baseFilter.getAnonymizeMessageLength());
+	}
 }

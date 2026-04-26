@@ -179,14 +179,13 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						}
 						
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
-						}
-						
-						if(maxSizeLimit >= maxReadLimit) {
-							// filter only for max string length
-							filter.setLevel(0);
-							
-							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							// The remaining input is small enough that it cannot push the output over maxSize.
+							// Delegate the rest to the string-length-only filter, which is simpler and faster.
+							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							filter.setLevel(bracketLevel);
+							filter.setMark(nextOffset);
+							filter.setMaxSizeLimit(maxSizeLimit);
+							return maxReadLimit;
 						}
 					}
 					mark = nextOffset;
@@ -288,14 +287,13 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						}
 						
 						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
-						}
-						
-						if(maxSizeLimit >= maxReadLimit) {
-							// filter only for max string length
-							filter.setLevel(0);
-							
-							return ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							// The remaining input is small enough that it cannot push the output over maxSize.
+							// Delegate the rest to the string-length-only filter, which is simpler and faster.
+							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
+							filter.setLevel(bracketLevel);
+							filter.setMark(nextOffset);
+							filter.setMaxSizeLimit(maxSizeLimit);
+							return maxReadLimit;
 						}
 						
 						mark = nextOffset;

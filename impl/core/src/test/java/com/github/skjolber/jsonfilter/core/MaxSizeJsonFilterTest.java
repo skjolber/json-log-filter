@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -86,6 +87,21 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void maxSize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
+	}
+
+	@Test
+	public void testGrowSquareBrackets() throws Exception {
+		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
+		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.
+		byte[] jsonBytes = Generator.generateDeepObjectStructure(35, "x".repeat(500), false);
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		MustContrainMaxSizeJsonFilter filter = new MustContrainMaxSizeJsonFilter(400);
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), output));
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(512);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
 	}
 
 }
