@@ -322,6 +322,8 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 									if(end <= maxSizeLimit) {
 										mark = end;
 									} else {
+										maxSizeLimit -= getRemovedLength() - removedLength;
+
 										removeLastFilter();
 										break loop;
 									}
@@ -351,6 +353,8 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 						if(nextOffset <= maxSizeLimit) {
 							mark = nextOffset;
 						} else {
+							maxSizeLimit -= getRemovedLength() - removedLength;
+
 							removeLastFilter();
 							break loop;
 						}
