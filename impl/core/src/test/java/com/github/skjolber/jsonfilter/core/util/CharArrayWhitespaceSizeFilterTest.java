@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
-
 public class CharArrayWhitespaceSizeFilterTest {
 	
 	@Test

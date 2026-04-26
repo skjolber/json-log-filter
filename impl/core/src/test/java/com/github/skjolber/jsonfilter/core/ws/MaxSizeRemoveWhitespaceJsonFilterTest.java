@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -108,10 +109,12 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
+		assertEquals("{\"key\":\"value\"}", sb.toString());
 
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut, metrics));
+		assertEquals("{\"key\":\"value\"}", byteOut.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test

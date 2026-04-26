@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -94,11 +95,17 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 20);
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectLongKeyValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
+		StringBuilder charOutput1 = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput1));
+		assertEquals("{}", charOutput1.toString());
 		assertFalse(filter.process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
+		StringBuilder charOutput2 = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput2));
+		assertEquals("{}", charOutput2.toString());
 		MustContrainMaxStringLengthMaxSizeJsonFilter filterB = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, 22);
-		assertNotNull(filterB.process(jsonBytes));
+		byte[] byteResult = filterB.process(jsonBytes);
+		assertNotNull(byteResult);
+		assertEquals("{}", new String(byteResult, StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -110,8 +117,12 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3,
 			jsonBytes.length - 1,
 			"\"***SKIPPED***\"", "\"***\"", "X".repeat(50));
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes));
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"k\":\"abcdefg\"}", charOutput.toString());
+		byte[] byteResult = filter.process(jsonBytes);
+		assertNotNull(byteResult);
+		assertEquals("{\"k\":\"abcdefg\"}", new String(byteResult, StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -120,8 +131,12 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeySpacedValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, jsonBytes.length - 1);
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes));
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"longkey\"   :\"value\"}", charOutput.toString());
+		byte[] byteResult2 = filter.process(jsonBytes);
+		assertNotNull(byteResult2);
+		assertEquals("{}", new String(byteResult2, StandardCharsets.UTF_8));
 	}
 
 

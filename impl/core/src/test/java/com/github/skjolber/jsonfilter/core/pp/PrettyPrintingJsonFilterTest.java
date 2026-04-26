@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core.pp;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -93,10 +94,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
-		assertTrue(charOutput.toString().contains("key"));
+		assertEquals("{\n  \"key\": \"value\"\n}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"key\": \"value\"\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -108,10 +110,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
-		assertTrue(charOutput.toString().contains("[]"));
+		assertEquals("{\n  \"arr\": []\n}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"arr\": []\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -123,10 +126,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
-		assertTrue(charOutput.toString().contains("[]"));
+		assertEquals("{\n  \"arr\": []\n}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"arr\": []\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -137,7 +141,7 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
-		assertTrue(byteOutput.size() > 0);
+		assertEquals("{\n  \"key\": \"caf\u00e9\"\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 

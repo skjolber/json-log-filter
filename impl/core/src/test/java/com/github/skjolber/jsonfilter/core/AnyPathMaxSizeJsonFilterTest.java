@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -165,8 +166,12 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, null, new String[]{"//k"}, "X", "X", "X");
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes));
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"k\":X,\"n\":\"v\"}", charOutput.toString());
+		byte[] byteResult = filter.process(jsonBytes);
+		assertNotNull(byteResult);
+		assertEquals("{\"k\":X,\"n\":\"v\"}", new String(byteResult, StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -176,8 +181,12 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 			new MustContrainAnyPathMaxSizeJsonFilter(15, -1, new String[]{"//k"}, null, "X", "X", "X");
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongN.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes));
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"k\":X,\"n\":\"v\"}", charOutput.toString());
+		byte[] byteResult = filter.process(jsonBytes);
+		assertNotNull(byteResult);
+		assertEquals("{\"k\":X,\"n\":\"v\"}", new String(byteResult, StandardCharsets.UTF_8));
 	}
 
 	@Test

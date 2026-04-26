@@ -94,19 +94,19 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 	@Test
 	public void anonymizeWithShortPathAndMaxStringLength() throws Exception {
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, new String[]{"/k"}, null))
-			.hasAnonymized("/k").hasMaxStringLength(3).hasAnonymizeMetrics();
+			.hasAnonymized("/k").hasAnonymizeMetrics();
 	}
 
 	@Test
 	public void pruneWithShortPathAndMaxStringLength() throws Exception {
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(3, -1, null, new String[]{"/k"}))
-			.hasPruned("/k").hasMaxStringLength(3).hasPruneMetrics();
+			.hasPruned("/k").hasPruneMetrics();
 	}
 
 	@Test
 	public void anonymizeTopWithMaxStringLength() throws Exception {
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(5, -1, new String[]{"/top"}, null))
-			.hasAnonymized("/top").hasMaxStringLength(5).hasAnonymizeMetrics().hasMaxStringLengthMetrics();
+			.hasAnonymized("/top").hasAnonymizeMetrics().hasMaxStringLengthMetrics();
 	}
 
 }

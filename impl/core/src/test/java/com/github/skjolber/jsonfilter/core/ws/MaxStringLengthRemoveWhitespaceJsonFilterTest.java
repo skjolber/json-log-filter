@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -43,35 +44,43 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 
 	@Test
 	public void testWhitespaceAroundColon() throws Exception {
-		// Long key + whitespace before/after colon triggers the whitespace-around-colon branches
+		// Long key + whitespace before/after colon triggers the whitespace-around-colon branches.
+		// "value" (5 chars) is not truncated because the truncation message would be longer than
+		// the original. "longvaluelongvalue" (18 chars) is truncated to "lon... + 15".
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeyWhitespaceBothSides.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"longkeyname\":\"value\",\"k\":\"lon... + 15\"}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+		assertEquals("{\"longkeyname\":\"value\",\"k\":\"lon... + 15\"}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testWhitespaceBeforeColonOnly() throws Exception {
-		// long key followed by whitespace THEN colon (no whitespace after colon)
+		// Long key followed by whitespace then colon (no whitespace after colon).
+		// "value" (5 chars) is not truncated because the truncation message would be longer than the original.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeyWhitespaceBefore.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"longkeyname\":\"value\"}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+		assertEquals("{\"longkeyname\":\"value\"}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testWithMetrics() throws Exception {
-		// Test with non-null metrics to cover metrics branches
+		// Metrics branches are covered; "longvaluelongvalue" (18 chars) exceeds maxStringLength=3
+		// and is truncated to "lon... + 15" (saving space compared to the original).
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKeyLongvaluelongvalue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
@@ -79,40 +88,46 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, metrics));
+		assertEquals("{\"key\":\"lon... + 15\"}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, metrics));
+		assertEquals("{\"key\":\"lon... + 15\"}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testWhitespaceAfterColonOnly() throws Exception {
-		// Long key with colon DIRECTLY after closing quote, then whitespace before value
-		// Covers the else-branch "was a key" path where nextOffset++ -> whitespace
+		// Long key with colon directly after its closing quote, then whitespace before the value.
+		// "longvaluelongvalue" (18 chars) is truncated to "lon... + 15".
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongSpaceAfter.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"longlonglong\":\"lon... + 15\"}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+		assertEquals("{\"longlonglong\":\"lon... + 15\"}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testLongKeyNoWhitespace() throws Exception {
-		// Long key with colon directly after, no whitespace - key length >= maxStringLength
-		// Covers the else-branch "was a key" path where nextOffset++ -> no whitespace
+		// Long key with colon directly after (no whitespace anywhere).
+		// "longvaluelongvalue" (18 chars) is truncated to "lon... + 15".
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLonglonglongNoSpace.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		MaxStringLengthRemoveWhitespaceJsonFilter filter = new MaxStringLengthRemoveWhitespaceJsonFilter(3);
 
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		assertEquals("{\"longlonglong\":\"lon... + 15\"}", charOutput.toString());
 
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+		assertEquals("{\"longlonglong\":\"lon... + 15\"}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 

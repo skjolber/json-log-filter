@@ -3,6 +3,8 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -42,7 +44,8 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/single/objectKeyValue.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		StringBuilder sb = new StringBuilder();
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals("{\"key\":\"value\"}", sb.toString());
 	}
 
 	@Test
