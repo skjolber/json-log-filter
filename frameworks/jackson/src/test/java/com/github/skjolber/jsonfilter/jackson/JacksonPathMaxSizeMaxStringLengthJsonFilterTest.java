@@ -1,5 +1,8 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -190,6 +193,99 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				}
 			}			
 		);
-	}	
+	}
+
+	@Test
+	public void testProcessByteArrayToStringBuilderPassthrough() throws Exception {
+		// When maxSize >= input length, process(byte[], StringBuilder) delegates to super via mustConstrainMaxSize
+		byte[] json = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, null, null);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json, 0, json.length, sb, null));
+		assertEquals("{}", sb.toString());
+	}
+
+	@Test
+	public void testAnonymizeObjectValue() throws Exception {
+		// When the anonymized field has an object value (not scalar), anonymizeChildren is called.
+		// The JSON has "/key" -> object {"nested":"value","other":"data"} which exercises
+		// the field-name tracking and scalar anonymization inside anonymizeChildren.
+		String json = "{\"key\":{\"nested\":\"value\",\"other\":\"data\"}}";
+		char[] chars = json.toCharArray();
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/key"}, null);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb, null));
+		assertEquals("{\"key\":{\"nested\":\"*\",\"other\":\"*\"}}", sb.toString());
+	}
+
+	@Test
+	public void testAnonymizeObjectValueExceedsMaxSize() throws Exception {
+		// Test anonymizeChildren when the accumulated output size exceeds maxSize,
+		// triggering the metrics.onMaxSize branch and early return from anonymizeChildren.
+		String json = "{\"key\":{\"nested\":\"value\",\"other\":\"more_data\"}}";
+		char[] chars = json.toCharArray();
+		// Small maxSize causes size limit to be exceeded inside anonymizeChildren
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 15, new String[]{"/key"}, null);
+		com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics metrics =
+				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		StringBuilder sb = new StringBuilder();
+		filter.process(chars, 0, chars.length, sb, metrics);
+	}
+
+	@Test
+	public void testAnonymizeFieldAtHigherIndex() throws Exception {
+		// A scalar field at index >= 2 in its parent object exercises the `size++` branch
+		// for getCurrentIndex() >= 2 in the anon/prune handling.
+		String json = "{\"a\":\"x\",\"b\":\"y\",\"key\":\"value\"}";
+		char[] chars = json.toCharArray();
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/key"}, null);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb, null));
+		assertEquals("{\"a\":\"x\",\"b\":\"y\",\"key\":\"*\"}", sb.toString());
+	}
+
+	@Test
+	public void testAnonymizeObjectValueAtHigherIndex() throws Exception {
+		// An object-valued field at index >= 2 exercises the second `size++` branch
+		// for getCurrentIndex() >= 2 when the value is not scalar.
+		String json = "{\"a\":\"x\",\"b\":\"y\",\"key\":{\"nested\":\"value\"}}";
+		char[] chars = json.toCharArray();
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/key"}, null);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb, null));
+		assertEquals("{\"a\":\"x\",\"b\":\"y\",\"key\":{\"nested\":\"*\"}}", sb.toString());
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
+		// When input length <= maxSize, process(byte[], ResizableByteArrayOutputStream, metrics)
+		// delegates to super without engaging the size-constraint logic.
+		// This previously caused infinite recursion via the interface default method.
+		byte[] json = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, null, null);
+		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream output =
+				new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(64);
+		assertTrue(filter.process(json, 0, json.length, output, null));
+		assertEquals("{}", new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamException() throws Exception {
+		// Verify catch block in process(byte[], ResizableByteArrayOutputStream) via broken factory
+		tools.jackson.core.json.JsonFactory jsonFactory = mock(tools.jackson.core.json.JsonFactory.class);
+		when(jsonFactory.createGenerator(any(com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream.class))).thenThrow(new RuntimeException());
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1, null, null, jsonFactory);
+		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream output =
+				new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(64);
+		byte[] json = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		assertFalse(filter.process(json, 0, json.length, output, null));
+	}
 	
 }
