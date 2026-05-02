@@ -1,12 +1,17 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Test;
@@ -15,6 +20,7 @@ import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonAnyPathMaxStringLengthJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
@@ -28,7 +34,21 @@ public class JacksonAnyPathMaxStringLengthJsonFilterTest extends AbstractDefault
 			assertThat(new JacksonAnyPathMaxStringLengthJsonFilter(-1, new String[] {PASSTHROUGH_XPATH}, null)).hasPassthrough();
 		});
 	}
+
+	@Test
+	public void testConstructorThrowsForNonAnyPruneFilter() {
+		// A prune filter that is not an any-path expression should throw IllegalArgumentException
+		assertThrows(IllegalArgumentException.class, () -> {
+			new JacksonAnyPathMaxStringLengthJsonFilter(-1, null, new String[]{PASSTHROUGH_XPATH});
+		});
+	}
 	
+	@Test
+	public void testConstructorWithMessages() {
+		// Exercise the 6-arg constructor (without JsonFactory) to cover its delegate call
+		new JacksonAnyPathMaxStringLengthJsonFilter(6, null, null, "[pruned]", "*", "...");
+	}
+
 	@Test
 	public void passthrough_success() throws Exception {
 		assertThat(new JacksonAnyPathMaxStringLengthJsonFilter(-1, null, null)).hasPassthrough();
@@ -56,6 +76,30 @@ public class JacksonAnyPathMaxStringLengthJsonFilterTest extends AbstractDefault
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
 			.hasPruned("//key3")
 			.hasAnonymized("//key1");
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStream() throws Exception {
+		// Verify process(byte[], int, int, ResizableByteArrayOutputStream, metrics) works correctly
+		String json = "{\"key\":\"value\",\"other\":\"data\"}";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		JacksonAnyPathMaxStringLengthJsonFilter filter =
+				new JacksonAnyPathMaxStringLengthJsonFilter(-1, new String[]{"//key"}, null);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(bytes, 0, bytes.length, output, null));
+		assertEquals("{\"key\":\"*\",\"other\":\"data\"}", new String(output.toByteArray(), StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamException() throws Exception {
+		// Verify catch block in process(byte[], ResizableByteArrayOutputStream) via broken factory
+		JsonFactory jsonFactory = mock(JsonFactory.class);
+		when(jsonFactory.createGenerator(any(ResizableByteArrayOutputStream.class))).thenThrow(new RuntimeException());
+		JacksonAnyPathMaxStringLengthJsonFilter filter =
+				new JacksonAnyPathMaxStringLengthJsonFilter(-1, null, null, jsonFactory);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(64);
+		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
+		assertFalse(filter.process(json, 0, json.length, output, null));
 	}
 	
 	@Test

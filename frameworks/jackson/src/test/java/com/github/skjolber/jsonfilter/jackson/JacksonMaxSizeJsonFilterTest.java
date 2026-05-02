@@ -1,7 +1,9 @@
 package com.github.skjolber.jsonfilter.jackson;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,6 +20,7 @@ import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
@@ -140,6 +143,48 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 	@Test
 	public void testConstructor() {
 		new JacksonMaxSizeJsonFilter(1024, "XXX", "YYY", "ZZZ");
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
+		// When maxSize >= input length, process(byte[], ResizableByteArrayOutputStream) delegates to super
+		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(1024);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(64);
+		assertTrue(filter.process(json, 0, json.length, output, null));
+		assertEquals("{}", new String(output.toByteArray(), StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamInvalidBounds() throws Exception {
+		// Verify bounds check: bytes.length < offset + length returns false
+		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(10);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(64);
+		assertFalse(filter.process(json, 0, json.length + 1, output, null));
+	}
+
+	@Test
+	public void testProcessByteArrayResizableStreamException() throws Exception {
+		// Verify catch block in process(byte[], ResizableByteArrayOutputStream) by using a broken factory
+		JsonFactory jsonFactory = mock(JsonFactory.class);
+		when(jsonFactory.createGenerator(any(ResizableByteArrayOutputStream.class))).thenThrow(new RuntimeException());
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(1, jsonFactory);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(64);
+		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
+		assertFalse(filter.process(json, 0, json.length, output, null));
+	}
+
+	@Test
+	public void testProcessByteArrayToStringBuilderWithRealFilter() throws Exception {
+		// Call process(byte[], StringBuilder) on real filter with maxSize < length to exercise lambdas.
+		// The size check fires before the pending field name is flushed to the generator,
+		// leaving only the opening brace in output.
+		byte[] json = "{\"key\":\"value\"}".getBytes(StandardCharsets.UTF_8);
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(10);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json, 0, json.length, sb, null));
+		assertEquals("{}", sb.toString());
 	}
 	
 	
