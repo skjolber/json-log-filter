@@ -230,15 +230,71 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testRangesMaxSizeGrowSquareBrackets() throws Exception {
-		// Matching an early key with pathMatches=1 hands off to rangesMaxSize, which then traverses
-		// 35 levels of nesting in the remainder of the document, forcing bracket-tracking to grow.
+		// With pathMatches=1, matching "k" hands off to rangesMaxSize for the remainder.
+		// The deep nesting (35 levels) forces the bracket-tracking array in rangesMaxSize to grow.
+		// maxSize must be <= json.length() so that maxSizeLimit < maxReadLimit when pathMatches
+		// reaches 0, ensuring rangesMaxSize is called rather than the path-only shortcut.
 		byte[] jsonBytes = Generator.generateObjectWithShallowKeyAndDeepValue(35, "k", "v", "deep", false);
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+		String expectedJson = json.replace("\"v\"", "\"*\"");
 
 		MustContrainAnyPathMaxSizeJsonFilter filter =
-			new MustContrainAnyPathMaxSizeJsonFilter(json.length() + 100, 1, new String[]{"//k"}, null);
-		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
-		assertNotNull(filter.process(jsonBytes));
+			new MustContrainAnyPathMaxSizeJsonFilter(json.length(), 1, new String[]{"//k"}, null);
+
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals(expectedJson, sb.toString());
+
+		byte[] result = filter.process(jsonBytes);
+		assertNotNull(result);
+		assertEquals(expectedJson, new String(result, StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testPathOnlyModeWhenMatchesExhaustedAndLimitExpanded() throws Exception {
+		// When the last path match is consumed (pathMatches reaches 0) and the preceding
+		// operation has pushed maxSizeLimit to meet or exceed maxReadLimit, the filter
+		// switches to "keep rest of document" mode: remaining bytes are appended as-is.
+		// JSON: {"k":"longlonglong","n":"v"} (28 chars), maxSize=16, pathMatches=1, prune "//k".
+		// After { reduces limit to 15 and pruning "longlonglong" (14 chars) saves 13 bytes,
+		// maxSizeLimit becomes 28 = maxReadLimit, triggering the early return at pathMatches=0.
+		MustContrainAnyPathMaxSizeJsonFilter filter =
+			new MustContrainAnyPathMaxSizeJsonFilter(16, 1, null, new String[]{"//k"}, "X", "X", "X");
+
+		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
+		char[] chars = json.toCharArray();
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb));
+		assertEquals("{\"k\":X,\"n\":\"v\"}", sb.toString());
+
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		byte[] result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("{\"k\":X,\"n\":\"v\"}", new String(result, StandardCharsets.UTF_8));
+	}
+
+
+	@Test
+	public void testPathOnlyModeAfterPruneExpandsLimit() throws Exception {
+		// When pruning a large value causes maxSizeLimit to reach maxReadLimit, the filter
+		// transitions to path-only mode: remaining content is passed through with only path
+		// filtering applied (no size truncation).
+		// JSON: {"k":"longlonglong","n":"v"} (28 chars), maxSize=16, prune "//k" with message "X".
+		// After { reduces limit to 15 and pruning "longlonglong" (14 chars) saves 13 bytes,
+		// maxSizeLimit reaches 28 = maxReadLimit, triggering path-only mode for the tail.
+		MustContrainAnyPathMaxSizeJsonFilter filter =
+			new MustContrainAnyPathMaxSizeJsonFilter(16, -1, null, new String[]{"//k"}, "X", "X", "X");
+
+		String json = "{\"k\":\"longlonglong\",\"n\":\"v\"}";
+		char[] chars = json.toCharArray();
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb));
+		assertEquals("{\"k\":X,\"n\":\"v\"}", sb.toString());
+
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		byte[] result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("{\"k\":X,\"n\":\"v\"}", new String(result, StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -247,5 +303,46 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();
 	}
 
+	@Test
+	public void testAnonScalarBreakLoopWhenMessageDoesNotFit() throws Exception {
+		// The anon pre-check fires when nextOffset + anonymizeMessageLength > maxSizeLimit.
+		// {"k":"v"} is 9 chars. With maxSize=8, after { reduces the limit to 7, the check
+		// (5 + 3 = 8 > 7) breaks the loop before applying the anonymization.
+		// The output is a truncated document with no content inside the braces.
+		MustContrainAnyPathMaxSizeJsonFilter filter =
+			new MustContrainAnyPathMaxSizeJsonFilter(8, -1, new String[]{"//k"}, null);
+
+		char[] chars = "{\"k\":\"v\"}".toCharArray();
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb));
+		assertEquals("{}", sb.toString());
+
+		byte[] bytes = "{\"k\":\"v\"}".getBytes(StandardCharsets.UTF_8);
+		byte[] result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("{}", new String(result, StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testRangesMaxSizeBracketAtSizeBoundary() throws Exception {
+		// When pathMatches is exhausted and a '{' appears exactly at position maxSizeLimit-1
+		// inside rangesMaxSize, the break-loop condition fires and the document is truncated.
+		// JSON: {"k":"v","a":{"nested":"x"}} (28 chars), pathMatches=1, anon //k, maxSize=15.
+		// After anonymizing "v", rangesMaxSize is called starting at the value position.
+		// It processes ","a": and then hits '{' at position 13 = maxSizeLimit(14)-1, triggering the break.
+		MustContrainAnyPathMaxSizeJsonFilter filter =
+			new MustContrainAnyPathMaxSizeJsonFilter(15, 1, new String[]{"//k"}, null);
+
+		String json = "{\"k\":\"v\",\"a\":{\"nested\":\"x\"}}";
+		char[] chars = json.toCharArray();
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(chars, 0, chars.length, sb));
+		assertEquals("{\"k\":\"*\"}", sb.toString());
+
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		byte[] result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("{\"k\":\"*\"}", new String(result, StandardCharsets.UTF_8));
+	}
 
 }
