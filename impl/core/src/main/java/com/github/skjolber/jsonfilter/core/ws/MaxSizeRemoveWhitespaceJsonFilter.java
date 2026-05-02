@@ -192,7 +192,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				int written = output.size() - bufferLength;
 				int totalSize = length;
 				if(written < totalSize) {
-					metrics.onMaxSize(totalSize - totalSize);
+					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(output.size() - bufferLength);
 			}

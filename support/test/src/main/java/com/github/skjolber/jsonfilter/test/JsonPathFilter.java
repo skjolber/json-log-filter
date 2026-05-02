@@ -241,7 +241,7 @@ public class JsonPathFilter implements JsonFilter {
 		}
 		byte[] process = process(chars, offset, length);
 		if(process != null) {
-			output.write(process, offset, length);
+			output.write(process, 0, process.length);
 			return true;
 		}
 		return false;

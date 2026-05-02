@@ -156,7 +156,7 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 							}
 						}
 						
-						if(offset + maxStringLength >= maxSizeLimit) {
+						if(offset + maxStringLength > maxSizeLimit) {
 							offset = nextOffset;
 							
 							break loop;
@@ -184,7 +184,9 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 						
 						offset = nextOffset;
 						
-						mark = offset;
+						if(nextOffset <= maxSizeLimit) {
+							mark = offset;
+						}
 					}
 					
 					continue;

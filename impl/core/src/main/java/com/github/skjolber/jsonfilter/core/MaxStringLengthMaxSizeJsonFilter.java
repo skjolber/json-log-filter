@@ -163,7 +163,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					}
 					
 					int removedLength = filter.getRemovedLength();
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
 
@@ -188,7 +188,9 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							return maxReadLimit;
 						}
 					}
-					mark = nextOffset;
+					if(nextOffset <= maxSizeLimit) {
+						mark = nextOffset;
+					}
 					offset = nextOffset;
 					
 					continue;
@@ -270,7 +272,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					
 					int removedLength = filter.getRemovedLength();
 
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex - 1, -(offset + maxStringLength - quoteIndex))) {
+					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
 
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -295,10 +297,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							filter.setMaxSizeLimit(maxSizeLimit);
 							return maxReadLimit;
 						}
-						
+					}
+					if(nextOffset <= maxSizeLimit) {
 						mark = nextOffset;
 					}
-					
 					offset = nextOffset;
 					
 					continue;

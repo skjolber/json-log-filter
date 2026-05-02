@@ -65,8 +65,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxReadLimit) {
-					metrics.onMaxSize(maxReadLimit - mark - level);
+				int written = buffer.length() - bufferLength;
+				if(written < length) {
+					metrics.onMaxSize(length - written);
 				}
 				
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -213,7 +214,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 					
-					maxSizeLimit += nextOffset - endQuoteIndex - 1;
+					maxSizeLimit += nextOffset - offset;
 					if(maxSizeLimit >= maxReadLimit) {
 						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, buffer, metrics, maxStringLength, truncateStringValue);
 
@@ -296,8 +297,9 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			if(metrics != null) {
 				metrics.onInput(length);
 				
-				if(mark - level < maxReadLimit) {
-					metrics.onMaxSize(maxReadLimit - mark - level);
+				int written = output.size() - bufferLength;
+				if(written < length) {
+					metrics.onMaxSize(length - written);
 				}
 				
 				metrics.onOutput(output.size() - bufferLength);
@@ -443,7 +445,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 					
-					maxSizeLimit += nextOffset - endQuoteIndex - 1;
+					maxSizeLimit += nextOffset - offset;
 					if(maxSizeLimit >= maxReadLimit) {
 						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 

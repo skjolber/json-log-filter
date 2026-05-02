@@ -198,7 +198,7 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 						nextOffset++;
 					} while(chars[nextOffset] <= 0x20);
 					
-					maxSizeLimit += nextOffset - endQuoteIndex - 1;
+					maxSizeLimit += nextOffset - offset;
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
 					}

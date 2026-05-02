@@ -151,7 +151,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							}
 						}
 						
-						if(offset + maxStringLength >= maxSizeLimit) {
+						if(offset + maxStringLength > maxSizeLimit) {
 							offset = nextOffset;
 							
 							break loop;
@@ -179,7 +179,9 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 						
 						offset = nextOffset;
 						
-						mark = offset;
+						if(nextOffset <= maxSizeLimit) {
+							mark = offset;
+						}
 					}
 					
 					continue;

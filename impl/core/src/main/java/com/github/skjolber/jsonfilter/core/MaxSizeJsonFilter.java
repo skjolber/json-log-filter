@@ -64,7 +64,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				int written = buffer.length() - bufferLength;
 				int totalSize = length;
 				if(written < totalSize) {
-					metrics.onMaxSize(totalSize - totalSize);
+					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(buffer.length() - bufferLength);
 			}
@@ -222,7 +222,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 				int written = output.size() - bufferLength;
 				int totalSize = length;
 				if(written < totalSize) {
-					metrics.onMaxSize(totalSize - totalSize);
+					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(output.size() - bufferLength);
 			}
@@ -324,7 +324,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 					int nextOffset = offset;
 					
 					while(nextOffset < maxReadLimit) {
-						if(chars[nextOffset] > 0x20 || chars[previousOffset] < 0) {
+						if(chars[nextOffset] > 0x20 || chars[nextOffset] < 0) {
 							switch(chars[nextOffset]) {
 							case ',':
 							case ']':

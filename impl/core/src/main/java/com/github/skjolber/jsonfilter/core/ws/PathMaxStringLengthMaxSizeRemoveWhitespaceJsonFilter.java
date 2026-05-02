@@ -49,7 +49,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 				int written = buffer.length() - bufferLength;
 				int totalSize = length;
 				if(written < totalSize) {
-					metrics.onMaxSize(totalSize - totalSize);
+					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(buffer.length() - bufferLength);
 			}
@@ -448,7 +448,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 				int written = output.size() - bufferLength;
 				int totalSize = length;
 				if(written < totalSize) {
-					metrics.onMaxSize(totalSize - totalSize);
+					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(output.size() - bufferLength);
 			}
