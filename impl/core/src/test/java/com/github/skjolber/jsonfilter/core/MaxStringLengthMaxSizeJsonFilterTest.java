@@ -133,7 +133,7 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		MustContrainMaxStringLengthMaxSizeJsonFilter filter = new MustContrainMaxStringLengthMaxSizeJsonFilter(3, jsonBytes.length - 1);
 		StringBuilder charOutput = new StringBuilder();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
-		assertEquals("{\"longkey\"   :\"value\"}", charOutput.toString());
+		assertEquals("{}", charOutput.toString());
 		byte[] byteResult2 = filter.process(jsonBytes);
 		assertNotNull(byteResult2);
 		assertEquals("{}", new String(byteResult2, StandardCharsets.UTF_8));

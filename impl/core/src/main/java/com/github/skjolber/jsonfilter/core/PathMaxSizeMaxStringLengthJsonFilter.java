@@ -153,7 +153,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								}
 								int removedLength = filter.getRemovedLength();
 
-								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteEndIndex, -(offset - 1 + maxStringLength - quoteEndIndex));
+								boolean truncated = filter.addMaxLength(chars, offset + maxStringLength - 1, quoteEndIndex, -(offset - 1 + maxStringLength - quoteEndIndex));
 
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -161,7 +161,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								if(nextOffset <= maxSizeLimit) {
 									mark = nextOffset;
 								} else {
-									filter.removeLastFilter();
+									if(truncated) {
+										filter.removeLastFilter();
+									}
 									filter.setLevel(bracketLevel);
 									filter.addDelete(mark, maxReadLimit);
 									return filter;
@@ -466,7 +468,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								}
 								int removedLength = filter.getRemovedLength();
 
-								filter.addMaxLength(chars, offset + maxStringLength - 1, quoteEndIndex, -(offset - 1 + maxStringLength - quoteEndIndex));
+								boolean truncated = filter.addMaxLength(chars, offset + maxStringLength - 1, quoteEndIndex, -(offset - 1 + maxStringLength - quoteEndIndex));
 
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
@@ -474,7 +476,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								if(nextOffset <= maxSizeLimit) {
 									mark = nextOffset;
 								} else {
-									filter.removeLastFilter();
+									if(truncated) {
+										filter.removeLastFilter();
+									}
 									filter.setLevel(bracketLevel);
 									filter.addDelete(mark, maxReadLimit);
 									return filter;
