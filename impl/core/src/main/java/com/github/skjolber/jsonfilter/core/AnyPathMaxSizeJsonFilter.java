@@ -139,14 +139,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
 							
-							if(offset <= maxSizeLimit) {
-								mark = offset;
-							} else {
-								filter.removeLastFilter();
-								filter.setLevel(bracketLevel);
-								filter.addDelete(mark, maxReadLimit);
-								return filter;
-							}
+							mark = offset;
 						} else {
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								// filter as tree
@@ -180,24 +173,8 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								if(offset <= maxSizeLimit) {
-									mark = offset;
-								} else {
-									filter.removeLastFilter();
-									filter.setLevel(bracketLevel);
-									filter.addDelete(mark, maxReadLimit);
-									return filter;
-								}									
+								mark = offset;									
 							}
-						}
-
-						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
-						}
-						
-						if(offset >= maxSizeLimit) {
-							// filtering completed
-							break loop;
 						}
 
 						if(pathMatches != -1) {
@@ -213,8 +190,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
 								
-								rangesMaxSize(chars, nextOffset, maxReadLimit, maxSizeLimit, filter);
-								return filter;
+								return rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
 							}							
 						}
 
@@ -225,6 +201,12 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyPathFilters, filter);
 							return filter;
 						}
+						
+						if(offset >= maxSizeLimit) {
+							// filtering completed
+							break loop;
+						}
+
 					} else {
 						offset = nextOffset;
 					}
@@ -414,14 +396,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							// increment limit since we removed something
 							maxSizeLimit += filter.getRemovedLength() - removedLength;
 							
-							if(offset <= maxSizeLimit) {
-								mark = offset;
-							} else {
-								filter.removeLastFilter();
-								filter.setLevel(bracketLevel);
-								filter.addDelete(mark, maxReadLimit);
-								return filter;
-							}
+							mark = offset;
 						} else {
 							if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 								// filter as tree
@@ -455,24 +430,8 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 								// increment limit since we removed something
 								maxSizeLimit += filter.getRemovedLength() - removedLength;
 								
-								if(offset <= maxSizeLimit) {
-									mark = offset;
-								} else {
-									filter.removeLastFilter();
-									filter.setLevel(bracketLevel);
-									filter.addDelete(mark, maxReadLimit);
-									return filter;
-								}									
+								mark = offset;									
 							}
-						}
-						
-						if(maxSizeLimit + bracketLevel > maxReadLimit) {
-							maxSizeLimit = maxReadLimit - bracketLevel;
-						}
-						
-						if(offset >= maxSizeLimit) {
-							// filtering completed
-							break loop;
 						}
 						
 						if(pathMatches != -1) {
@@ -487,8 +446,8 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 								// filtering only for max size
 								filter.setMark(mark);
 								filter.setLevel(bracketLevel);
-								
-								return rangesMaxSize(chars, nextOffset, maxReadLimit, maxSizeLimit, filter);
+
+								return rangesMaxSize(chars, offset, maxReadLimit, maxSizeLimit, filter);
 							}							
 						}
 
@@ -499,6 +458,12 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							rangesAnyPath(chars, offset, maxReadLimit, pathMatches, anyPathFilters, filter);
 							return filter;
 						}
+
+						if(offset >= maxSizeLimit) {
+							// filtering completed
+							break loop;
+						}
+						
 					} else {
 						offset = nextOffset;
 					}
