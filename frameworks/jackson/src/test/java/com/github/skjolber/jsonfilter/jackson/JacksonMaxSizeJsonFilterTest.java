@@ -177,11 +177,14 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 
 	@Test
 	public void testProcessByteArrayToStringBuilderWithRealFilter() throws Exception {
-		// Call process(byte[], StringBuilder) on real filter with maxSize < length to exercise lambdas
+		// Call process(byte[], StringBuilder) on real filter with maxSize < length to exercise lambdas.
+		// The size check fires before the pending field name is flushed to the generator,
+		// leaving only the opening brace in output.
 		byte[] json = "{\"key\":\"value\"}".getBytes(StandardCharsets.UTF_8);
 		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(10);
 		StringBuilder sb = new StringBuilder();
-		filter.process(json, 0, json.length, sb, null);
+		assertTrue(filter.process(json, 0, json.length, sb, null));
+		assertEquals("{}", sb.toString());
 	}
 	
 	

@@ -224,6 +224,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 	public void testAnonymizeObjectValueExceedsMaxSize() throws Exception {
 		// Test anonymizeChildren when the accumulated output size exceeds maxSize,
 		// triggering the metrics.onMaxSize branch and early return from anonymizeChildren.
+		// The output contains the opened object for "key" but none of its children,
+		// because the size limit was hit before any child value could be written.
 		String json = "{\"key\":{\"nested\":\"value\",\"other\":\"more_data\"}}";
 		char[] chars = json.toCharArray();
 		// Small maxSize causes size limit to be exceeded inside anonymizeChildren
@@ -232,7 +234,9 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics metrics =
 				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
 		StringBuilder sb = new StringBuilder();
-		filter.process(chars, 0, chars.length, sb, metrics);
+		assertTrue(filter.process(chars, 0, chars.length, sb, metrics));
+		assertEquals("{\"key\":{}}", sb.toString());
+		assertEquals(-1, metrics.getMaxSize());
 	}
 
 	@Test
