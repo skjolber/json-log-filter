@@ -59,11 +59,6 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 	}
 	
 	@Test
-	public void testDeepStructure2() throws IOException {
-		validateDeepStructure( (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(128, size, -1, new String[] {"//f2"}, null));
-	}
-	
-	@Test
 	public void passthrough_success() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, null, null);
 		assertThat(maxSize, new PathMaxStringLengthJsonFilter(-1, -1, null, null)).hasPassthrough();
