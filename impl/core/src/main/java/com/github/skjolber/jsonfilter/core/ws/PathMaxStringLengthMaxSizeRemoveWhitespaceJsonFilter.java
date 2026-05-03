@@ -41,6 +41,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			CharArrayWhitespaceSizeFilter filter = new CharArrayWhitespaceSizeFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 
 			filter.setMaxSizeLimit(maxSizeLimit);
+			filter.setFlushOffset(offset);
+			filter.setMark(offset);
+			filter.setWrittenMark(buffer.length());
 			
 			processMaxSize(chars, offset, maxReadLimit, 0, buffer, maxPathMatches, filter, metrics);
 			
@@ -440,6 +443,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 
 			filter.setMaxSizeLimit(maxSizeLimit);
+			filter.setFlushOffset(offset);
+			filter.setMark(offset);
+			filter.setWrittenMark(output.size());
 			
 			processMaxSize(chars, offset, maxReadLimit, 0, output, maxPathMatches, filter, metrics);
 
