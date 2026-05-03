@@ -21,6 +21,7 @@ import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilterFactory;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.core.ws.MaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.MaxStringLengthRemoveWhitespaceJsonFilter;
 import com.github.skjolber.jsonfilter.core.ws.PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter;
@@ -125,7 +126,13 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 		}
 		
 		if(removeWhitespace) {
+			if(isActiveMaxSize()) {
+				return new MaxSizeRemoveWhitespaceJsonFilter(maxSize);
+			}
 			return new RemoveWhitespaceJsonFilter();
+		}
+		if(isActiveMaxSize()) {
+			return new CompositeMaxSizeJsonFilter(maxSize);
 		}
 
 		return new DefaultJsonFilter();
