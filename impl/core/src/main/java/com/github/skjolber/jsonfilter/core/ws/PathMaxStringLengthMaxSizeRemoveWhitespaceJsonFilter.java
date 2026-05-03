@@ -41,6 +41,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			CharArrayWhitespaceSizeFilter filter = new CharArrayWhitespaceSizeFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 
 			filter.setMaxSizeLimit(maxSizeLimit);
+			filter.setFlushOffset(offset);
+			filter.setMark(offset);
+			filter.setWrittenMark(buffer.length());
 			
 			processMaxSize(chars, offset, maxReadLimit, 0, buffer, maxPathMatches, filter, metrics);
 			
@@ -193,7 +196,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					}
 					
 					// was a value
-					if(endQuoteIndex - offset < maxStringLength) {
+					if(endQuoteIndex - offset < maxStringLength + 2) {
 						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
@@ -440,8 +443,11 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 
 			filter.setMaxSizeLimit(maxSizeLimit);
+			filter.setFlushOffset(offset);
+			filter.setMark(offset);
+			filter.setWrittenMark(output.size());
 			
-			processMaxSize(chars, offset, maxReadLimit, 0, output, 0, maxPathMatches, filter, metrics);
+			processMaxSize(chars, offset, maxReadLimit, 0, output, maxPathMatches, filter, metrics);
 
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -459,7 +465,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 	}
 
-	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int matches, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
+	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -593,7 +599,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					}
 					
 					// was a value
-					if(endQuoteIndex - offset < maxStringLength) {
+					if(endQuoteIndex - offset < maxStringLength + 2) {
 						stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(), metrics);

@@ -377,7 +377,7 @@ public class AbstractPathJsonFilterTest {
 
 	@Test
 	public void testRemoveAnyPrefixDots() {
-		assertEquals(".abc", AbstractPathJsonFilter.removeAnyPrefix("$..abc"));
+		assertEquals("abc", AbstractPathJsonFilter.removeAnyPrefix("$..abc"));
 	}
 
 	@Test

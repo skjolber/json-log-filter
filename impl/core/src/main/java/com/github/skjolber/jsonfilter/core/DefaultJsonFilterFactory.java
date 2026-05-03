@@ -80,7 +80,9 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 				return new PathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				
 			} else {
-				if(anonymizeFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(anonymizeFilters) && pruneFilters != null && AbstractPathJsonFilter.hasAllAnyPrefix(pruneFilters)) {
+				boolean anonymizeAllAny = anonymizeFilters == null || AbstractPathJsonFilter.hasAllAnyPrefix(anonymizeFilters);
+				boolean pruneAllAny = pruneFilters == null || AbstractPathJsonFilter.hasAllAnyPrefix(pruneFilters);
+				if(!isActiveMaxStringLength() && anonymizeAllAny && pruneAllAny && (anonymizeFilters != null || pruneFilters != null)) {
 					if(isActiveMaxSize()) {
 						return new AnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, anonymizeFilters, pruneFilters);
 					}

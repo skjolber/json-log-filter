@@ -27,11 +27,8 @@ public class ExpressionNode {
 			if(preexisting == null) {
 				children.add(node);
 			} else {
-				// move up one level
-				for (ExpressionNode preexistingChild : preexisting.children) {
-					for (ExpressionNode expressionNode : node.children) {
-						preexistingChild.append(expressionNode);
-					}
+				for (ExpressionNode child : node.children) {
+					preexisting.append(child);
 				}
 			}
 		}

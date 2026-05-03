@@ -122,7 +122,7 @@ public class ExpressionNodeFactory {
 					continue add;
 				}
 				
-				if(filteredExpression.startsWith(expression)) {
+				if(expression.startsWith(filteredExpression)) {
 					if(expression.length() > filteredExpression.length()) {
 						char c = expression.charAt(filteredExpression.length());
 						if(c == '/' || c == '.') {

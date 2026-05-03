@@ -228,7 +228,7 @@ public class CharArrayWhitespaceFilter {
 					} 
 					
 					// was a value
-					if(endQuoteIndex - offset >= maxStringLength) {
+					if(endQuoteIndex - offset >= maxStringLength + 2) {
 						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
 						
 						flushOffset = nextOffset;

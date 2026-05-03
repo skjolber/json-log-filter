@@ -72,7 +72,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 			return string.substring(2);
 		}
 		if(string.startsWith(AbstractPathJsonFilter.ANY_PREFIX_DOTS)) {
-			return string.substring(2);
+			return string.substring(ANY_PREFIX_DOTS.length());
 		}
 		throw new IllegalArgumentException();
 	}

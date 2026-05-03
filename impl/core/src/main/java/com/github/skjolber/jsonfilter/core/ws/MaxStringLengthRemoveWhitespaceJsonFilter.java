@@ -80,7 +80,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				// key or value, might be followed by whitespace
 				nextOffset++;
 				
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;
@@ -116,7 +116,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					} 
 					
 					// was a value
-					if(endQuoteIndex - offset >= maxStringLength) {
+					if(endQuoteIndex - offset >= maxStringLength + 2) {
 						CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
 						
 						flushOffset = nextOffset;
@@ -196,7 +196,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				// key or value, might be followed by whitespace
 				nextOffset++;
 				
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;
@@ -232,7 +232,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					} 
 					
 					// was a value
-					if(endQuoteIndex - offset >= maxStringLength) {
+					if(endQuoteIndex - offset >= maxStringLength + 2) {
 						ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
 						
 						flushOffset = nextOffset;

@@ -15,9 +15,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		int bufferLength = buffer.length();
-		
-		metrics.onInput(length);
 		CharArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
@@ -26,8 +23,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 		buffer.ensureCapacity(buffer.length() + copy.getMaxOutputLength()); 
 
 		copy.filter(chars, offset, length, buffer, metrics);
-		
-		metrics.onOutput(buffer.length() - bufferLength);
 		
 		return true;
 	}
@@ -59,10 +54,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		metrics.onInput(length);
-		
-		int bufferSize = buffer.size();
-
 		ByteArrayRangesFilter copy = ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
@@ -70,7 +61,6 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 		
 		copy.filter(chars, offset, length, buffer, metrics);
 		
-		metrics.onOutput(buffer.size() - bufferSize);
 		return true;
 	}
 	
