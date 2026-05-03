@@ -227,7 +227,7 @@ public class ByteArrayWhitespaceFilter {
 					} 
 					
 					// was a value
-					if(endQuoteIndex - offset >= maxStringLength) {
+					if(endQuoteIndex - offset >= maxStringLength + 2) {
 						ByteArrayWhitespaceFilter.addMaxLength(chars, offset, output, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
 						
 						flushOffset = nextOffset;

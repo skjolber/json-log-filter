@@ -154,7 +154,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				
 				nextOffset++;
 
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;
@@ -385,7 +385,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				
 				nextOffset++;
 
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;

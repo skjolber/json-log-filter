@@ -193,7 +193,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					}
 					
 					// was a value
-					if(endQuoteIndex - offset < maxStringLength) {
+					if(endQuoteIndex - offset < maxStringLength + 2) {
 						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
@@ -593,7 +593,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					}
 					
 					// was a value
-					if(endQuoteIndex - offset < maxStringLength) {
+					if(endQuoteIndex - offset < maxStringLength + 2) {
 						stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(), metrics);

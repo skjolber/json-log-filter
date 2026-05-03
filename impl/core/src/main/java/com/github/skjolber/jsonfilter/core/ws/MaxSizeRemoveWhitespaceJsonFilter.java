@@ -54,7 +54,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
-			process(chars, offset, offset, buffer, maxSizeLimit, maxReadLimit, 0, new boolean[32], 0, 0);
+			process(chars, offset, offset, buffer, maxSizeLimit, maxReadLimit, 0, new boolean[32], offset, bufferLength);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -185,7 +185,7 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				maxSizeLimit = maxReadLimit;
 			}
 			
-			process(chars, offset, offset, output, maxSizeLimit, maxReadLimit, 0, new boolean[32], 0, 0);
+			process(chars, offset, offset, output, maxSizeLimit, maxReadLimit, 0, new boolean[32], offset, bufferLength);
 			
 			if(metrics != null) {
 				metrics.onInput(length);

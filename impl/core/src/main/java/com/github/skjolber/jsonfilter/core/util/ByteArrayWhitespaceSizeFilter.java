@@ -147,7 +147,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				
 				nextOffset++;
 
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;

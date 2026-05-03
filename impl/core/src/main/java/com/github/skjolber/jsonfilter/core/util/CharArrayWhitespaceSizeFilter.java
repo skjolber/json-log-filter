@@ -142,7 +142,7 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				
 				nextOffset++;
 
-				if(endQuoteIndex - offset < maxStringLength) {
+				if(endQuoteIndex - offset < maxStringLength + 2) {
 					offset = nextOffset;
 
 					continue;
