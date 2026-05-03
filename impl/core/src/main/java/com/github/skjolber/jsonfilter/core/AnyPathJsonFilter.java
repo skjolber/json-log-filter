@@ -142,6 +142,7 @@ public class AnyPathJsonFilter extends AbstractRangesPathJsonFilter {
 							case '9':
 							case '-':
 							case '+':
+							case '.':
 							case 'e':
 							case 'E':
 								continue;
@@ -251,6 +252,7 @@ public class AnyPathJsonFilter extends AbstractRangesPathJsonFilter {
 						case '9':
 						case '-':
 						case '+':
+						case '.':
 						case 'e':
 						case 'E':
 							continue;
@@ -358,6 +360,7 @@ public class AnyPathJsonFilter extends AbstractRangesPathJsonFilter {
 							case '9':
 							case '-':
 							case '+':
+							case '.':
 							case 'e':
 							case 'E':
 								continue;
@@ -461,6 +464,7 @@ public class AnyPathJsonFilter extends AbstractRangesPathJsonFilter {
 								case '9':
 								case '-':
 								case '+':
+								case '.':
 								case 'e':
 								case 'E':
 									continue;

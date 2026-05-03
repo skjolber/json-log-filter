@@ -49,8 +49,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 		boolean[] squareBrackets = new boolean[32];
 
-		int mark = 0;
-		int writtenMark = 0;
+		int mark = offset;
+		int writtenMark = buffer.length();
 
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
@@ -281,8 +281,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 		boolean[] squareBrackets = new boolean[32];
 
-		int mark = 0;
-		int writtenMark = 0;
+		int mark = offset;
+		int writtenMark = output.size();
 
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);

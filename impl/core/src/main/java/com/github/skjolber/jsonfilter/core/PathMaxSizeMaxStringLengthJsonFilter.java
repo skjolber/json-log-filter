@@ -39,7 +39,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 		
 		PathItem pathItem = this.pathItem;
 		
-		int mark = 0;
+		int mark = offset;
 		
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = 0;		
@@ -353,7 +353,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 		
 		PathItem pathItem = this.pathItem;
 		
-		int mark = 0;
+		int mark = offset;
 		
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = 0;		

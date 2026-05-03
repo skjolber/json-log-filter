@@ -40,6 +40,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		filter.setMark(offset);
 
 		int maxReadLimit = offset + length;
 
@@ -74,6 +75,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 		int maxStringLength = this.maxStringLength + 2; // account for quotes
 		
 		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		filter.setMark(offset);
 
 		int maxReadLimit = offset + length;
 		

@@ -23,6 +23,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		}
 
 		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
+		filter.setMark(offset);
 
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);
@@ -38,6 +39,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		}
 		
 		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
+		filter.setMark(offset);
 		
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);

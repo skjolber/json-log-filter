@@ -57,7 +57,7 @@ public class CompositeMaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		if (!mustConstrainMaxSize(length) || maxSize <= length - maxSize) {
+		if (!mustConstrainMaxSize(length) || maxSize <= length - maxSize || (chars[offset] != '{' && chars[offset] != '[')) {
 			return forwardFilter.process(chars, offset, length, buffer, metrics);
 		} else {
 			return backwardFilter.process(chars, offset, length, buffer, metrics);
@@ -69,7 +69,7 @@ public class CompositeMaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		if (!mustConstrainMaxSize(length) || maxSize <= length - maxSize) {
+		if (!mustConstrainMaxSize(length) || maxSize <= length - maxSize || (chars[offset] != '{' && chars[offset] != '[')) {
 			return forwardFilter.process(chars, offset, length, output, metrics);
 		} else {
 			return backwardFilter.process(chars, offset, length, output, metrics);

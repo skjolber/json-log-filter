@@ -81,7 +81,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		boolean[] squareBrackets = new boolean[32];
 
-		int mark = 0;
+		int mark = offset;
 
 			loop:
 			while(offset < maxSizeLimit) {
@@ -244,7 +244,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		boolean[] squareBrackets = new boolean[32];
 
-		int mark = 0;
+		int mark = offset;
 
 		loop:
 		while(offset < maxSizeLimit) {
