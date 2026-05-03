@@ -160,6 +160,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		while(mark < previousOffset) {
 			if(chars[previousOffset] > 0x20) {
+				// Opening brackets cannot be rescued: they start a structure whose
+				// closing bracket is not included in the output, producing invalid JSON.
+				if(chars[previousOffset] == '{' || chars[previousOffset] == '[') {
+					break;
+				}
 				if(previousOffset < maxSizeLimit) {
 					// check if there is a proper terminator
 					// after the current offset
@@ -317,6 +322,11 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		while(mark < previousOffset) {
 			if(chars[previousOffset] > 0x20 || chars[previousOffset] < 0) { // note: negative because could be UTF-8 multi characther
+				// Opening brackets cannot be rescued: they start a structure whose
+				// closing bracket is not included in the output, producing invalid JSON.
+				if(chars[previousOffset] == '{' || chars[previousOffset] == '[') {
+					break;
+				}
 				if(previousOffset < maxSizeLimit) {
 					// check if there is a proper terminator
 					// after the current offset
