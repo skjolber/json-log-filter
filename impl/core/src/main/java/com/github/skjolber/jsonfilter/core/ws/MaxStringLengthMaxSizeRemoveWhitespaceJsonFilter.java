@@ -134,7 +134,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				bracketLevel--;
 				maxSizeLimit++;
 				if(maxSizeLimit >= maxReadLimit) {
-					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, buffer, metrics, maxStringLength, truncateStringValue);
+					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, buffer, metrics, maxStringLength, truncateStringValue);
 
 					return 0;
 				}
@@ -170,7 +170,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						
 						maxSizeLimit += nextOffset - endQuoteIndex - 1;
 						if(maxSizeLimit >= maxReadLimit) {
-							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, buffer, metrics, maxStringLength, truncateStringValue);
+							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, buffer, metrics, maxStringLength, truncateStringValue);
 
 							return 0;
 						}
@@ -366,7 +366,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				bracketLevel--;
 				maxSizeLimit++;
 				if(maxSizeLimit >= maxReadLimit) {
-					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 					
 					return 0;
 				}
@@ -401,7 +401,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						
 						maxSizeLimit += nextOffset - endQuoteIndex - 1;
 						if(maxSizeLimit >= maxReadLimit) {
-							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 
 							return 0;
 						}
@@ -418,7 +418,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					// was a value
 					maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushedOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
 					if(maxSizeLimit >= maxReadLimit) {
-						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 
 						return 0;
 					}
