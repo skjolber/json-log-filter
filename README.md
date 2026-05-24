@@ -5,6 +5,7 @@
 # json-log-filter
 High-performance filtering of JSON. Reads, filters and writes JSON in a single pass — drastically increasing throughput compared to parse-then-serialize approaches.
 
+Each high-performance filter also has a Jackson-based equivalent. Pick and choose implementation to get the maximum performance.
 ## Quickstart
 
 ```java
