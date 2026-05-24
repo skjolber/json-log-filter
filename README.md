@@ -390,7 +390,7 @@ Typical dual-filter setup in a webserver:
 ## Performance
 This project trades parser/serializer features for performance, running multiple times faster than a traditional parse-then-serialize approach.
 
-See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.0.jdk25.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk25.json&topBar=off) / [JDK 26](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk26.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.
