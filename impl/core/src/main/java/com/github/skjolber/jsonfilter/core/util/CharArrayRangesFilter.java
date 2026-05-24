@@ -6,18 +6,18 @@ import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class CharArrayRangesFilter extends AbstractRangesFilter {
 
-	private static final boolean[] ALPHA_NUMERIC = new boolean[123];
+	private static final boolean[] HEX = new boolean[123];
 	
 	static {
 	    for (int i = 0; i < 103; i++) {
-	        ALPHA_NUMERIC[i] = (i >= 'a' && i <= 'f') || 
+	        HEX[i] = (i >= 'a' && i <= 'f') || 
 	                             (i >= 'A' && i <= 'F') || 
 	                             (i >= '0' && i <= '9');
 	    }
 	}
 
-	public static boolean isAlphanumeric(char c) {
-	    return c < 103 && ALPHA_NUMERIC[c];
+	public static boolean isHex(char c) {
+	    return c < 103 && HEX[c];
 	}	
 	
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
@@ -511,7 +511,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			// where X is hex in upper or lower case
 
 			// check for unicode encoding. That means the peek char must be a hex
-			if(isAlphanumeric(chars[start])) {
+			if(isHex(chars[start])) {
 				int index = start - 1; // index of last character which is included
 				
 				// absolute minimum is length 8:

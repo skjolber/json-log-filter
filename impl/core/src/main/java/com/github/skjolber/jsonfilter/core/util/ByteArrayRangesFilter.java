@@ -11,18 +11,18 @@ import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
-	private static final boolean[] IS_ALPHANUMERIC = new boolean[256];
+	private static final boolean[] HEX = new boolean[256];
 	
 	static {
 	    for (int i = 0; i < 256; i++) {
-	        IS_ALPHANUMERIC[i] = (i >= '0' && i <= '9') || 
+	        HEX[i] = (i >= '0' && i <= '9') || 
 	                             (i >= 'A' && i <= 'F') || 
 	                             (i >= 'a' && i <= 'f');
 	    }
 	}
 
-	public static boolean isAlphanumeric(byte b) {
-	    return IS_ALPHANUMERIC[b & 0xFF];
+	public static boolean isHex(byte b) {
+	    return HEX[b & 0xFF];
 	}
 	
 	// Word-at-a-time quote scanning: reads 8 bytes as a long (little-endian) and
@@ -291,7 +291,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		// where X is hex in upper or lower case
 		
 		// check for unicode encoding. That means the peek char must be a hex
-		if(isAlphanumeric(chars[start])) {
+		if(isHex(chars[start])) {
 			int index = start - 1; // index of last character which is included
 			
 			// absolute minimium is length 8:
