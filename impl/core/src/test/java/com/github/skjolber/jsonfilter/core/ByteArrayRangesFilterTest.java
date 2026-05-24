@@ -332,4 +332,20 @@ public class ByteArrayRangesFilterTest {
 			() -> filter.addMaxLength(new byte[10], 0, 5, -1));
 	}
 
+	@Test
+	public void testFilterWithMetricsNullMetrics() throws Exception {
+		// filter(byte[], int, int, ResizableByteArrayOutputStream, JsonFilterMetrics) must handle
+		// null metrics without NPE, exercising the 'metrics == null' branches (lines 135-181).
+		String json = "{\"key\":\"value\",\"num\":42}";
+		byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		ByteArrayRangesFilter filter = new ByteArrayRangesFilter(12, bytes.length);
+		filter.addAnon(7, 14);
+		ResizableByteArrayOutputStream buffer = new ResizableByteArrayOutputStream(64);
+		filter.filter(bytes, 0, bytes.length, buffer, null);
+		// Verify something was written (the anon message replaced part of the JSON)
+		assertTrue(buffer.size() > 0);
+		String result = new String(buffer.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+		assertTrue(result.contains("\"*\""));
+	}
+
 }
