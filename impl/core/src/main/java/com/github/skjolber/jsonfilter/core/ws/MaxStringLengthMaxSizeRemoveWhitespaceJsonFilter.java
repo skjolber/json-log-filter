@@ -418,7 +418,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					// was a value
 					maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushedOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
 					if(maxSizeLimit >= maxReadLimit) {
-						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 
 						return 0;
 					}

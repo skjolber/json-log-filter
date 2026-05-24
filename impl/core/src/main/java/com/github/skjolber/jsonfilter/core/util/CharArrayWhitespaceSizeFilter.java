@@ -305,8 +305,8 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 			case '"': {
 				int nextOffset = CharArrayRangesFilter.scanQuotedValue(chars, offset);
 
-				nextOffset++;
 				int endQuoteIndex = nextOffset;
+				nextOffset++;
 				
 				// key or value
 
@@ -325,15 +325,15 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 					// was a key
 					offset = nextOffset + 1;
 
-					if(nextOffset != endQuoteIndex) {
+					if(nextOffset != endQuoteIndex + 1) {
 						// did skip whitespace
 						if(flushOffset <= mark) {
 							writtenMark = buffer.length() + mark - flushOffset; 
 						}
-						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset);
+						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 						buffer.append(':');
 						
-						maxSizeLimit += nextOffset - endQuoteIndex;
+						maxSizeLimit += nextOffset - endQuoteIndex - 1;
 						if(maxSizeLimit >= maxReadLimit) {
 							maxSizeLimit = maxReadLimit;
 						}

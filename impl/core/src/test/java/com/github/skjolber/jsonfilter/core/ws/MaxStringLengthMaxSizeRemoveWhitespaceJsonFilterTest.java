@@ -256,7 +256,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut));
-		assertEquals("{\"k\":\"lon... + 14\"\"lon... + 14\"}", byteOut.toString(StandardCharsets.UTF_8));
+		assertEquals("{\"k\":\"lon... + 14\"}", byteOut.toString(StandardCharsets.UTF_8));
 	}
 	@Test
 	public void testMarkLimitFound() throws Exception {
@@ -349,7 +349,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 
 		ResizableByteArrayOutputStream byteOut = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut));
-		assertEquals("{\"k\":\"lon... + 14\"\"lon... + 14\"}", byteOut.toString(StandardCharsets.UTF_8));
+		assertEquals("{\"k\":\"lon... + 14\"}", byteOut.toString(StandardCharsets.UTF_8));
 	}
 
 
