@@ -11,10 +11,23 @@ import com.github.skjolber.jsonfilter.base.AbstractRangesFilter;
 
 public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
+	private static final boolean[] IS_ALPHANUMERIC = new boolean[256];
+	
+	static {
+	    for (int i = 0; i < 256; i++) {
+	        IS_ALPHANUMERIC[i] = (i >= '0' && i <= '9') || 
+	                             (i >= 'A' && i <= 'F') || 
+	                             (i >= 'a' && i <= 'f');
+	    }
+	}
+
+	public static boolean isAlphanumeric(byte b) {
+	    return IS_ALPHANUMERIC[b & 0xFF];
+	}
+	
 	// Word-at-a-time quote scanning: reads 8 bytes as a long (little-endian) and
 	// uses the Hacker's Delight has-zero-byte trick to detect '"' (0x22) in bulk.
-	private static final VarHandle LONG_LE =
-		MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+	private static final VarHandle LONG_LE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
 	private static final long QUOTE_MASK     = 0x2222222222222222L; // '"' (0x22) repeated 8×
 	private static final long MAGIC1         = 0x0101010101010101L;
 	private static final long MAGIC2         = 0x8080808080808080L;
@@ -275,11 +288,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		// \ uXX
 		// \ uXXX
 		//
-		// where X is hex
+		// where X is hex in upper or lower case
 		
-		byte peek = chars[start];
 		// check for unicode encoding. That means the peek char must be a hex
-		if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F') || (peek >= 'a' && peek <= 'f')) {
+		if(isAlphanumeric(chars[start])) {
 			int index = start - 1; // index of last character which is included
 			
 			// absolute minimium is length 8:
