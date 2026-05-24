@@ -702,7 +702,6 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 				if(filterType == FilterType.PRUNE) {
 					if(nextOffset + filter.getPruneMessageLength() > maxSizeLimit) {
 						offset = nextOffset;
-						flushOffset = nextOffset;
 						break loop;
 					}
 					
