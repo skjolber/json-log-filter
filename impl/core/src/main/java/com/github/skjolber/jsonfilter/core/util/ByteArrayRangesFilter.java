@@ -279,7 +279,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		
 		byte peek = chars[start];
 		// check for unicode encoding. That means the peek char must be a hex
-		if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F')) {
+		if( (peek >= '0' && peek <= '9') || (peek >= 'A' && peek <= 'F') || (peek >= 'a' && peek <= 'f')) {
 			int index = start - 1; // index of last character which is included
 			
 			// absolute minimium is length 8:

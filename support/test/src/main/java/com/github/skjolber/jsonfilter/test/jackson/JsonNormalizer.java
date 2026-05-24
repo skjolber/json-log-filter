@@ -78,7 +78,8 @@ public class JsonNormalizer {
 				if(from.charAt(i + 1) == 'u') {
 				
 					for(int k = 0; k < 4; k++) {
-						if(!Character.isDigit(from.charAt(i + 2 + k))) {
+						char c = from.charAt(i + 2 + k);
+						if(!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
 							continue loop;
 						}
 					}
