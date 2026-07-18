@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JSON Log Filter Utility</title>
+  <style>
+    /* ── Theme tokens ───────────────────────────────────────────── */
+    :root {
+      color-scheme: light;
+      --bg:           #f0f2f5;
+      --surface:      #fff;
+      --surface-alt:  #f8f9fc;
+      --surface-in:   #fafbfd;
+      --surface-out:  #f6fff8;
+      --surface-err:  #fff6f6;
+      --border:       #dde0e8;
+      --border-soft:  #e8eaf0;
+      --text:         #1a1a2e;
+      --text-muted:   #555;
+      --text-dim:     #9ca3af;
+      --text-label:   #444;
+      --text-impl:    #374151;
+      --shadow-sm:    rgba(0,0,0,.08);
+      --shadow-lg:    rgba(0,0,0,.05);
+      --focus-ring:   rgba(59,130,246,.15);
+      --sel-bg:       rgba(59,130,246,.25);
+      --caret:        #1a1a2e;
+      /* Syntax: VS Code Light+ palette */
+      --j-key:        #0451a5;   /* deep blue  — keys             */
+      --j-str:        #a31515;   /* dark red   — string values    */
+      --j-num:        #098658;   /* forest grn — numbers          */
+      --j-kw:         #0000ff;   /* pure blue  — true/false/null  */
+      --j-punct:      #555555;   /* dark grey  — {}[],: */
+      --load-bg:      rgba(240,242,245,.92);
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg:           #0f172a;
+      --surface:      #1e293b;
+      --surface-alt:  #162032;
+      --surface-in:   #1a2742;
+      --surface-out:  #172b1e;
+      --surface-err:  #2d1b1b;
+      --border:       #334155;
+      --border-soft:  #2d3a4f;
+      --text:         #e2e8f0;
+      --text-muted:   #94a3b8;
+      --text-dim:     #64748b;
+      --text-label:   #cbd5e1;
+      --text-impl:    #94a3b8;
+      --shadow-sm:    rgba(0,0,0,.3);
+      --shadow-lg:    rgba(0,0,0,.2);
+      --focus-ring:   rgba(99,102,241,.2);
+      --sel-bg:       rgba(99,102,241,.35);
+      --caret:        #e2e8f0;
+      /* Syntax: VS Code Dark+ palette */
+      --j-key:        #9cdcfe;   /* sky blue   — keys             */
+      --j-str:        #ce9178;   /* warm peach — string values    */
+      --j-num:        #b5cea8;   /* sage green — numbers          */
+      --j-kw:         #569cd6;   /* medium blue — true/false/null */
+      --j-punct:      #c8c8c8;   /* light grey — {}[],: */
+      --load-bg:      rgba(15,23,42,.92);
+    }
+
+    /* ── Reset & base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Outer layout: config | io-panel — full width ────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px var(--shadow-sm), 0 4px 16px var(--shadow-lg);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: .55rem .9rem;
+      font-weight: 600;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      background: var(--surface-alt);
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      color: var(--text-muted);
+    }
+    .card-header .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .card-header .dot-blue   { color: #3b82f6; }
+    .card-header .dot-green  { color: #22c55e; }
+    .card-header .dot-purple { color: #a78bfa; }
+    .card-header .dot-orange { color: #f59e0b; }
+    .card-header .dot-red    { color: #ef4444; }
+    .card-body { padding: .9rem; }
+
+    /* ── Config panel ───────────────────────────────────────────── */
+    .config-panel { display: flex; flex-direction: column; gap: .75rem; }
+    .config-panel .gh-link { margin-top: auto; }
+    .impl-info {
+      padding: .1rem 1rem .75rem;
+      font-size: .75rem;
+    }
+    .impl-label {
+      text-transform: uppercase; letter-spacing: .05em;
+      font-size: .65rem; color: var(--text-dim); margin-bottom: .2rem;
+    }
+    .impl-name { font-family: monospace; color: var(--text-impl); font-size: .8rem; }
+
+    .gh-link {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .6rem 1rem;
+      font-size: .75rem; color: var(--text-dim);
+      text-decoration: none;
+      border-top: 1px solid var(--border-soft);
+    }
+    .gh-link:hover { color: var(--text); }
+    .gh-link svg { flex-shrink: 0; }
+
+    label {
+      display: block;
+      font-size: .8rem; font-weight: 500; color: var(--text-label);
+      margin-bottom: .2rem;
+    }
+    label.inline {
+      display: flex; align-items: center; gap: .45rem;
+      font-weight: 400; cursor: pointer; margin-bottom: 0;
+    }
+    label.inline input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; }
+
+    textarea, input[type=text], input[type=number] {
+      width: 100%;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      padding: .4rem .55rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .76rem; color: var(--text); background: var(--surface-in);
+      transition: border-color .15s, box-shadow .15s;
+      resize: vertical;
+    }
+    textarea:focus, input:focus {
+      outline: none; border-color: #3b82f6;
+      box-shadow: 0 0 0 3px var(--focus-ring); background: var(--surface);
+    }
+    textarea.small { height: 58px; resize: vertical; }
+    textarea.single-line {
+      height: auto; resize: none; overflow: hidden;
+      white-space: pre; line-height: inherit;
+    }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-inner-spin-button { opacity: .4; }
+    .field + .field { margin-top: .55rem; }
+
+    /* ── Example trigger button (in card headers) ────────────────── */
+    .example-trigger {
+      margin-left: auto;
+      padding: .18rem .55rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      font-size: .68rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .example-trigger:hover { background: #eef2ff; border-color: #93c5fd; color: #1d4ed8; }
+    [data-theme="dark"] .example-trigger:hover { background: #1e2d4a; border-color: #6366f1; color: #a5b4fc; }
+
+    /* ── Hint text ──────────────────────────────────────────────── */
+    .hint {
+      display: block; font-size: .7rem; color: var(--text-dim);
+      margin-top: .2rem; font-weight: 400;
+      font-family: system-ui, sans-serif; font-style: italic;
+    }
+
+    /* ── Apply button ────────────────────────────────────────────── */
+    #applyBtn {
+      width: 100%; padding: .55rem 1rem; border: none; border-radius: 8px;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      background: linear-gradient(135deg, #e94560 0%, #c0392b 100%);
+      color: #fff; box-shadow: 0 2px 6px rgba(233,69,96,.4);
+      transition: transform .1s, opacity .15s;
+    }
+    #applyBtn:hover   { opacity: .92; }
+    #applyBtn:active  { transform: scale(.98); }
+    #applyBtn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── I/O panel: input and output side by side ───────────────── */
+    .io-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 1200px) {
+      .io-panel { grid-template-columns: 1fr; }
+    }
+    .io-panel > .card {
+      display: flex; flex-direction: column;
+      min-height: calc(100vh - 2rem);
+    }
+    .io-panel > .card > .card-body {
+      flex: 1; display: flex; flex-direction: column; padding: 0;
+    }
+
+    /* ── Code overlay (highlighting) ────────────────────────────── */
+    .code-wrapper {
+      position: relative; flex: 1; min-height: 320px; overflow: hidden;
+    }
+    .code-highlight, .code-input {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      padding: .75rem 1rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .82rem; line-height: 1.55;
+      margin: 0; border: none; border-radius: 0;
+      white-space: pre-wrap; word-wrap: break-word;
+      tab-size: 2;
+    }
+    /* Pre: visible highlighted content behind the textarea */
+    .code-highlight {
+      background: var(--surface);
+      color: var(--text);
+      z-index: 0;
+      pointer-events: none;
+      /* overflow: scroll allows programmatic scrollTop in ALL browsers;
+         overflow: hidden sometimes blocks it in Firefox/Safari */
+      overflow: scroll;
+      scrollbar-width: none; /* Firefox */
+    }
+    .code-highlight::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+    /* Textarea: text is invisible — pre shows through */
+    .code-input {
+      background: transparent !important; /* prevent browser focus override */
+      -webkit-appearance: none;           /* strip UA styling that may add bg */
+      appearance: none;
+      color: var(--caret);                   /* real color for caret & ::selection */
+      -webkit-text-fill-color: transparent;  /* hides rendered text in all browsers */
+      caret-color: var(--caret);
+      resize: none; z-index: 1; transition: none;
+      overflow: auto;
+    }
+    .code-input:focus {
+      outline: none;
+      box-shadow: inset 0 0 0 2px rgba(59,130,246,.4);
+    }
+    .code-input::placeholder {
+      color: var(--text-dim);
+      -webkit-text-fill-color: var(--text-dim);
+    }
+    /* Make selected text visible (overrides -webkit-text-fill-color: transparent) */
+    .code-input::selection {
+      -webkit-text-fill-color: var(--text);
+      background-color: var(--sel-bg);
+    }
+    /* Output-specific backgrounds */
+    #outputHighlight       { background: var(--surface-out); }
+    #outputHighlight.error { background: var(--surface-err); }
+
+    /* When highlighting is OFF */
+    .no-highlight .code-highlight { display: none; }
+    .no-highlight .code-input {
+      -webkit-text-fill-color: var(--text);
+      color: var(--text);
+      background: var(--surface);
+    }
+    .no-highlight #outputJson {
+      background: var(--surface-out);
+      -webkit-text-fill-color: var(--text);
+      color: var(--text);
+    }
+    .no-highlight #outputJson.error {
+      background: var(--surface-err);
+      -webkit-text-fill-color: #721c24;
+    }
+    [data-theme="dark"] .no-highlight #outputJson.error {
+      -webkit-text-fill-color: #fca5a5;
+    }
+
+    /* ── JSON syntax colours ──────────────────────────────────── */
+    .j-key   { color: var(--j-key);   font-weight: 600; }
+    .j-str   { color: var(--j-str);   }
+    .j-num   { color: var(--j-num);   }
+    .j-kw    { color: var(--j-kw);    }
+    .j-punct { color: var(--j-punct); }
+
+    /* ── Char count & timing in card header ─────────────────────── */
+    .char-count {
+      margin-left: auto;
+      font-size: .7rem; font-weight: 400; color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .char-count.reduced { color: #16a34a; }
+    .char-count.grown   { color: #d97706; }
+    #filterTiming {
+      font-size: .7rem; font-weight: 400; color: #16a34a; margin-left: .4rem;
+    }
+
+    /* ── Status footer (errors only) ────────────────────────────── */
+    .status-footer {
+      font-size: .73rem; color: #ef4444;
+      padding: .3rem 1rem;
+      border-top: 1px solid var(--border-soft);
+    }
+    .status-footer:empty { display: none; }
+    .json-error {
+      font-size: .73rem; color: #ef4444;
+      padding: .25rem .1rem 0;
+      min-height: 1em;
+    }
+    .json-error:empty { display: none; }
+
+    /* ── Loading overlay ────────────────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0;
+      background: var(--load-bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem; z-index: 100; backdrop-filter: blur(2px);
+    }
+    #loading.hidden { display: none; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--border); border-top-color: #3b82f6;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-size: .9rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading filter engine…</p>
+</div>
+
+<div class="layout">
+
+  <!-- ── Config panel ─────────────────────────────────────── -->
+  <aside class="config-panel">
+
+    <button id="applyBtn" onclick="runFilter()" style="display:none">Apply Filter</button>
+
+    <!-- Anonymize -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-blue"></span>Anonymize
+        <button class="example-trigger" onclick="loadSectionExample('anonymize')">example</button>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="anonymizePaths">Paths — JSONPath (one per line)</label>
+          <textarea id="anonymizePaths" class="small" spellcheck="false" placeholder="$.customer.email&#10;$.payment.cardNumber"></textarea>
+        </div>
+        <div class="field">
+          <label for="anonymizeKeys">Keys — any depth (one per line)</label>
+          <textarea id="anonymizeKeys" class="small" spellcheck="false" placeholder="password&#10;ssn&#10;token"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prune -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-red"></span>Prune
+        <button class="example-trigger" onclick="loadSectionExample('prune')">example</button>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="prunePaths">Paths — JSONPath (one per line)</label>
+          <textarea id="prunePaths" class="small" spellcheck="false" placeholder="$.context.rawPayload&#10;$.audit.stackTrace"></textarea>
+        </div>
+        <div class="field">
+          <label for="pruneKeys">Keys — any depth (one per line)</label>
+          <textarea id="pruneKeys" class="small" spellcheck="false" placeholder="debugInfo&#10;internalMetadata"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limits -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-orange"></span>Limits
+        <button class="example-trigger" onclick="loadSectionExample('limits')">example</button>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="maxStringLength">Max string length</label>
+          <input type="number" id="maxStringLength" placeholder="unlimited" min="1" />
+        </div>
+        <div class="field">
+          <label for="maxSize">Max document size</label>
+          <input type="number" id="maxSize" placeholder="unlimited" min="1" />
+        </div>
+        <div class="field">
+          <label for="maxPathMatches">Max path matches</label>
+          <input type="number" id="maxPathMatches" placeholder="unlimited" min="1" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-green"></span>Filter Options
+        <button class="example-trigger" onclick="loadSectionExample('options')">example</button>
+      </div>
+      <div class="card-body">
+          <label class="inline">
+            <input type="checkbox" id="removeWhitespace" />
+            Remove insignificant whitespace
+          </label>
+          <div class="field" style="margin-top:.85rem">
+            <label for="anonymizeMessage">Anonymize replacement <small>(default: *)</small></label>
+            <input type="text" id="anonymizeMessage" placeholder="*" />
+          </div>
+          <div class="field">
+            <label for="pruneMessage">Prune replacement <small>(default: [removed])</small></label>
+            <input type="text" id="pruneMessage" placeholder="[removed]" />
+          </div>
+          <div class="field">
+            <label for="truncateMessage">Truncation suffix <small>(default: … + )</small></label>
+            <textarea id="truncateMessage" class="single-line" rows="1" spellcheck="false"
+                      autocorrect="off" autocomplete="off" placeholder="… + "></textarea>
+          </div>
+      </div>
+    </div>
+
+    <!-- UI Options -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-purple"></span>UI Options
+      </div>
+      <div class="card-body">
+          <label class="inline">
+            <input type="checkbox" id="prettyPrint" checked />
+            Pretty-print output
+          </label>
+          <label class="inline" style="margin-top:.4rem">
+            <input type="checkbox" id="syntaxHighlight" checked />
+            Syntax highlighting
+          </label>
+          <label class="inline" style="margin-top:.4rem">
+            <input type="checkbox" id="liveFilter" checked />
+            Live filtering
+          </label>
+          <label class="inline" style="margin-top:.4rem">
+            <input type="checkbox" id="darkMode" />
+            Dark mode
+          </label>
+      </div>
+    </div>
+
+    <div class="impl-info">
+      <div class="impl-label">Implementation</div>
+      <div id="filterImpl" class="impl-name">—</div>
+    </div>
+
+    <a class="gh-link"
+       href="https://github.com/skjolber/json-log-filter#readme"
+       target="_blank" rel="noopener noreferrer">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                 .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                 -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 4.58c.68
+                 .003 1.36.092 2 .27 1.52-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                 .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8
+                 c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      skjolber/json-log-filter
+    </a>
+
+  </aside>
+
+  <!-- ── I/O panel ─────────────────────────────────────────── -->
+  <main id="ioPanel" class="io-panel">
+
+    <!-- Input -->
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-orange"></span>Input JSON
+        <span id="inputCharCount" class="char-count">0 chars</span>
+      </div>
+      <div class="card-body">
+        <div class="code-wrapper">
+          <pre id="inputHighlight" class="code-highlight" aria-hidden="true"></pre>
+          <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here…'>{
+  "user": {
+    "id": 42,
+    "name": "Alice Smith",
+    "email": "alice@example.com",
+    "password": "s3cr3t!",
+    "ssn": "123-45-6789"
+  },
+  "session": {
+    "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.abc123",
+    "expires": "2025-01-01T00:00:00Z"
+  },
+  "metadata": {
+    "requestId": "req-abc-123",
+    "debugPayload": "very long internal diagnostics data"
+  }
+}</textarea>
+        </div>
+        <div id="inputJsonError" class="json-error" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="dot dot-green"></span>Filtered JSON<span id="filterTiming"></span>
+        <span id="outputCharCount" class="char-count">—</span>
+      </div>
+      <div class="card-body">
+        <div class="code-wrapper">
+          <pre id="outputHighlight" class="code-highlight" aria-hidden="true"></pre>
+          <textarea id="outputJson" class="code-input" readonly spellcheck="false"
+            placeholder='Output appears here…'></textarea>
+        </div>
+      </div>
+      <div id="status" class="status-footer"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TeaVM compiled app — synchronous IIFE, @JSExport methods become plain globals -->
+<script src="js/app.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
