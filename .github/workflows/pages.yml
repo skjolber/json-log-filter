@@ -34,11 +34,8 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build library modules (api, base, core)
-        run: mvn install --no-transfer-progress -DskipTests
-
-      - name: Build TeaVM webapp
-        run: mvn package -pl webapp/teavm --no-transfer-progress -DskipTests
+      - name: Build
+        run: mvn install -P webapp --no-transfer-progress -DskipTests
 
       - name: Stage Pages site (static files only, no WEB-INF)
         run: |
