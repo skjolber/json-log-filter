@@ -396,9 +396,9 @@
 
 	<modules>
 		<module>api</module>
+		<module>support/test</module>
 		<module>base</module>
 		<module>impl/core</module>
-		<module>support/test</module>
 		<module>frameworks/jackson</module>
 		<module>impl/path</module>
 		<module>benchmark/jmh</module>
