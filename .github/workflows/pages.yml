@@ -35,7 +35,7 @@ jobs:
           cache: maven
 
       - name: Build library modules (api, base, core)
-        run: mvn install -pl api,base,impl/core --no-transfer-progress -DskipTests
+        run: mvn install --no-transfer-progress -DskipTests
 
       - name: Build TeaVM webapp
         run: mvn package -pl webapp/teavm --no-transfer-progress -DskipTests
