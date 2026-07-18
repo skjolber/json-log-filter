@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.github.skjolber.json-log-filter</groupId>
+    <artifactId>parent</artifactId>
+    <version>6.0.8-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>teavm-webapp</artifactId>
+  <packaging>war</packaging>
+  <name>teavm-webapp</name>
+  <description>Interactive JSON log filter demo compiled to JavaScript via TeaVM, served as a static GitHub Pages site</description>
+
+  <properties>
+    <teavm.version>0.15.0</teavm.version>
+    <!-- Output directory for the static site (used by war plugin and TeaVM plugin) -->
+    <webapp.output.dir>${project.build.directory}/webapp</webapp.output.dir>
+    <!-- Skip JaCoCo for this module (no Java test coverage relevant here) -->
+    <jacoco.skip>true</jacoco.skip>
+    <!-- Suppress missing web.xml warning (static site, no servlets) -->
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+    <!-- This is a demo/tooling module — never publish to Maven Central -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
+  <dependencies>
+    <!--
+      TeaVM class library: provides JRE emulation (java.lang, java.util, etc.)
+      and JSO (JavaScript Object) API for JS interop.
+    -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-jso-apis</artifactId>
+      <version>${teavm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--
+      Filter library modules.  TeaVM compiles from bytecode, so the regular JARs
+      (no source classifier required) work as dependencies.
+
+      NOTE: ByteArrayRangesFilter and ByteArrayRangesSizeFilter in impl/core use
+      java.lang.invoke.VarHandle which is absent from TeaVM's JRE emulation.
+      Both classes are shadowed by TeaVM-safe stubs in this module's own source
+      tree (same package, same class name). Because Maven puts the project's own
+      compiled classes before dependency classes in the build classpath, TeaVM
+      picks up the stubs and the byte-array processing path compiles cleanly.
+      At runtime only process(String) → process(char[]) is ever called, so the
+      stub UnsupportedOperationException bodies are never reached.
+    -->
+    <dependency>
+      <groupId>com.github.skjolber.json-log-filter</groupId>
+      <artifactId>api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.skjolber.json-log-filter</groupId>
+      <artifactId>base</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.skjolber.json-log-filter</groupId>
+      <artifactId>core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+        </configuration>
+      </plugin>
+
+      <!--
+        TeaVM: compile Java → JavaScript.
+        The plugin runs at process-classes (before package), writing app.js
+        to target/teavm-js/.  The WAR plugin then includes that directory as
+        a web resource at path "js/".
+      -->
+      <plugin>
+        <groupId>org.teavm</groupId>
+        <artifactId>teavm-maven-plugin</artifactId>
+        <version>${teavm.version}</version>
+        <executions>
+          <execution>
+            <id>teavm-compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <mainClass>com.github.skjolber.jsonfilter.web.JsonFilterApp</mainClass>
+              <!-- No global main() wrapper — we export methods via @JSExport -->
+              <entryPointName>jsonFilterAppMain</entryPointName>
+              <targetDirectory>${project.build.directory}/teavm-js</targetDirectory>
+              <targetFileName>app.js</targetFileName>
+              <!--
+                NONE: generates an IIFE (immediately-invoked function expression) with
+                no external module system. @JSExport-annotated methods are exposed
+                on the "exports" object returned from the IIFE, which TeaVM assigns to
+                the global variable named by <targetObjectName> (default: "teavm").
+              -->
+              <jsModuleType>NONE</jsModuleType>
+              <minifying>false</minifying>
+              <optimizationLevel>SIMPLE</optimizationLevel>
+              <debugInformationGenerated>false</debugInformationGenerated>
+              <sourceMapsGenerated>false</sourceMapsGenerated>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <!-- Output the exploded WAR here -->
+          <webappDirectory>${webapp.output.dir}</webappDirectory>
+          <!--
+            Include TeaVM-generated JS in the WAR under "js/".
+            This runs at package phase, after TeaVM has written its output at process-classes.
+          -->
+          <webResources>
+            <resource>
+              <directory>${project.build.directory}/teavm-js</directory>
+              <targetPath>js</targetPath>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
+
+      <!-- Skip Moditect for this module (no JPMS module descriptor needed) -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-infos</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

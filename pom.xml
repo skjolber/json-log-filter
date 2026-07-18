@@ -431,6 +431,19 @@
 			</build>
 		</profile>
 
+		<profile>
+			<!--
+			  Adds the TeaVM webapp demo to the reactor.
+			  Activate with: mvn package -P webapp
+			  The GitHub Pages workflow uses this profile to build and deploy the static site.
+			  webapp/teavm: compiled via TeaVM, uses real api/base/core library
+			-->
+			<id>webapp</id>
+			<modules>
+				<module>webapp/teavm</module>
+			</modules>
+		</profile>
+
 	</profiles>
 
 	<distributionManagement>
