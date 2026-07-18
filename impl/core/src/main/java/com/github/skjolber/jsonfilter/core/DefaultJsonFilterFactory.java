@@ -84,9 +84,9 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 				boolean pruneAllAny = pruneFilters == null || AbstractPathJsonFilter.hasAllAnyPrefix(pruneFilters);
 				if(!isActiveMaxStringLength() && anonymizeAllAny && pruneAllAny && (anonymizeFilters != null || pruneFilters != null)) {
 					if(isActiveMaxSize()) {
-						return new AnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, anonymizeFilters, pruneFilters);
+						return new AnyPathMaxSizeJsonFilter(maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 					}
-					return new AnyPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters);
+					return new AnyPathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
 
 				if(isActiveMaxStringLength()) {
