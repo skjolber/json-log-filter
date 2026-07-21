@@ -7,7 +7,7 @@ High-performance filtering of JSON. Reads, filters and writes JSON in a single p
 
 Each high-performance filter also has a Jackson-based equivalent. Pick and choose implementation to get the maximum performance.
 
-Try a [live demo](https://skjolber.github.io/json-log-filter/) (JVM bytecode -> WebAssembly by [TeaVM](https://teavm.org/)).
+Try the [live filter utility](https://skjolber.github.io/json-log-filter/) (including JVM bytecode -> WebAssembly by [TeaVM](https://teavm.org/)).
 
 
 ## Quickstart
