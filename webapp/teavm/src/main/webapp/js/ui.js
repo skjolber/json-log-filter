@@ -362,7 +362,7 @@ var sectionExamples = {
     input: JSON.stringify({
       user: { name: "Alice Smith", email: "alice@example.com",
               password: "s3cr3t!", ssn: "123-45-6789" },
-      session: { token: "******" }
+      session: { token: "Bearer x.y.z" }
     }, null, 2),
     anonymizeKeys: 'password\nssn',
     anonymizePaths: '$.user.email\n$.session.token',
