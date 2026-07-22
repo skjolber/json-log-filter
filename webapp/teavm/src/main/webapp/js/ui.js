@@ -92,6 +92,7 @@ function _applyFilterResult(result, ms, prettyPrint, inputLen) {
   status.textContent = '';
   out.className      = 'code-input';
   out.value = result;
+  document.getElementById('outputSizer').textContent = (result || '') + '\n';
   updateOutputHighlight(result, false);
 
   if (result && result.startsWith('Error:')) {
@@ -256,6 +257,7 @@ function runFilter() {
     out.className      = 'code-input';
     status.textContent = '';
     document.getElementById('filterTiming').textContent = '';
+    document.getElementById('outputSizer').textContent  = '\n';
     updateOutputHighlight('', false);
     updateOutputCount(-1, -1, -1);
     return;
@@ -347,12 +349,25 @@ function setupLiveFilter() {
     cursorEl.textContent = line + ':' + col;
   }
 
+  function updateCursorBadgePos() {
+    var wrapperRect = inputTa.parentElement.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.35;
+    var top = Math.max(pad, -wrapperRect.top + pad);
+    top = Math.min(top, wrapperRect.height - cursorEl.offsetHeight - pad);
+    cursorEl.style.top = top + 'px';
+    // Show badge instantly while scrolling (skip CSS fade)
+    var inView = wrapperRect.bottom > 0 && wrapperRect.top < window.innerHeight;
+    cursorEl.classList.toggle('visible', inView);
+  }
+  window.addEventListener('scroll', updateCursorBadgePos, { passive: true });
+
   inputTa.addEventListener('input', function() {
     document.getElementById('filterTiming').textContent = '';
     updateInputCount();
     updateInputHighlight();
     validateInputJson();
     updateCursorPos();
+    document.getElementById('inputSizer').textContent = inputTa.value + '\n';
     if (liveCheckbox.checked) runFilter();
   });
   inputTa.addEventListener('keyup',    updateCursorPos);
@@ -373,6 +388,7 @@ function setupLiveFilter() {
 
   syncButton();
   updateInputHighlight();
+  document.getElementById('inputSizer').textContent = inputTa.value + '\n';
   validateInputJson();
   runFilter();
   updateFilterImpl();
@@ -448,6 +464,7 @@ function loadSectionExample(section) {
   setVal('maxPathMatches',   ex.maxPathMatches);
   setVal('truncateMessage',  ex.truncateMessage);
   setChk('removeWhitespace', ex.removeWhitespace);
+  document.getElementById('inputSizer').textContent = ex.input + '\n';
   updateInputCount();
   updateInputHighlight();
   validateInputJson();

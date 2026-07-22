@@ -259,6 +259,7 @@
       display: grid;
       grid-template-columns: var(--input-w, 1fr) 16px 1fr;
       gap: 0;
+      align-items: start;
     }
     @media (max-width: 1200px) {
       .io-panel { grid-template-columns: 1fr; }
@@ -266,15 +267,28 @@
     }
     .io-panel > .card {
       display: flex; flex-direction: column;
-      min-height: calc(100vh - 2rem);
     }
     .io-panel > .card > .card-body {
-      flex: 1; display: flex; flex-direction: column; padding: 0;
+      display: flex; flex-direction: column; padding: 0;
     }
 
     /* ── Code overlay (highlighting) ────────────────────────────── */
     .code-wrapper {
-      position: relative; flex: 1; min-height: 320px; overflow: hidden;
+      position: relative;
+      min-height: calc(100vh - 5rem);
+    }
+    /* Hidden sizer: drives wrapper height to match textarea content */
+    .code-sizer {
+      visibility: hidden;
+      pointer-events: none;
+      padding: .75rem 1rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .82rem; line-height: 1.55;
+      white-space: pre;
+      tab-size: 2;
+      min-height: inherit;
+      overflow-x: hidden; /* don't widen wrapper; elements scroll independently */
+      word-break: normal;
     }
     /* Line/col tracker badge */
     .cursor-pos {
@@ -291,6 +305,7 @@
       opacity: 0;
       transition: opacity .15s;
     }
+    .cursor-pos.visible { opacity: 1; transition: none; }
     .code-wrapper:focus-within .cursor-pos { opacity: 1; }
     .code-highlight, .code-input {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -308,9 +323,8 @@
       color: var(--text);
       z-index: 0;
       pointer-events: none;
-      /* overflow: scroll allows programmatic scrollTop in ALL browsers;
-         overflow: hidden sometimes blocks it in Firefox/Safari */
-      overflow: scroll;
+      overflow-x: scroll; /* keep horizontal scroll for sync */
+      overflow-y: hidden;
       scrollbar-width: none; /* Firefox */
     }
     .code-highlight::-webkit-scrollbar { display: none; } /* Chrome/Safari */
@@ -323,7 +337,8 @@
       -webkit-text-fill-color: transparent;  /* hides rendered text in all browsers */
       caret-color: var(--caret);
       resize: none; z-index: 1; transition: none;
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
     .code-input:focus {
       outline: none;
@@ -575,6 +590,7 @@
       </div>
       <div class="card-body">
         <div class="code-wrapper">
+          <div class="code-sizer" id="inputSizer" aria-hidden="true"></div>
           <pre id="inputHighlight" class="code-highlight" aria-hidden="true"></pre>
           <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here. Nothing leaves your local browser.'>{
           </textarea>
@@ -594,6 +610,7 @@
       </div>
       <div class="card-body">
         <div class="code-wrapper">
+          <div class="code-sizer" id="outputSizer" aria-hidden="true"></div>
           <pre id="outputHighlight" class="code-highlight" aria-hidden="true"></pre>
           <textarea id="outputJson" class="code-input" readonly spellcheck="false"
             placeholder='Output appears here…'></textarea>
