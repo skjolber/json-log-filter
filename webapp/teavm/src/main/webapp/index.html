@@ -153,7 +153,7 @@
       gap: .45rem;
       color: var(--text-muted);
     }
-    .card-header .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .card-header .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; transition: color .25s; }
     .card-header .dot-blue   { color: #3b82f6; }
     .card-header .dot-green  { color: #22c55e; }
     .card-header .dot-purple { color: #a78bfa; }
@@ -403,12 +403,25 @@
       border-top: 1px solid var(--border-soft);
     }
     .status-footer:empty { display: none; }
-    .json-error {
-      font-size: .73rem; color: #ef4444;
-      padding: .25rem .1rem 0;
-      min-height: 1em;
+    .json-error-badge {
+      position: absolute; bottom: .35rem; left: .45rem; z-index: 2;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .68rem; line-height: 1;
+      padding: .18rem .42rem;
+      border-radius: 4px;
+      background: var(--surface-err);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transition: opacity .25s;
+      max-width: calc(100% - 1rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .json-error:empty { display: none; }
+    .json-error-badge:not(:empty) { opacity: 1; }
 
     /* ── Loading overlay ────────────────────────────────────────── */
     #loading {
@@ -585,7 +598,7 @@
     <!-- Input -->
     <div class="card">
       <div class="card-header">
-        <span class="dot dot-orange"></span>Input JSON
+        <span id="inputDot" class="dot dot-orange"></span>Input JSON
         <span id="inputCharCount" class="char-count">0 chars</span>
       </div>
       <div class="card-body">
@@ -595,8 +608,8 @@
           <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here. Nothing leaves your local browser.'>{
           </textarea>
           <span id="inputCursorPos" class="cursor-pos" aria-live="off">1:1</span>
+          <span id="inputJsonError" class="json-error-badge" aria-live="polite"></span>
         </div>
-        <div id="inputJsonError" class="json-error" aria-live="polite"></div>
       </div>
     </div>
 
@@ -605,7 +618,7 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="dot dot-green"></span>Filtered JSON<span id="filterTiming"></span>
+        <span id="outputDot" class="dot dot-green"></span>Filtered JSON<span id="filterTiming"></span>
         <span id="outputCharCount" class="char-count">—</span>
       </div>
       <div class="card-body">
