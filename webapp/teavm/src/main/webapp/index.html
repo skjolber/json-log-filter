@@ -172,7 +172,7 @@
       text-transform: uppercase; letter-spacing: .05em;
       font-size: .65rem; color: var(--text-dim); margin-bottom: .2rem;
     }
-    .impl-name { font-family: monospace; color: var(--text-impl); font-size: .8rem; }
+    .impl-name { font-family: monospace; color: var(--text-impl); font-size: .65rem; }
 
     .gh-link {
       display: flex; align-items: center; gap: .4rem;
@@ -454,7 +454,7 @@
           <textarea id="anonymizePaths" class="small" spellcheck="false" placeholder="$.customer.email&#10;$.payment.cardNumber"></textarea>
         </div>
         <div class="field">
-          <label for="anonymizeKeys">Keys — any depth (one per line)</label>
+          <label for="anonymizeKeys">Field names — any depth (one per line)</label>
           <textarea id="anonymizeKeys" class="small" spellcheck="false" placeholder="password&#10;ssn&#10;token"></textarea>
         </div>
       </div>
@@ -472,7 +472,7 @@
           <textarea id="prunePaths" class="small" spellcheck="false" placeholder="$.context.rawPayload&#10;$.audit.stackTrace"></textarea>
         </div>
         <div class="field">
-          <label for="pruneKeys">Keys — any depth (one per line)</label>
+          <label for="pruneKeys">Field names — any depth (one per line)</label>
           <textarea id="pruneKeys" class="small" spellcheck="false" placeholder="debugInfo&#10;internalMetadata"></textarea>
         </div>
       </div>
