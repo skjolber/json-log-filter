@@ -12,6 +12,8 @@ window.JsonFilterApp = {
 var _filterWorker = null;
 var _workerBusy   = false;
 var _pendingJob   = null; /* only the latest queued job matters */
+var _debounceTimer = null;
+var DEBOUNCE_MS   = 150;
 
 try {
   _filterWorker = new Worker('js/worker.js');
@@ -253,6 +255,7 @@ function runFilter() {
   var status = document.getElementById('status');
 
   if (!val('inputJson').trim()) {
+    if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null; }
     out.value          = '';
     out.className      = 'code-input';
     status.textContent = '';
@@ -263,6 +266,9 @@ function runFilter() {
     return;
   }
 
+  /* Cancel any pending debounced call — this invocation wins */
+  if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null; }
+
   status.textContent = '';
   out.className      = 'code-input';
   updateInputCount();
@@ -272,6 +278,23 @@ function runFilter() {
     _pendingJob = job; /* replace any previously queued job */
   } else {
     _dispatchJob(job);
+  }
+}
+
+/* Debounced entry point used by the live-input handler.
+   Replaces any unstarted scheduled run so only the last edit fires. */
+function _scheduleLiveFilter() {
+  if (_debounceTimer) { clearTimeout(_debounceTimer); }
+  if (_workerBusy) {
+    /* Worker is running — update pending job immediately so the
+       already-running job's completion dispatches the latest input. */
+    _pendingJob = _collectArgs();
+    _debounceTimer = null;
+  } else {
+    _debounceTimer = setTimeout(function() {
+      _debounceTimer = null;
+      runFilter();
+    }, DEBOUNCE_MS);
   }
 }
 
@@ -368,7 +391,7 @@ function setupLiveFilter() {
     validateInputJson();
     updateCursorPos();
     document.getElementById('inputSizer').textContent = inputTa.value + '\n';
-    if (liveCheckbox.checked) runFilter();
+    if (liveCheckbox.checked) _scheduleLiveFilter();
   });
   inputTa.addEventListener('keyup',    updateCursorPos);
   inputTa.addEventListener('click',    updateCursorPos);
