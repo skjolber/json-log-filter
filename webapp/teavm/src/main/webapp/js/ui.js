@@ -89,9 +89,6 @@ function _applyFilterResult(result, ms, prettyPrint, inputLen) {
     try { result = JSON.stringify(JSON.parse(result), null, 2); } catch(e) {}
   }
 
-  /* Skip all DOM updates if the output hasn't changed */
-  if (out.value === result) return;
-
   status.textContent = '';
   out.className      = 'code-input';
   out.value = result;
@@ -154,7 +151,7 @@ function updateOutputCount(inputLen, filteredLen, prettyLen) {
   }
 
   /* Append pretty-printed size when it differs */
-  if (prettyLen >= 0 && prettyLen !== filteredLen) {
+  if (prettyLen >= 0) {
     text += '  →  ' + prettyLen.toLocaleString() + ' pretty';
   }
 
