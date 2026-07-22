@@ -104,7 +104,7 @@ function _applyFilterResult(result, ms, prettyPrint, inputLen) {
     timing.textContent = '';
     updateOutputCount(inputLen, -1, -1);
   } else {
-    timing.textContent = ' (in ' + ms + ' ms)';
+    timing.textContent = ' (' + ms + ' ms)';
     updateOutputCount(inputLen, filteredLen, prettyPrint ? result.length : -1);
   }
 }
@@ -119,7 +119,7 @@ function setChk(id, v)  { document.getElementById(id).checked = v; }
 /* ── Char counts ──────────────────────────────────────────── */
 function updateInputCount() {
   var n = document.getElementById('inputJson').value.length;
-  document.getElementById('inputCharCount').textContent = n.toLocaleString() + ' chars';
+  document.getElementById('inputCharCount').textContent = n.toLocaleString();
 }
 
 function validateInputJson() {
@@ -145,7 +145,7 @@ function updateOutputCount(inputLen, filteredLen, prettyLen) {
     var diff = inputLen - filteredLen;
     var pct  = Math.round(Math.abs(diff) / inputLen * 100);
     if (diff > 0) {
-      text += '  (−' + diff.toLocaleString() + ', ' + pct + '% smaller)';
+      text += '  (−' + diff.toLocaleString() + ', ' + pct + '%)';
       el.classList.add('reduced');
     } else {
       text += '  (+' + Math.abs(diff).toLocaleString() + ')';
