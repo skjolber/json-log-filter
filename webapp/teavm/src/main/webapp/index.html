@@ -96,13 +96,41 @@
     /* ── Outer layout: config | io-panel — full width ────────────── */
     .layout {
       display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 1rem;
+      grid-template-columns: var(--config-w, 300px) 16px 1fr;
+      gap: 0;
       padding: 1rem;
+      column-gap: 0;
       min-height: 100vh;
     }
+
+    /* ── Resize handle ──────────────────────────────────────────── */
+    .resize-handle,
+    .io-resize-handle {
+      cursor: col-resize;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      align-self: stretch;
+    }
+    .resize-handle::after,
+    .io-resize-handle::after {
+      content: '';
+      display: block;
+      width: 4px;
+      border-radius: 4px;
+      background: var(--border-soft);
+      transition: background .15s;
+    }
+    .resize-handle:hover::after,
+    .resize-handle.dragging::after,
+    .io-resize-handle:hover::after,
+    .io-resize-handle.dragging::after {
+      background: #3b82f6;
+    }
+
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
+      .resize-handle { display: none; }
     }
 
     /* ── Cards ──────────────────────────────────────────────────── */
@@ -229,11 +257,12 @@
     /* ── I/O panel: input and output side by side ───────────────── */
     .io-panel {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      grid-template-columns: var(--input-w, 1fr) 16px 1fr;
+      gap: 0;
     }
     @media (max-width: 1200px) {
       .io-panel { grid-template-columns: 1fr; }
+      .io-resize-handle { display: none; }
     }
     .io-panel > .card {
       display: flex; flex-direction: column;
@@ -247,6 +276,22 @@
     .code-wrapper {
       position: relative; flex: 1; min-height: 320px; overflow: hidden;
     }
+    /* Line/col tracker badge */
+    .cursor-pos {
+      position: absolute; top: .35rem; right: .45rem; z-index: 2;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .68rem; line-height: 1;
+      padding: .18rem .42rem;
+      border-radius: 4px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border-soft);
+      color: var(--text-dim);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .code-wrapper:focus-within .cursor-pos { opacity: 1; }
     .code-highlight, .code-input {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       width: 100%; height: 100%;
@@ -516,6 +561,9 @@
 
   </aside>
 
+  <!-- ── Resize handle ─────────────────────────────────────────── -->
+  <div class="resize-handle" id="resizeHandle" aria-hidden="true"></div>
+
   <!-- ── I/O panel ─────────────────────────────────────────── -->
   <main id="ioPanel" class="io-panel">
 
@@ -528,27 +576,17 @@
       <div class="card-body">
         <div class="code-wrapper">
           <pre id="inputHighlight" class="code-highlight" aria-hidden="true"></pre>
-          <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here…'>{
-  "user": {
-    "id": 42,
-    "name": "Alice Smith",
-    "email": "alice@example.com",
-    "password": "s3cr3t!",
-    "ssn": "123-45-6789"
-  },
-  "session": {
-    "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.abc123",
-    "expires": "2025-01-01T00:00:00Z"
-  },
-  "metadata": {
-    "requestId": "req-abc-123",
-    "debugPayload": "very long internal diagnostics data"
-  }
-}</textarea>
+          <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here. Nothing leaves your local browser.'>{
+          </textarea>
+          <span id="inputCursorPos" class="cursor-pos" aria-live="off">1:1</span>
         </div>
         <div id="inputJsonError" class="json-error" aria-live="polite"></div>
       </div>
     </div>
+
+    <!-- ── I/O resize handle ──────────────────────────────────── -->
+    <div class="io-resize-handle" id="ioResizeHandle" aria-hidden="true"></div>
+
     <div class="card">
       <div class="card-header">
         <span class="dot dot-green"></span>Filtered JSON<span id="filterTiming"></span>
@@ -570,5 +608,99 @@
 <!-- TeaVM compiled app — synchronous IIFE, @JSExport methods become plain globals -->
 <script src="js/app.js"></script>
 <script src="js/ui.js"></script>
+<script>
+  /* ── Drag-to-resize left panel ───────────────────────────────── */
+  (function () {
+    const handle  = document.getElementById('resizeHandle');
+    const layout  = document.querySelector('.layout');
+    const MIN_W   = 180;
+    const MAX_W   = 600;
+    const STORE_KEY = 'jlf-config-w';
+
+    function applyWidth(w) {
+      const clamped = Math.min(MAX_W, Math.max(MIN_W, w));
+      layout.style.setProperty('--config-w', clamped + 'px');
+      return clamped;
+    }
+
+    const saved = parseInt(sessionStorage.getItem(STORE_KEY), 10);
+    if (saved) applyWidth(saved);
+
+    handle.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      handle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      const startX = e.clientX;
+      const colW   = parseFloat(
+        getComputedStyle(layout).gridTemplateColumns.split(' ')[0]
+      ) || 300;
+
+      function onMove(e) {
+        const delta = e.clientX - startX;
+        const newW  = applyWidth(colW + delta);
+        sessionStorage.setItem(STORE_KEY, newW);
+      }
+
+      function onUp() {
+        handle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onUp);
+      }
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+  })();
+
+  /* ── Drag-to-resize input/output split ───────────────────────── */
+  (function () {
+    const handle   = document.getElementById('ioResizeHandle');
+    const ioPanel  = document.getElementById('ioPanel');
+    const MIN_W    = 120;
+    const STORE_KEY = 'jlf-input-w';
+
+    function applyWidth(w) {
+      const total  = ioPanel.getBoundingClientRect().width - 16; // subtract handle
+      const clamped = Math.min(total - MIN_W, Math.max(MIN_W, w));
+      ioPanel.style.setProperty('--input-w', clamped + 'px');
+      return clamped;
+    }
+
+    const saved = parseInt(sessionStorage.getItem(STORE_KEY), 10);
+    if (saved) applyWidth(saved);
+
+    handle.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      handle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      const startX = e.clientX;
+      const colW   = parseFloat(
+        getComputedStyle(ioPanel).gridTemplateColumns.split(' ')[0]
+      ) || ioPanel.getBoundingClientRect().width / 2;
+
+      function onMove(e) {
+        const newW = applyWidth(colW + (e.clientX - startX));
+        sessionStorage.setItem(STORE_KEY, newW);
+      }
+
+      function onUp() {
+        handle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onUp);
+      }
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+  })();
+</script>
 </body>
 </html>

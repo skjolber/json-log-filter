@@ -251,6 +251,16 @@ function runFilter() {
   var out    = document.getElementById('outputJson');
   var status = document.getElementById('status');
 
+  if (!val('inputJson').trim()) {
+    out.value          = '';
+    out.className      = 'code-input';
+    status.textContent = '';
+    document.getElementById('filterTiming').textContent = '';
+    updateOutputHighlight('', false);
+    updateOutputCount(-1, -1, -1);
+    return;
+  }
+
   status.textContent = '';
   out.className      = 'code-input';
   updateInputCount();
@@ -327,13 +337,28 @@ function setupLiveFilter() {
   /* Input JSON — refresh highlight/count always; filter when live */
   var inputTa  = document.getElementById('inputJson');
   var inputPre = document.getElementById('inputHighlight');
+  var cursorEl = document.getElementById('inputCursorPos');
+
+  function updateCursorPos() {
+    var pos   = inputTa.selectionStart;
+    var text  = inputTa.value.substring(0, pos);
+    var line  = text.split('\n').length;
+    var col   = pos - text.lastIndexOf('\n');
+    cursorEl.textContent = line + ':' + col;
+  }
+
   inputTa.addEventListener('input', function() {
     document.getElementById('filterTiming').textContent = '';
     updateInputCount();
     updateInputHighlight();
     validateInputJson();
+    updateCursorPos();
     if (liveCheckbox.checked) runFilter();
   });
+  inputTa.addEventListener('keyup',    updateCursorPos);
+  inputTa.addEventListener('click',    updateCursorPos);
+  inputTa.addEventListener('focus',    updateCursorPos);
+  inputTa.addEventListener('select',   updateCursorPos);
   inputTa.addEventListener('scroll', function() {
     inputPre.scrollTop  = inputTa.scrollTop;
     inputPre.scrollLeft = inputTa.scrollLeft;
