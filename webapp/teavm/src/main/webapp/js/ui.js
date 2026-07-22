@@ -12,6 +12,8 @@ window.JsonFilterApp = {
 var _filterWorker = null;
 var _workerBusy   = false;
 var _pendingJob   = null; /* only the latest queued job matters */
+var _debounceTimer = null;
+var DEBOUNCE_MS   = 150;
 
 try {
   _filterWorker = new Worker('js/worker.js');
@@ -89,12 +91,10 @@ function _applyFilterResult(result, ms, prettyPrint, inputLen) {
     try { result = JSON.stringify(JSON.parse(result), null, 2); } catch(e) {}
   }
 
-  /* Skip all DOM updates if the output hasn't changed */
-  if (out.value === result) return;
-
   status.textContent = '';
   out.className      = 'code-input';
   out.value = result;
+  document.getElementById('outputSizer').textContent = (result || '') + '\n';
   updateOutputHighlight(result, false);
 
   if (result && result.startsWith('Error:')) {
@@ -122,16 +122,69 @@ function updateInputCount() {
   document.getElementById('inputCharCount').textContent = n.toLocaleString();
 }
 
-function validateInputJson() {
-  var text = document.getElementById('inputJson').value.trim();
-  var el   = document.getElementById('inputJsonError');
-  if (!text) { el.textContent = ''; return; }
+/* ── JSON validation worker ───────────────────────────────── */
+var _validateWorker = (function() {
   try {
-    JSON.parse(text);
-    el.textContent = '';
-  } catch(e) {
-    el.textContent = '⚠ ' + e.message;
+    var blob = new Blob([
+      'self.onmessage = function(e) {' +
+      '  try { JSON.parse(e.data); self.postMessage({ ok: true }); }' +
+      '  catch(err) { self.postMessage({ ok: false, msg: err.message }); }' +
+      '};'
+    ], { type: 'application/javascript' });
+    return new Worker(URL.createObjectURL(blob));
+  } catch(e) { return null; }
+})();
+var _validateTimer = null;
+
+function _setValidationState(ok, msg) {
+  var errEl   = document.getElementById('inputJsonError');
+  var inputDot  = document.getElementById('inputDot');
+  var outputDot = document.getElementById('outputDot');
+  if (ok) {
+    errEl.textContent    = '';
+    inputDot.className   = 'dot dot-green';
+    outputDot.className  = 'dot dot-green';
+  } else {
+    errEl.textContent    = '⚠ ' + msg;
+    inputDot.className   = 'dot dot-red';
+    outputDot.className  = 'dot dot-red';
   }
+}
+
+function validateInputJson() {
+  var text  = document.getElementById('inputJson').value.trim();
+
+  if (!text) {
+    document.getElementById('inputJsonError').textContent = '';
+    document.getElementById('inputDot').className  = 'dot dot-orange';
+    document.getElementById('outputDot').className = 'dot dot-green';
+    if (_validateTimer) { clearTimeout(_validateTimer); _validateTimer = null; }
+    return;
+  }
+
+  /* Debounce: wait until typing pauses before validating */
+  if (_validateTimer) clearTimeout(_validateTimer);
+  _validateTimer = setTimeout(function() {
+    _validateTimer = null;
+    var current = document.getElementById('inputJson').value.trim();
+    if (!current) return;
+    if (_validateWorker) {
+      _validateWorker.onmessage = function(e) {
+        /* Ignore stale results if input changed again */
+        if (current !== document.getElementById('inputJson').value.trim()) return;
+        _setValidationState(e.data.ok, e.data.msg);
+      };
+      _validateWorker.postMessage(current);
+    } else {
+      /* Fallback: synchronous */
+      try {
+        JSON.parse(current);
+        _setValidationState(true);
+      } catch(e) {
+        _setValidationState(false, e.message);
+      }
+    }
+  }, 200);
 }
 
 function updateOutputCount(inputLen, filteredLen, prettyLen) {
@@ -154,7 +207,7 @@ function updateOutputCount(inputLen, filteredLen, prettyLen) {
   }
 
   /* Append pretty-printed size when it differs */
-  if (prettyLen >= 0 && prettyLen !== filteredLen) {
+  if (prettyLen >= 0) {
     text += '  →  ' + prettyLen.toLocaleString() + ' pretty';
   }
 
@@ -254,6 +307,21 @@ function runFilter() {
   var out    = document.getElementById('outputJson');
   var status = document.getElementById('status');
 
+  if (!val('inputJson').trim()) {
+    if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null; }
+    out.value          = '';
+    out.className      = 'code-input';
+    status.textContent = '';
+    document.getElementById('filterTiming').textContent = '';
+    document.getElementById('outputSizer').textContent  = '\n';
+    updateOutputHighlight('', false);
+    updateOutputCount(-1, -1, -1);
+    return;
+  }
+
+  /* Cancel any pending debounced call — this invocation wins */
+  if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null; }
+
   status.textContent = '';
   out.className      = 'code-input';
   updateInputCount();
@@ -263,6 +331,23 @@ function runFilter() {
     _pendingJob = job; /* replace any previously queued job */
   } else {
     _dispatchJob(job);
+  }
+}
+
+/* Debounced entry point used by the live-input handler.
+   Replaces any unstarted scheduled run so only the last edit fires. */
+function _scheduleLiveFilter() {
+  if (_debounceTimer) { clearTimeout(_debounceTimer); }
+  if (_workerBusy) {
+    /* Worker is running — update pending job immediately so the
+       already-running job's completion dispatches the latest input. */
+    _pendingJob = _collectArgs();
+    _debounceTimer = null;
+  } else {
+    _debounceTimer = setTimeout(function() {
+      _debounceTimer = null;
+      runFilter();
+    }, DEBOUNCE_MS);
   }
 }
 
@@ -330,13 +415,50 @@ function setupLiveFilter() {
   /* Input JSON — refresh highlight/count always; filter when live */
   var inputTa  = document.getElementById('inputJson');
   var inputPre = document.getElementById('inputHighlight');
+  var cursorEl = document.getElementById('inputCursorPos');
+  var errBadge = document.getElementById('inputJsonError');
+
+  function updateCursorPos() {
+    var pos   = inputTa.selectionStart;
+    var text  = inputTa.value.substring(0, pos);
+    var line  = text.split('\n').length;
+    var col   = pos - text.lastIndexOf('\n');
+    cursorEl.textContent = line + ':' + col;
+  }
+
+  function updateFloatingBadgePos() {
+    var wrapperRect = inputTa.parentElement.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.35;
+
+    /* cursor badge: sticks to top */
+    var top = Math.max(pad, -wrapperRect.top + pad);
+    top = Math.min(top, wrapperRect.height - cursorEl.offsetHeight - pad);
+    cursorEl.style.top = top + 'px';
+    var inView = wrapperRect.bottom > 0 && wrapperRect.top < window.innerHeight;
+    cursorEl.classList.toggle('visible', inView);
+
+    /* error badge: sticks to bottom */
+    var viewportBottom = window.innerHeight;
+    var wrapperBottom  = wrapperRect.bottom;
+    var bottom = Math.max(pad, wrapperBottom - viewportBottom + pad);
+    bottom = Math.min(bottom, wrapperRect.height - errBadge.offsetHeight - pad);
+    errBadge.style.bottom = bottom + 'px';
+  }
+  window.addEventListener('scroll', updateFloatingBadgePos, { passive: true });
+
   inputTa.addEventListener('input', function() {
     document.getElementById('filterTiming').textContent = '';
     updateInputCount();
     updateInputHighlight();
     validateInputJson();
-    if (liveCheckbox.checked) runFilter();
+    updateCursorPos();
+    document.getElementById('inputSizer').textContent = inputTa.value + '\n';
+    if (liveCheckbox.checked) _scheduleLiveFilter();
   });
+  inputTa.addEventListener('keyup',    updateCursorPos);
+  inputTa.addEventListener('click',    updateCursorPos);
+  inputTa.addEventListener('focus',    updateCursorPos);
+  inputTa.addEventListener('select',   updateCursorPos);
   inputTa.addEventListener('scroll', function() {
     inputPre.scrollTop  = inputTa.scrollTop;
     inputPre.scrollLeft = inputTa.scrollLeft;
@@ -351,6 +473,7 @@ function setupLiveFilter() {
 
   syncButton();
   updateInputHighlight();
+  document.getElementById('inputSizer').textContent = inputTa.value + '\n';
   validateInputJson();
   runFilter();
   updateFilterImpl();
@@ -426,6 +549,7 @@ function loadSectionExample(section) {
   setVal('maxPathMatches',   ex.maxPathMatches);
   setVal('truncateMessage',  ex.truncateMessage);
   setChk('removeWhitespace', ex.removeWhitespace);
+  document.getElementById('inputSizer').textContent = ex.input + '\n';
   updateInputCount();
   updateInputHighlight();
   validateInputJson();
