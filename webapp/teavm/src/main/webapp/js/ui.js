@@ -140,12 +140,12 @@ function updateOutputCount(inputLen, filteredLen, prettyLen) {
   if (filteredLen < 0) { el.textContent = '—'; return; }
 
   /* Base: filtered size vs input size */
-  var text = filteredLen.toLocaleString() + ' chars';
+  var text = filteredLen.toLocaleString();
   if (inputLen > 0 && filteredLen !== inputLen) {
     var diff = inputLen - filteredLen;
-    var pct  = Math.round(Math.abs(diff) / inputLen * 100);
+    var pct  = 100 - Math.round(Math.abs(diff) / inputLen * 100);
     if (diff > 0) {
-      text += '  (−' + diff.toLocaleString() + ', ' + pct + '%)';
+      text += ' (' + pct + '%)';
       el.classList.add('reduced');
     } else {
       text += '  (+' + Math.abs(diff).toLocaleString() + ')';
