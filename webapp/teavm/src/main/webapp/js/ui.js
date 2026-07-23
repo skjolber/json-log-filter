@@ -571,6 +571,112 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runFilter();
 });
 
+/* ── Input context menu (right-click) ─────────────────────── */
+function setupInputContextMenu() {
+  var inputCard   = document.getElementById('inputJson').closest('.card');
+  var ctxMenu     = document.getElementById('inputCtxMenu');
+  var fileInput   = document.getElementById('fileInput');
+  var urlDialog   = document.getElementById('urlDialog');
+  var urlInput    = document.getElementById('urlDialogInput');
+  var urlError    = document.getElementById('urlDialogError');
+  var urlFetchBtn = document.getElementById('urlFetchBtn');
+
+  function _setInputText(text) {
+    var ta = document.getElementById('inputJson');
+    ta.value = text;
+    document.getElementById('inputSizer').textContent = text + '\n';
+    updateInputCount();
+    updateInputHighlight();
+    validateInputJson();
+    if (document.getElementById('liveFilter').checked) runFilter();
+    saveSettings();
+  }
+
+  function hideCtxMenu() { ctxMenu.classList.remove('visible'); }
+
+  inputCard.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    var x = e.clientX, y = e.clientY;
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top  = y + 'px';
+    ctxMenu.classList.add('visible');
+    /* Keep menu on screen */
+    var r = ctxMenu.getBoundingClientRect();
+    if (r.right  > window.innerWidth)  ctxMenu.style.left = (x - r.width)  + 'px';
+    if (r.bottom > window.innerHeight) ctxMenu.style.top  = (y - r.height) + 'px';
+  });
+
+  document.addEventListener('click', hideCtxMenu);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { hideCtxMenu(); closeUrlDialog(); } });
+
+  /* ── Load from file ── */
+  document.getElementById('ctxLoadFile').addEventListener('click', function() {
+    hideCtxMenu();
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function() {
+    var file = fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload  = function(ev) { _setInputText(ev.target.result); };
+    reader.onerror = function()   { alert('Could not read the selected file.'); };
+    reader.readAsText(file);
+  });
+
+  /* ── Load from URL ── */
+  document.getElementById('ctxLoadUrl').addEventListener('click', function() {
+    hideCtxMenu();
+    urlInput.value           = '';
+    urlError.textContent     = '';
+    urlFetchBtn.disabled     = false;
+    urlFetchBtn.textContent  = 'Load';
+    urlDialog.classList.add('visible');
+    urlInput.focus();
+  });
+
+  function closeUrlDialog() {
+    urlDialog.classList.remove('visible');
+    urlError.textContent = '';
+  }
+
+  document.getElementById('urlCancelBtn').addEventListener('click', closeUrlDialog);
+
+  urlDialog.addEventListener('click', function(e) {
+    if (e.target === urlDialog) closeUrlDialog();
+  });
+
+  urlInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter')  urlFetchBtn.click();
+    if (e.key === 'Escape') closeUrlDialog();
+  });
+
+  urlFetchBtn.addEventListener('click', function() {
+    var url = urlInput.value.trim();
+    if (!url) { urlError.textContent = 'Please enter a URL.'; return; }
+    urlError.textContent    = '';
+    urlFetchBtn.disabled    = true;
+    urlFetchBtn.textContent = 'Loading\u2026';
+    fetch(url)
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+        return res.text();
+      })
+      .then(function(text) {
+        closeUrlDialog();
+        _setInputText(text);
+      })
+      .catch(function(err) {
+        urlError.textContent = 'Failed: ' + err.message;
+      })
+      .finally(function() {
+        urlFetchBtn.disabled    = false;
+        urlFetchBtn.textContent = 'Load';
+      });
+  });
+}
+
 /* ── Init ─────────────────────────────────────────────────── */
 (function() {
   if (typeof _teaVMGetFilterClass === 'function' && typeof _teaVMApplyFilter === 'function') {
@@ -582,6 +688,7 @@ document.addEventListener('keydown', function(e) {
     });
     setupHighlightToggle();
     setupLiveFilter();
+    setupInputContextMenu();
     document.addEventListener('input',  saveSettings);
     document.addEventListener('change', saveSettings);
   } else {

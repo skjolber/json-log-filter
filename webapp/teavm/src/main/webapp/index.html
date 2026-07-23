@@ -423,6 +423,74 @@
     }
     .json-error-badge:not(:empty) { opacity: 1; }
 
+    /* ── Input context menu ──────────────────────────────────────── */
+    #inputCtxMenu {
+      position: fixed;
+      z-index: 200;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px var(--shadow-sm), 0 1px 4px var(--shadow-lg);
+      padding: .25rem 0;
+      min-width: 190px;
+      display: none;
+    }
+    #inputCtxMenu.visible { display: block; }
+    .ctx-item {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .48rem .85rem;
+      font-size: .82rem; color: var(--text);
+      cursor: pointer; user-select: none;
+      border: none; background: none; width: 100%;
+      text-align: left; font-family: inherit;
+    }
+    .ctx-item:hover { background: var(--surface-alt); }
+    .ctx-item svg { flex-shrink: 0; color: var(--text-muted); }
+
+    /* ── URL dialog ──────────────────────────────────────────────── */
+    #urlDialog {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,.45);
+      display: none; align-items: center; justify-content: center;
+    }
+    #urlDialog.visible { display: flex; }
+    .url-dialog-box {
+      background: var(--surface); border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      padding: 1.25rem 1.5rem; width: 100%; max-width: 500px; margin: 1rem;
+      display: flex; flex-direction: column; gap: .7rem;
+    }
+    .url-dialog-box h3 { font-size: .9rem; font-weight: 600; color: var(--text); margin: 0; }
+    #urlDialogInput {
+      width: 100%;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      padding: .4rem .55rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .8rem; color: var(--text); background: var(--surface-in);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #urlDialogInput:focus {
+      outline: none; border-color: #3b82f6;
+      box-shadow: 0 0 0 3px var(--focus-ring); background: var(--surface);
+    }
+    #urlDialogError {
+      font-size: .75rem; color: #ef4444; min-height: 1em; line-height: 1.3;
+    }
+    .url-dialog-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+    .btn-secondary {
+      padding: .42rem .9rem; border-radius: 6px; font-size: .8rem; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border); background: var(--surface);
+      color: var(--text); font-family: inherit; transition: background .15s;
+    }
+    .btn-secondary:hover { background: var(--surface-alt); }
+    .btn-primary {
+      padding: .42rem .9rem; border-radius: 6px; font-size: .8rem; font-weight: 600;
+      cursor: pointer; border: none; background: #3b82f6; color: #fff;
+      font-family: inherit; transition: opacity .15s;
+    }
+    .btn-primary:hover   { opacity: .88; }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
     /* ── Loading overlay ────────────────────────────────────────── */
     #loading {
       position: fixed; inset: 0;
@@ -633,6 +701,42 @@
     </div>
 
   </main>
+</div>
+
+<!-- Hidden file input for "Load from file" -->
+<input type="file" id="fileInput" accept=".json,.txt,application/json,text/plain" style="display:none">
+
+<!-- Right-click context menu for the input panel -->
+<div id="inputCtxMenu" role="menu" aria-label="Input options">
+  <button class="ctx-item" id="ctxLoadFile" role="menuitem">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+      <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+    </svg>
+    Load from file…
+  </button>
+  <button class="ctx-item" id="ctxLoadUrl" role="menuitem">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+      <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+    </svg>
+    Load from URL…
+  </button>
+</div>
+
+<!-- URL fetch dialog -->
+<div id="urlDialog" role="dialog" aria-modal="true" aria-labelledby="urlDialogTitle">
+  <div class="url-dialog-box">
+    <h3 id="urlDialogTitle">Load JSON from URL</h3>
+    <input type="url" id="urlDialogInput" class="url-dialog-input"
+           placeholder="https://example.com/data.json"
+           autocomplete="off" spellcheck="false">
+    <div id="urlDialogError" aria-live="polite"></div>
+    <div class="url-dialog-actions">
+      <button class="btn-secondary" id="urlCancelBtn">Cancel</button>
+      <button class="btn-primary"   id="urlFetchBtn">Load</button>
+    </div>
+  </div>
 </div>
 
 <!-- TeaVM compiled app — synchronous IIFE, @JSExport methods become plain globals -->
