@@ -609,6 +609,62 @@ function setupInputContextMenu() {
   document.addEventListener('click', hideCtxMenu);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { hideCtxMenu(); closeUrlDialog(); } });
 
+  /* ── Security: scheme validation for URL fetch ── */
+
+  /* Returns an error string, or null when the URL is acceptable. */
+  function _validateFetchUrl(raw) {
+    var parsed;
+    try { parsed = new URL(raw); } catch (e) { return 'Invalid URL.'; }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return 'Only http:// and https:// URLs are allowed.';
+    }
+    return null;
+  }
+
+  /* Allowed content-type prefixes for URL fetch */
+  var ALLOWED_CT = ['application/json', 'text/'];
+
+  /* ── Progress bar helpers ── */
+  var urlProgress      = document.getElementById('urlProgress');
+  var urlProgressBar   = document.getElementById('urlProgressBar');
+  var urlProgressBytes = document.getElementById('urlProgressBytes');
+
+  function _fmtBytes(n) {
+    if (n < 1024)          return n + '\u202FB';
+    if (n < 1024 * 1024)   return (n / 1024).toFixed(1) + '\u202FKB';
+    return (n / (1024 * 1024)).toFixed(1) + '\u202FMB';
+  }
+
+  function _showProgress(indeterminate) {
+    urlProgress.hidden = urlProgressBytes.hidden = false;
+    if (indeterminate) {
+      urlProgressBar.classList.add('indeterminate');
+      urlProgressBar.style.width = '';
+    } else {
+      urlProgressBar.classList.remove('indeterminate');
+      urlProgressBar.style.width = '0%';
+    }
+    urlProgressBytes.textContent = '';
+  }
+
+  function _updateProgress(received, total) {
+    if (total) {
+      urlProgressBar.style.width = Math.round(received / total * 100) + '%';
+      urlProgressBytes.textContent = _fmtBytes(received) + ' / ' + _fmtBytes(total);
+    } else {
+      urlProgressBytes.textContent = _fmtBytes(received) + ' received';
+    }
+  }
+
+  function _hideProgress() {
+    urlProgress.hidden = urlProgressBytes.hidden = true;
+    urlProgressBar.classList.remove('indeterminate');
+    urlProgressBar.style.width = '0%';
+  }
+
+  /* Active fetch controller — null when idle */
+  var _fetchController = null;
+
   /* ── Load from file ── */
   document.getElementById('ctxLoadFile').addEventListener('click', function() {
     hideCtxMenu();
@@ -632,13 +688,16 @@ function setupInputContextMenu() {
     urlError.textContent     = '';
     urlFetchBtn.disabled     = false;
     urlFetchBtn.textContent  = 'Load';
+    _hideProgress();
     urlDialog.classList.add('visible');
     urlInput.focus();
   });
 
   function closeUrlDialog() {
+    if (_fetchController) { _fetchController.abort(); _fetchController = null; }
     urlDialog.classList.remove('visible');
     urlError.textContent = '';
+    _hideProgress();
   }
 
   document.getElementById('urlCancelBtn').addEventListener('click', closeUrlDialog);
@@ -655,24 +714,65 @@ function setupInputContextMenu() {
   urlFetchBtn.addEventListener('click', function() {
     var url = urlInput.value.trim();
     if (!url) { urlError.textContent = 'Please enter a URL.'; return; }
-    urlError.textContent    = '';
-    urlFetchBtn.disabled    = true;
+
+    var validationError = _validateFetchUrl(url);
+    if (validationError) { urlError.textContent = validationError; return; }
+
+    urlError.textContent   = '';
+    urlFetchBtn.disabled   = true;
     urlFetchBtn.textContent = 'Loading\u2026';
-    fetch(url)
+    urlInput.disabled      = true;
+
+    _fetchController = new AbortController();
+    var signal = _fetchController.signal;
+
+    fetch(url, { signal: signal })
       .then(function(res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
-        return res.text();
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        /* Validate content-type; treat a missing header as acceptable */
+        var ct = (res.headers.get('content-type') || '').toLowerCase().split(';')[0].trim();
+        if (ct) {
+          var ok = ALLOWED_CT.some(function(prefix) { return ct.indexOf(prefix) === 0; });
+          if (!ok) throw new Error('Unexpected content type \u201C' + ct + '\u201D');
+        }
+        /* Stream the body and track progress */
+        var total    = parseInt(res.headers.get('content-length') || '0', 10);
+        var reader   = res.body.getReader();
+        var chunks   = [];
+        var received = 0;
+        _showProgress(!total);
+        function pump() {
+          return reader.read().then(function(chunk) {
+            if (chunk.done) return;
+            received += chunk.value.length;
+            chunks.push(chunk.value);
+            _updateProgress(received, total);
+            return pump();
+          });
+        }
+        return pump().then(function() {
+          var buf = new Uint8Array(received), off = 0;
+          for (var i = 0; i < chunks.length; i++) { buf.set(chunks[i], off); off += chunks[i].length; }
+          return new TextDecoder().decode(buf);
+        });
       })
       .then(function(text) {
+        _fetchController = null;
         closeUrlDialog();
         _setInputText(text);
       })
       .catch(function(err) {
-        urlError.textContent = 'Failed: ' + err.message;
+        _fetchController = null;
+        _hideProgress();
+        /* AbortError means the user cancelled — dialog already closed */
+        if (err.name !== 'AbortError') {
+          urlError.textContent = 'Failed: ' + err.message;
+        }
       })
       .finally(function() {
         urlFetchBtn.disabled    = false;
         urlFetchBtn.textContent = 'Load';
+        urlInput.disabled       = false;
       });
   });
 }
