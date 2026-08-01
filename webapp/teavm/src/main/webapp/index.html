@@ -204,6 +204,9 @@
       transition: border-color .15s, box-shadow .15s;
       resize: vertical;
     }
+    textarea::placeholder, input::placeholder {
+      color: var(--text-dim); opacity: .6; font-weight: 400;
+    }
     textarea:focus, input:focus {
       outline: none; border-color: #3b82f6;
       box-shadow: 0 0 0 3px var(--focus-ring); background: var(--surface);
@@ -345,7 +348,7 @@
       box-shadow: inset 0 0 0 2px rgba(59,130,246,.4);
     }
     .code-input::placeholder {
-      color: var(--text-dim);
+      color: var(--text-dim); opacity: .55;
       -webkit-text-fill-color: var(--text-dim);
     }
     /* Make selected text visible (overrides -webkit-text-fill-color: transparent) */
@@ -446,6 +449,39 @@
     }
     .ctx-item:hover { background: var(--surface-alt); }
     .ctx-item svg { flex-shrink: 0; color: var(--text-muted); }
+    .ctx-item.danger     { color: #ef4444; }
+    .ctx-item.danger svg { color: #ef4444; }
+    .ctx-item.danger:hover { background: #fef2f2; }
+    [data-theme="dark"] .ctx-item.danger:hover { background: #2d1b1b; }
+    .ctx-divider { height: 1px; background: var(--border-soft); margin: .25rem 0; }
+
+    /* ── JSONPath tooltip ────────────────────────────────────────── */
+    #jsonpathTooltip {
+      position: fixed;
+      z-index: 150;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px var(--shadow-sm), 0 1px 4px var(--shadow-lg);
+      padding: .7rem .9rem;
+      font-family: system-ui, sans-serif;
+      font-size: .72rem;
+      color: var(--text);
+      width: 270px;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s, visibility .15s;
+      line-height: 1.5;
+    }
+    #jsonpathTooltip.visible { opacity: 1; visibility: visible; }
+    #jsonpathTooltip strong { display: block; margin-bottom: .45rem; font-size: .73rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .jpt-section { margin-bottom: .45rem; }
+    .jpt-section:last-child { margin-bottom: 0; }
+    .jpt-row { display: flex; gap: .5rem; align-items: baseline; margin-top: .2rem; }
+    .jpt-code { font-family: "SFMono-Regular", Consolas, monospace; font-size: .72rem; color: var(--j-key); background: var(--surface-alt); border-radius: 3px; padding: .05rem .3rem; white-space: nowrap; flex-shrink: 0; }
+    .jpt-desc { color: var(--text-muted); font-size: .7rem; }
+    .jpt-head { font-weight: 600; font-size: .7rem; color: var(--text-label); margin-bottom: .15rem; }
 
     /* ── URL dialog ──────────────────────────────────────────────── */
     #urlDialog {
@@ -740,6 +776,13 @@
     </svg>
     Load from URL…
   </button>
+  <div class="ctx-divider" role="separator"></div>
+  <button class="ctx-item danger" id="ctxClearAll" role="menuitem">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+    </svg>
+    Clear all inputs &amp; filters
+  </button>
 </div>
 
 <!-- URL fetch dialog -->
@@ -758,6 +801,22 @@
       <button class="btn-secondary" id="urlCancelBtn">Cancel</button>
       <button class="btn-primary"   id="urlFetchBtn">Load</button>
     </div>
+  </div>
+</div>
+
+<!-- JSONPath syntax tooltip (global, positioned by JS) -->
+<div id="jsonpathTooltip" role="tooltip" aria-hidden="true">
+  <strong>JSONPath syntax</strong>
+  <div class="jpt-section">
+    <div class="jpt-head">Absolute path — wildcards * allowed</div>
+    <div class="jpt-row"><span class="jpt-code">$.a.b.c</span><span class="jpt-desc">dot notation</span></div>
+    <div class="jpt-row"><span class="jpt-code">/a/b/c</span><span class="jpt-desc">slash notation</span></div>
+    <div class="jpt-row"><span class="jpt-code">$.a.*.c</span><span class="jpt-desc">wildcard segment</span></div>
+  </div>
+  <div class="jpt-section">
+    <div class="jpt-head">Any depth — no wildcards</div>
+    <div class="jpt-row"><span class="jpt-code">$..field</span><span class="jpt-desc">dot any-depth</span></div>
+    <div class="jpt-row"><span class="jpt-code">//field</span><span class="jpt-desc">slash any-depth</span></div>
   </div>
 </div>
 

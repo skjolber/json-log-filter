@@ -775,6 +775,44 @@ function setupInputContextMenu() {
         urlInput.disabled       = false;
       });
   });
+
+  /* ── Clear all inputs & filters ── */
+  document.getElementById('ctxClearAll').addEventListener('click', function() {
+    hideCtxMenu();
+    _setInputText('');
+    ['anonymizeKeys', 'anonymizePaths', 'pruneKeys', 'prunePaths',
+     'anonymizeMessage', 'pruneMessage', 'truncateMessage',
+     'maxStringLength', 'maxSize', 'maxPathMatches'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    setChk('removeWhitespace', false);
+    updateFilterImpl();
+    if (document.getElementById('liveFilter').checked) runFilter();
+    saveSettings();
+  });
+}
+
+/* ── JSONPath tooltip ─────────────────────────────────────── */
+function setupJsonPathTooltip() {
+  var tooltip = document.getElementById('jsonpathTooltip');
+  ['anonymizePaths', 'prunePaths'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.addEventListener('mouseenter', function() {
+      var rect = el.getBoundingClientRect();
+      tooltip.style.left = rect.left + 'px';
+      tooltip.style.top  = (rect.bottom + 6) + 'px';
+      tooltip.classList.add('visible');
+      /* Keep within viewport */
+      var tr = tooltip.getBoundingClientRect();
+      if (tr.right > window.innerWidth - 8)
+        tooltip.style.left = (window.innerWidth - tr.width - 8) + 'px';
+      if (tr.bottom > window.innerHeight - 8)
+        tooltip.style.top  = (rect.top - tr.height - 6) + 'px';
+    });
+    el.addEventListener('mouseleave', function() {
+      tooltip.classList.remove('visible');
+    });
+  });
 }
 
 /* ── Init ─────────────────────────────────────────────────── */
@@ -789,6 +827,7 @@ function setupInputContextMenu() {
     setupHighlightToggle();
     setupLiveFilter();
     setupInputContextMenu();
+    setupJsonPathTooltip();
     document.addEventListener('input',  saveSettings);
     document.addEventListener('change', saveSettings);
   } else {
