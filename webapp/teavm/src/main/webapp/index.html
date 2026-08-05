@@ -426,8 +426,8 @@
     }
     .json-error-badge:not(:empty) { opacity: 1; }
 
-    /* ── Input context menu ──────────────────────────────────────── */
-    #inputCtxMenu {
+    /* ── Input / Output context menus ───────────────────────────── */
+    #inputCtxMenu, #outputCtxMenu {
       position: fixed;
       z-index: 200;
       background: var(--surface);
@@ -438,7 +438,7 @@
       min-width: 190px;
       display: none;
     }
-    #inputCtxMenu.visible { display: block; }
+    #inputCtxMenu.visible, #outputCtxMenu.visible { display: block; }
     .ctx-item {
       display: flex; align-items: center; gap: .5rem;
       padding: .48rem .85rem;
@@ -454,6 +454,21 @@
     .ctx-item.danger:hover { background: #fef2f2; }
     [data-theme="dark"] .ctx-item.danger:hover { background: #2d1b1b; }
     .ctx-divider { height: 1px; background: var(--border-soft); margin: .25rem 0; }
+
+    /* ── Indent select (inline with pretty-print checkbox) ──────── */
+    .indent-select {
+      width: auto;
+      padding: .15rem .4rem;
+      font-size: .75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      margin-left: .25rem;
+      font-family: inherit;
+    }
+    .indent-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px var(--focus-ring); }
 
     /* ── JSONPath tooltip ────────────────────────────────────────── */
     #jsonpathTooltip {
@@ -671,6 +686,11 @@
           <label class="inline">
             <input type="checkbox" id="prettyPrint" checked />
             Pretty-print output
+            <select id="indentStyle" class="indent-select">
+              <option value="tab">Tab</option>
+              <option value="2" selected>2 spaces</option>
+              <option value="4">4 spaces</option>
+            </select>
           </label>
           <label class="inline" style="margin-top:.4rem">
             <input type="checkbox" id="syntaxHighlight" checked />
@@ -727,7 +747,7 @@
         <div class="code-wrapper">
           <div class="code-sizer" id="inputSizer" aria-hidden="true"></div>
           <pre id="inputHighlight" class="code-highlight" aria-hidden="true"></pre>
-          <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here. &#10;• Nothing leaves your local browser. &#10;• No web frameworks in use.&#10;• No outside resources loaded.'>{
+          <textarea id="inputJson" class="code-input" spellcheck="false" autocorrect="off" autocomplete="off" placeholder='Paste JSON here. &#10;• Nothing leaves your local browser. &#10;• Minimal implementation, no web frameworks in use.&#10;• No outside resources loaded.&#10;• Right-click for more options.'>{
           </textarea>
           <span id="inputCursorPos" class="cursor-pos" aria-live="off">1:1</span>
           <span id="inputJsonError" class="json-error-badge" aria-live="polite"></span>
@@ -782,6 +802,24 @@
       <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
     </svg>
     Clear all inputs &amp; filters
+  </button>
+</div>
+
+<!-- Right-click context menu for the output panel -->
+<div id="outputCtxMenu" role="menu" aria-label="Output options">
+  <button class="ctx-item" id="ctxOutputCopy" role="menuitem">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+      <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+    </svg>
+    Copy to clipboard
+  </button>
+  <button class="ctx-item" id="ctxOutputDownload" role="menuitem">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+    </svg>
+    Download
   </button>
 </div>
 

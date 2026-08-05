@@ -19,7 +19,7 @@ try {
   _filterWorker = new Worker('js/worker.js');
   _filterWorker.onmessage = function(e) {
     _workerBusy = false;
-    _applyFilterResult(e.data.result, e.data.ms, e.data.prettyPrint, e.data.inputLen);
+    _applyFilterResult(e.data.result, e.data.ms, e.data.prettyPrint, e.data.indent, e.data.inputLen);
     if (_pendingJob) {
       var job = _pendingJob;
       _pendingJob = null;
@@ -57,7 +57,7 @@ function _dispatchJob(job) {
   } catch(e) {
     result = 'Error: ' + e.message;
   }
-  _applyFilterResult(result, (performance.now() - t0).toFixed(2), job.prettyPrint, job.inputLen);
+  _applyFilterResult(result, (performance.now() - t0).toFixed(2), job.prettyPrint, job.indent, job.inputLen);
   if (_pendingJob) { var next = _pendingJob; _pendingJob = null; _dispatchJob(next); }
 }
 
@@ -76,11 +76,12 @@ function _collectArgs() {
     truncateMessage: val('truncateMessage'),
     maxPathMatches: intVal('maxPathMatches'),
     prettyPrint:    boolVal('prettyPrint'),
+    indent:         val('indentStyle'),
     inputLen:       val('inputJson').length
   };
 }
 
-function _applyFilterResult(result, ms, prettyPrint, inputLen) {
+function _applyFilterResult(result, ms, prettyPrint, indent, inputLen) {
   var out    = document.getElementById('outputJson');
   var status = document.getElementById('status');
   var timing = document.getElementById('filterTiming');
@@ -88,7 +89,10 @@ function _applyFilterResult(result, ms, prettyPrint, inputLen) {
   var filteredLen = result ? result.length : 0; /* size straight from the filter */
 
   if (prettyPrint && result && !result.startsWith('Error:')) {
-    try { result = JSON.stringify(JSON.parse(result), null, 2); } catch(e) {}
+    try {
+      var indentArg = indent === 'tab' ? '\t' : (parseInt(indent, 10) || 2);
+      result = JSON.stringify(JSON.parse(result), null, indentArg);
+    } catch(e) {}
   }
 
   status.textContent = '';
@@ -220,7 +224,8 @@ var PERSIST_TEXT = [
   'inputJson',
   'anonymizeKeys', 'anonymizePaths', 'anonymizeMessage',
   'pruneKeys', 'prunePaths', 'pruneMessage',
-  'maxStringLength', 'maxSize', 'maxPathMatches', 'truncateMessage'
+  'maxStringLength', 'maxSize', 'maxPathMatches', 'truncateMessage',
+  'indentStyle'
 ];
 var PERSIST_BOOL = ['removeWhitespace', 'prettyPrint', 'syntaxHighlight', 'liveFilter', 'darkMode'];
 
@@ -402,7 +407,7 @@ function setupLiveFilter() {
   /* Settings fields — always update impl name; run filter only when live */
   var filterFields = [
     'anonymizeKeys', 'pruneKeys', 'anonymizePaths', 'prunePaths',
-    'maxStringLength', 'maxSize', 'removeWhitespace', 'prettyPrint',
+    'maxStringLength', 'maxSize', 'removeWhitespace', 'prettyPrint', 'indentStyle',
     'anonymizeMessage', 'pruneMessage', 'truncateMessage', 'maxPathMatches'
   ];
   filterFields.forEach(function(id) {
@@ -517,7 +522,7 @@ var sectionExamples = {
     }, null, 2),
     maxStringLength: '60',
     truncateMessage: '… + ',
-    maxSize: '', maxPathMatches: '',
+    maxSize: '250', maxPathMatches: '',
     anonymizeKeys: '', anonymizePaths: '', anonymizeMessage: '',
     pruneKeys: '', prunePaths: '', pruneMessage: '',
     removeWhitespace: false
@@ -571,6 +576,14 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runFilter();
 });
 
+/* ── Shared context-menu helpers ──────────────────────────── */
+function hideAllContextMenus() {
+  ['inputCtxMenu', 'outputCtxMenu'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+  });
+}
+
 /* ── Input context menu (right-click) ─────────────────────── */
 function setupInputContextMenu() {
   var inputCard   = document.getElementById('inputJson').closest('.card');
@@ -592,10 +605,14 @@ function setupInputContextMenu() {
     saveSettings();
   }
 
-  function hideCtxMenu() { ctxMenu.classList.remove('visible'); }
+  function hideCtxMenu() { hideAllContextMenus(); }
 
-  inputCard.addEventListener('contextmenu', function(e) {
+  document.addEventListener('contextmenu', function(e) {
+    /* skip if the click is inside the output card */
+    var outputCard = document.getElementById('outputJson').closest('.card');
+    if (outputCard && outputCard.contains(e.target)) return;
     e.preventDefault();
+    hideAllContextMenus();
     var x = e.clientX, y = e.clientY;
     ctxMenu.style.left = x + 'px';
     ctxMenu.style.top  = y + 'px';
@@ -792,6 +809,57 @@ function setupInputContextMenu() {
   });
 }
 
+/* ── Output context menu (right-click) ───────────────────── */
+function setupOutputContextMenu() {
+  var outputCard = document.getElementById('outputJson').closest('.card');
+  var ctxMenu    = document.getElementById('outputCtxMenu');
+
+  function hideCtxMenu() { hideAllContextMenus(); }
+
+  outputCard.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    hideAllContextMenus();
+    var x = e.clientX, y = e.clientY;
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top  = y + 'px';
+    ctxMenu.classList.add('visible');
+    var r = ctxMenu.getBoundingClientRect();
+    if (r.right  > window.innerWidth)  ctxMenu.style.left = (x - r.width)  + 'px';
+    if (r.bottom > window.innerHeight) ctxMenu.style.top  = (y - r.height) + 'px';
+  });
+
+  document.addEventListener('click',       hideCtxMenu);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') hideCtxMenu(); });
+
+  document.getElementById('ctxOutputDownload').addEventListener('click', function() {
+    hideCtxMenu();
+    var text = document.getElementById('outputJson').value;
+    if (!text) return;
+    var blob = new Blob([text], { type: 'application/json' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'filtered.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('ctxOutputCopy').addEventListener('click', function() {
+    hideCtxMenu();
+    var text = document.getElementById('outputJson').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).catch(function() {
+      /* Fallback for older browsers */
+      var ta = document.getElementById('outputJson');
+      ta.select();
+      document.execCommand('copy');
+    });
+  });
+}
+
 /* ── JSONPath tooltip ─────────────────────────────────────── */
 function setupJsonPathTooltip() {
   var tooltip = document.getElementById('jsonpathTooltip');
@@ -827,6 +895,7 @@ function setupJsonPathTooltip() {
     setupHighlightToggle();
     setupLiveFilter();
     setupInputContextMenu();
+    setupOutputContextMenu();
     setupJsonPathTooltip();
     document.addEventListener('input',  saveSettings);
     document.addEventListener('change', saveSettings);

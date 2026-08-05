@@ -19,5 +19,5 @@ self.onmessage = function(e) {
     result = 'Error: ' + e.message;
   }
   var ms = (performance.now() - t0).toFixed(2);
-  self.postMessage({ result: result, ms: ms, prettyPrint: d.prettyPrint, inputLen: d.inputLen });
+  self.postMessage({ result: result, ms: ms, prettyPrint: d.prettyPrint, indent: d.indent, inputLen: d.inputLen });
 };
