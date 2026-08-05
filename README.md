@@ -54,14 +54,15 @@ Output:
 
 | Feature | **json-log-filter core** (trusted JSON) | **json-log-filter jackson** (untrusted JSON) | Jackson + Manual | Regex |
 |---|---|---|---|---|
-| **Performance** | 🏎️ Single-pass, no object model | 🐢 Full parse + serialize | 🐢 Full parse + serialize | 🐌 No structure awareness |
-| **Zero Dependencies** | ✅ | ❌ (Jackson) | ❌ (Jackson) | ✅ |
-| **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ⚠️ Extra lib | ❌ |
-| **Prune whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Performance** | 🏎️ Single-pass | 🐢 Full parse + serialize events | 🐢 Full parse + serialize | 🏎️ Single-pass |
+| **Lightweight** | ✅ (zero dependencies) | ❌ (Jackson dependency) | ❌ (Jackson dependency) | ✅ |
+| **Safe** | ✅ (no reflection) | ❌ (Jackson) | ❌ (Jackson) | ✅ |
+| **JSONPath Support** | ✅ subset¹ | ✅ subset¹ | ❌ Extra lib | ❌ |
 | **Max string length** | ✅ | ✅ | ❌ Manual | ❌ |
 | **Max document size** | ✅ | ✅ | ❌ Manual | ❌ Manual |
-| **Configurable output text** | ✅ | ✅ | ❌ Manual | ❌ Manual |
-| **Structural validation** | ❌ (trusted input) | ✅ | ✅ | ❌ |
+| **Remove whole subtrees** | ✅ | ✅ | ❌ Manual | ❌ |
+| **Structural validation** | ❌ | ✅ | ✅ | ❌ |
+| **Metrics** | ✅ | ✅ | ❌ Manual | ❌ Manual |
 
 > ¹ Supported path syntax: `$.a.b.c` (exact), `$.a.b.*` / `$.a.*.c` (wildcard), `$..c` (`c` at any depth).
 
