@@ -39,6 +39,9 @@ import com.github.skjolber.jsonfilter.jackson.JacksonPathMaxSizeMaxStringLengthJ
 import com.github.skjolber.jsonfilter.jackson.JacksonPathMaxStringLengthJsonFilter;
 import com.github.skjolber.jsonfilter.jmh.filter.PrimitiveJsonPropertyBodyFilter;
 import com.github.skjolber.jsonfilter.jmh.utils.JsonMaskerJsonFilter;
+import com.github.skjolber.jsonfilter.simdjson.SimdJsonAnyPathMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.simdjson.SimdJsonMaxStringLengthJsonFilter;
+import com.github.skjolber.jsonfilter.simdjson.SimdJsonPathMaxStringLengthJsonFilter;
 
 import dev.blaauwendraad.masker.json.JsonMasker;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
@@ -78,6 +81,10 @@ public class AllFilterBenchmark {
 
 	private BenchmarkRunner<JsonFilter> pathAnonymizeMaxSizeMaxStringLengthJsonFilter;
 	
+	private BenchmarkRunner<JsonFilter> maxStringLengthSimdJsonFilter;
+	private BenchmarkRunner<JsonFilter> anyPathAnonymizeMaxStringLengthSimdJsonFilter;
+	private BenchmarkRunner<JsonFilter> pathAnonymizeMaxStringLengthSimdJsonFilter;
+	
 	private final boolean prettyPrinted = false;
 
 	@Setup
@@ -111,6 +118,11 @@ public class AllFilterBenchmark {
 
 		// max size
 		pathAnonymizeMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxSizeMaxStringLengthJsonFilter(20, -1, -1, new String[]{xpath}, null), prettyPrinted);
+
+		// simdjson filters
+		maxStringLengthSimdJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SimdJsonMaxStringLengthJsonFilter(20), prettyPrinted);
+		anyPathAnonymizeMaxStringLengthSimdJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SimdJsonAnyPathMaxStringLengthJsonFilter(20, new String[]{DEFAULT_ANY_XPATH}, null), prettyPrinted);
+		pathAnonymizeMaxStringLengthSimdJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new SimdJsonPathMaxStringLengthJsonFilter(20, new String[]{xpath}, null), prettyPrinted);
 
 		// other filters
 		var singlePathJsonMasker = JsonMasker.getMasker(
@@ -204,6 +216,21 @@ public class AllFilterBenchmark {
 	@Benchmark
 	public long maxSize() throws IOException {
 		return maxSizeJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long maxStringLengthSimdJson() throws IOException {
+		return maxStringLengthSimdJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long anyPathAnonymizeMaxStringLengthSimdJson() throws IOException {
+		return anyPathAnonymizeMaxStringLengthSimdJsonFilter.benchmarkBytes();
+	}
+
+	@Benchmark
+	public long pathAnonymizeMaxStringLengthSimdJson() throws IOException {
+		return pathAnonymizeMaxStringLengthSimdJsonFilter.benchmarkBytes();
 	}
 	
 	public static void main(String[] args) throws RunnerException {
