@@ -13,7 +13,6 @@
 	<description>simdjson-java based JSON filter</description>
 
 	<properties>
-		<simdjson-java.version>0.4.0</simdjson-java.version>
 	</properties>
 
 	<dependencies>
@@ -26,9 +25,12 @@
 			<artifactId>base</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.simdjson</groupId>
-			<artifactId>simdjson-java</artifactId>
-			<version>${simdjson-java.version}</version>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -52,19 +54,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<compilerArgs>
-						<arg>--add-modules</arg>
-						<arg>jdk.incubator.vector</arg>
-					</compilerArgs>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<argLine>--add-modules jdk.incubator.vector</argLine>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>

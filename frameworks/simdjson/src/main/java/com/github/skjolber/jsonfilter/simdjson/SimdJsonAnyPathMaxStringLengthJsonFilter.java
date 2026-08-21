@@ -1,13 +1,16 @@
 package com.github.skjolber.jsonfilter.simdjson;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import org.simdjson.JsonValue;
-import org.simdjson.SimdJsonParser;
+import org.apache.commons.io.output.StringBuilderWriter;
+
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -24,7 +27,12 @@ public class SimdJsonAnyPathMaxStringLengthJsonFilter extends AbstractSimdJsonJs
 
 	public SimdJsonAnyPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes,
 			String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public SimdJsonAnyPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes,
+			String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 
 		Map<String, FilterType> map = new HashMap<>(64);
 		if (prunes != null) {
@@ -51,23 +59,28 @@ public class SimdJsonAnyPathMaxStringLengthJsonFilter extends AbstractSimdJsonJs
 		if (chars.length < offset + length) {
 			return false;
 		}
-		String s = new String(chars, offset, length);
-		byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
-		return process(bytes, 0, bytes.length, output, metrics);
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
+			return false;
+		}
 	}
 
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			SimdJsonParser parser = getParser();
-			byte[] input = SimdJsonMaxStringLengthJsonFilter.toInputArray(bytes, offset, length);
-			JsonValue root = parser.parse(input, input.length);
-			output.ensureCapacity(output.length() + length);
-			processValue(root, output, metrics);
-			return true;
-		} catch (Exception e) {
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
@@ -77,103 +90,93 @@ public class SimdJsonAnyPathMaxStringLengthJsonFilter extends AbstractSimdJsonJs
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			StringBuilder sb = new StringBuilder(length);
-			if (!process(bytes, offset, length, sb, metrics)) {
-				return false;
-			}
-			byte[] result = sb.toString().getBytes(StandardCharsets.UTF_8);
-			output.write(result, 0, result.length);
-			return true;
-		} catch (Exception e) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
 
-	private void processValue(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		if (value.isString()) {
-			writeStringWithMaxLength(value.asString(), output, metrics);
-		} else if (value.isObject()) {
-			processObject(value, output, metrics);
-		} else if (value.isArray()) {
-			processArray(value, output, metrics);
-		} else {
-			writeValue(value, output);
-		}
-	}
+	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
-	private void processObject(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		output.append('{');
-		Iterator<Map.Entry<String, JsonValue>> it = value.objectIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
+		while (true) {
+			JsonToken nextToken = parser.nextToken();
+			if (nextToken == null) {
+				break;
 			}
-			Map.Entry<String, JsonValue> entry = it.next();
-			String fieldName = entry.getKey();
-			JsonValue fieldValue = entry.getValue();
-			writeString(fieldName, output);
-			output.append(':');
 
-			FilterType filterType = fields.get(fieldName);
-			if (filterType == FilterType.ANON) {
-				if (fieldValue.isObject() || fieldValue.isArray()) {
-					anonymizeChildren(fieldValue, anonymizeJsonValue, output);
-				} else {
-					output.append(anonymizeJsonValue);
+			if (nextToken == JsonToken.PROPERTY_NAME) {
+				FilterType filterType = fields.get(parser.currentName());
+				if (filterType != null) {
+					generator.copyCurrentEvent(parser);
+
+					nextToken = parser.nextToken();
+					if (nextToken.isScalarValue()) {
+						if (filterType == FilterType.ANON) {
+							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+							if (metrics != null) {
+								metrics.onAnonymize(1);
+							}
+						} else {
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+							if (metrics != null) {
+								metrics.onPrune(1);
+							}
+						}
+					} else {
+						// array or object value
+						if (filterType == FilterType.ANON) {
+							generator.copyCurrentEvent(parser);
+							anonymizeChildren(parser, generator, metrics);
+						} else {
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+							parser.skipChildren();
+							if (metrics != null) {
+								metrics.onPrune(1);
+							}
+						}
+					}
+					continue;
 				}
-				if (metrics != null) {
-					metrics.onAnonymize(1);
-				}
-			} else if (filterType == FilterType.PRUNE) {
-				output.append(pruneJsonValue);
-				if (metrics != null) {
-					metrics.onPrune(1);
-				}
-			} else {
-				processValue(fieldValue, output, metrics);
-			}
-			first = false;
-		}
-		output.append('}');
-	}
-
-	private void processArray(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		output.append('[');
-		Iterator<JsonValue> it = value.arrayIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
-			}
-			processValue(it.next(), output, metrics);
-			first = false;
-		}
-		output.append(']');
-	}
-
-	private void writeStringWithMaxLength(String s, StringBuilder output, JsonFilterMetrics metrics) {
-		if (maxStringLength >= 0 && s.length() > maxStringLength) {
-			int keepLength = maxStringLength;
-			if (keepLength > 0 && Character.isLowSurrogate(s.charAt(keepLength))) {
-				keepLength--;
-			}
-			int removeLength = s.length() - keepLength;
-			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-			if (actualReductionLength > 0) {
-				output.append('"');
-				SimdJsonMaxStringLengthJsonFilter.writeEscaped(s, 0, keepLength, output);
-				output.append(truncateStringValue);
-				output.append(removeLength);
-				output.append('"');
+			} else if (nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				SimdJsonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				if (metrics != null) {
 					metrics.onMaxStringLength(1);
 				}
-				return;
+				continue;
 			}
+
+			generator.copyCurrentEvent(parser);
 		}
-		writeString(s, output);
+		generator.flush();
+
+		return true;
+	}
+
+	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		int level = 1;
+
+		while (level > 0) {
+			JsonToken nextToken = parser.nextToken();
+
+			if (nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
+				level++;
+			} else if (nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
+				level--;
+			} else if (nextToken.isScalarValue()) {
+				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+				if (metrics != null) {
+					metrics.onAnonymize(1);
+				}
+				continue;
+			}
+
+			generator.copyCurrentEvent(parser);
+		}
 	}
 
 }

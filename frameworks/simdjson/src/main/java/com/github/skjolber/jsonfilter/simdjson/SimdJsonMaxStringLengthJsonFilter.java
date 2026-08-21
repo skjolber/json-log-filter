@@ -1,11 +1,13 @@
 package com.github.skjolber.jsonfilter.simdjson;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.IOException;
 
-import org.simdjson.JsonValue;
-import org.simdjson.SimdJsonParser;
+import org.apache.commons.io.output.StringBuilderWriter;
+
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -17,7 +19,11 @@ public class SimdJsonMaxStringLengthJsonFilter extends AbstractSimdJsonJsonFilte
 	}
 
 	public SimdJsonMaxStringLengthJsonFilter(int maxStringLength, String pruneMessage, String anonymizeMessage, String truncateMessage) {
-		super(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage);
+		this(maxStringLength, -1, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public SimdJsonMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneJson, String anonymizeJson, String truncateJsonString, JsonFactory jsonFactory) {
+		super(maxStringLength, maxSize, pruneJson, anonymizeJson, truncateJsonString, jsonFactory);
 	}
 
 	@Override
@@ -25,23 +31,28 @@ public class SimdJsonMaxStringLengthJsonFilter extends AbstractSimdJsonJsonFilte
 		if (chars.length < offset + length) {
 			return false;
 		}
-		String s = new String(chars, offset, length);
-		byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
-		return process(bytes, 0, bytes.length, output, metrics);
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
+			return false;
+		}
 	}
 
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			SimdJsonParser parser = getParser();
-			byte[] input = toInputArray(bytes, offset, length);
-			JsonValue root = parser.parse(input, input.length);
-			output.ensureCapacity(output.length() + length);
-			processValue(root, output, metrics);
-			return true;
-		} catch (Exception e) {
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
@@ -51,114 +62,67 @@ public class SimdJsonMaxStringLengthJsonFilter extends AbstractSimdJsonJsonFilte
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			StringBuilder sb = new StringBuilder(length);
-			if (!process(bytes, offset, length, sb, metrics)) {
-				return false;
-			}
-			byte[] result = sb.toString().getBytes(StandardCharsets.UTF_8);
-			output.write(result, 0, result.length);
-			return true;
-		} catch (Exception e) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
 
-	protected void processValue(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		if (value.isString()) {
-			writeStringValue(value.asString(), output, metrics);
-		} else if (value.isObject()) {
-			processObject(value, output, metrics);
-		} else if (value.isArray()) {
-			processArray(value, output, metrics);
-		} else {
-			writeValue(value, output);
-		}
-	}
+	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
-	protected void writeStringValue(String s, StringBuilder output, JsonFilterMetrics metrics) {
-		if (maxStringLength >= 0 && s.length() > maxStringLength) {
-			int keepLength = maxStringLength;
-			if (keepLength > 0 && Character.isLowSurrogate(s.charAt(keepLength))) {
-				keepLength--;
+		while (true) {
+			JsonToken nextToken = parser.nextToken();
+			if (nextToken == null) {
+				break;
 			}
-			int removeLength = s.length() - keepLength;
-			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-			if (actualReductionLength > 0) {
-				output.append('"');
-				writeEscaped(s, 0, keepLength, output);
-				output.append(truncateStringValue);
-				output.append(removeLength);
-				output.append('"');
+
+			if (nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+
 				if (metrics != null) {
 					metrics.onMaxStringLength(1);
 				}
-			} else {
-				writeString(s, output);
+
+				continue;
 			}
+			generator.copyCurrentEvent(parser);
+		}
+		generator.flush();
+
+		return true;
+	}
+
+	static void writeMaxStringLength(final JsonParser parser, JsonGenerator generator, StringBuilder builder,
+			int maxStringLength, char[] truncateStringValue) throws IOException {
+		char[] textCharacters = parser.getTextCharacters();
+		int textOffset = parser.getTextOffset();
+
+		int keepLength;
+		if (Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
+			keepLength = maxStringLength - 1;
 		} else {
-			writeString(s, output);
+			keepLength = maxStringLength;
 		}
-	}
 
-	protected void processObject(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		output.append('{');
-		Iterator<Map.Entry<String, JsonValue>> it = value.objectIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
-			}
-			Map.Entry<String, JsonValue> entry = it.next();
-			writeString(entry.getKey(), output);
-			output.append(':');
-			processValue(entry.getValue(), output, metrics);
-			first = false;
-		}
-		output.append('}');
-	}
+		int removeLength = parser.getTextLength() - keepLength;
 
-	protected void processArray(JsonValue value, StringBuilder output, JsonFilterMetrics metrics) {
-		output.append('[');
-		Iterator<JsonValue> it = value.arrayIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
-			}
-			processValue(it.next(), output, metrics);
-			first = false;
-		}
-		output.append(']');
-	}
+		int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
+		if (actualReductionLength > 0) {
+			builder.append('"');
+			quoteAsString(textCharacters, textOffset, textOffset + keepLength, builder);
+			builder.append(truncateStringValue);
+			builder.append(removeLength);
+			builder.append('"');
 
-	protected static byte[] toInputArray(byte[] bytes, int offset, int length) {
-		if (offset == 0 && length == bytes.length) {
-			return bytes;
-		}
-		byte[] copy = new byte[length];
-		System.arraycopy(bytes, offset, copy, 0, length);
-		return copy;
-	}
-
-	protected static void writeEscaped(String s, int start, int end, StringBuilder output) {
-		for (int i = start; i < end; i++) {
-			char c = s.charAt(i);
-			switch (c) {
-				case '"':  output.append('\\'); output.append('"');  break;
-				case '\\': output.append('\\'); output.append('\\'); break;
-				case '\b': output.append('\\'); output.append('b');  break;
-				case '\f': output.append('\\'); output.append('f');  break;
-				case '\n': output.append('\\'); output.append('n');  break;
-				case '\r': output.append('\\'); output.append('r');  break;
-				case '\t': output.append('\\'); output.append('t');  break;
-				default:
-					if (c < 0x20) {
-						output.append(String.format("\\u%04x", (int) c));
-					} else {
-						output.append(c);
-					}
-			}
+			generator.writeRawValue(builder.toString());
+			builder.setLength(0);
+		} else {
+			generator.writeString(textCharacters, textOffset, parser.getTextLength());
 		}
 	}
 

@@ -1,7 +1,8 @@
 module com.github.skjolber.jsonfilter.simdjson {
 	exports com.github.skjolber.jsonfilter.simdjson;
 
-	requires org.simdjson;
+	requires tools.jackson.core;
+	requires org.apache.commons.io;
 	requires json.log.filter.api;
 	requires json.log.filter.base;
 

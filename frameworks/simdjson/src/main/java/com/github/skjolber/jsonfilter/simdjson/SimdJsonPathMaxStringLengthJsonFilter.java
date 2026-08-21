@@ -1,11 +1,13 @@
 package com.github.skjolber.jsonfilter.simdjson;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.IOException;
 
-import org.simdjson.JsonValue;
-import org.simdjson.SimdJsonParser;
+import org.apache.commons.io.output.StringBuilderWriter;
+
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -15,13 +17,21 @@ import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class SimdJsonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonFilter {
 
+	protected final JsonFactory jsonFactory;
+
 	public SimdJsonPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes) {
 		this(maxStringLength, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE);
 	}
 
 	public SimdJsonPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes,
 			String pruneMessage, String anonymizeMessage, String truncateMessage) {
+		this(maxStringLength, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
+	}
+
+	public SimdJsonPathMaxStringLengthJsonFilter(int maxStringLength, String[] anonymizes, String[] prunes,
+			String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, -1, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
+		this.jsonFactory = jsonFactory;
 	}
 
 	@Override
@@ -29,23 +39,28 @@ public class SimdJsonPathMaxStringLengthJsonFilter extends AbstractMultiPathJson
 		if (chars.length < offset + length) {
 			return false;
 		}
-		String s = new String(chars, offset, length);
-		byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
-		return process(bytes, 0, bytes.length, output, metrics);
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(chars, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
+			return false;
+		}
 	}
 
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			SimdJsonParser parser = AbstractSimdJsonJsonFilter.getParser();
-			byte[] input = SimdJsonMaxStringLengthJsonFilter.toInputArray(bytes, offset, length);
-			JsonValue root = parser.parse(input, input.length);
-			output.ensureCapacity(output.length() + length);
-			processValue(root, output, 0, pathItem, metrics);
-			return true;
-		} catch (Exception e) {
+		output.ensureCapacity(output.length() + length);
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
@@ -55,138 +70,122 @@ public class SimdJsonPathMaxStringLengthJsonFilter extends AbstractMultiPathJson
 		if (bytes.length < offset + length) {
 			return false;
 		}
-		try {
-			StringBuilder sb = new StringBuilder(length);
-			if (!process(bytes, offset, length, sb, metrics)) {
-				return false;
-			}
-			byte[] result = sb.toString().getBytes(StandardCharsets.UTF_8);
-			output.write(result, 0, result.length);
-			return true;
-		} catch (Exception e) {
+		try (
+			JsonGenerator generator = jsonFactory.createGenerator(output);
+			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
+		) {
+			return process(parser, generator, metrics);
+		} catch (final Exception e) {
 			return false;
 		}
 	}
 
-	protected PathItem processValue(JsonValue value, StringBuilder output, int level, PathItem pathItem, JsonFilterMetrics metrics) {
-		if (value.isObject()) {
-			return processObject(value, output, level, pathItem, metrics);
-		} else if (value.isArray()) {
-			return processArray(value, output, level, pathItem, metrics);
-		} else if (value.isString()) {
-			writeStringWithMaxLength(value.asString(), output, metrics);
-			return pathItem;
-		} else {
-			AbstractSimdJsonJsonFilter.writeValue(value, output);
-			return pathItem;
-		}
-	}
+	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
 
-	protected PathItem processObject(JsonValue value, StringBuilder output, int level, PathItem pathItem, JsonFilterMetrics metrics) {
-		output.append('{');
-		int objectLevel = level + 1;
-		Iterator<Map.Entry<String, JsonValue>> it = value.objectIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
+		int level = 0;
+		PathItem pathItem = this.pathItem;
+
+		while (true) {
+			JsonToken nextToken = parser.nextToken();
+			if (nextToken == null) {
+				break;
 			}
-			Map.Entry<String, JsonValue> entry = it.next();
-			String fieldName = entry.getKey();
-			JsonValue fieldValue = entry.getValue();
 
-			boolean prune = false;
-			boolean anon = false;
+			if (nextToken == JsonToken.START_OBJECT) {
+				level++;
+			} else if (nextToken == JsonToken.END_OBJECT) {
+				pathItem.constrain(level);
+				level--;
+			} else if (nextToken == JsonToken.PROPERTY_NAME) {
+				String currentName = parser.currentName();
 
-			pathItem = pathItem.constrain(objectLevel);
+				boolean prune = false;
+				boolean anon = false;
 
-			if (pathItem.getLevel() == objectLevel) {
-				PathItem matched = pathItem.matchPath(objectLevel, fieldName);
-				if (matched.hasType()) {
-					if (matched.getType() == FilterType.ANON) {
+				pathItem = pathItem.constrain(level);
+
+				if (pathItem.getLevel() == level) {
+					pathItem = pathItem.matchPath(level, currentName);
+
+					if (pathItem.hasType()) {
+						if (pathItem.getType() == FilterType.ANON) {
+							anon = true;
+						} else {
+							prune = true;
+						}
+						pathItem = pathItem.constrain(level);
+					}
+				}
+
+				if (anyPathFilters != null) {
+					FilterType filterType = anyPathFilters.matchPath(currentName);
+					if (filterType == FilterType.ANON) {
 						anon = true;
-					} else {
+					} else if (filterType == FilterType.PRUNE) {
 						prune = true;
 					}
-					pathItem = matched.constrain(objectLevel);
-				} else {
-					pathItem = matched;
 				}
-			}
 
-			if (anyPathFilters != null) {
-				FilterType filterType = anyPathFilters.matchPath(fieldName);
-				if (filterType == FilterType.ANON) {
-					anon = true;
-				} else if (filterType == FilterType.PRUNE) {
-					prune = true;
+				if (prune || anon) {
+					generator.copyCurrentEvent(parser);
+
+					nextToken = parser.nextToken();
+					if (nextToken.isScalarValue()) {
+						if (anon) {
+							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+						} else {
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+						}
+					} else {
+						// array or object value
+						if (anon) {
+							generator.copyCurrentEvent(parser);
+							anonymizeChildren(parser, generator, metrics);
+						} else {
+							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+							parser.skipChildren();
+							if (metrics != null) {
+								metrics.onPrune(1);
+							}
+						}
+					}
+					continue;
 				}
-			}
-
-			AbstractSimdJsonJsonFilter.writeString(fieldName, output);
-			output.append(':');
-
-			if (anon) {
-				if (fieldValue.isObject() || fieldValue.isArray()) {
-					AbstractSimdJsonJsonFilter.anonymizeChildren(fieldValue, anonymizeJsonValue, output);
-				} else {
-					output.append(anonymizeJsonValue);
-				}
-				if (metrics != null) {
-					metrics.onAnonymize(1);
-				}
-			} else if (prune) {
-				output.append(pruneJsonValue);
-				if (metrics != null) {
-					metrics.onPrune(1);
-				}
-			} else {
-				pathItem = processValue(fieldValue, output, objectLevel, pathItem, metrics);
-			}
-			first = false;
-		}
-		// constrain pathItem back when leaving this object
-		pathItem = pathItem.constrain(objectLevel);
-		output.append('}');
-		return pathItem;
-	}
-
-	protected PathItem processArray(JsonValue value, StringBuilder output, int level, PathItem pathItem, JsonFilterMetrics metrics) {
-		output.append('[');
-		Iterator<JsonValue> it = value.arrayIterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				output.append(',');
-			}
-			pathItem = processValue(it.next(), output, level, pathItem, metrics);
-			first = false;
-		}
-		output.append(']');
-		return pathItem;
-	}
-
-	private void writeStringWithMaxLength(String s, StringBuilder output, JsonFilterMetrics metrics) {
-		if (maxStringLength >= 0 && s.length() > maxStringLength) {
-			int keepLength = maxStringLength;
-			if (keepLength > 0 && Character.isLowSurrogate(s.charAt(keepLength))) {
-				keepLength--;
-			}
-			int removeLength = s.length() - keepLength;
-			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-			if (actualReductionLength > 0) {
-				output.append('"');
-				SimdJsonMaxStringLengthJsonFilter.writeEscaped(s, 0, keepLength, output);
-				output.append(truncateStringValue);
-				output.append(removeLength);
-				output.append('"');
+			} else if (nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				SimdJsonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				if (metrics != null) {
 					metrics.onMaxStringLength(1);
 				}
-				return;
+				continue;
 			}
+
+			generator.copyCurrentEvent(parser);
 		}
-		AbstractSimdJsonJsonFilter.writeString(s, output);
+
+		return true;
+	}
+
+	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
+		int level = 1;
+
+		while (level > 0) {
+			JsonToken nextToken = parser.nextToken();
+
+			if (nextToken == JsonToken.START_OBJECT || nextToken == JsonToken.START_ARRAY) {
+				level++;
+			} else if (nextToken == JsonToken.END_OBJECT || nextToken == JsonToken.END_ARRAY) {
+				level--;
+			} else if (nextToken.isScalarValue()) {
+				generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+				if (metrics != null) {
+					metrics.onAnonymize(1);
+				}
+				continue;
+			}
+
+			generator.copyCurrentEvent(parser);
+		}
 	}
 
 }
