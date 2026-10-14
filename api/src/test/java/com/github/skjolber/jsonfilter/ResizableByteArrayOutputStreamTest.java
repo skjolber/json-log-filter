@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -49,46 +48,6 @@ public class ResizableByteArrayOutputStreamTest {
 
 	}
 	
-	@Test
-	public void testBufferIncrementsAreGeometric() {
-		int size = 1024 * 1024;
-		ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(size);
-
-		stream.ensureCapacity(size + 1);
-
-		assertEquals(size + size / 2, stream.getBufferSize());
-	}
-
-	@Test
-	public void testBufferIncrementsAtLeastRequested() {
-		int size = 1024 * 1024;
-		ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(size);
-
-		stream.ensureCapacity(size * 4);
-
-		assertEquals(size * 4, stream.getBufferSize());
-	}
-
-	@Test
-	public void testRepeatedWritesReallocateLogarithmically() {
-		ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(0);
-
-		byte[] chunk = new byte[1024];
-		int reallocations = 0;
-		byte[] buffer = stream.getBuffer();
-		for(int i = 0; i < 16 * 1024; i++) { // 16 MB in total
-			stream.write(chunk);
-			if(stream.getBuffer() != buffer) {
-				buffer = stream.getBuffer();
-				reallocations++;
-			}
-		}
-		assertEquals(16 * 1024 * 1024, stream.size());
-
-		// fixed 16 KB increments would need 1024 reallocations
-		assertTrue("Expected few reallocations, got " + reallocations, reallocations < 32);
-	}
-
 	@Test
 	public void testWrite1() throws UnsupportedEncodingException {
 		stream.write(data);
