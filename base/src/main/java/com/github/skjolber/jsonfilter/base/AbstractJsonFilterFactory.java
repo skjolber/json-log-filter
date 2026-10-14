@@ -102,6 +102,7 @@ public abstract class AbstractJsonFilterFactory implements JsonFilterFactory {
 	}
 	
 	public void setMaxPathMatches(int maxPathMatches) {
+		AbstractPathJsonFilter.validateMaxPathMatches(maxPathMatches);
 		this.maxPathMatches = maxPathMatches;
 	}
 	
