@@ -112,9 +112,8 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					boolean[] next = new boolean[squareBrackets.length + 32];
-					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-					squareBrackets = next;
+					// grow via the field, so that callers see the grown array
+					squareBrackets = grow(squareBrackets);
 				}
 				
 				offset++;
@@ -278,9 +277,8 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				
 				bracketLevel++;
 				if(bracketLevel >= squareBrackets.length) {
-					boolean[] next = new boolean[squareBrackets.length + 32];
-					System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
-					squareBrackets = next;
+					// grow via the field, so that callers see the grown array
+					squareBrackets = grow(squareBrackets);
 				}
 				
 				offset++;
