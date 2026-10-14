@@ -2,7 +2,8 @@ package com.github.skjolber.jsonfilter.base.path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,26 +17,26 @@ public class ExpressionNodeFactory {
 	// /one/two/*/three1
 
 	public ExpressionNode toExpressionNode(String[] expressions, FilterType[] types) {
+		// parse first, so that the same path in slash and dot notation is treated as one.
 		// if the same path is both pruned and anonymized, prune takes precedence
-		Map<String, FilterType> map = new HashMap<>();
+		Map<List<String>, FilterType> map = new LinkedHashMap<>();
 		for(int i = 0; i < expressions.length; i++) {
-			map.merge(expressions[i], types[i], FilterType::strongest);
+			List<String> path = Arrays.asList(parse(expressions[i]));
+			map.merge(path, types[i], FilterType::strongest);
 		}
-		List<String> filteredExpressions = filter(expressions);
+		List<List<String>> filteredPaths = filter(map.keySet());
 		
 		ExpressionNode root = new ExpressionNode();
 		
-		for(int i = 0; i < filteredExpressions.size(); i++) {
-			String[] paths = parse(filteredExpressions.get(i));
-			
+		add:
+		for(List<String> paths : filteredPaths) {
 			ExpressionNode current = root;
-			for(int k = 0; k < paths.length; k++) {
-				String path = paths[k];
-
+			for(int k = 0; k < paths.size(); k++) {
 				if(current.hasFilterType()) {
-					// end leaf
-					break;
+					// an ancestor is filtered as a whole, which covers this path
+					continue add;
 				}
+				String path = paths.get(k);
 
 				ExpressionNode next = current.find(path);
 				if(next == null) {
@@ -48,7 +49,7 @@ public class ExpressionNodeFactory {
 
 				current = next;
 			}
-			current.setFilterType(map.get(filteredExpressions.get(i)));
+			current.setFilterType(map.get(paths));
 		}
 		
 		// /one/two/three/five
@@ -105,36 +106,27 @@ public class ExpressionNodeFactory {
 	}
 	
 
-	private List<String> filter(String[] expressions) {
-		Arrays.sort(expressions, (a, b) -> Integer.compare(a.length(), b.length()));
+	private List<List<String>> filter(Collection<List<String>> paths) {
+		List<List<String>> sorted = new ArrayList<>(paths);
+		sorted.sort((a, b) -> Integer.compare(a.size(), b.size()));
 		
-		List<String> filteredExpressions = new ArrayList<>(expressions.length);
+		List<List<String>> filteredPaths = new ArrayList<>(sorted.size());
 		
-		// filter
+		// filter, comparing parsed paths so that slash and dot notation can be mixed
 		// /one/two/three
-		// /one/two/three <--- removed
-		// /one/two/three/four <--- removed
+		// $.one.two.three.four <--- removed
 		// /one/two/threes/fours <--- kept
 		
 		add:
-		for(String expression : expressions) {
-			for (String filteredExpression : filteredExpressions) {
-				if(filteredExpression.equals(expression)) {
+		for(List<String> path : sorted) {
+			for (List<String> filteredPath : filteredPaths) {
+				if(filteredPath.size() < path.size() && path.subList(0, filteredPath.size()).equals(filteredPath)) {
 					continue add;
 				}
-				
-				if(expression.startsWith(filteredExpression)) {
-					if(expression.length() > filteredExpression.length()) {
-						char c = expression.charAt(filteredExpression.length());
-						if(c == '/' || c == '.') {
-							continue add; 
-						}
-					}
-				}
 			}
-			filteredExpressions.add(expression);
+			filteredPaths.add(path);
 		}
-		return filteredExpressions;
+		return filteredPaths;
 	}
 	
 	protected static String[] parse(String expression) {
