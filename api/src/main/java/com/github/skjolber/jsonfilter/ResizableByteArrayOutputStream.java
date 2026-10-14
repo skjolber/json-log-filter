@@ -17,6 +17,12 @@ public class ResizableByteArrayOutputStream extends OutputStream {
 
 	protected static final int MIN_INCREMENT = 16 * 1024;
 
+	/**
+	 * The maximum array size to allocate, unless more is explicitly requested.
+	 * Some VMs reserve header words in an array, so stay a little below {@linkplain Integer#MAX_VALUE}.
+	 */
+	protected static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
     /**
      * The buffer where data is stored.
      */
@@ -43,16 +49,19 @@ public class ResizableByteArrayOutputStream extends OutputStream {
     }
 
     public void ensureCapacity(int minCapacity) {
-        // overflow-conscious code
         if (minCapacity > buf.length) {
-        	// we need some more space
-        	
-        	int minimumIncrement = minCapacity - buf.length;
-        	if(minimumIncrement < MIN_INCREMENT) {
-        		minimumIncrement = MIN_INCREMENT;
-        	}
-        	
-            buf = copyOf(buf, buf.length + minimumIncrement);
+            // grow geometrically (by half the current size, at least MIN_INCREMENT)
+            // so that repeated appends stay amortized linear rather than quadratic.
+            // use long arithmetic so that very large buffers do not overflow.
+            long preferredCapacity = (long)buf.length + Math.max(buf.length >> 1, MIN_INCREMENT);
+
+            int newCapacity = (int)Math.min(Math.max(preferredCapacity, minCapacity), MAX_ARRAY_SIZE);
+            if(newCapacity < minCapacity) {
+                // explicitly requested more than MAX_ARRAY_SIZE
+                newCapacity = minCapacity;
+            }
+
+            buf = copyOf(buf, newCapacity);
         }
     }
 
