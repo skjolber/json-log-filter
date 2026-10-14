@@ -52,7 +52,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 					throw new IllegalArgumentException("Only any-element expression expected");
 				}
 				String name = removeAnyPrefix(prunes[i]);
-				fields.put(name, FilterType.PRUNE);
+				fields.merge(name, FilterType.PRUNE, FilterType::strongest);
 			}
 		}
 
@@ -62,7 +62,8 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 					throw new IllegalArgumentException("Only any-element expression expected");
 				}
 				String name = removeAnyPrefix(anonymizes[i]);
-				fields.put(name, FilterType.ANON);
+				// prune takes precedence over anonymize
+				fields.merge(name, FilterType.ANON, FilterType::strongest);
 			}
 		}
 	}

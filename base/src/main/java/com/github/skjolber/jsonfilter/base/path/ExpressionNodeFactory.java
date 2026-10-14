@@ -16,9 +16,10 @@ public class ExpressionNodeFactory {
 	// /one/two/*/three1
 
 	public ExpressionNode toExpressionNode(String[] expressions, FilterType[] types) {
+		// if the same path is both pruned and anonymized, prune takes precedence
 		Map<String, FilterType> map = new HashMap<>();
 		for(int i = 0; i < expressions.length; i++) {
-			map.put(expressions[i], types[i]);
+			map.merge(expressions[i], types[i], FilterType::strongest);
 		}
 		List<String> filteredExpressions = filter(expressions);
 		

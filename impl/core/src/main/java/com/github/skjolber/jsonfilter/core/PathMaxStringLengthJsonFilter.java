@@ -103,8 +103,9 @@ public class PathMaxStringLengthJsonFilter extends AbstractRangesPathJsonFilter 
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyPathFilters != null && type == null) {
-						type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
+					if(anyPathFilters != null && type != FilterType.PRUNE) {
+						// prune takes precedence over anonymize
+						type = FilterType.strongest(type, anyPathFilters.matchPath(chars, offset + 1, quoteIndex));
 					}					
 							
 					// skip whitespace
@@ -241,8 +242,9 @@ public class PathMaxStringLengthJsonFilter extends AbstractRangesPathJsonFilter 
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyPathFilters != null && type == null) {
-						type = anyPathFilters.matchPath(chars, offset + 1, quoteIndex);
+					if(anyPathFilters != null && type != FilterType.PRUNE) {
+						// prune takes precedence over anonymize
+						type = FilterType.strongest(type, anyPathFilters.matchPath(chars, offset + 1, quoteIndex));
 					}					
 					
 					// skip whitespace

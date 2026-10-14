@@ -193,8 +193,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyPathFilters != null && type == null) {
-							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
+						if(anyPathFilters != null && type != FilterType.PRUNE) {
+							// prune takes precedence over anonymize
+							type = FilterType.strongest(type, anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex));
 						}					
 								
 						// skip whitespace
@@ -507,8 +508,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 							pathItem = pathItem.constrain(level);
 						}
 						
-						if(anyPathFilters != null && type == null) {
-							type = anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex);
+						if(anyPathFilters != null && type != FilterType.PRUNE) {
+							// prune takes precedence over anonymize
+							type = FilterType.strongest(type, anyPathFilters.matchPath(chars, offset + 1, quoteEndIndex));
 						}					
 								
 						// skip whitespace

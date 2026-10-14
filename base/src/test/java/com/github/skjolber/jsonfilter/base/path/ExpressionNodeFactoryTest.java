@@ -143,4 +143,13 @@ public class ExpressionNodeFactoryTest {
 		assertTrue(oneNode.hasFilterType());
 	}
 
+	@Test
+	public void testSamePathPrunePrecedence() {
+		FilterType[] pruneFirst = new FilterType[] {FilterType.PRUNE, FilterType.ANON};
+		FilterType[] anonymizeFirst = new FilterType[] {FilterType.ANON, FilterType.PRUNE};
+
+		assertEquals("a\n b (PRUNE)", expressionNodeFactory.toExpressionNode(new String[] {"/a/b", "/a/b"}, pruneFirst).print());
+		assertEquals("a\n b (PRUNE)", expressionNodeFactory.toExpressionNode(new String[] {"/a/b", "/a/b"}, anonymizeFirst).print());
+		assertEquals("a\n b (PRUNE)", expressionNodeFactory.toExpressionNode(new String[] {"$.a.b", "$.a.b"}, pruneFirst).print());
+	}
 }

@@ -19,6 +19,33 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 		public int getType() {
 			return type;
 		}
+
+		/**
+		 * Resolve two filter types which apply to the same value. The type which reveals the least wins,
+		 * i.e. prune takes precedence over anonymize.
+		 *
+		 * @param a filter type, or null
+		 * @param b filter type, or null
+		 * @return the strongest filter type, or null if both are null
+		 */
+
+		public static FilterType strongest(FilterType a, FilterType b) {
+			if(a == null) {
+				return b;
+			}
+			if(b == null) {
+				return a;
+			}
+			return a.strength() >= b.strength() ? a : b;
+		}
+
+		private int strength() {
+			switch(this) {
+				case DELETE: return 2;
+				case PRUNE: return 1;
+				default: return 0;
+			}
+		}
 	}
 	
 	/** 
