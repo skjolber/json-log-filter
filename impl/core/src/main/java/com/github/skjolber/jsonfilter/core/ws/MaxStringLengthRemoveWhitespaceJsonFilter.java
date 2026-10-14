@@ -65,6 +65,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 			
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			buffer.setLength(bufferLength);
 			return false;
 		}
 	}
@@ -181,6 +183,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 			
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			output.setSize(bufferLength);
 			return false;
 		}
 	}
