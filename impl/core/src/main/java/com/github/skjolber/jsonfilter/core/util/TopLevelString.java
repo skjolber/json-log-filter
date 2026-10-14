@@ -18,7 +18,11 @@ public class TopLevelString {
 	}
 
 	public static boolean isTopLevelString(final char[] chars, int offset, int length) {
-		int limit = offset + length;
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
 		while(offset < limit && chars[offset] <= 0x20) {
 			offset++;
 		}
@@ -26,7 +30,11 @@ public class TopLevelString {
 	}
 
 	public static boolean isTopLevelString(final byte[] chars, int offset, int length) {
-		int limit = offset + length;
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
 		while(offset < limit && chars[offset] <= 0x20) {
 			offset++;
 		}
