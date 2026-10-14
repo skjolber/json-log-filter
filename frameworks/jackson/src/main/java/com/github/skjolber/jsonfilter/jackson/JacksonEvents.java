@@ -3,6 +3,7 @@ package com.github.skjolber.jsonfilter.jackson;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.TokenStreamContext;
 
 /**
  * Helper for copying parser events to a generator without altering number values.
@@ -30,5 +31,23 @@ final class JacksonEvents {
 		} else {
 			generator.copyCurrentEvent(parser);
 		}
+	}
+
+	/**
+	 * Check that no more than one root-level value was read, i.e. that a document like
+	 * <code>{"a":1}{"b":2}</code> is rejected. Call this once after reading the tokens,
+	 * so that there is no cost per token.
+	 *
+	 * @param parser parser which has read the tokens
+	 * @return true if no more than one root-level value was read
+	 */
+
+	static boolean isSingleRootValue(JsonParser parser) {
+		TokenStreamContext context = parser.streamReadContext();
+		while(!context.inRoot()) {
+			// stopped within a value, i.e. at max size
+			context = context.getParent();
+		}
+		return context.getEntryCount() <= 1;
 	}
 }
