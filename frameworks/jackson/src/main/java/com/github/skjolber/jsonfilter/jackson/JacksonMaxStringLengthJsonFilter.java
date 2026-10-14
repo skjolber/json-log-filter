@@ -88,14 +88,20 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 		output.ensureCapacity(output.length() + length);
 
+		int outputSize = output.length();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setLength(outputSize);
+		return false;
 	}
 	
 	@Override
@@ -105,28 +111,40 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 		output.ensureCapacity(output.length() + length);
 
+		int outputSize = output.length();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setLength(outputSize);
+		return false;
 	}
 
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(bytes.length < offset + length) {
 			return false;
 		}
+		int outputSize = output.size();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setSize(outputSize);
+		return false;
 	}
 	
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
@@ -147,7 +165,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 				
 				continue;
 			}
-			generator.copyCurrentEvent(parser);
+			JacksonEvents.copyCurrentEvent(parser, generator);
 		}
 		generator.flush(); // don't close
 
