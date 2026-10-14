@@ -150,32 +150,44 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
-						
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
+
+						whitespace = nextOffset - endQuoteIndex - 1;
 
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
+							}
 							break colon;
 						}
 					}
-					
+
 					if(flushOffset <= mark) {
 						streamMark = buffer.length() + mark - flushOffset; 
 					}
-					
+
 					// was a value
 					maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, metrics);
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						buffer.setLength(streamMark);
+						flushOffset = mark;
+						offset = mark;
+						maxSizeLimit = mark;
+						break loop;
+					}
+
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
 					}
-					
+
 					offset = nextOffset;
 					flushOffset = nextOffset;
 
@@ -372,6 +384,11 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 			}
 			default : {
 				// scalar value
+				if(offset + anonymizeMessage.length > maxSizeLimit) {
+					// the anonymized value does not fit: stop at the start of the value
+					maxSizeLimit = offset;
+					break loop;
+				}
 				if(flushOffset <= mark) {
 					writtenMark = buffer.length() + mark - flushOffset; 
 				}
