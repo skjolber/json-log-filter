@@ -19,7 +19,16 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		boolean replacementGrowth = false;
+		if(!mustConstrainMaxSize(length)) {
+			CharArrayRangesFilter filter = super.ranges(chars, offset, length);
+			// prune and anonymize messages can be longer than the values they replace
+			if(filter == null || !mustConstrainMaxSize(filter.getMaxOutputLength())) {
+				return filter;
+			}
+			// the output would be larger than the max size, so filter with max size
+			replacementGrowth = true;
+		} else if(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -30,6 +39,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 
 		final CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(pathMatches, length);
+		filter.setReplacementGrowth(replacementGrowth);
 
 		int maxReadLimit = offset + length; // i.e. max limit
 		
@@ -177,7 +187,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 									return filter;
 								}
 
-								if(maxSizeLimit >= maxReadLimit) {
+								if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 									// no need to filter for max size
 									filter.setLevel(0);
 									
@@ -295,7 +305,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								}
 							}
 
-							if(maxSizeLimit >= maxReadLimit) {
+							if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 								// no need to filter for max size
 								filter.setLevel(0);
 								return rangesMultiPathMaxStringLength(chars, offset, maxReadLimit, maxStringLength, pathMatches, level, pathItem, filter);
@@ -343,7 +353,16 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		boolean replacementGrowth = false;
+		if(!mustConstrainMaxSize(length)) {
+			ByteArrayRangesFilter filter = super.ranges(chars, offset, length);
+			// prune and anonymize messages can be longer than the values they replace
+			if(filter == null || !mustConstrainMaxSize(filter.getMaxOutputLength())) {
+				return filter;
+			}
+			// the output would be larger than the max size, so filter with max size
+			replacementGrowth = true;
+		} else if(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 		
@@ -354,6 +373,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 
 		final ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(pathMatches, length);
+		filter.setReplacementGrowth(replacementGrowth);
 
 		int maxReadLimit = offset + length;
 		
@@ -502,7 +522,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 									return filter;
 								}
 
-								if(maxSizeLimit >= maxReadLimit) {
+								if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 									// no need to filter for max size
 									filter.setLevel(0);
 									return rangesMultiPathMaxStringLength(chars, nextOffset, maxReadLimit, maxStringLength, pathMatches, level, pathItem, filter);
@@ -619,7 +639,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 								}
 							}
 							
-							if(maxSizeLimit >= maxReadLimit) {
+							if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 								// no need to filter for max size
 								filter.setLevel(0);
 								return rangesMultiPathMaxStringLength(chars, offset, maxReadLimit, maxStringLength, pathMatches, level, pathItem, filter);

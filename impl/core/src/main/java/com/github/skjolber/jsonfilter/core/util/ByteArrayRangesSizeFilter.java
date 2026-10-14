@@ -15,6 +15,17 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 		super(initialCapacity, length, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
+	/** true if prune and anonymize messages make the output larger than the input, so that the rest of the document cannot be kept without max size checks */
+	protected boolean replacementGrowth;
+
+	public void setReplacementGrowth(boolean replacementGrowth) {
+		this.replacementGrowth = replacementGrowth;
+	}
+
+	public boolean isReplacementGrowth() {
+		return replacementGrowth;
+	}
+
 	public boolean[] grow(boolean[] squareBrackets) {
 		boolean[] next = new boolean[squareBrackets.length + 32];
 		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);

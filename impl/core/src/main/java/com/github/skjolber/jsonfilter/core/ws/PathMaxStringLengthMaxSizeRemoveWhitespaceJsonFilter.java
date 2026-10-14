@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import java.io.IOException;
 
+import com.github.skjolber.jsonfilter.base.DeferredJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
@@ -26,7 +27,20 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, buffer, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large
+			int start = buffer.length();
+			DeferredJsonFilterMetrics deferred = metrics != null ? new DeferredJsonFilterMetrics() : null;
+			if(!super.process(chars, offset, length, buffer, deferred)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(buffer.length() - start)) {
+				if(deferred != null) {
+					deferred.flush(metrics);
+				}
+				return true;
+			}
+			buffer.setLength(start);
 		}
 
 		int bufferLength = buffer.length();
@@ -436,7 +450,20 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large
+			int start = output.size();
+			DeferredJsonFilterMetrics deferred = metrics != null ? new DeferredJsonFilterMetrics() : null;
+			if(!super.process(chars, offset, length, output, deferred)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(output.size() - start)) {
+				if(deferred != null) {
+					deferred.flush(metrics);
+				}
+				return true;
+			}
+			output.setSize(start);
 		}
 		
 		int bufferLength = output.size();
