@@ -146,6 +146,20 @@ public class AnyPathFiltersTest {
 		assertNull(anyPathFilters.matchPath("".getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, 0));
 	}
 
+	@Test
+	public void testPruneTakesPrecedence() {
+		AnyPathFilters[] filters = new AnyPathFilters[] {
+			AnyPathFilters.create(AnyPathFilter.create("abc", FilterType.PRUNE), AnyPathFilter.create("abc", FilterType.ANON)),
+			AnyPathFilters.create(AnyPathFilter.create("abc", FilterType.ANON), AnyPathFilter.create("abc", FilterType.PRUNE))
+		};
+		for(AnyPathFilters anyPathFilters : filters) {
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath("abc"));
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath("abc".toCharArray(), 0, 3));
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath("abc".getBytes(StandardCharsets.UTF_8), 0, 3));
+			// encoded key
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath("\\u0061bc".toCharArray(), 0, 8));
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath("\\u0061bc".getBytes(StandardCharsets.UTF_8), 0, 8));
+		}
+	}
 
 }
-

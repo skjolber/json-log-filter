@@ -146,6 +146,11 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 						prune = true;
 					}
 				}
+
+				if(prune) {
+					// prune takes precedence over anonymize
+					anon = false;
+				}
 				
 				if(prune || anon) {
 					JacksonEvents.copyCurrentEvent(parser, generator);

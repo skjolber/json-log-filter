@@ -162,6 +162,11 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						prune = true;
 					}
 				}
+
+				if(prune) {
+					// prune takes precedence over anonymize
+					anon = false;
+				}
 				
 				if(prune || anon) {				
 					nextToken = parser.nextToken();

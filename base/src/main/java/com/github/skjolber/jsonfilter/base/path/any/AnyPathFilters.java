@@ -2,7 +2,7 @@ package com.github.skjolber.jsonfilter.base.path.any;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,19 @@ public class AnyPathFilters {
 	}
 
 	public static AnyPathFilters create(List<AnyPathFilter> any) {
-		Map<String, FilterType> map = new HashMap<>();
+		// if the same name is both pruned and anonymized, prune takes precedence
+		Map<String, FilterType> map = new LinkedHashMap<>();
+		for(AnyPathFilter anyPathFilter : any) {
+			map.merge(anyPathFilter.pathString, anyPathFilter.filterType, FilterType::strongest);
+		}
+		if(map.size() < any.size()) {
+			// one filter per name, so that all lookups give the same result
+			List<AnyPathFilter> unique = new ArrayList<>(map.size());
+			for(Map.Entry<String, FilterType> entry : map.entrySet()) {
+				unique.add(new AnyPathFilter(entry.getKey(), entry.getValue()));
+			}
+			any = unique;
+		}
 		int maxKeyLengthBytes = 0;
 		int maxKeyLengthChars = 0;
 		for(int i = 0; i < any.size(); i++) {
@@ -27,7 +39,6 @@ public class AnyPathFilters {
 			if(maxKeyLengthChars < anyPathFilter.pathChars.length) {
 				maxKeyLengthChars = anyPathFilter.pathChars.length;
 			}
-			map.put(anyPathFilter.pathString, anyPathFilter.filterType);
 		}
 
 		// flat structures (length → filters) are needed by fillEncoded

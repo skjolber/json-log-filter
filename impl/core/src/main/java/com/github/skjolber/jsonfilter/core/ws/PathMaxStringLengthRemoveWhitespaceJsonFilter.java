@@ -142,8 +142,9 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyPathFilters != null && filterType == null) {
-						filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
+					if(anyPathFilters != null && filterType != FilterType.PRUNE) {
+						// prune takes precedence over anonymize
+						filterType = FilterType.strongest(filterType, anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex));
 					}
 					
 					if(filterType != null) {
@@ -332,8 +333,9 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 						pathItem = pathItem.constrain(level);
 					}
 					
-					if(anyPathFilters != null && filterType == null) {
-						filterType = anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex);
+					if(anyPathFilters != null && filterType != FilterType.PRUNE) {
+						// prune takes precedence over anonymize
+						filterType = FilterType.strongest(filterType, anyPathFilters.matchPath(chars, offset + 1, endQuoteIndex));
 					}
 					
 					// was a field name
