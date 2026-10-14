@@ -70,38 +70,56 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		output.ensureCapacity(output.length() + length);
 
+		int outputSize = output.length();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setLength(outputSize);
+		return false;
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		output.ensureCapacity(output.length() + length);
 
+		int outputSize = output.length();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setLength(outputSize);
+		return false;
 	}
 	
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		int outputSize = output.size();
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			return process(parser, generator, metrics);
+			if(process(parser, generator, metrics)) {
+				return true;
+			}
 		} catch(final Exception e) {
-			return false;
+			// fall through
 		}
+		// leave the output as it was
+		output.setSize(outputSize);
+		return false;
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
@@ -117,7 +135,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 				
 				FilterType filterType = fields.get(parser.currentName());
 				if(filterType != null) {
-					generator.copyCurrentEvent(parser);
+					JacksonEvents.copyCurrentEvent(parser, generator);
 
 					nextToken = parser.nextToken();
 					if(nextToken.isScalarValue()) {
@@ -137,7 +155,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 					} else {
 						// array or object
 						if(filterType == FilterType.ANON) {
-							generator.copyCurrentEvent(parser);
+							JacksonEvents.copyCurrentEvent(parser, generator);
 
 							// keep structure, but mark all values
 							anonymizeChildren(parser, generator, metrics);
@@ -163,7 +181,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 				continue;
 			}
 
-			generator.copyCurrentEvent(parser);
+			JacksonEvents.copyCurrentEvent(parser, generator);
 		}
 		generator.flush(); // don't close
 
@@ -190,7 +208,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 				continue;
 			}
 
-			generator.copyCurrentEvent(parser);
+			JacksonEvents.copyCurrentEvent(parser, generator);
 		}
 	}
 	
