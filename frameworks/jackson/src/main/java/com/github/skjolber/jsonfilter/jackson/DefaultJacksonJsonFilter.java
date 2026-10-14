@@ -61,6 +61,20 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 		}
 	}
 
+	@Override
+	public boolean isValidating() {
+		return true;
+	}
+
+	/**
+	 * The document is passed through as-is, including any whitespace.
+	 */
+
+	@Override
+	public boolean isRemovingWhitespace() {
+		return false;
+	}
+
 	protected boolean parse(JsonParser parser) {
 		try {
 			while(parser.nextToken() != null);
