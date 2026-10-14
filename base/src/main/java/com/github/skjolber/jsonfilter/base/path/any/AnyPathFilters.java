@@ -85,6 +85,10 @@ public class AnyPathFilters {
 	private static AnyPathFilter[][][] fillExact(List<AnyPathFilter> any, int maxLength, boolean useChars) {
 		AnyPathFilter[][][] result = new AnyPathFilter[maxLength + 1][][];
 		for(AnyPathFilter filter : any) {
+			if(filter.pathString.indexOf('\\') != -1) {
+				// a backslash is always escaped in a JSON key, so only the encoded lookup can match
+				continue;
+			}
 			int len  = useChars ? filter.pathChars.length : filter.pathBytes.length;
 			int first = useChars
 					? (filter.pathChars.length > 0 ? filter.pathChars[0] & 0xFF : 0)

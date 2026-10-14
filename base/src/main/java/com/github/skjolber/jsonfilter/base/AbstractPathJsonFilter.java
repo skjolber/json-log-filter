@@ -246,9 +246,19 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
-			return true;
+			// a backslash in the key starts an escape sequence, so then the unescaped key is shorter than the attribute
+			return !containsBackslash(attribute);
 		}
 		return matchesEncoded(chars, start, end, attribute);
+	}
+
+	private static boolean containsBackslash(final char[] attribute) {
+		for(int i = 0; i < attribute.length; i++) {
+			if(attribute[i] == '\\') {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static boolean matchesEncoded(final char[] chars, int start, int end, final char[] attribute) {
@@ -305,10 +315,20 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
-			return true;
+			// a backslash in the key starts an escape sequence, so then the unescaped key is shorter than the attribute
+			return !containsBackslash(attribute);
 		}
 		
 		return matchesEncoded(source, start, end, attribute);
+	}
+
+	private static boolean containsBackslash(final byte[] attribute) {
+		for(int i = 0; i < attribute.length; i++) {
+			if(attribute[i] == '\\') {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static boolean matchesEncoded(final byte[] source, int start, int end, final byte[] attribute) {
