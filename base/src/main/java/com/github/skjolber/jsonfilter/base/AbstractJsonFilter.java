@@ -113,7 +113,7 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 	@Override
 	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
-		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(chars.length);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(length);
 		
 		if(process(chars, offset, length, output, metrics)) {
 			return output.toByteArray();
