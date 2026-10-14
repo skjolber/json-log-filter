@@ -225,6 +225,15 @@ public class CharArrayWhitespaceFilter {
 							offset = nextOffset;
 							continue;
 						}
+
+						if(endQuoteIndex - offset < maxStringLength + 2) {
+							// short value followed by whitespace
+							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
+						}
 					} 
 					
 					// was a value
