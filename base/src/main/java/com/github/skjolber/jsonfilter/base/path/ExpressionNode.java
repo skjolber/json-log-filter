@@ -21,17 +21,51 @@ public class ExpressionNode {
 		return null;
 	}
 
+	/**
+	 * Merge a node into the children of this node.
+	 *
+	 * @param node node to merge, it is copied and not modified
+	 */
+
 	public void append(ExpressionNode node) {
-		if(filterType == null) {
-			ExpressionNode preexisting = find(node.path);
-			if(preexisting == null) {
-				children.add(node);
-			} else {
-				for (ExpressionNode child : node.children) {
-					preexisting.append(child);
-				}
+		if(filterType != null) {
+			// this node is filtered as a whole, which covers anything below it
+			return;
+		}
+		ExpressionNode preexisting = find(node.path);
+		if(preexisting == null) {
+			children.add(node.copy());
+		} else if(node.filterType != null) {
+			// the node is filtered as a whole, which covers anything below the preexisting node
+			preexisting.cover(node.filterType);
+		} else {
+			for (ExpressionNode child : node.children) {
+				preexisting.append(child);
 			}
 		}
+	}
+
+	/**
+	 * Filter this node as a whole. Rules below this node are dropped, as they are covered by this node.
+	 * If this node already has a filter type, the strongest type wins.
+	 *
+	 * @param type filter type
+	 */
+
+	public void cover(FilterType type) {
+		this.filterType = FilterType.strongest(this.filterType, type);
+		this.children.clear();
+	}
+
+	public ExpressionNode copy() {
+		ExpressionNode copy = new ExpressionNode();
+		copy.path = path;
+		copy.index = index;
+		copy.filterType = filterType;
+		for (ExpressionNode child : children) {
+			copy.children.add(child.copy());
+		}
+		return copy;
 	}
 	
 	public String print() {
