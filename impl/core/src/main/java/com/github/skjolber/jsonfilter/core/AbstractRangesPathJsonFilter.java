@@ -7,6 +7,7 @@ import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.TopLevelString;
 
 public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJsonFilter {
 
@@ -15,7 +16,8 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		CharArrayRangesFilter copy = ranges(chars, offset, length);
+		// a top-level string is rare, and cannot be handled by the regular scanners
+		CharArrayRangesFilter copy = TopLevelString.isTopLevelString(chars, offset, length) ? topLevelStringRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -30,7 +32,8 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
-		ByteArrayRangesFilter copy = ranges(chars, offset, length);
+		// a top-level string is rare, and cannot be handled by the regular scanners
+		ByteArrayRangesFilter copy = TopLevelString.isTopLevelString(chars, offset, length) ? topLevelStringRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -42,7 +45,8 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 	
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		ByteArrayRangesFilter copy = ranges(chars, offset, length);
+		// a top-level string is rare, and cannot be handled by the regular scanners
+		ByteArrayRangesFilter copy = TopLevelString.isTopLevelString(chars, offset, length) ? topLevelStringRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -53,7 +57,8 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		CharArrayRangesFilter copy = ranges(chars, offset, length);
+		// a top-level string is rare, and cannot be handled by the regular scanners
+		CharArrayRangesFilter copy = TopLevelString.isTopLevelString(chars, offset, length) ? topLevelStringRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -67,6 +72,22 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 	
 	protected abstract ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length);
 	
+
+	protected CharArrayRangesFilter topLevelStringRanges(final char[] chars, int offset, int length) {
+		try {
+			return TopLevelString.ranges(chars, offset, length, maxStringLength, false, getCharArrayRangesFilter(-1, length));
+		} catch(Exception e) {
+			return null;
+		}
+	}
+
+	protected ByteArrayRangesFilter topLevelStringRanges(final byte[] chars, int offset, int length) {
+		try {
+			return TopLevelString.ranges(chars, offset, length, maxStringLength, false, getByteArrayRangesFilter(-1, length));
+		} catch(Exception e) {
+			return null;
+		}
+	}
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
 		return getCharArrayRangesFilter(-1, length);

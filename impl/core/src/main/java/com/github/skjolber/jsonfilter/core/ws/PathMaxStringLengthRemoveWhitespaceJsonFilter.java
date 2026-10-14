@@ -21,6 +21,7 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractMultiPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
+import com.github.skjolber.jsonfilter.core.util.TopLevelString;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -52,6 +53,16 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				TopLevelString.process(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -241,6 +252,16 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 	}
 	
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				TopLevelString.process(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
