@@ -286,10 +286,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getMaxSizeLimit();
 					} else if(chars[nextOffset] == '"') {
-						flushOffset = nextOffset;
-						
-						nextOffset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-
+						// let the main loop handle the string value, which applies max string length
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;
@@ -689,10 +686,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getMaxSizeLimit();						
 					} else if(chars[nextOffset] == '"') {
-						flushOffset = nextOffset;
-						
-						nextOffset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-						
+						// let the main loop handle the string value, which applies max string length
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;
