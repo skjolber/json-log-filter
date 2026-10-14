@@ -132,15 +132,42 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validateAnonymizeExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
+			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 
 	private static boolean validateExpression(String expression) {
+		if(!hasSupportedSegments(expression)) {
+			return false;
+		}
 		if(!expression.contains("//") && !expression.contains("..")) {
 			return expression.matches(SYNTAX_ABSOLUTE_PATH_DOTS) || expression.matches(SYNTAX_ABSOLUTE_PATH_SLASHES);
 		}
 		return expression.matches(SYNTAX_ANY_PAT_DOTS) || expression.matches(SYNTAX_ANY_PATH_SLASHES);
+	}
+
+	/**
+	 * Reject syntax which is not supported, and so would silently never match: JSONPath bracket notation
+	 * (arrays are transparent, so use $.items.card rather than $.items[*].card), partial wildcards
+	 * like 'a*', and whitespace around a path segment.
+	 *
+	 * @param expression expression to check
+	 * @return true if each segment is supported
+	 */
+
+	private static boolean hasSupportedSegments(String expression) {
+		if(expression.indexOf('[') != -1 || expression.indexOf(']') != -1) {
+			return false;
+		}
+		for(String segment : expression.split("/|\\.")) {
+			if(!segment.equals(segment.strip())) {
+				return false;
+			}
+			if(segment.indexOf('*') != -1 && !segment.equals(STAR)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static void validatePruneExpressions(String[] expressions) {
@@ -157,7 +184,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validatePruneExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or .a.b.c with wildcards or //a  or ..a without wildcards");
+			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 	
