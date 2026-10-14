@@ -18,7 +18,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length)) {
+		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -34,7 +34,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length)) {
+		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 		
@@ -83,6 +83,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					offset++;
 					mark = offset;
 
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -220,9 +224,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 			offset++;
 		}
 
+		// the level is also needed when the whole document was processed
+		filter.setLevel(bracketLevel);
 		if(offset < maxReadLimit) {
 			// max size reached before end of document
-			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
@@ -276,6 +281,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					offset++;
 					mark = offset;
 					
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -287,9 +296,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 			offset++;			
 		}
 		
+		// the level is also needed when the whole document was processed
+		filter.setLevel(bracketLevel);
 		if(offset < maxReadLimit) {
 			// max size reached before end of document
-			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
@@ -342,6 +352,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					
 					offset++;
 					mark = offset;
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -476,9 +490,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 			offset++;
 		}
 
+		// the level is also needed when the whole document was processed
+		filter.setLevel(bracketLevel);
 		if(offset < maxReadLimit) {
 			// max size reached before end of document
-			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			
@@ -530,6 +545,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 					offset++;
 					mark = offset;
 					
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -541,9 +560,10 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 			offset++;			
 		}
 		
-		if(offset < maxReadLimit){
+		// the level is also needed when the whole document was processed
+		filter.setLevel(bracketLevel);
+		if(offset < maxReadLimit) {
 			// max size reached before end of document
-			filter.setLevel(bracketLevel);
 			filter.setMark(mark);
 			filter.setMaxSizeLimit(maxSizeLimit);
 			

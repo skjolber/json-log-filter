@@ -227,6 +227,42 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	// -----------------------------------------------------------------------
+	// identical output to MaxSizeJsonFilter — cut point inside a string
+	// containing , ] or }
+	// -----------------------------------------------------------------------
+
+	@Test
+	public void testStructuralCharactersInStrings_variousMaxSizes() {
+		String[] jsons = {
+			"{\"a\":\"x,y\"}",
+			"{\"level\":\"INFO\",\"tags\":[\"a\",\"b\"],\"message\":\"Order 42 failed: [timeout, retry], see log\"}",
+			"[\"a]b\",{\"c\" : \"d}e\"} , \"f,g\"]"
+		};
+		for (String json : jsons) {
+			for (int maxSize = 1; maxSize < json.length(); maxSize++) {
+				assertSameAsForwardFilter(json, maxSize);
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// identical output to MaxSizeJsonFilter — whitespace after the root
+	// -----------------------------------------------------------------------
+
+	@Test
+	public void testWhitespaceAfterRoot_variousMaxSizes() {
+		String[] jsons = {
+			"{\"level\":\"INFO\",\"message\":\"done\"}\r\n",
+			"[1,2,3]      "
+		};
+		for (String json : jsons) {
+			for (int maxSize = 1; maxSize < json.length(); maxSize++) {
+				assertSameAsForwardFilter(json, maxSize);
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------------
 	// grow bracket arrays beyond initial capacity (>32 levels)
 	// -----------------------------------------------------------------------
 

@@ -42,7 +42,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
 				return true;
 			}
 		} catch(final Exception e) {
@@ -65,7 +65,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length(), metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
 				return true;
 			}
 		} catch(final Exception e) {
@@ -87,7 +87,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size(), metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, metrics)) {
 				return true;
 			}
 		} catch(final Exception e) {
@@ -144,7 +144,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 				// do more accurate size calculation
 				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
 				
-				if(outputSize + accurateSize > maxSize) {
+				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
+				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
 					if(metrics != null) {
 						metrics.onMaxSize(-1);
 					}
