@@ -158,11 +158,13 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		int previousOffset = offset - 1;
 		
-		while(mark < previousOffset) {
+		// include the mark itself, which may be a single character value after an opening bracket
+		while(mark <= previousOffset) {
 			if(chars[previousOffset] > 0x20) {
 				// Opening brackets cannot be rescued: they start a structure whose
 				// closing bracket is not included in the output, producing invalid JSON.
-				if(chars[previousOffset] == '{' || chars[previousOffset] == '[') {
+				// A comma is a mark, and cannot end the output.
+				if(chars[previousOffset] == '{' || chars[previousOffset] == '[' || chars[previousOffset] == ',') {
 					break;
 				}
 				if(previousOffset < maxSizeLimit) {
@@ -320,11 +322,13 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 		
 		int previousOffset = offset - 1;
 		
-		while(mark < previousOffset) {
+		// include the mark itself, which may be a single character value after an opening bracket
+		while(mark <= previousOffset) {
 			if(chars[previousOffset] > 0x20 || chars[previousOffset] < 0) { // note: negative because could be UTF-8 multi characther
 				// Opening brackets cannot be rescued: they start a structure whose
 				// closing bracket is not included in the output, producing invalid JSON.
-				if(chars[previousOffset] == '{' || chars[previousOffset] == '[') {
+				// A comma is a mark, and cannot end the output.
+				if(chars[previousOffset] == '{' || chars[previousOffset] == '[' || chars[previousOffset] == ',') {
 					break;
 				}
 				if(previousOffset < maxSizeLimit) {
