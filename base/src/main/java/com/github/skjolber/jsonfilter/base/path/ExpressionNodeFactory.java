@@ -60,8 +60,19 @@ public class ExpressionNodeFactory {
 		// /one/two/three/three1
 		// /one/two/*/three1
 		//
-		// so add star children to non-star children
-		// 
+		// so add star children to non-star children.
+		//
+		// likewise
+		//
+		// /one/two/three/five
+		// /one/two/* (anonymize)
+		//
+		// is logically the same as
+		//
+		// /one/two/three (anonymize)
+		// /one/two/* (anonymize)
+		//
+		// so a star leaf covers its non-star siblings as a whole.
 		
 		List<ExpressionNode> nodes = new ArrayList<>();
 		nodes.add(root);
@@ -88,12 +99,13 @@ public class ExpressionNodeFactory {
 					for (int j = 0; j < currentChildren.size(); j++) {
 						ExpressionNode targetNode = currentChildren.get(j);
 						if(starNode != targetNode) {
-
-							List<ExpressionNode> starNodeChildren = starNode.getChildren();
-							for (int l = 0; l < starNodeChildren.size(); l++) {
-								ExpressionNode childStarNode = starNodeChildren.get(l);
-
-								targetNode.append(childStarNode);
+							if(starNode.hasFilterType()) {
+								targetNode.cover(starNode.getFilterType());
+							} else {
+								List<ExpressionNode> starNodeChildren = starNode.getChildren();
+								for (int l = 0; l < starNodeChildren.size(); l++) {
+									targetNode.append(starNodeChildren.get(l));
+								}
 							}
 						}
 					}
