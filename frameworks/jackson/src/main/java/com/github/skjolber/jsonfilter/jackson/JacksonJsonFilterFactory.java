@@ -69,8 +69,8 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 		String[] anonymizeFilters = this.anonymizeFilters.isEmpty() ? null :  this.anonymizeFilters.toArray(new String[this.anonymizeFilters.size()]);
 
 		if(isActivePathFilters()) {
-			// check for single prune/anon filter
-			if(!isFullPrefix(anonymizeFilters) && !isFullPrefix(pruneFilters)) {
+			// the any-path filter supports only any-path expressions, i.e. //key or $..key
+			if(isAllAnyPrefix(anonymizeFilters) && isAllAnyPrefix(pruneFilters)) {
 				// TODO multi any max size
 				if(!isActiveMaxSize()) {
 					return new JacksonAnyPathMaxStringLengthJsonFilter(maxStringLength, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
@@ -98,6 +98,10 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 
 	protected boolean isFullPrefix(String[] filters) {
 		return filters != null && !AbstractPathJsonFilter.hasAnyPrefix(filters);
+	}
+
+	protected boolean isAllAnyPrefix(String[] filters) {
+		return filters == null || AbstractPathJsonFilter.hasAllAnyPrefix(filters);
 	}
 	
 

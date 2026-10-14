@@ -146,5 +146,14 @@ public class JacksonJsonFilterFactoryTest {
 		assertThat(filter.getPruneFilters()).isEqualTo(new String[]{"//def"});
 		assertThat(filter.getMaxSize()).isEqualTo(1024);
 	}
-	
+
+	@Test
+	public void testAnyPathAndFullPath() {
+		// the any-path filter does not support full paths
+		factory.setAnonymize("$..password", "$.customer.email");
+		assertThat(factory.newJsonFilter()).isInstanceOf(JacksonPathMaxStringLengthJsonFilter.class);
+
+		factory.setPrune("//token", "/customer/ssn");
+		assertThat(factory.newJsonFilter()).isInstanceOf(JacksonPathMaxStringLengthJsonFilter.class);
+	}
 }
