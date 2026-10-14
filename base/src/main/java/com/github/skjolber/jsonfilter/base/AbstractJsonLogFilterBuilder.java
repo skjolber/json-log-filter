@@ -100,7 +100,7 @@ public abstract class AbstractJsonLogFilterBuilder<B extends AbstractJsonLogFilt
 	 * field appears a known number of times near the beginning of the document,
 	 * as the filter can then skip the remainder at near pass-through speed.
 	 *
-	 * @param maxPathMatches maximum number of path matches before filtering stops
+	 * @param maxPathMatches maximum number of path matches before filtering stops, or -1 for no limit
 	 * @return this builder
 	 */
 	public B withMaxPathMatches(int maxPathMatches) {
