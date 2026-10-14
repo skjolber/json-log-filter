@@ -5,9 +5,9 @@ import static com.google.common.truth.Truth.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
-import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 
 public class JacksonJsonFilterFactoryTest {
 
@@ -20,7 +20,40 @@ public class JacksonJsonFilterFactoryTest {
 
 	@Test
 	public void testDefault() {
-		assertThat(factory.newJsonFilter()).isInstanceOf(DefaultJsonFilter.class);
+		// validates, then passes the document through as-is
+		JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter).isInstanceOf(DefaultJacksonJsonFilter.class);
+		assertThat(filter.isValidating()).isTrue();
+		assertThat(filter.isRemovingWhitespace()).isFalse();
+		assertThat(filter.process("{\"a\":1}, \"b\":2}")).isNull();
+	}
+
+	@Test
+	public void testRemoveWhitespace() {
+		factory.setRemoveWhitespace(true);
+
+		JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter.isRemovingWhitespace()).isTrue();
+		assertThat(filter.process("{\n  \"a\" : [ 1, 2 ]\n}")).isEqualTo("{\"a\":[1,2]}");
+	}
+
+	@Test
+	public void testRemoveWhitespaceMaxSize() {
+		factory.setRemoveWhitespace(true);
+		factory.setMaxSize(1024);
+
+		// small documents must not be passed through as-is
+		JsonFilter filter = factory.newJsonFilter();
+		assertThat(filter.isRemovingWhitespace()).isTrue();
+		assertThat(filter.process("{\n  \"a\" : [ 1, 2 ]\n}")).isEqualTo("{\"a\":[1,2]}");
+	}
+
+	@Test
+	public void testMaxSizeDoesNotClaimToRemoveWhitespace() {
+		factory.setMaxSize(1024);
+
+		// small documents are passed through as-is
+		assertThat(factory.newJsonFilter().isRemovingWhitespace()).isFalse();
 	}
 
 	@Test

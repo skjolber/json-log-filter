@@ -21,7 +21,6 @@ import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilterFactory;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter;
 import com.github.skjolber.jsonfilter.base.AbstractPathJsonFilter.FilterType;
-import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
 
 /**
  * Jackson {@linkplain JsonFilter} factory.
@@ -90,10 +89,19 @@ public class JacksonJsonFilterFactory extends AbstractJsonFilterFactory {
 		}
 		
 		if(isActiveMaxSize()) {
+			if(removeWhitespace) {
+				// JacksonMaxSizeJsonFilter passes small documents through as-is, including whitespace
+				return new JacksonMaxSizeMaxStringLengthJsonFilter(-1, maxSize, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+			}
 			return new JacksonMaxSizeJsonFilter(maxSize);
 		}
 
-		return new DefaultJsonFilter();
+		if(removeWhitespace) {
+			// writes the document via a generator, which removes whitespace
+			return new JacksonMaxStringLengthJsonFilter(-1, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+		}
+		// validate, then pass the document through as-is
+		return new DefaultJacksonJsonFilter();
 	}
 
 	protected boolean isFullPrefix(String[] filters) {
