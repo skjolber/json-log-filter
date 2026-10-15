@@ -56,20 +56,6 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 		this.squareBrackets = squareBrackets;
 	}
 
-	@Override
-	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		super.filter(chars, offset, length, buffer, metrics);
-		
-		closeStructure(buffer);
-	}
-	
-	@Override
-	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
-		super.filter(chars, offset, length, buffer);
-		
-		closeStructure(buffer);
-	}
-	
 	public int skipObjectOrArrayMaxSizeMaxStringLength(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;

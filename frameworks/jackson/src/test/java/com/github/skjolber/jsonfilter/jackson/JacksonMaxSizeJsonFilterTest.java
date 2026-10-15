@@ -181,6 +181,12 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		// cut by max size, so the closing brackets are written when the generator is closed
+		assertSizeMetrics(new JacksonMaxSizeJsonFilter(30), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
 	public void testMaxSizeCountsUtf8BytesForByteOutput() throws Exception {
 		// the first field is 18 characters but 27 bytes with brackets
 		String json = "{\"a\":\"ææææææææææ\",\"b\":1}";

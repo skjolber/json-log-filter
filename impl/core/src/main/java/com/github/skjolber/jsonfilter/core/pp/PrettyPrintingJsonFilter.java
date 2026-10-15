@@ -34,6 +34,10 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {
 		int bufferLength = buffer.length();
 		if(prettyPrint(chars, offset, length, buffer)) {
+			if(filterMetrics != null) {
+				filterMetrics.onInput(length);
+				filterMetrics.onOutput(buffer.length() - bufferLength);
+			}
 			return true;
 		}
 		// do not leave partial output in the buffer
@@ -44,6 +48,10 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
 		int bufferLength = output.size();
 		if(prettyPrint(chars, offset, length, output)) {
+			if(filterMetrics != null) {
+				filterMetrics.onInput(length);
+				filterMetrics.onOutput(output.size() - bufferLength);
+			}
 			return true;
 		}
 		// do not leave partial output in the buffer

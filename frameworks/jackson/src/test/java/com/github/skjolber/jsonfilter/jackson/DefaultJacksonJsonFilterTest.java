@@ -67,6 +67,34 @@ public class DefaultJacksonJsonFilterTest {
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		// input and output sizes, also when the output already holds content
+		DefaultJacksonJsonFilter filter = new DefaultJacksonJsonFilter();
+
+		String json = "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder builder = new StringBuilder("[");
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), builder, metrics));
+		assertEquals(json.length(), metrics.getInputSize());
+		assertEquals(builder.length() - 1, metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		builder = new StringBuilder("[");
+		assertTrue(filter.process(bytes, 0, bytes.length, builder, metrics));
+		assertEquals(bytes.length, metrics.getInputSize());
+		assertEquals(builder.length() - 1, metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		output.write('[');
+		assertTrue(filter.process(bytes, 0, bytes.length, output, metrics));
+		assertEquals(bytes.length, metrics.getInputSize());
+		assertEquals(output.size() - 1, metrics.getOutputSize());
+	}
+
+	@Test
 	public void testProcessByteArrayToStringBuilderExceptionFromFactory() throws Exception {
 		// Cover catch block in process(byte[], StringBuilder): factory.createParser throws
 		JsonFactory jsonFactory = mock(JsonFactory.class);

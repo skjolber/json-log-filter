@@ -55,13 +55,14 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			filter.setMark(offset);
 			filter.setWrittenMark(buffer.length());
 			
-			processMaxSize(chars, offset, maxReadLimit, 0, buffer, maxPathMatches, filter, metrics);
+			int level = processMaxSize(chars, offset, maxReadLimit, 0, buffer, maxPathMatches, filter, metrics);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
 				int written = buffer.length() - bufferLength;
 				int totalSize = length;
-				if(written < totalSize) {
+				if(level > 0) {
+					// the document was cut, i.e. not only whitespace was removed
 					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(buffer.length() - bufferLength);
@@ -74,7 +75,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 	}
 
-	protected void processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
+	protected int processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -416,9 +417,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						// just remove whitespace
 						buffer.append(chars, flushOffset, offset - flushOffset);
 
-						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
-
-						return;
+						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
 					}							
 				}
 
@@ -427,11 +426,13 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			offset++;
 		}
 		
+		int kept = mark;
 		if(bracketLevel > 0) {
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
+					kept = markLimit;
 					if(markLimit >= flushOffset) {
 						buffer.append(chars, flushOffset, markLimit - flushOffset);
 					}
@@ -449,6 +450,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		} else {
 			buffer.append(chars, flushOffset, offset - flushOffset);
 		}
+		
+		// report a cut only if content was dropped, not just whitespace
+		return bracketLevel > 0 && MaxSizeJsonFilter.hasContent(chars, kept, maxReadLimit) ? bracketLevel : 0;
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
@@ -483,13 +487,14 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			filter.setMark(offset);
 			filter.setWrittenMark(output.size());
 			
-			processMaxSize(chars, offset, maxReadLimit, 0, output, maxPathMatches, filter, metrics);
+			int level = processMaxSize(chars, offset, maxReadLimit, 0, output, maxPathMatches, filter, metrics);
 
 			if(metrics != null) {
 				metrics.onInput(length);
 				int written = output.size() - bufferLength;
 				int totalSize = length;
-				if(written < totalSize) {
+				if(level > 0) {
+					// the document was cut, i.e. not only whitespace was removed
 					metrics.onMaxSize(totalSize - written);
 				}					
 				metrics.onOutput(output.size() - bufferLength);
@@ -503,7 +508,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 	}
 
-	protected void processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
+	protected int processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -844,9 +849,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						// just remove whitespace
 						stream.write(chars, flushOffset, offset - flushOffset);
 
-						MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, bracketLevel, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
-
-						return;
+						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, bracketLevel, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
 					}							
 				}
 
@@ -855,11 +858,13 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			offset++;
 		}
 		
+		int kept = mark;
 		if(bracketLevel > 0) {
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
+					kept = markLimit;
 					if(markLimit >= flushOffset) {
 						stream.write(chars, flushOffset, markLimit - flushOffset);
 					}
@@ -877,6 +882,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		} else {
 			stream.write(chars, flushOffset, offset - flushOffset);
 		}
+		
+		// report a cut only if content was dropped, not just whitespace
+		return bracketLevel > 0 && MaxSizeJsonFilter.hasContent(chars, kept, maxReadLimit) ? bracketLevel : 0;
 	}
 
 	@Override

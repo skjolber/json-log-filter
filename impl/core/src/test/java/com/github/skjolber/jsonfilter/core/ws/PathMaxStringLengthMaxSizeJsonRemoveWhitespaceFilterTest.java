@@ -358,6 +358,45 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testMaxSizeMetricsOnlyWhenContentIsDropped() throws Exception {
+		String pretty = "{\n  \"a\" : \"bbbbbbbbbb\",\n  \"c\" : [ 1, 2, 3 ],\n  \"d\" : { \"e\" : true }\n}";
+		String compact = "{\"a\":\"bbbbbbbbbb\",\"c\":[1,2,3],\"d\":{\"e\":true}}";
+		byte[] prettyBytes = pretty.getBytes(StandardCharsets.UTF_8);
+
+		// fits once the whitespace is removed
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, compact.length(), -1, new String[]{"/z"}, null);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder output = new StringBuilder();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(compact, output.toString());
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(pretty.length(), metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(compact, byteOutput.toString(StandardCharsets.UTF_8));
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(prettyBytes.length, metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		// cut
+		filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 20, -1, new String[]{"/z"}, null);
+
+		metrics = new DefaultJsonFilterMetrics();
+		output.setLength(0);
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(pretty.length() - output.length(), metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		byteOutput.reset();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(prettyBytes.length - byteOutput.size(), metrics.getMaxSize());
+	}
+
+	@Test
 	public void testGrowSquareBracketsInMainLoop() throws Exception {
 		// 35 nested arrays force the bracket-tracking array to grow. An any-path filter ensures all arrays are traversed rather than skipped.
 		byte[] jsonBytes = Generator.generateObjectWithDeepArrayValue(35, "skip", "target", "v", false);

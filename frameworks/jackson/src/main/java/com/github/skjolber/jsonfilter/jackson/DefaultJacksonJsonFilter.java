@@ -26,6 +26,7 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 			if(parse(parser)) {
 				output.ensureCapacity(output.length() + length);
 				output.append(chars, offset, length);
+				record(filterMetrics, length, length);
 				return true;
 			}
 			return false;
@@ -39,6 +40,7 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 		try (JsonParser parser = jsonFactory.createParser(bytes, offset, length)) {
 			if(parse(parser)) {
 				output.write(bytes, offset, length);
+				record(filterMetrics, length, length);
 				
 				return true;
 			}
@@ -52,7 +54,9 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 		try (JsonParser parser = jsonFactory.createParser(chars, offset, length)) {
 			if(parse(parser)) {
 				output.ensureCapacity(output.length() + length);
+				int outputLength = output.length();
 				output.append(new String(chars, offset, length, StandardCharsets.UTF_8));
+				record(filterMetrics, length, output.length() - outputLength);
 				return true;
 			}
 			return false;
@@ -73,6 +77,13 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 	@Override
 	public boolean isRemovingWhitespace() {
 		return false;
+	}
+
+	private static void record(JsonFilterMetrics filterMetrics, int input, int output) {
+		if(filterMetrics != null) {
+			filterMetrics.onInput(input);
+			filterMetrics.onOutput(output);
+		}
 	}
 
 	protected boolean parse(JsonParser parser) {

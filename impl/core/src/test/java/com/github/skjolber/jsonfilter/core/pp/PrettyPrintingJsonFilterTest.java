@@ -104,6 +104,28 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testMetrics() throws Exception {
+		// input and output sizes, also when the output already holds content
+		String json = "{\"a\":[1,2],\"b\":{\"c\":true}}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder charOutput = new StringBuilder("[");
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, metrics));
+		assertEquals(json.length(), metrics.getInputSize());
+		assertEquals(charOutput.length() - 1, metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		byteOutput.write('[');
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, metrics));
+		assertEquals(jsonBytes.length, metrics.getInputSize());
+		assertEquals(byteOutput.size() - 1, metrics.getOutputSize());
+	}
+
+	@Test
 	public void testWhitespaceInInput() throws Exception {
 		// Input JSON with structural whitespace — covers the `chars[offset] <= 0x20` path
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
