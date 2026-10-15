@@ -342,7 +342,9 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				}
 				
 				if(offset + anonymizeMessage.length > maxSizeLimit ) {
-					offset = maxSizeLimit;
+					// the anonymized value does not fit: stop at the start of the value, so that
+					// neither the caller nor markToLimit(..) can include (part of) the raw value
+					maxSizeLimit = offset;
 					break loop;
 				}
 				

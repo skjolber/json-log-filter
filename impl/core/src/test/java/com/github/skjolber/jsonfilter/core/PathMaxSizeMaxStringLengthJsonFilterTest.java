@@ -306,6 +306,51 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 	}
 
 	@Test
+	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
+		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
+		String json = "{\"secret\":[1,2,3,42,5],\"other\":\"" + "o".repeat(40) + "\"}";
+		int[] maxSizes = {15, 18, 27};
+		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
+		for(int maxStringLength : new int[] {-1, 50}) {
+			for(int i = 0; i < maxSizes.length; i++) {
+				PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSizes[i], -1, new String[]{"/secret"}, null);
+				assertEquals(expected[i], filter.process(json));
+				assertEquals(expected[i], new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			}
+		}
+
+		// anonymize message longer than the anonymized values
+		json = "{\"card\":{\"pin\":7,\"x\":8},\"other\":\"xxxxxxxxxx\"}";
+		maxSizes = new int[] {18, 24, 26, 35, 37};
+		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
+		for(int i = 0; i < maxSizes.length; i++) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSizes[i], -1, new String[]{"/card"}, null, "\"[removed]\"", "\"ANONYMIZED\"", "... + ");
+			assertEquals(expected[i], filter.process(json));
+			assertEquals(expected[i], new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void testDocumentFitsAfterAnonymizing() throws Exception {
+		String json = "{\"user\":{\"password\":\"abcd\"}}";
+		for(int maxSize = 25; maxSize <= 27; maxSize++) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, -1, new String[]{"/user/password"}, null);
+			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
+			assertEquals("{\"user\":{\"password\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void testMaxPathMatchesUsedUpClosesStructureOnce() throws Exception {
+		String json = "{\"a\":[true,true],\"b\":1}";
+		for(int maxSize = 21; maxSize <= 23; maxSize++) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, 1, new String[]{"/a"}, null);
+			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", filter.process(json));
+			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void testExceptionInRangesReturnsFalse() throws Exception {
 		// An invalid input offset causes the filter to return false rather than throw.
 		MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter filter =
