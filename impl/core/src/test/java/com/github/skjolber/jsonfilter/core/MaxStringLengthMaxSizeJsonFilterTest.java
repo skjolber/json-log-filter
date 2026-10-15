@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import com.github.skjolber.jsonfilter.JsonFilter;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -123,6 +125,54 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		byte[] byteResult = filter.process(jsonBytes);
 		assertNotNull(byteResult);
 		assertEquals("{\"k\":\"abcdefg\"}", new String(byteResult, StandardCharsets.UTF_8));
+	}
+
+	// a long value followed by whitespace, which is truncated to {"o":{"k":"aaa... + 17"}} (25 chars) for max string length 3
+	private static final String LONG_VALUE_TRAILING_WHITESPACE = "{\"o\":{\"k\":\"" + "a".repeat(20) + "\"" + " ".repeat(40) + ",\"x\":1}}";
+
+	@Test
+	public void testRangesMaxSizeMaxStringLengthKeepsTruncatedValueWhenWhitespaceAfterItDoesNotFit() {
+		// from max size 25 the truncated value fits, but the whitespace after it does not fit until max size 65:
+		// keep the truncation and mark right after the value, so that the cut does not include the raw value
+		int markAfterValue = LONG_VALUE_TRAILING_WHITESPACE.indexOf(' ');
+		for(int maxSize = 25; maxSize < 65; maxSize++) {
+			assertRangesMaxSizeMaxStringLength("{\"o\":{\"k\":\"aaa... + 17\"}}", maxSize, markAfterValue);
+		}
+	}
+
+	@Test
+	public void testRangesMaxSizeMaxStringLengthRemovesTruncationWhenTruncatedValueDoesNotFit() {
+		// at max size 24 not even the truncated value fits: remove the truncation and mark before the field
+		int markBeforeField = LONG_VALUE_TRAILING_WHITESPACE.indexOf("\"k\"");
+		assertRangesMaxSizeMaxStringLength("{\"o\":{}}", 24, markBeforeField);
+	}
+
+	private static void assertRangesMaxSizeMaxStringLength(String expected, int maxSize, int expectedMark) {
+		String json = LONG_VALUE_TRAILING_WHITESPACE;
+		int comma = json.indexOf(',');
+
+		char[] chars = json.toCharArray();
+		CharArrayRangesSizeFilter charFilter = new CharArrayRangesSizeFilter(-1, chars.length, "\"[removed]\"".toCharArray(), "\"*\"".toCharArray(), "... + ".toCharArray());
+		charFilter.setMark(0);
+		assertEquals(comma, MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(chars, 0, chars.length, maxSize, 3 + 2, charFilter));
+		assertEquals(expectedMark, charFilter.getMark(), Integer.toString(maxSize));
+
+		// cut the rest of the document at the mark, as ranges(..) does
+		charFilter.addDelete(charFilter.getMark(), chars.length);
+		StringBuilder builder = new StringBuilder();
+		charFilter.filter(chars, 0, chars.length, builder);
+		assertEquals(expected, builder.toString(), Integer.toString(maxSize));
+
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		ByteArrayRangesSizeFilter byteFilter = new ByteArrayRangesSizeFilter(-1, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		byteFilter.setMark(0);
+		assertEquals(comma, MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(bytes, 0, bytes.length, maxSize, 3 + 2, byteFilter));
+		assertEquals(expectedMark, byteFilter.getMark(), Integer.toString(maxSize));
+
+		byteFilter.addDelete(byteFilter.getMark(), bytes.length);
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		byteFilter.filter(bytes, 0, bytes.length, output);
+		assertEquals(expected, new String(output.toByteArray(), StandardCharsets.UTF_8), Integer.toString(maxSize));
 	}
 
 	@Test
