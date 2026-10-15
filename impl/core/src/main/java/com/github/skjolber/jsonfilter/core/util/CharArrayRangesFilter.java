@@ -511,7 +511,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			// where X is hex in upper or lower case
 
 			// check for unicode encoding. That means the peek char must be a hex
-			if(isHex(chars[start])) {
+			// not directly after a slash; b and f are hex, but \b and \f are single char escapes
+			if(isHex(chars[start]) && chars[start - 1] != '\\') {
 				int index = start - 1; // index of last character which is included
 				
 				// absolute minimum is length 8:
