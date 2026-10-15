@@ -63,7 +63,7 @@ public class IndentTest {
 		assertAppend(Indent.newBuilder().withSpace(2).withUnixLinebreak().withPreparedLevels(0).build(), "\n", "  ");
 		assertAppend(Indent.newBuilder().withTab().withWindowsLinebreak().withPreparedLevels(0).build(), "\r\n", "\t");
 		// non-ascii indent character, multiple bytes in UTF-8
-		assertAppend(Indent.newBuilder().withCharacter(' ').withCount(3).withPreparedLevels(0).build(), "\n", "   ");
+		assertAppend(Indent.newBuilder().withCharacter('\u00A0').withCount(3).withPreparedLevels(0).build(), "\n", "\u00A0\u00A0\u00A0");
 	}
 
 	@Test
