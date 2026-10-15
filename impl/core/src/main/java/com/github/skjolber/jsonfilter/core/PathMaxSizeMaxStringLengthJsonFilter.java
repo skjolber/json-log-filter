@@ -28,8 +28,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 			}
 			// the output would be larger than the max size, so filter with max size
 			replacementGrowth = true;
-		} else if(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
-			return super.ranges(chars, offset, length);
 		}
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -362,8 +360,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 			}
 			// the output would be larger than the max size, so filter with max size
 			replacementGrowth = true;
-		} else if(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
-			return super.ranges(chars, offset, length);
 		}
 		
 		AnyPathFilters anyPathFilters = this.anyPathFilters;

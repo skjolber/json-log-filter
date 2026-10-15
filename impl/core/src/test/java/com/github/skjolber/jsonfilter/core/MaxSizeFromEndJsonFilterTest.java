@@ -232,6 +232,21 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	// -----------------------------------------------------------------------
 
 	@Test
+	public void testStructuralCharactersInStrings() {
+		String json = "{\"a\":\"x,y\"}";
+		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(8);
+		assertEquals("{}", filter.process(json));
+		assertEquals("{}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		String log = "{\"level\":\"INFO\",\"tags\":[\"a\",\"b\"],\"message\":\"Order 42 failed: [timeout, retry], see log\"}";
+		for (int maxSize : new int[] {70, 78}) {
+			filter = new MaxSizeFromEndJsonFilter(maxSize);
+			assertEquals("{\"level\":\"INFO\",\"tags\":[\"a\",\"b\"]}", filter.process(log));
+			assertEquals("{\"level\":\"INFO\",\"tags\":[\"a\",\"b\"]}", new String(filter.process(log.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void testStructuralCharactersInStrings_variousMaxSizes() {
 		String[] jsons = {
 			"{\"a\":\"x,y\"}",
@@ -248,6 +263,22 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	// -----------------------------------------------------------------------
 	// identical output to MaxSizeJsonFilter — whitespace after the root
 	// -----------------------------------------------------------------------
+
+	@Test
+	public void testWhitespaceAfterRoot() {
+		// the root structure fits, whitespace is kept up to the max size
+		String json = "{\"level\":\"INFO\",\"message\":\"done\"}\r\n";
+		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(34);
+		assertEquals("{\"level\":\"INFO\",\"message\":\"done\"}\r", filter.process(json));
+		assertEquals("{\"level\":\"INFO\",\"message\":\"done\"}\r", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		json = "[1,2,3]      ";
+		for (int maxSize = 8; maxSize <= 12; maxSize++) {
+			filter = new MaxSizeFromEndJsonFilter(maxSize);
+			assertEquals("[1,2,3]" + " ".repeat(maxSize - 7), filter.process(json));
+			assertEquals("[1,2,3]" + " ".repeat(maxSize - 7), new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
 
 	@Test
 	public void testWhitespaceAfterRoot_variousMaxSizes() {
