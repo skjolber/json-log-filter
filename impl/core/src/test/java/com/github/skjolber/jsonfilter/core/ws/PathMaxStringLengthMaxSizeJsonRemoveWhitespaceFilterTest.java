@@ -171,6 +171,24 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void maxStringLengthUnmatchedValues() throws Exception {
+		// string values of keys which do not match the path are truncated too, also when max size is active
+		assertMaxStringLengthMaxSize("{\"a\":\"xxxxx... + 25\",\"b\":{\"c\":\"yyyyy... + 25\"},\"d\":1}", "/json/text/maxSize/objectALongBNestedCLongDNumber.json", 60);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\"}", "/json/text/maxSize/objectKLongString.json", 30);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\",\"z\":1}", "/json/text/maxSize/objectKLongStringZNumber.json", 30);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\",\"z\":1}", "/json/text/maxSize/objectKLongStringZNumberWhitespace.json", 30);
+	}
+
+	private void assertMaxStringLengthMaxSize(String expected, String resource, int maxSize) throws IOException {
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, maxSize, -1, new String[]{"/x"}, null);
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream(resource));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		org.junit.jupiter.api.Assertions.assertEquals(expected, filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals(expected, new String(filter.process(jsonBytes), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
