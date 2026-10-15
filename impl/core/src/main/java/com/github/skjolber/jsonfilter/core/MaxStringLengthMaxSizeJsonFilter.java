@@ -135,6 +135,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					offset++;
 					mark = offset;
 
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -192,7 +196,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							// The remaining input is small enough that it cannot push the output over maxSize.
 							// Delegate the rest to the string-length-only filter, which is simpler and faster.
 							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
-							filter.setLevel(bracketLevel);
+							// the rest of the document, including its closing brackets, is kept
+							filter.setLevel(0);
 							filter.setMark(nextOffset);
 							filter.setMaxSizeLimit(maxSizeLimit);
 							return maxReadLimit;
@@ -250,6 +255,10 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					offset++;
 					mark = offset;
 
+					if(bracketLevel == 0) {
+						// root structure closed: the document fit, only whitespace can follow
+						break loop;
+					}
 					continue;
 				case ',' :
 					mark = offset;
@@ -310,7 +319,8 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 							// The remaining input is small enough that it cannot push the output over maxSize.
 							// Delegate the rest to the string-length-only filter, which is simpler and faster.
 							MaxStringLengthJsonFilter.ranges(chars, nextOffset, maxReadLimit, maxStringLength, filter);
-							filter.setLevel(bracketLevel);
+							// the rest of the document, including its closing brackets, is kept
+							filter.setLevel(0);
 							filter.setMark(nextOffset);
 							filter.setMaxSizeLimit(maxSizeLimit);
 							return maxReadLimit;

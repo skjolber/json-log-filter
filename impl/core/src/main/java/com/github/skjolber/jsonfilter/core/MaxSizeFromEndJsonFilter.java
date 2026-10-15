@@ -21,6 +21,8 @@ import java.io.IOException;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 /**
  * Max-size filter that produces the same output as {@link MaxSizeJsonFilter}
@@ -165,13 +167,17 @@ public class MaxSizeFromEndJsonFilter extends AbstractJsonFilter {
 		if (markBracketLevel > 0) {
 			// exitPos mirrors the forward scan's maxSizeLimit-adjusted exit position
 			int exitPos = maxSizeLimit - markBracketLevel;
-			int markLimit = MaxSizeJsonFilter.markToLimit(chars, exitPos, end, exitPos, mark);
+			int markLimit = MaxSizeJsonFilter.markToLimit(chars, forwardExitOffset(chars, mark, exitPos, end), end, exitPos, mark);
 			if (markLimit != -1) {
 				buffer.append(chars, flushOffset, markLimit - flushOffset);
 			} else {
 				buffer.append(chars, flushOffset, mark - flushOffset);
 			}
 			MaxSizeJsonFilter.closeStructure(markBracketLevel, squareBrackets, buffer);
+		} else if (mark > flushOffset) {
+			// root structure closed within budget, only trailing whitespace exceeds it:
+			// the forward scan keeps whitespace up to the limit
+			buffer.append(chars, flushOffset, Math.min(maxSizeLimit, end) - flushOffset);
 		}
 		// else: structured data with budget too tight for any content → output empty (matches forward filter)
 	}
@@ -279,15 +285,46 @@ public class MaxSizeFromEndJsonFilter extends AbstractJsonFilter {
 
 		if (markBracketLevel > 0) {
 			int exitPos = maxSizeLimit - markBracketLevel;
-			int markLimit = MaxSizeJsonFilter.markToLimit(chars, exitPos, end, exitPos, mark);
+			int markLimit = MaxSizeJsonFilter.markToLimit(chars, forwardExitOffset(chars, mark, exitPos, end), end, exitPos, mark);
 			if (markLimit != -1) {
 				output.write(chars, flushOffset, markLimit - flushOffset);
 			} else {
 				output.write(chars, flushOffset, mark - flushOffset);
 			}
 			MaxSizeJsonFilter.closeStructure(markBracketLevel, squareBrackets, output);
+		} else if (mark > flushOffset) {
+			// root structure closed within budget, only trailing whitespace exceeds it
+			output.write(chars, flushOffset, Math.min(maxSizeLimit, end) - flushOffset);
 		}
 		// else: structured data with budget too tight for any content → output empty (matches forward filter)
+	}
+
+	/**
+	 * Returns the offset at which the forward scan stops, so that {@link MaxSizeJsonFilter#markToLimit}
+	 * gets the same input as in the forward scan. The mark is the last cut point, so between it and
+	 * the exit position there is at most a field name, a colon and (part of) a value. If the exit position
+	 * is within a string, the forward scan stops after that string.
+	 */
+	private static int forwardExitOffset(final char[] chars, int offset, int exitPos, int end) {
+		while (offset < exitPos && offset < end) {
+			if (chars[offset] == '"') {
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+			} else {
+				offset++;
+			}
+		}
+		return offset;
+	}
+
+	private static int forwardExitOffset(final byte[] chars, int offset, int exitPos, int end) {
+		while (offset < exitPos && offset < end) {
+			if (chars[offset] == '"') {
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+			} else {
+				offset++;
+			}
+		}
+		return offset;
 	}
 
 	/**
