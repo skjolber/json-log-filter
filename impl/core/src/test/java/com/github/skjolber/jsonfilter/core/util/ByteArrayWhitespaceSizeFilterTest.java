@@ -46,6 +46,65 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		assertEquals(offset, 200);
 	}
 
+	@Test
+	public void testSkipLongValueFollowedByWhitespace() {
+		// the whitespace after a value is not written, but does not make room for the (truncated) value itself
+		byte[] text = ("[\"" + "v".repeat(50) + "\"" + " ".repeat(60) + "]").getBytes(StandardCharsets.UTF_8);
+
+		// does not fit: the value is removed, and the document cut at the mark
+		ByteArrayWhitespaceSizeFilter filter = newFilterWithinArray(1, 1, 10);
+		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(1024);
+		int offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text, 1, text.length, builder, 5, null);
+		assertEquals(1, offset);
+		assertEquals("[", builder.toString(StandardCharsets.UTF_8));
+		assertEquals(1, filter.getMaxSizeLimit());
+		assertEquals(1, filter.getLevel());
+
+		// fits: the whitespace is skipped too
+		filter = newFilterWithinArray(1, 1, 20);
+		builder = new ResizableByteArrayOutputStream(1024);
+		offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text, 1, text.length, builder, 5, null);
+		assertEquals(text.length, offset);
+		assertEquals("[\"vvvvv... + 45\"", builder.toString(StandardCharsets.UTF_8));
+		assertEquals(0, filter.getLevel());
+	}
+
+	@Test
+	public void testAnonymizeScalarValueMustFit() {
+		// the anonymize message is longer than the values
+		String string = "{\"secret\":[1,2,3,42,5],\"other\":\"" + "o".repeat(40) + "\"}";
+		byte[] text = string.getBytes(StandardCharsets.UTF_8);
+		int start = string.indexOf('[') + 1;
+		int end = string.indexOf(']') + 1;
+
+		// room for the first value only
+		ByteArrayWhitespaceSizeFilter filter = newFilterWithinArray(2, start, start + 5);
+		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(1024);
+		int offset = filter.anonymizeObjectOrArrayMaxSize(text, start, text.length, builder, null);
+		assertEquals(start + 2, offset);
+		assertEquals("{\"secret\":[\"*\"", builder.toString(StandardCharsets.UTF_8));
+		assertEquals(start + 2, filter.getMaxSizeLimit());
+
+		// room for all values
+		filter = newFilterWithinArray(2, start, start + 20);
+		builder = new ResizableByteArrayOutputStream(1024);
+		offset = filter.anonymizeObjectOrArrayMaxSize(text, start, text.length, builder, null);
+		assertEquals(end, offset);
+		assertEquals("{\"secret\":[\"*\",\"*\",\"*\",\"*\",\"*\"", builder.toString(StandardCharsets.UTF_8));
+	}
+
+	private static ByteArrayWhitespaceSizeFilter newFilterWithinArray(int level, int mark, int maxSizeLimit) {
+		// state right after the opening bracket of an array, with nothing written yet
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		filter.getSquareBrackets()[level - 1] = true;
+		filter.setLevel(level);
+		filter.setMark(mark);
+		filter.setFlushOffset(0);
+		filter.setWrittenMark(0);
+		filter.setMaxSizeLimit(maxSizeLimit);
+		return filter;
+	}
+
 	public String createBracket(char start, char end, int count) {
 		StringBuilder builder = new StringBuilder();
 		
@@ -82,6 +141,39 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		filter.setMaxSizeLimit(19);
 		int offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text.getBytes(StandardCharsets.UTF_8), 1, 20, builder, 1, null);
 		assertEquals(offset, text.length() - 4);
+	}
+
+	@Test
+	public void testAnonymizeObjectOrArrayMaxSizeStopsAtValueWhichDoesNotFit() {
+		// The anonymize message does not fit: stop at the start of the value and lower the max size limit to it,
+		// so that the caller cannot include part of the raw value.
+		byte[] text = "[\"S,SN\",\"P]W\"]".getBytes(StandardCharsets.UTF_8);
+
+		// the first value does not fit
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(1024);
+		filter.setLevel(1);
+		filter.setMark(1);
+		filter.setFlushOffset(0);
+		filter.setMaxSizeLimit(3);
+		int offset = filter.anonymizeObjectOrArrayMaxSize(text, 1, text.length, builder, null);
+		assertEquals(1, offset);
+		assertEquals(1, filter.getMaxSizeLimit());
+		assertEquals(1, filter.getMark());
+		assertEquals("", builder.toString(StandardCharsets.UTF_8));
+
+		// the first value is anonymized, the second does not fit
+		filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		builder = new ResizableByteArrayOutputStream(1024);
+		filter.setLevel(1);
+		filter.setMark(1);
+		filter.setFlushOffset(0);
+		filter.setMaxSizeLimit(6);
+		offset = filter.anonymizeObjectOrArrayMaxSize(text, 1, text.length, builder, null);
+		assertEquals(8, offset);
+		assertEquals(8, filter.getMaxSizeLimit());
+		assertEquals(7, filter.getMark());
+		assertEquals("[\"*\"", builder.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test

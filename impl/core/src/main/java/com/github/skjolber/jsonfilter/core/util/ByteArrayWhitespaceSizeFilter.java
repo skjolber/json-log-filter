@@ -154,32 +154,44 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
-						
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
+
+						whitespace = nextOffset - endQuoteIndex - 1;
 
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
+							}
 							break colon;
 						}
 					}
-					
+
 					if(flushOffset <= mark) {
 						streamMark = buffer.size() + mark - flushOffset; 
 					}
-					
+
 					// was a value
 					maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, truncateMessage, maxStringLength, digit, metrics);
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						buffer.setSize(streamMark);
+						flushOffset = mark;
+						offset = mark;
+						maxSizeLimit = mark;
+						break loop;
+					}
+
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
 					if(maxSizeLimit >= maxReadLimit) {
 						maxSizeLimit = maxReadLimit;
 					}
-					
+
 					offset = nextOffset;
 					flushOffset = nextOffset;
 
@@ -346,7 +358,9 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				}
 				
 				if(offset + anonymizeMessage.length > maxSizeLimit ) {
-					offset = maxSizeLimit;
+					// the anonymized value does not fit: stop at the start of the value, so that
+					// neither the caller nor markToLimit(..) can include (part of) the raw value
+					maxSizeLimit = offset;
 					break loop;
 				}
 				
@@ -373,6 +387,11 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 			}
 			default : {
 				// scalar value
+				if(offset + anonymizeMessage.length > maxSizeLimit) {
+					// the anonymized value does not fit: stop at the start of the value
+					maxSizeLimit = offset;
+					break loop;
+				}
 				if(flushOffset <= mark) {
 					streamMark = buffer.size() + mark - flushOffset; 
 				}

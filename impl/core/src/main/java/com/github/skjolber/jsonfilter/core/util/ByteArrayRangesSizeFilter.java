@@ -67,20 +67,6 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 		this.squareBrackets = squareBrackets;
 	}
 
-	@Override
-	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		super.filter(chars, offset, length, buffer, metrics);
-		
-		closeStructure(buffer);
-	}
-	
-	@Override
-	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
-		super.filter(chars, offset, length, buffer);
-		
-		closeStructure(buffer);
-	}
-	
 	public int skipObjectOrArrayMaxSizeMaxStringLength(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;
@@ -308,8 +294,9 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 									break loop;
 								}
 							} else {
-								// make sure to stop scanning here
-								offset = nextOffset;
+								// the anonymized value does not fit: stop at the start of the value, so that
+								// neither the caller nor markToLimit(..) can include the raw value
+								maxSizeLimit = offset;
 								break loop;
 							}
 
@@ -348,8 +335,9 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 										break loop;
 									}
 								} else {
-									// make sure to stop scanning here
-									offset = nextOffset;
+									// the anonymized value does not fit: stop at the start of the value, so that
+									// neither the caller nor markToLimit(..) can include the raw value
+									maxSizeLimit = offset;
 
 									break loop;
 								}
@@ -379,8 +367,9 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 							break loop;
 						}
 					} else {
-						// make sure to stop scanning here
-						offset = nextOffset;
+						// the anonymized value does not fit: stop at the start of the value, so that
+						// neither the caller nor markToLimit(..) can include the raw value
+						maxSizeLimit = offset;
 						
 						break loop;
 					}

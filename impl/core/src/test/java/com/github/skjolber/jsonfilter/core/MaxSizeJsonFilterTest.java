@@ -112,6 +112,33 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testHasContent() {
+		// whitespace and closing brackets are not content
+		String json = "{\"a\":[1 \n\t\r ]}";
+		char[] chars = json.toCharArray();
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		assertTrue(MaxSizeJsonFilter.hasContent(chars, 0, chars.length));
+		assertTrue(MaxSizeJsonFilter.hasContent(bytes, 0, bytes.length));
+
+		assertTrue(MaxSizeJsonFilter.hasContent(chars, 6, chars.length)); // the 1
+		assertTrue(MaxSizeJsonFilter.hasContent(bytes, 6, bytes.length));
+
+		assertFalse(MaxSizeJsonFilter.hasContent(chars, 7, chars.length));
+		assertFalse(MaxSizeJsonFilter.hasContent(bytes, 7, bytes.length));
+
+		// only before the limit
+		assertFalse(MaxSizeJsonFilter.hasContent(" }1".toCharArray(), 0, 2));
+		assertFalse(MaxSizeJsonFilter.hasContent(" }1".getBytes(StandardCharsets.UTF_8), 0, 2));
+
+		// a comma, and non-ASCII
+		assertTrue(MaxSizeJsonFilter.hasContent(" ,".toCharArray(), 0, 2));
+		assertTrue(MaxSizeJsonFilter.hasContent(" ,".getBytes(StandardCharsets.UTF_8), 0, 2));
+		assertTrue(MaxSizeJsonFilter.hasContent(" \u00e6".toCharArray(), 0, 2));
+		assertTrue(MaxSizeJsonFilter.hasContent(" \u00e6".getBytes(StandardCharsets.UTF_8), 0, 3));
+	}
+
+	@Test
 	public void passthrough_success() throws Exception {
 		assertThat(new MaxSizeJsonFilter(-1)).hasPassthrough();
 	}

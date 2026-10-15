@@ -52,6 +52,7 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 		this.mark = mark;
 	}
 
+	@Override
 	public void closeStructure(final StringBuilder buffer) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
@@ -62,20 +63,6 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 		}
 	}
 
-	@Override
-	public void filter(char[] chars, int offset, int length, StringBuilder buffer, JsonFilterMetrics metrics) {
-		super.filter(chars, offset, length, buffer, metrics);
-		
-		closeStructure(buffer);
-	}
-	
-	@Override
-	public void filter(char[] chars, int offset, int length, StringBuilder buffer) {
-		super.filter(chars, offset, length, buffer);
-		
-		closeStructure(buffer);
-	}
-	
 	public int skipObjectOrArrayMaxSizeMaxStringLength(char[] chars, int offset, int maxSizeLimit, int maxReadLimit, int maxStringLength) {
 		int level = getLevel();
 		int levelLimit = level - 1;
@@ -301,8 +288,9 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 									break loop;
 								}
 							} else {
-								// make sure to stop scanning here
-								offset = nextOffset;
+								// the anonymized value does not fit: stop at the start of the value, so that
+								// neither the caller nor markToLimit(..) can include the raw value
+								maxSizeLimit = offset;
 								break loop;
 							}
 
@@ -341,8 +329,9 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 										break loop;
 									}
 								} else {
-									// make sure to stop scanning here
-									offset = nextOffset;
+									// the anonymized value does not fit: stop at the start of the value, so that
+									// neither the caller nor markToLimit(..) can include the raw value
+									maxSizeLimit = offset;
 
 									break loop;
 								}
@@ -372,8 +361,9 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							break loop;
 						}
 					} else {
-						// make sure to stop scanning here
-						offset = nextOffset;
+						// the anonymized value does not fit: stop at the start of the value, so that
+						// neither the caller nor markToLimit(..) can include the raw value
+						maxSizeLimit = offset;
 
 						break loop;
 					}

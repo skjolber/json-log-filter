@@ -17,6 +17,7 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 
 public class ByteArrayRangesFilterTest {
 
@@ -430,6 +431,25 @@ public class ByteArrayRangesFilterTest {
 			
 			assertThat(b.toString()).isEqualTo(outputs[i]);
 		}
+	}
+
+	@Test
+	public void testOutputMetricsIncludeClosedStructure() {
+		// cut within an array within an object: the closing brackets added by the size filter are output too
+		byte[] bytes = "{\"a\":[1,2,3]}".getBytes(StandardCharsets.UTF_8);
+
+		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(12, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "...".getBytes(StandardCharsets.UTF_8));
+		filter.addDelete(7, bytes.length);
+		filter.setLevel(2);
+		filter.getSquareBrackets()[1] = true;
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream b = new ResizableByteArrayOutputStream(128);
+		filter.filter(bytes, 0, bytes.length, b, metrics);
+
+		assertThat(b.toString()).isEqualTo("{\"a\":[1]}");
+		assertEquals(b.size(), metrics.getOutputSize());
+		assertEquals(bytes.length, metrics.getInputSize());
 	}
 
 	@Test

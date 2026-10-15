@@ -69,6 +69,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.length() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -101,6 +107,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.length() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -132,6 +144,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.size() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -249,6 +267,14 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						
 						generator.writeName(currentName);
 						generator.writeRawValue(message, 0, message.length);
+						
+						if(metrics != null) {
+							if(anon) {
+								metrics.onAnonymize(1);
+							} else {
+								metrics.onPrune(1);
+							}
+						}
 					} else {
 						// array or object
 						if(anon) {

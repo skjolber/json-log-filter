@@ -153,6 +153,15 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		this.truncateMessage = truncateMessage;
 	}
 
+	/**
+	 * Close open objects and arrays after the filtered content. Does nothing by default.
+	 *
+	 * @param buffer output
+	 */
+
+	public void closeStructure(final ResizableByteArrayOutputStream buffer) {
+	}
+
 	public void filter(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		
 		if(metrics != null) {
@@ -200,6 +209,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			buffer.write(chars, offset, length - offset);
 		}
 		
+		closeStructure(buffer);
+		
 		if(metrics != null) {
 			metrics.onOutput(buffer.size() - bufferSize);
 		}
@@ -232,6 +243,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		if(offset < length) {
 			buffer.write(chars, offset, length - offset);
 		}
+		
+		closeStructure(buffer);
 	}
 	
 	public boolean addMaxLength(byte[] chars, int start, int end, int length) {

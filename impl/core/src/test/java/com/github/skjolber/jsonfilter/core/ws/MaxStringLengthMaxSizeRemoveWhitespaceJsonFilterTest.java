@@ -148,6 +148,23 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	}
 
 	@Test
+	public void testValueFollowedByWhitespaceMustFit() throws Exception {
+		// the whitespace after a value is not written, but does not make room for the value itself
+		String json = "{\"k\":\"abcdefghijklmnop\"" + " ".repeat(20) + "}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
+		for(int maxSize : new int[] {7, 16}) {
+			MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(1, maxSize);
+			assertEquals("{}", filter.process(json));
+			assertEquals("{}", new String(filter.process(jsonBytes), StandardCharsets.UTF_8));
+		}
+
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(1, 17);
+		assertEquals("{\"k\":\"a... + 15\"}", filter.process(json));
+		assertEquals("{\"k\":\"a... + 15\"}", new String(filter.process(jsonBytes), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	@ResourceLock(value = "jackson")
 	public void testMaxSizeWithStringLengthExceeded() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size));
@@ -253,6 +270,45 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		metrics = new DefaultJsonFilterMetrics();
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOut, metrics));
 		assertEquals("{\"key\":\"longvalue\",\"other\":\"data\"}", byteOut.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testMaxSizeMetricsOnlyWhenContentIsDropped() throws Exception {
+		String pretty = "{\n  \"a\" : \"bbbbbbbbbb\",\n  \"c\" : [ 1, 2, 3 ],\n  \"d\" : { \"e\" : true }\n}";
+		String compact = "{\"a\":\"bbbbbbbbbb\",\"c\":[1,2,3],\"d\":{\"e\":true}}";
+		byte[] prettyBytes = pretty.getBytes(StandardCharsets.UTF_8);
+
+		// fits once the whitespace is removed
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(50, compact.length());
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(compact, output.toString());
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(pretty.length(), metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(compact, byteOutput.toString(StandardCharsets.UTF_8));
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(prettyBytes.length, metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		// cut
+		filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(50, 20);
+
+		metrics = new DefaultJsonFilterMetrics();
+		output.setLength(0);
+		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(pretty.length() - output.length(), metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		byteOutput.reset();
+		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(prettyBytes.length - byteOutput.size(), metrics.getMaxSize());
 	}
 
 	@Test

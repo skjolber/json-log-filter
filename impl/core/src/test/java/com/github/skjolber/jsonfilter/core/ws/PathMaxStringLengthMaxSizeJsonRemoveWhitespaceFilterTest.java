@@ -2,8 +2,8 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -273,6 +273,20 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testValueFollowedByWhitespaceMustFit() throws Exception {
+		// the whitespace after a value is not written, but does not make room for the value itself
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 10, -1, new String[]{"/zz"}, null);
+
+		String json = "[\"" + "v".repeat(200) + "\"" + " ".repeat(300) + "]";
+		org.junit.jupiter.api.Assertions.assertEquals("[]", filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals("[]", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		json = "[\"vvvvvv\"" + " ".repeat(300) + "]";
+		org.junit.jupiter.api.Assertions.assertEquals("[\"vvvvvv\"]", filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals("[\"vvvvvv\"]", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testGrowSquareBrackets() throws Exception {
 		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
 		// An any-path filter ensures all nested objects are traversed rather than skipped.
@@ -329,6 +343,48 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
+	}
+
+	@Test
+	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
+		// max size reached within an anonymized subtree: the string value which does not fit is left out, not cut
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/secret"}, null)).hasAnonymized("/secret");
+
+		// the directory check above does not run the max sizes below
+		String strings = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralStringsOtherLong.json");
+		String object = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralObjectOtherLong.json");
+		String[] jsons = {strings, strings, object, object};
+		int[] maxSizes = {15, 19, 21, 30};
+		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":{}}", "{\"secret\":{\"pin\":\"*\"}}"};
+		for(int i = 0; i < maxSizes.length; i++) {
+			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSizes[i], -1, new String[]{"/secret"}, null);
+			assertEquals(expected[i], filter.process(jsons[i]));
+			assertEquals(expected[i], new String(filter.process(jsons[i].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void testMaxPathMatchesUsedUpWithinAnonymizedSubtree() throws Exception {
+		// max path matches used up by a subtree which was cut by max size
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, 1, new String[]{"//secret"}, null)).hasAnonymized("//secret");
+
+		// the directory check above does not run the max sizes below
+		// inline: files in /json must end with the root value, see SkipObjectJsonFilterTest
+		String json = "{\"secret\":{\"c\":\"S\",\"name\":\"SECRET\"}}  \n ";
+		for(int size = 13; size <= 16; size++) {
+			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
+			assertEquals("{\"secret\":{}}", filter.process(json));
+			assertEquals("{\"secret\":{}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void testWildcardPathAfterMatchingSibling() throws Exception {
+		// the sibling "b" also matches the wildcard
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/*/secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/*/secret"}, null)).hasAnonymized("/*/secret");
 	}
 
 	@Test
@@ -401,6 +457,45 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		org.junit.jupiter.api.Assertions.assertEquals(5, metrics.getPrune());
 		org.junit.jupiter.api.Assertions.assertEquals(jsonBytes.length, metrics.getInputSize());
 		org.junit.jupiter.api.Assertions.assertEquals(96, metrics.getOutputSize());
+	}
+
+	@Test
+	public void testMaxSizeMetricsOnlyWhenContentIsDropped() throws Exception {
+		String pretty = "{\n  \"a\" : \"bbbbbbbbbb\",\n  \"c\" : [ 1, 2, 3 ],\n  \"d\" : { \"e\" : true }\n}";
+		String compact = "{\"a\":\"bbbbbbbbbb\",\"c\":[1,2,3],\"d\":{\"e\":true}}";
+		byte[] prettyBytes = pretty.getBytes(StandardCharsets.UTF_8);
+
+		// fits once the whitespace is removed
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, compact.length(), -1, new String[]{"/z"}, null);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder output = new StringBuilder();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(compact, output.toString());
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(pretty.length(), metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(compact, byteOutput.toString(StandardCharsets.UTF_8));
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(prettyBytes.length, metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		// cut
+		filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 20, -1, new String[]{"/z"}, null);
+
+		metrics = new DefaultJsonFilterMetrics();
+		output.setLength(0);
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(pretty.length() - output.length(), metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		byteOutput.reset();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(prettyBytes.length - byteOutput.size(), metrics.getMaxSize());
 	}
 
 	@Test
