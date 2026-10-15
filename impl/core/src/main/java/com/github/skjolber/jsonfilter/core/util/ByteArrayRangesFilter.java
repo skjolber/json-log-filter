@@ -235,6 +235,23 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	
 	
+	private static int alignEscapedSurrogatePair(byte[] chars, int start) {
+		if(chars[start - 5] == 'u' && (chars[start - 4] == 'D' || chars[start - 4] == 'd')) {
+			byte c = chars[start - 3];
+			if((c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b') && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
+				int slashCount = 7;
+				// is the unicode encoded with an odd number of slashes?
+				while(chars[start - slashCount] == '\\') {
+					slashCount++;
+				}
+				if(slashCount % 2 == 1) {
+					return start - 6;
+				}
+			}
+		}
+		return start;
+	}
+
 	public static int getStringAlignment(byte[] chars, int start) {
 
 		// account for 1-4 bytes UTF-8 encoding
@@ -341,19 +358,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		}
 		
 		// do not split an escaped surrogate pair, i.e. \ uD83D\ uDE00 (without the spaces):
-		// if the cut is right after an escaped high surrogate (\ uD800 to \ uDBFF), remove it too
-		if(start > 6 && chars[start - 6] == '\\' && chars[start - 5] == 'u' && (chars[start - 4] == 'D' || chars[start - 4] == 'd')) {
-			byte c = chars[start - 3];
-			if((c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b') && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
-				int slashCount = 7;
-				// is the unicode encoded with an odd number of slashes?
-				while(chars[start - slashCount] == '\\') {
-					slashCount++;
-				}
-				if(slashCount % 2 == 1) {
-					start -= 6;
-				}
-			}
+		// if the cut is right after an escaped high surrogate (\ uD800 to \ uDBFF), remove it too.
+		// The check is in a separate method, as it rarely applies, so that this method stays small.
+		if(start > 6 && chars[start - 6] == '\\') {
+			start = alignEscapedSurrogatePair(chars, start);
 		}
 		
 		return start;
