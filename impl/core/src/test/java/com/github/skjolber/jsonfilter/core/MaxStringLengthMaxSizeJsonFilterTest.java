@@ -126,6 +126,39 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	}
 
 	@Test
+	public void testRestOfDocumentFitsAfterTruncation() throws Exception {
+		// truncating a string makes the rest of the document fit: it is kept as-is, including its closing brackets
+		String json = "{\"a\":{\"b\":\"" + "x".repeat(40) + "\"},\"c\":1}";
+		MaxStringLengthMaxSizeJsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(5, 50);
+		assertEquals("{\"a\":{\"b\":\"xxxxx... + 35\"},\"c\":1}", filter.process(json));
+		assertEquals("{\"a\":{\"b\":\"xxxxx... + 35\"},\"c\":1}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		json = "{\"k\":\"abcdefghijklmno\"}";
+		for(int maxSize = 18; maxSize <= 22; maxSize++) {
+			filter = new MaxStringLengthMaxSizeJsonFilter(1, maxSize);
+			assertEquals("{\"k\":\"a... + 14\"}", filter.process(json));
+			assertEquals("{\"k\":\"a... + 14\"}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+
+		json = "{\"a\":[\"" + "x".repeat(20) + "\"]}";
+		for(int maxSize = 19; maxSize <= 21; maxSize++) {
+			filter = new MaxStringLengthMaxSizeJsonFilter(1, maxSize);
+			assertEquals("{\"a\":[\"x... + 19\"]}", filter.process(json));
+			assertEquals("{\"a\":[\"x... + 19\"]}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxStringLengthMaxSizeJsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(5, 2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void testLongKeyWithWhitespaceBeforeColon() throws Exception {
 		// A long key followed by multiple whitespace characters before the colon is handled without truncating the key.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeySpacedValue.json"));

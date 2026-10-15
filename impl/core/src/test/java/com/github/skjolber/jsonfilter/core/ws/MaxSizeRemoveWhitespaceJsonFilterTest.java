@@ -87,6 +87,16 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	}
 
 	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxSizeRemoveWhitespaceJsonFilter filter = new MaxSizeRemoveWhitespaceJsonFilter(2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void testGrowSquareBrackets() throws Exception {
 		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
 		// A long leaf value ensures the size limit is reached during content processing, not before opening all brackets.

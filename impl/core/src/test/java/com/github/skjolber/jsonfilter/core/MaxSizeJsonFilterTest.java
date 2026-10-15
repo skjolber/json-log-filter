@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -87,6 +88,45 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void maxSize() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
 		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
+	}
+
+	@Test
+	public void testIsTopLevelNumberOrLiteral() {
+		for(String json : new String[] {"-1.5e3", "123456", "0", "true", "false", "null", " \t\r\n42"}) {
+			assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+		}
+		for(String json : new String[] {"{\"a\":1}", "[1]", "\"abc\"", " \n{}", "", "  "}) {
+			assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+		}
+
+		// only the given range is checked
+		String json = "{\"a\":1}";
+		assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 6));
+		assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 6));
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 5));
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 5));
+
+		// invalid offset or length is left to the caller
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral("1".toCharArray(), -1, 1));
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral("1".getBytes(StandardCharsets.UTF_8), -1, 1));
+		assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(" 1".toCharArray(), 0, 10));
+		assertTrue(MaxSizeJsonFilter.isTopLevelNumberOrLiteral(" 1".getBytes(StandardCharsets.UTF_8), 0, 10));
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral("  ".toCharArray(), 0, 10));
+		assertFalse(MaxSizeJsonFilter.isTopLevelNumberOrLiteral("  ".getBytes(StandardCharsets.UTF_8), 0, 10));
+	}
+
+	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
 	}
 
 	@Test

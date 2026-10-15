@@ -133,6 +133,41 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 			.hasPruned("/key3")
 			.hasAnonymized("/key1");
 	}
+
+	@Test
+	public void testMaxSizeIgnoresExistingOutput() throws Exception {
+		// only what the filter writes counts against the max size, not what is already in the output
+		String json = "{\"a\":\"hello\",\"b\":[1,2,3],\"c\":true}";
+		String expected = "{\"a\":\"hello\",\"b\":[1,2,3]}";
+		String prefix = "P".repeat(100);
+
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 30, new String[]{"/secret"}, null);
+
+		char[] chars = json.toCharArray();
+		StringBuilder builder = new StringBuilder(prefix);
+		assertTrue(filter.process(chars, 0, chars.length, builder));
+		assertEquals(prefix + expected, builder.toString());
+
+		byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		builder = new StringBuilder(prefix);
+		assertTrue(filter.process(bytes, 0, bytes.length, builder));
+		assertEquals(prefix + expected, builder.toString());
+
+		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream output =
+				new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(256);
+		output.write(prefix.getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, prefix.length());
+		assertTrue(filter.process(bytes, 0, bytes.length, output));
+		assertEquals(prefix + expected, new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testRootScalarIsKept() throws Exception {
+		// dropping the root value would leave an empty (invalid) document
+		String json = "\"" + "s".repeat(28) + "\"";
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 10, new String[]{"/secret"}, null);
+		assertEquals(json, filter.process(json));
+		assertEquals(json, new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
+	}
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {

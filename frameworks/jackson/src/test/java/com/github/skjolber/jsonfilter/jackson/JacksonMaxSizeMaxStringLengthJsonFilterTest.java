@@ -42,6 +42,46 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		assertThat(maxSize, new JacksonMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH);
 	}
+
+	@Test
+	public void testMaxSizeIgnoresExistingOutput() throws Exception {
+		// only what the filter writes counts against the max size, not what is already in the output
+		String json = "{\"a\":\"hello\",\"b\":[1,2,3],\"c\":true}";
+		String expected = "{\"a\":\"hello\",\"b\":[1,2,3]}";
+		String prefix = "P".repeat(100);
+
+		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(100, 30);
+
+		char[] chars = json.toCharArray();
+		StringBuilder builder = new StringBuilder(prefix);
+		assertTrue(filter.process(chars, 0, chars.length, builder));
+		assertEquals(prefix + expected, builder.toString());
+
+		byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		builder = new StringBuilder(prefix);
+		assertTrue(filter.process(bytes, 0, bytes.length, builder));
+		assertEquals(prefix + expected, builder.toString());
+
+		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream output =
+				new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(256);
+		output.write(prefix.getBytes(java.nio.charset.StandardCharsets.UTF_8), 0, prefix.length());
+		assertTrue(filter.process(bytes, 0, bytes.length, output));
+		assertEquals(prefix + expected, new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testRootScalarIsKept() throws Exception {
+		// dropping the root value would leave an empty (invalid) document
+		String json = "\"" + "s".repeat(28) + "\"";
+		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(100, 10);
+		assertEquals(json, filter.process(json));
+		assertEquals(json, new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
+
+		// but it is still truncated to the max string length
+		filter = new JacksonMaxSizeMaxStringLengthJsonFilter(5, 10);
+		assertEquals("\"sssss... + 23\"", filter.process(json));
+		assertEquals("\"sssss... + 23\"", new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
+	}
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {
