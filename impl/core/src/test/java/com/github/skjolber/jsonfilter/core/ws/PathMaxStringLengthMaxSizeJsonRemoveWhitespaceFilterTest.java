@@ -178,6 +178,13 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// max size below the input size, but large enough to reach the end of the input
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, UNTERMINATED_LAST_STRING.length() - 1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		assertExceptionLeavesOutputUntouched(filter, UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void testAnonymizeObjectValueWithMaxSize() throws Exception {
 		// Anonymizing an object value at the matched path when maxSize is active must produce valid output.
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter;

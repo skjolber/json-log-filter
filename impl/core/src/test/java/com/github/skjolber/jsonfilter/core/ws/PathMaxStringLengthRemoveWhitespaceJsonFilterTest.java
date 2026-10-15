@@ -25,6 +25,12 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		PathMaxStringLengthRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		assertExceptionLeavesOutputUntouched(filter, UNTERMINATED_LAST_STRING);
+	}
 	
 	@Test
 	public void anonymize() throws Exception {

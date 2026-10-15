@@ -76,6 +76,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		assertExceptionLeavesOutputUntouched(getPrettyPrinter(), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(getPrettyPrinter().process(TRUNCATED));
 		assertNull(getPrettyPrinter().process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));

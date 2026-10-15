@@ -12,6 +12,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -75,6 +76,20 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new MaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// the output is written in one go at the end, so invalid input fails before anything is written:
+		// fail in the metrics callback instead, after the output is written
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics() {
+			@Override
+			public void onInput(int inputSize) {
+				throw new IllegalStateException();
+			}
+		};
+		String string = "{\"a\":\"b\",\"c\":[1,2],\"d\":\"eeeeeeeeeeeeeeeeeeee\"}";
+		assertExceptionLeavesOutputUntouched(new MaxSizeJsonFilter(string.length() - 1), string, metrics);
 	}
 
 	@Test
