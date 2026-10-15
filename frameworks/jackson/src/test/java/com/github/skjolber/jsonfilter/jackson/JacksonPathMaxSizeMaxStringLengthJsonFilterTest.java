@@ -266,6 +266,71 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 	}
 
 	@Test
+	public void testMaxSizeOfAnonymizedValue() throws Exception {
+		// separator, quoted field name and colon count, and the field name is two bytes in UTF-8
+		String[] anonymize = new String[]{"/æ"};
+
+		// {"a":1,"æ":"*"} is 15 characters, 16 bytes
+		String scalar = "{\"a\":1,\"æ\":\"secretvalue\",\"c\":3}";
+		assertMaxSize(scalar, 15, anonymize, null, "{\"a\":1,\"æ\":\"*\"}", "{\"a\":1}");
+		assertMaxSize(scalar, 14, anonymize, null, "{\"a\":1}", "{\"a\":1}");
+
+		// {"a":1,"æ":{}} is 14 characters, 15 bytes
+		String object = "{\"a\":1,\"æ\":{\"x\":2},\"c\":3}";
+		assertMaxSize(object, 14, anonymize, null, "{\"a\":1,\"æ\":{}}", "{\"a\":1}");
+		assertMaxSize(object, 13, anonymize, null, "{\"a\":1}", "{\"a\":1}");
+	}
+
+	@Test
+	public void testMaxSizeOfPrunedValue() throws Exception {
+		// separator, quoted field name and colon count, and the field name is two bytes in UTF-8
+		String[] prune = new String[]{"/æ"};
+
+		// {"a":1,"æ":"[removed]"} is 23 characters, 24 bytes
+		for(String json : new String[] {"{\"a\":1,\"æ\":\"secretvalue\",\"c\":3}", "{\"a\":1,\"æ\":{\"x\":2},\"c\":3}"}) {
+			assertMaxSize(json, 23, null, prune, "{\"a\":1,\"æ\":\"[removed]\"}", "{\"a\":1}");
+			assertMaxSize(json, 22, null, prune, "{\"a\":1}", "{\"a\":1}");
+		}
+	}
+
+	private static void assertMaxSize(String json, int maxSize, String[] anonymizes, String[] prunes, String expectedChars, String expectedBytes) {
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, anonymizes, prunes);
+
+		assertEquals(expectedChars, filter.process(json), json + " " + maxSize);
+		byte[] bytes = filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		assertEquals(expectedBytes, new String(bytes, java.nio.charset.StandardCharsets.UTF_8), json + " " + maxSize + " UTF-8");
+	}
+
+	@Test
+	public void testAnonymizeChildrenMaxSize() throws Exception {
+		// separator, quoted field name and colon count, and the second field name is two bytes in UTF-8.
+		// {"a":"*","æ":"*" is 16 characters, 17 bytes; the caller reserves room for the closing bracket
+		String json = "{\"a\":1,\"æ\":2}";
+
+		assertEquals("{\"a\":\"*\",\"æ\":\"*\"}", anonymizeChildren(json, 16, false));
+		assertEquals("{\"a\":\"*\"}", anonymizeChildren(json, 16, true));
+		assertEquals("{\"a\":\"*\"}", anonymizeChildren(json, 15, false));
+	}
+
+	private static String anonymizeChildren(String json, long maxSize, boolean utf8) throws IOException {
+		JsonFactory jsonFactory = new JsonFactory();
+		StringBuilder chars = new StringBuilder();
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		try (
+			JsonParser parser = jsonFactory.createParser(json);
+			JsonGenerator generator = utf8 ? jsonFactory.createGenerator(bytes) : jsonFactory.createGenerator(new StringBuilderWriter(chars))
+			) {
+			parser.nextToken();
+			generator.writeStartObject();
+
+			LongSupplier outputSize = () -> generator.streamWriteOutputBuffered() + (utf8 ? bytes.size() : chars.length());
+			JacksonPathMaxSizeMaxStringLengthJsonFilter.anonymizeChildren(parser, generator, maxSize, outputSize, "\"*\"".toCharArray(), null);
+		}
+		// closing the generator also closes the object
+		return utf8 ? new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8) : chars.toString();
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
 		// When input length <= maxSize, process(byte[], ResizableByteArrayOutputStream, metrics)
 		// delegates to super without engaging the size-constraint logic.

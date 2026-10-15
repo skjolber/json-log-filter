@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
 
@@ -149,6 +150,77 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
 		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, metrics));
 		assertEquals("{\"key\":\"AAAAA... + 95\"}", sb.toString());
+	}
+
+	@Test
+	public void testMaxSizeCountsUtf8BytesForByteOutput() throws Exception {
+		// the first field, truncated, is 21 characters but 26 bytes with brackets
+		String json = "{\"a\":\"" + "æ".repeat(20) + "\",\"b\":1}";
+		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(5, 21);
+
+		assertEquals("{\"a\":\"æææææ... + 15\"}", filter.process(json));
+		assertEquals("{}", new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testAccurateMaxStringSize() throws IOException {
+		String[] documents = new String[] {
+			"{\"a\":\"abcdefghijklmnopqrstuvwxyz\",\"b\":\"abc\"}", // truncated and not truncated
+			"[\"abcdefghijklmnopqrstuvwxyz\",\"abcdefghijklmnopqrstuvwxyz\"]", // separator before truncated value
+			"{\"\\tæ\":\"abcdefghijklmnopqrstuvwxyz\"}", // escapes and multi-byte UTF-8 characters in field name
+			"{\"k\":\"" + "\\t".repeat(20) + "\"}", // escapes in the kept part
+			"{\"k\":\"" + "æ".repeat(20) + "\"}", // multi-byte UTF-8 characters in the kept part
+			"{\"k\":\"abcd\uD83D\uDE00fghijklmnopqrstu\"}", // surrogate pair at the cut
+			"{\"k\":\"æææææææ\"}" // not truncated, as the truncate message is longer than the removed part
+		};
+		for(String document : documents) {
+			// also a truncate message with a multi-byte UTF-8 character
+			for(String truncateMessage : new String[] {"... + ", "\u2026 + "}) {
+				assertAccurateMaxStringSize(document, 5, truncateMessage.toCharArray(), false);
+				assertAccurateMaxStringSize(document, 5, truncateMessage.toCharArray(), true);
+			}
+		}
+	}
+
+	/**
+	 * Copy the document token by token, truncating long strings like the filter does, and check that
+	 * the accurate size of each token is the size the generator writes for it.
+	 */
+
+	private static void assertAccurateMaxStringSize(String json, int maxStringLength, char[] truncateStringValue, boolean utf8) throws IOException {
+		JsonFactory jsonFactory = new JsonFactory();
+		StringBuilder chars = new StringBuilder();
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		StringBuilder builder = new StringBuilder();
+		try (
+			JsonParser parser = jsonFactory.createParser(json);
+			JsonGenerator generator = utf8 ? jsonFactory.createGenerator(bytes) : jsonFactory.createGenerator(new StringBuilderWriter(chars))
+			) {
+			String fieldName = null;
+			JsonToken token;
+			while((token = parser.nextToken()) != null) {
+				if(token == JsonToken.PROPERTY_NAME) {
+					fieldName = parser.currentName();
+					continue;
+				}
+				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, token, maxStringLength, truncateStringValue, utf8);
+
+				int size = utf8 ? bytes.size() : chars.length();
+				if(fieldName != null) {
+					generator.writeName(fieldName);
+					fieldName = null;
+				}
+				if(token == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+					JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
+				} else {
+					JacksonEvents.copyCurrentEvent(parser, generator);
+				}
+				generator.flush();
+
+				int written = (utf8 ? bytes.size() : chars.length()) - size;
+				assertEquals(written, accurateSize, json + " " + token + " " + new String(truncateStringValue) + (utf8 ? " UTF-8" : ""));
+			}
+		}
 	}
 
 	@Test
