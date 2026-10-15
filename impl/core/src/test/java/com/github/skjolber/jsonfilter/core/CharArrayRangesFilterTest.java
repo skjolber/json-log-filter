@@ -146,6 +146,36 @@ public class CharArrayRangesFilterTest {
 		assertEquals("abcdefghiF678g\\n\\na... + 22", splitAt(str, 19));
 		assertEquals("abcdefghiF678g\\n\\naa... + 21", splitAt(str, 20));
 	}
+
+	@Test
+	public void testNoUnicodeAlignmentForBackspaceAndFormFeedEscapes() {
+		// b and f are hex digits, but \b and \f are single character escapes
+		String str = "abcdefghiF678g\\b\\faaa01234567890123456789";
+		assertEquals("abcdefghiF678... + 28", splitAt(str, 13));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 14));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 15));
+		assertEquals("abcdefghiF678g\\b... + 25", splitAt(str, 16));
+		assertEquals("abcdefghiF678g\\b... + 25", splitAt(str, 17));
+		assertEquals("abcdefghiF678g\\b\\f... + 23", splitAt(str, 18));
+		assertEquals("abcdefghiF678g\\b\\fa... + 22", splitAt(str, 19));
+		assertEquals("abcdefghiF678g\\b\\faa... + 21", splitAt(str, 20));
+	}
+
+	@Test
+	public void testStringAlignmentForBackspaceAndFormFeedEscapes() {
+		// a cut at the b or f of the escape moves to the backslash, a cut after the escape stays
+		for(String string : new String[] {"\"aaaa\\bccc\"", "\"aaaa\\fccc\"", "\"\\\\u\\bccc\""}) {
+			int index = string.lastIndexOf('\\'); // backslash of the \b or \f escape
+
+			assertEquals(index, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), index + 1));
+			assertEquals(index + 2, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), index + 2));
+		}
+
+		// an escaped backslash followed by a plain b or f: a cut before the letter stays
+		for(String string : new String[] {"\"aaa\\\\bccc\"", "\"aaa\\\\fccc\""}) {
+			assertEquals(6, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), 6));
+		}
+	}
 	
 	@Test
 	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() {
