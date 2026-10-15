@@ -19,6 +19,8 @@ package com.github.skjolber.jsonfilter.core.pp;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 
 public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	
@@ -59,12 +61,9 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 
 						break;
 					case '"' :
-						do {
-							buffer.append(chars[offset]);
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						buffer.append(chars[offset]);
-						offset++;
+						int quoteEnd = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+						buffer.append(chars, offset, quoteEnd - offset);
+						offset = quoteEnd;
 						
 						continue;
 						
@@ -138,12 +137,9 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 
 						break;
 					case '"' :
-						do {
-							output.write(chars[offset]);
-							offset++;
-						} while(chars[offset] != '"' || chars[offset - 1] == '\\');
-						output.write(chars[offset]);
-						offset++;
+						int quoteEnd = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+						output.write(chars, offset, quoteEnd - offset);
+						offset = quoteEnd;
 						
 						continue;
 						
