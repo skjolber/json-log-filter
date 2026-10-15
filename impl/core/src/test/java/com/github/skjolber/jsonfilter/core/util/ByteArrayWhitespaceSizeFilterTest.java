@@ -46,6 +46,19 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		assertEquals(offset, 200);
 	}
 
+	public String createBracket(char start, char end, int count) {
+		StringBuilder builder = new StringBuilder();
+		
+		for(int i = 0; i < count; i++) {
+			builder.append(start);
+		}
+		for(int i = 0; i < count; i++) {
+			builder.append(end);
+		}
+		
+		return builder.toString();
+	}
+
 	@Test
 	public void testDeepBracketsMaxSizeKeepsGrownSquareBrackets() {
 		ByteArrayWhitespaceSizeFilter filter = createDeepBracketsFilter(160);
@@ -107,19 +120,6 @@ public class ByteArrayWhitespaceSizeFilterTest {
 			builder.append(i % 2 == 0 ? ']' : '}');
 		}
 
-		return builder.toString();
-	}
-
-	public String createBracket(char start, char end, int count) {
-		StringBuilder builder = new StringBuilder();
-		
-		for(int i = 0; i < count; i++) {
-			builder.append(start);
-		}
-		for(int i = 0; i < count; i++) {
-			builder.append(end);
-		}
-		
 		return builder.toString();
 	}
 	
