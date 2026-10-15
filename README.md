@@ -293,6 +293,16 @@ The entire `appMeta` object — including its nested array — is replaced by a 
 
 `withMaxStringLength(n)` cuts string values that exceed `n` characters and appends a suffix indicating how many characters were omitted.
 
+Lengths are measured on the JSON text, as written in the input:
+
+* for `String` and `char[]` input in characters (UTF-16 code units), for `byte[]` input in bytes (UTF-8)
+* escape sequences like `\n` or `\u00e6` count with their full length
+* the omitted count in the suffix uses the same unit
+
+A cut never splits an escape sequence, a surrogate pair or a multi-byte UTF-8 character. Field names are never truncated.
+
+The Jackson filters work on decoded strings, so for them the limit and the count are in decoded characters (UTF-16 code units), whatever the input type.
+
 Input:
 ```json
 {
@@ -357,7 +367,11 @@ filter = DefaultJsonLogFilterBuilder.newBuilder()
 
 ## Max size
 
-`withMaxSize(bytes)` limits the size of the output document. Content beyond the limit is dropped.
+`withMaxSize(size)` limits the size of the output document. Content beyond the limit is dropped, and open objects and arrays are closed, so the output is still valid JSON.
+
+The size is measured like the output: in characters for `String` and `char[]` output, in bytes for `byte[]` output.
+
+The limit is approximate. To keep filtering fast, the output can be somewhat shorter than the limit, and in some cases slightly longer, for example when a value that does not fit is kept because there is no smaller valid document.
 
 ## Metrics
 

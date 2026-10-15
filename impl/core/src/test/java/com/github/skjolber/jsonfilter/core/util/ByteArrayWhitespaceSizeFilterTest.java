@@ -118,6 +118,31 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	}
 
 	@Test
+	public void testSkipObjectMaxStringLengthRemovesWhitespaceAfterValues() {
+		assertSkipObjectMaxStringLength("{\"a\":{\"b\":\"x\",\"c\":\"y\"}}", "{\"a\":{\"b\":\"x\"\n,\"c\":\"y\"\n}\n}", 10);
+	}
+
+	@Test
+	public void testSkipObjectMaxStringLengthRemovesWhitespaceAfterValuesAtMaxStringLength() {
+		// 10 chars is within max string length, 11 chars is over it, but too short to be truncated
+		assertSkipObjectMaxStringLength("{\"a\":\"abcdefghij\",\"b\":\"abcdefghijk\"}", "{\"a\":\"abcdefghij\"\n,\"b\":\"abcdefghijk\"\n}", 10);
+	}
+
+	@Test
+	public void testSkipObjectMaxStringLengthRemovesWhitespaceAfterTruncatedValues() {
+		assertSkipObjectMaxStringLength("{\"a\":\"x\",\"b\":\"abcdefghij... + 16\",\"c\":\"y\"}", "{\"a\" : \"x\" ,\n\t\"b\": \"abcdefghijklmnopqrstuvwxyz\"\r\n, \"c\":\"y\"  }", 10);
+	}
+
+	private void assertSkipObjectMaxStringLength(String expected, String input, int maxStringLength) {
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(1024);
+		int offset = filter.skipObjectMaxStringLength(input.getBytes(StandardCharsets.UTF_8), 1, maxStringLength, output, null);
+		assertEquals(input.length(), offset);
+		assertEquals(expected, output.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testGetTruncateString() {
 		byte[] truncate = "truncate".getBytes(StandardCharsets.UTF_8);
 		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter(
