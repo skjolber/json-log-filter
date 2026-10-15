@@ -227,7 +227,7 @@ public class CharArrayWhitespaceFilter {
 						}
 
 						if(endQuoteIndex - offset < maxStringLength + 2) {
-							// short value followed by whitespace
+							// was a value, followed by whitespace
 							buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 
 							flushOffset = nextOffset;

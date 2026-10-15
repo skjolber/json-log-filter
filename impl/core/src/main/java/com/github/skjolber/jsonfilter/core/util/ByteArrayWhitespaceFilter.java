@@ -226,7 +226,7 @@ public class ByteArrayWhitespaceFilter {
 						}
 
 						if(endQuoteIndex - offset < maxStringLength + 2) {
-							// short value followed by whitespace
+							// was a value, followed by whitespace
 							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 
 							flushOffset = nextOffset;
