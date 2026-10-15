@@ -130,6 +130,8 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 
 		int maxSize = this.maxSize;
 
+		boolean utf8 = JacksonOutputSize.isUtf8(generator);
+
         String fieldName = null;
         
         long offset = offsetSupplier.getAsLong();
@@ -168,7 +170,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 
 				// do more accurate size calculation
 				
-				int accurateSize = getAccurateSize(parser, fieldName, nextToken);
+				int accurateSize = JacksonOutputSize.getAccurateSize(parser, fieldName, nextToken, utf8);
 
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
@@ -195,38 +197,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 	}
 
 	protected static int getAccurateSize(final JsonParser parser, String fieldName, JsonToken nextToken) throws IOException {
-		int accurateSize;
-		if(fieldName != null) {
-			accurateSize = fieldName.length() + 2;
-		} else {
-			accurateSize = 0;
-		}
-		
-		if(parser.streamReadContext().hasCurrentIndex()) {
-			accurateSize++;
-		}
-		
-		switch(nextToken) {
-		case VALUE_STRING: {
-			accurateSize += parser.getTextLength() + 2;
-			break;
-		}
-		case VALUE_NUMBER_FLOAT:
-		case VALUE_NUMBER_INT: {
-			accurateSize += parser.getStringLength();
-			break;
-		}
-		case VALUE_TRUE: 
-		case VALUE_NULL: {
-			accurateSize += 4;
-			break;
-		}
-		case VALUE_FALSE: {
-			accurateSize += 5;
-			break;
-		}
-		}
-		return accurateSize;
+		return JacksonOutputSize.getAccurateSize(parser, fieldName, nextToken, false);
 	}
 
 }

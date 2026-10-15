@@ -15,10 +15,39 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 
 	public static void writeMaxStringLength(final JsonParser parser, JsonGenerator generator, StringBuilder builder, int maxStringLength, char[] truncateStringValue)
 			throws IOException {
-		
+
 		char[] textCharacters = parser.getTextCharacters();
 		int textOffset = parser.getTextOffset();
-		
+		int textLength = parser.getTextLength();
+
+		int keepLength = getTruncatedLength(textCharacters, textOffset, textLength, maxStringLength, truncateStringValue);
+		if(keepLength != -1) {
+			builder.append('"');
+			quoteAsString(textCharacters, textOffset, textOffset + keepLength, builder);
+			builder.append(truncateStringValue);
+			builder.append(textLength - keepLength);
+			builder.append('"');
+
+			generator.writeRawValue(builder.toString());
+			builder.setLength(0);
+		} else {
+			generator.writeString(textCharacters, textOffset, textLength);
+		}
+	}
+
+	/**
+	 * Number of characters to keep when truncating a string value longer than max string length. Used both
+	 * for writing and for the size of what is written, so that the two agree.
+	 *
+	 * @param textCharacters characters of the string value
+	 * @param textOffset offset of the string value
+	 * @param textLength length of the string value, more than max string length
+	 * @param maxStringLength max string length
+	 * @param truncateStringValue truncate message
+	 * @return characters to keep, or -1 if the value is kept as it is, as the truncate message and digits would not make it shorter
+	 */
+
+	public static int getTruncatedLength(char[] textCharacters, int textOffset, int textLength, int maxStringLength, char[] truncateStringValue) {
 		// A high surrogate precedes a low surrogate.
 		// check last include character
 
@@ -28,23 +57,14 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		} else {
 			keepLength = maxStringLength;
 		}
-		
-		int removeLength = parser.getTextLength() - keepLength;
+
+		int removeLength = textLength - keepLength;
 
 		// if truncate message + digits is smaller than the actual payload, trim it.
-		int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-		if(actualReductionLength > 0) {
-			builder.append('"');
-			quoteAsString(textCharacters, textOffset, textOffset + keepLength, builder);
-			builder.append(truncateStringValue);
-			builder.append(removeLength);
-			builder.append('"');
-			
-			generator.writeRawValue(builder.toString());
-			builder.setLength(0);
-		} else {
-			generator.writeString(textCharacters, textOffset, parser.getTextLength());
+		if(removeLength - truncateStringValue.length - lengthToDigits(removeLength) > 0) {
+			return keepLength;
 		}
+		return -1;
 	}
 	
 	protected final JsonFactory jsonFactory;

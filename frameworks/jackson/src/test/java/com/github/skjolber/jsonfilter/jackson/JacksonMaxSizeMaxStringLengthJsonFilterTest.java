@@ -200,6 +200,16 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 	}
 
 	@Test
+	public void testMaxSizeCountsUtf8BytesForByteOutput() throws Exception {
+		// the first field, truncated, is 21 characters but 26 bytes with brackets
+		String json = "{\"a\":\"" + "æ".repeat(20) + "\",\"b\":1}";
+		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(5, 21);
+
+		assertEquals("{\"a\":\"æææææ... + 15\"}", filter.process(json));
+		assertEquals("{}", new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testSurrogatePairInAccurateMaxStringSizeCalculation() throws Exception {
 		// When the input exceeds maxSize, the size check fires before flushing the pending field,
 		// so only the opening brace is written.
