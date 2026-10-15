@@ -14,6 +14,9 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
+	// size of the truncate message in UTF-8 bytes; in characters it is its length
+	private final int truncateStringValueUtf8Size;
+
 	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize) {
 		this(maxStringLength, maxSize, new JsonFactory());
 	}
@@ -28,6 +31,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 
 	public JacksonMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
+
+		this.truncateStringValueUtf8Size = JacksonOutputSize.getRawSize(truncateStringValue, true);
 	}
 	
 	@Override
@@ -105,6 +110,9 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 
 		int maxSize = this.maxSize;
 
+		boolean utf8 = JacksonOutputSize.isUtf8(generator);
+		int truncateSize = utf8 ? truncateStringValueUtf8Size : truncateStringValue.length;
+
         String fieldName = null;
         
         long offset = offsetSupplier.getAsLong();
@@ -142,7 +150,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			if(outputSize + size > maxSize) {
 
 				// do more accurate size calculation
-				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				int accurateSize = JacksonOutputSize.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, truncateSize, utf8);
 				
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
@@ -181,64 +189,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 	}
 
 	protected static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue) throws IOException {
-		int accurateSize;
-		if(fieldName != null) {
-			accurateSize = fieldName.length() + 2;
-		} else {
-			accurateSize = 0;
-		}
-		
-		if(parser.streamReadContext().getCurrentIndex() >= 2) {
-			accurateSize++;
-		}
-		
-		if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-			
-			char[] textCharacters = parser.getTextCharacters();
-			int textOffset = parser.getTextOffset();
-			
-			// A high surrogate precedes a low surrogate.
-			// check last include character
-
-			int keepLength;
-			if(Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
-				keepLength = maxStringLength - 1;
-			} else {
-				keepLength = maxStringLength;
-			}
-			
-			int removeLength = parser.getTextLength() - keepLength;
-
-			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-			if(actualReductionLength > 0) {
-				accurateSize += parser.getTextLength() - actualReductionLength + 2;
-			} else {
-				accurateSize += parser.getTextLength() + 2;
-			}
-		} else {
-			
-			switch(nextToken) {
-			case VALUE_STRING: {
-				accurateSize += parser.getTextLength() + 2;
-				break;
-			}
-			case VALUE_NUMBER_FLOAT:
-			case VALUE_NUMBER_INT: {
-				accurateSize += parser.getStringLength();
-				break;
-			}
-			case VALUE_TRUE: 
-			case VALUE_NULL: {
-				accurateSize += 4;
-				break;
-			}
-			case VALUE_FALSE: {
-				accurateSize += 5;
-				break;
-			}
-			}
-		}
-		return accurateSize;
+		return JacksonOutputSize.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, truncateStringValue.length, false);
 	}
-	
+
 }

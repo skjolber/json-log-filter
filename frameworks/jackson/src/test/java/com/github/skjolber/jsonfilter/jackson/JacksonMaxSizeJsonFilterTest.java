@@ -181,6 +181,22 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 	}
 
 	@Test
+	public void testMaxSizeCountsUtf8BytesForByteOutput() throws Exception {
+		// the first field is 18 characters but 27 bytes with brackets
+		String json = "{\"a\":\"ææææææææææ\",\"b\":1}";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(18);
+
+		assertEquals("{\"a\":\"ææææææææææ\"}", filter.process(json));
+		assertEquals("{}", new String(filter.process(bytes), StandardCharsets.UTF_8));
+
+		// characters are counted when the output is characters
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(bytes, 0, bytes.length, output));
+		assertEquals("{\"a\":\"ææææææææææ\"}", output.toString());
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
 		// When maxSize >= input length, process(byte[], ResizableByteArrayOutputStream) delegates to super
 		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
