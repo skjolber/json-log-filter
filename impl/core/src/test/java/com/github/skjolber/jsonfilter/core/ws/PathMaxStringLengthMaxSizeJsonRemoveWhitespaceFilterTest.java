@@ -381,6 +381,36 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testMessageLongerThanValueWithWhitespaceAroundRoot() throws Exception {
+		// whitespace around the root value makes the input longer than max size, while the prune and
+		// anonymize messages are longer than the values they replace
+		// inline: files in /json must end with the root value, see SkipObjectJsonFilterTest
+		String trailing = "{\"key\":10}" + " ".repeat(40);
+		String leading = " ".repeat(10) + "{\"key\":10}";
+		String sibling = "{\"key\":1,\"b\":2}" + " ".repeat(40);
+		String[] key = new String[]{"//key"};
+
+		assertRemoveWhitespaceMaxSize("{}", trailing, 10, key, null);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"*\"}", trailing, 11, key, null);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"*\"}", trailing, 49, key, null);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"*\"}", leading, 11, new String[]{"/key"}, null);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"*\"}", sibling, 16, key, null);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"*\",\"b\":2}", sibling, 17, key, null);
+
+		assertRemoveWhitespaceMaxSize("{}", trailing, 18, null, key);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"[removed]\"}", trailing, 19, null, key);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"[removed]\"}", leading, 19, null, key);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"[removed]\"}", sibling, 24, null, key);
+		assertRemoveWhitespaceMaxSize("{\"key\":\"[removed]\",\"b\":2}", sibling, 25, null, key);
+	}
+
+	private void assertRemoveWhitespaceMaxSize(String expected, String json, int maxSize, String[] anonymizes, String[] prunes) {
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, anonymizes, prunes);
+		assertEquals(expected, filter.process(json));
+		assertEquals(expected, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testWildcardPathAfterMatchingSibling() throws Exception {
 		// the sibling "b" also matches the wildcard
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/*/secret"}, null);
