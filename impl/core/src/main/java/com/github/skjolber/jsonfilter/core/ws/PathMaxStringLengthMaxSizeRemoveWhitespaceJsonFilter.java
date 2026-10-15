@@ -191,18 +191,19 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
 
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
+						whitespace = nextOffset - endQuoteIndex - 1;
 						
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
+							}
 							break colon;
 						}
 					}
@@ -212,6 +213,21 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						buffer.append(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, metrics);
+					}
+					
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						buffer.setLength(streamMark);
+						flushOffset = mark;
+						offset = mark;
+						
+						break loop;
+					}
+					
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 					
 					flushOffset = nextOffset;
@@ -604,18 +620,19 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
 
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
+						whitespace = nextOffset - endQuoteIndex - 1;
 						
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								maxSizeLimit = maxReadLimit;
+							}
 							break colon;
 						}
 					}
@@ -625,6 +642,21 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
 						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(), metrics);
+					}
+					
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						stream.setSize(streamMark);
+						flushOffset = mark;
+						offset = mark;
+						
+						break loop;
+					}
+					
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
+					if(maxSizeLimit >= maxReadLimit) {
+						maxSizeLimit = maxReadLimit;
 					}
 					
 					flushOffset = nextOffset;

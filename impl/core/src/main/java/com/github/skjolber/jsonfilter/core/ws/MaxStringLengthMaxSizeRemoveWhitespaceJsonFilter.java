@@ -174,36 +174,47 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
-						
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, buffer, metrics, maxStringLength, truncateStringValue);
 
-							return 0;
-						}
+						whitespace = nextOffset - endQuoteIndex - 1;
 
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, buffer, metrics, maxStringLength, truncateStringValue);
+
+								return 0;
+							}
 							break colon;
 						}
 					}
-					
+
 					if(flushedOffset <= mark) {
 						streamMark = buffer.length() + mark - flushedOffset; 
 					}
-					
+
 					// was a value
 					maxSizeLimit += CharArrayWhitespaceFilter.addMaxLength(chars, offset, buffer, flushedOffset, endQuoteIndex, truncateStringValue, maxStringLength, metrics);
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						buffer.setLength(streamMark);
+						flushedOffset = mark;
+						offset = mark;
+						break loop;
+					}
+
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
 					if(maxSizeLimit >= maxReadLimit) {
 						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, buffer, metrics, maxStringLength, truncateStringValue);
 
 						return 0;
 					}
-					
+
 					offset = nextOffset;
 					flushedOffset = nextOffset;
 
@@ -417,36 +428,47 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 				colon:
 				if(chars[nextOffset] != ':') {
-
+					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
 						} while(chars[nextOffset] <= 0x20);
-						
-						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 
-							return 0;
-						}
+						whitespace = nextOffset - endQuoteIndex - 1;
 
 						if(chars[nextOffset] == ':') {
+							maxSizeLimit += whitespace;
+							if(maxSizeLimit >= maxReadLimit) {
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+
+								return 0;
+							}
 							break colon;
 						}
 					}
-					
+
 					if(flushedOffset <= mark) {
 						streamMark = stream.size() + mark - flushedOffset; 
 					}
-					
+
 					// was a value
 					maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushedOffset, endQuoteIndex, truncateStringValueAsBytes, maxStringLength, digit, metrics);
+					if(endQuoteIndex >= maxSizeLimit) {
+						// the value does not fit: remove it, and cut the document at the mark
+						stream.setSize(streamMark);
+						flushedOffset = mark;
+						offset = mark;
+						break loop;
+					}
+
+					// the whitespace after the value is not written
+					maxSizeLimit += whitespace;
 					if(maxSizeLimit >= maxReadLimit) {
 						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
 
 						return 0;
 					}
-					
+
 					offset = nextOffset;
 					flushedOffset = nextOffset;
 
