@@ -21,7 +21,6 @@ import java.io.IOException;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.TopLevelString;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
@@ -52,10 +51,10 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+		if(isTopLevelString(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				TopLevelString.process(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				CharArrayRangesFilter.filterTopLevelString(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				return true;
 			} catch(Exception e) {
 				return false;
@@ -176,10 +175,10 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+		if(isTopLevelString(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				TopLevelString.process(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				ByteArrayRangesFilter.filterTopLevelString(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 				return true;
 			} catch(Exception e) {
 				return false;

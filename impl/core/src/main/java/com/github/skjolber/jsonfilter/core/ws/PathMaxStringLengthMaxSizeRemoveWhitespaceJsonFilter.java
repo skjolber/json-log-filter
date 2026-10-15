@@ -7,7 +7,6 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 import com.github.skjolber.jsonfilter.base.path.any.AnyPathFilters;
 import com.github.skjolber.jsonfilter.core.MaxSizeJsonFilter;
-import com.github.skjolber.jsonfilter.core.util.TopLevelString;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceSizeFilter;
@@ -26,10 +25,10 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+		if(isTopLevelString(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				TopLevelString.process(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				CharArrayRangesFilter.filterTopLevelString(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				return true;
 			} catch(Exception e) {
 				return false;
@@ -438,10 +437,10 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		if(TopLevelString.isTopLevelString(chars, offset, length)) {
+		if(isTopLevelString(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				TopLevelString.process(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				ByteArrayRangesFilter.filterTopLevelString(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 				return true;
 			} catch(Exception e) {
 				return false;

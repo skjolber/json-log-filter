@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -118,6 +119,44 @@ public class AbstractJsonFilterTest {
 		assertNull(failFilter.process(new byte[] {'{', '}'}));
 		
 		verify(failFilter, times(1)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class));		
+	}
+
+	@Test
+	public void testIsTopLevelString() {
+		for(String string : new String[] {"\"\"", "\"abc\"", " \t\r\n\"abc\" "}) {
+			assertTrue(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 0, string.length()), string);
+			assertTrue(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 0, string.length()), string);
+		}
+		for(String string : new String[] {"", "  ", "{\"a\":\"b\"}", "[\"a\"]", "123", "true", "null"}) {
+			assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 0, string.length()), string);
+			assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 0, string.length()), string);
+		}
+	}
+
+	@Test
+	public void testIsTopLevelStringForSlice() {
+		String string = "{\"a\": \"b\"}";
+
+		assertTrue(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 5, 4)); //  "b"
+		assertTrue(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 5, 4));
+
+		// the first non-whitespace character in the slice must be a quote
+		assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 4, 5)); // : "b"
+		assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 4, 5));
+
+		// a quote after the slice does not count
+		assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 5, 1));
+		assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 5, 1));
+	}
+
+	@Test
+	public void testIsTopLevelStringForInvalidOffset() {
+		// left to the regular filters, which handle the exception
+		assertFalse(AbstractJsonFilter.isTopLevelString(new char[] {'"', '"'}, -1, 2));
+		assertFalse(AbstractJsonFilter.isTopLevelString(new byte[] {'"', '"'}, -1, 2));
+
+		assertFalse(AbstractJsonFilter.isTopLevelString(new char[] {}, 1, 1));
+		assertFalse(AbstractJsonFilter.isTopLevelString(new byte[] {}, 1, 1));
 	}
 
 	private AbstractJsonFilter getJsonFilterMock() throws IOException {

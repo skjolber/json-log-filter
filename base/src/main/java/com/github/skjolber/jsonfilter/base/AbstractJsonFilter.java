@@ -251,6 +251,53 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 
+	/**
+	 * Whether the document is a single string value, like <code>"abc"</code>, ignoring surrounding whitespace.
+	 * <br><br>
+	 * The regular filters expect a structural character after each string, to tell keys from values,
+	 * which a top-level string does not have. Rather than adding bounds checks to the hot path,
+	 * filters check for this rare case once per document: paths cannot match, so the string is only
+	 * truncated (max string length) and surrounding whitespace optionally removed.
+	 *
+	 * @param chars input
+	 * @param offset document offset
+	 * @param length document length
+	 * @return true if the first non-whitespace character within the document is a quote
+	 */
+
+	protected static boolean isTopLevelString(final char[] chars, int offset, int length) {
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
+		while(offset < limit && chars[offset] <= 0x20) {
+			offset++;
+		}
+		return offset < limit && chars[offset] == '"';
+	}
+
+	/**
+	 * Byte variant of {@link #isTopLevelString(char[], int, int)}.
+	 *
+	 * @param chars input
+	 * @param offset document offset
+	 * @param length document length
+	 * @return true if the first non-whitespace character within the document is a quote
+	 */
+
+	protected static boolean isTopLevelString(final byte[] chars, int offset, int length) {
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
+		while(offset < limit && chars[offset] <= 0x20) {
+			offset++;
+		}
+		return offset < limit && chars[offset] == '"';
+	}
+
 	public static int lengthToDigits(int number) {
 		if (number < 100000) {
 		    if (number < 100) {

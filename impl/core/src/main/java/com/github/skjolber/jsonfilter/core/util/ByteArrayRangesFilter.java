@@ -789,4 +789,60 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	public int getPruneMessageLength() {
 		return pruneMessage.length;
 	}
+
+	/**
+	 * Add the ranges for a document which is a single string value, like <code>"abc"</code>; see
+	 * AbstractJsonFilter#isTopLevelString. Paths cannot match, so the string is only truncated
+	 * (max string length) and surrounding whitespace optionally removed.
+	 *
+	 * @param chars document
+	 * @param offset document offset
+	 * @param length document length
+	 * @param maxStringLength max string length, excluding quotes
+	 * @param removeWhitespace remove whitespace around the string
+	 * @param filter filter to add ranges to
+	 * @return the filter
+	 */
+
+	public static ByteArrayRangesFilter addTopLevelString(final byte[] chars, int offset, int length, int maxStringLength, boolean removeWhitespace, ByteArrayRangesFilter filter) {
+		int limit = offset + length;
+		int start = offset;
+		while(chars[start] <= 0x20) {
+			start++;
+		}
+		int end = scanQuotedValue(chars, start); // closing quote
+		if(removeWhitespace && start > offset) {
+			filter.addDelete(offset, start);
+		}
+		if(end - start - 1 > maxStringLength) {
+			int removeStart = start + 1 + maxStringLength;
+			filter.addMaxLength(chars, removeStart, end, end - removeStart);
+		}
+		if(removeWhitespace && end + 1 < limit) {
+			filter.addDelete(end + 1, limit);
+		}
+		return filter;
+	}
+
+	/**
+	 * Filter a document which is a single string value, like <code>"abc"</code>; see
+	 * {@link #addTopLevelString(byte[], int, int, int, boolean, ByteArrayRangesFilter)}.
+	 *
+	 * @param chars document
+	 * @param offset document offset
+	 * @param length document length
+	 * @param buffer output
+	 * @param metrics metrics, or null
+	 * @param maxStringLength max string length, excluding quotes
+	 * @param removeWhitespace remove whitespace around the string
+	 * @param pruneMessage prune message
+	 * @param anonymizeMessage anonymize message
+	 * @param truncateMessage truncate message
+	 */
+
+	public static void filterTopLevelString(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
+		ByteArrayRangesFilter filter = addTopLevelString(chars, offset, length, maxStringLength, removeWhitespace, new ByteArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage, truncateMessage));
+		filter.filter(chars, offset, length, buffer, metrics);
+	}
+
 }
