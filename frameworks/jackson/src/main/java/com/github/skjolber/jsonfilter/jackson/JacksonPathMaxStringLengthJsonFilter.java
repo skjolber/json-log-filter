@@ -44,15 +44,21 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 		output.ensureCapacity(output.length() + length);
 
 		int outputSize = output.length();
+		boolean success;
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			if(process(parser, generator, metrics)) {
-				return true;
-			}
+			success = process(parser, generator, metrics);
 		} catch(final Exception e) {
-			// fall through
+			success = false;
+		}
+		if(success) {
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(output.length() - outputSize);
+			}
+			return true;
 		}
 		// leave the output as it was
 		output.setLength(outputSize);
@@ -63,15 +69,21 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 		output.ensureCapacity(output.length() + length);
 
 		int outputSize = output.length();
+		boolean success;
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, metrics)) {
-				return true;
-			}
+			success = process(parser, generator, metrics);
 		} catch(final Exception e) {
-			// fall through
+			success = false;
+		}
+		if(success) {
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(output.length() - outputSize);
+			}
+			return true;
 		}
 		// leave the output as it was
 		output.setLength(outputSize);
@@ -80,15 +92,21 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		int outputSize = output.size();
+		boolean success;
 		try (
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, metrics)) {
-				return true;
-			}
+			success = process(parser, generator, metrics);
 		} catch(final Exception e) {
-			// fall through
+			success = false;
+		}
+		if(success) {
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(output.size() - outputSize);
+			}
+			return true;
 		}
 		// leave the output as it was
 		output.setSize(outputSize);
@@ -159,8 +177,14 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 					if(nextToken.isScalarValue()) {
 						if(anon) {
 							generator.writeRawValue(anonymizeJsonValue, 0, anonymizeJsonValue.length);
+							if(metrics != null) {
+								metrics.onAnonymize(1);
+							}
 						} else {
 							generator.writeRawValue(pruneJsonValue, 0, pruneJsonValue.length);
+							if(metrics != null) {
+								metrics.onPrune(1);
+							}
 						}
 					} else {
 						// array or object

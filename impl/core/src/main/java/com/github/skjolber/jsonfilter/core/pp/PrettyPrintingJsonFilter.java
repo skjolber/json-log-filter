@@ -31,6 +31,8 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {	
 		length += offset;
+		int inputOffset = offset;
+		int outputStart = buffer.length();
 		
 		int level = 0;
 		
@@ -102,6 +104,10 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 		
+			if(filterMetrics != null) {
+				filterMetrics.onInput(length - inputOffset);
+				filterMetrics.onOutput(buffer.length() - outputStart);
+			}
 			return true;
 		} catch(Exception e) {
 			return false;
@@ -110,6 +116,8 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
 		length += offset;
+		int inputOffset = offset;
+		int outputStart = output.size();
 
 		int level = 0;
 		
@@ -182,6 +190,10 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 				offset++;
 			}
 			
+			if(filterMetrics != null) {
+				filterMetrics.onInput(length - inputOffset);
+				filterMetrics.onOutput(output.size() - outputStart);
+			}
 			return true;
 		} catch(Exception e) {
 			return false;

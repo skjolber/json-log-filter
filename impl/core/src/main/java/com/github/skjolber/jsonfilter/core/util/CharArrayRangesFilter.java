@@ -39,6 +39,15 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		this.truncateMessage = truncateMessage;
 	}
 
+	/**
+	 * Close open objects and arrays after the filtered content. Does nothing by default.
+	 *
+	 * @param buffer output
+	 */
+
+	public void closeStructure(final StringBuilder buffer) {
+	}
+
 	public void filter(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		
 		if(metrics != null) {
@@ -85,6 +94,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 			buffer.append(chars, offset, length - offset);
 		}
 		
+		closeStructure(buffer);
+		
 		if(metrics != null) {
 			metrics.onOutput(buffer.length() - bufferSize);
 		}
@@ -113,6 +124,8 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 		if(offset < length) {
 			buffer.append(chars, offset, length - offset);
 		}
+		
+		closeStructure(buffer);
 	}
 
 	public static int skipObject(char[] chars, int offset) {

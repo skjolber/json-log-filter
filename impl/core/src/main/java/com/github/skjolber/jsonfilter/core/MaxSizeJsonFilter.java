@@ -142,6 +142,38 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			}
 	}
 
+	/**
+	 * Whether there is content after the given offset, i.e. anything other than whitespace and closing brackets.
+	 * Used to tell whether a max-size cut dropped anything.
+	 *
+	 * @param chars input
+	 * @param offset start offset
+	 * @param limit end offset
+	 * @return true if content follows
+	 */
+
+	public static boolean hasContent(final char[] chars, int offset, int limit) {
+		while(offset < limit) {
+			char c = chars[offset];
+			if(c > 0x20 && c != '}' && c != ']') {
+				return true;
+			}
+			offset++;
+		}
+		return false;
+	}
+
+	public static boolean hasContent(final byte[] chars, int offset, int limit) {
+		while(offset < limit) {
+			byte c = chars[offset];
+			if((c > 0x20 || c < 0) && c != '}' && c != ']') {
+				return true;
+			}
+			offset++;
+		}
+		return false;
+	}
+
 	public static int markToLimit(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, int mark) {
 		// see whether we can include the last value,
 		// which might otherwise be excluded by size exceeded due to whitespace
