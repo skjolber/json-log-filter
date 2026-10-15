@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -118,6 +119,58 @@ public class AbstractJsonFilterTest {
 		assertNull(failFilter.process(new byte[] {'{', '}'}));
 		
 		verify(failFilter, times(1)).process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class));		
+	}
+
+	@Test
+	public void testIsNonStructural() {
+		for(String json : new String[] {"\"\"", "\"abc\"", " \t\r\n\"abc\" ", "-1.5e3", "123456", "0", "true", "false", "null", " \t\r\n42"}) {
+			assertTrue(AbstractJsonFilter.isNonStructural(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertTrue(AbstractJsonFilter.isNonStructural(bytes, 0, bytes.length), json);
+		}
+		for(String json : new String[] {"{\"a\":\"b\"}", "[\"a\"]", " \n{}", "\t[1]", "", "  "}) {
+			assertFalse(AbstractJsonFilter.isNonStructural(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertFalse(AbstractJsonFilter.isNonStructural(bytes, 0, bytes.length), json);
+		}
+	}
+
+	@Test
+	public void testIsNonStructuralForSlice() {
+		// only the given range is checked
+		String json = "{\"a\": \"b\", \"c\":1}";
+		char[] chars = json.toCharArray();
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		assertTrue(AbstractJsonFilter.isNonStructural(chars, 5, 4)); //  "b"
+		assertTrue(AbstractJsonFilter.isNonStructural(bytes, 5, 4));
+		assertTrue(AbstractJsonFilter.isNonStructural(chars, 15, 1)); // 1
+		assertTrue(AbstractJsonFilter.isNonStructural(bytes, 15, 1));
+
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 0, json.length()));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 0, json.length()));
+
+		// a value after the slice does not count
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 5, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 5, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 15, 0));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 15, 0));
+	}
+
+	@Test
+	public void testIsNonStructuralForInvalidOffset() {
+		// left to the regular filters, which handle the exception
+		assertFalse(AbstractJsonFilter.isNonStructural(new char[] {'"', '"'}, -1, 2));
+		assertFalse(AbstractJsonFilter.isNonStructural(new byte[] {'"', '"'}, -1, 2));
+
+		assertFalse(AbstractJsonFilter.isNonStructural(new char[] {}, 1, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(new byte[] {}, 1, 1));
+
+		// a length beyond the end of the input is limited to the input
+		assertTrue(AbstractJsonFilter.isNonStructural(" 1".toCharArray(), 0, 10));
+		assertTrue(AbstractJsonFilter.isNonStructural(" 1".getBytes(StandardCharsets.UTF_8), 0, 10));
+		assertFalse(AbstractJsonFilter.isNonStructural("  ".toCharArray(), 0, 10));
+		assertFalse(AbstractJsonFilter.isNonStructural("  ".getBytes(StandardCharsets.UTF_8), 0, 10));
 	}
 
 	private AbstractJsonFilter getJsonFilterMock() throws IOException {

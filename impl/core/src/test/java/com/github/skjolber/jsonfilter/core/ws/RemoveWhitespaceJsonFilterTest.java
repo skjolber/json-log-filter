@@ -51,6 +51,11 @@ public class RemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		assertExceptionLeavesOutputUntouched(new RemoveWhitespaceJsonFilter(), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(new RemoveWhitespaceJsonFilter().process(TRUNCATED));
 		assertNull(new RemoveWhitespaceJsonFilter().process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));

@@ -290,9 +290,8 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 									break loop;
 								}
 							} else {
-								// the anonymized value does not fit: stop at the start of the value, so that
-								// neither the caller nor markToLimit(..) can include the raw value
-								maxSizeLimit = offset;
+								// make sure to stop scanning here
+								offset = nextOffset;
 								break loop;
 							}
 
@@ -331,9 +330,8 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 										break loop;
 									}
 								} else {
-									// the anonymized value does not fit: stop at the start of the value, so that
-									// neither the caller nor markToLimit(..) can include the raw value
-									maxSizeLimit = offset;
+									// make sure to stop scanning here
+									offset = nextOffset;
 
 									break loop;
 								}
@@ -363,9 +361,8 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							break loop;
 						}
 					} else {
-						// the anonymized value does not fit: stop at the start of the value, so that
-						// neither the caller nor markToLimit(..) can include the raw value
-						maxSizeLimit = offset;
+						// make sure to stop scanning here
+						offset = nextOffset;
 
 						break loop;
 					}

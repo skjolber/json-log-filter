@@ -69,9 +69,25 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	}
 
 	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		MaxSizeRemoveWhitespaceJsonFilter filter = new MaxSizeRemoveWhitespaceJsonFilter(2);
+		for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxSizeRemoveWhitespaceJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new MaxSizeRemoveWhitespaceJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// max size below the input size, but large enough to reach the end of the input
+		assertExceptionLeavesOutputUntouched(new MaxSizeRemoveWhitespaceJsonFilter(UNTERMINATED_LAST_STRING.length() - 1), UNTERMINATED_LAST_STRING);
 	}
 
 	@Test
