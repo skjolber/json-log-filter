@@ -99,6 +99,23 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractDefaultJackson
 	}
 
 	@Test
+	public void testTruncatedLength() {
+		char[] truncate = "... + ".toCharArray();
+
+		// keep max string length
+		char[] text = "xxabcdefghijklmnopqrstuvwxyzxx".toCharArray();
+		assertEquals(5, JacksonMaxStringLengthJsonFilter.getTruncatedLength(text, 2, 26, 5, truncate));
+
+		// do not split a surrogate pair: keep one less
+		text = "xxABCDE😀FGHIJKLMNOPQRSTUxx".toCharArray();
+		assertEquals(5, JacksonMaxStringLengthJsonFilter.getTruncatedLength(text, 2, 23, 6, truncate));
+
+		// keep as is, as the truncate message and digits would not make the value shorter
+		text = "xxabcdefghijkxx".toCharArray();
+		assertEquals(-1, JacksonMaxStringLengthJsonFilter.getTruncatedLength(text, 2, 11, 5, truncate));
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamException() throws Exception {
 		// Verify catch block in process(byte[], ResizableByteArrayOutputStream) is hit when factory throws
 		JsonFactory jsonFactory = mock(JsonFactory.class);

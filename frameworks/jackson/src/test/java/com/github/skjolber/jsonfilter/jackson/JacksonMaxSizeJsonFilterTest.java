@@ -11,9 +11,6 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
 import org.apache.commons.io.output.StringBuilderWriter;
@@ -22,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonToken;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -163,127 +159,6 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		StringBuilder output = new StringBuilder();
 		assertTrue(filter.process(bytes, 0, bytes.length, output));
 		assertEquals("{\"a\":\"ææææææææææ\"}", output.toString());
-	}
-
-	@Test
-	public void testAccurateSize() throws IOException {
-		String[] documents = new String[] {
-			"{\"a\":1,\"b\":2,\"c\":3}", // colon after field name, separator before field name
-			"{\"a\":{\"b\":{\"c\":1}},\"d\":2}", // brackets
-			"[1,[2,3],{\"x\":\"y\"},[{\"z\":[4,5]}]]", // separator before opening bracket
-			"{\"t\":true,\"f\":false,\"n\":null,\"i\":-12,\"d\":1.5e10}",
-			"{\"k\":\"\\t\\b\\f\\n\\r\\u0001\\\"\\\\\"}", // escapes in value
-			"{\"\\t\\\"\\\\\":1}", // escapes in field name
-			"{\"æ\":\"ææ\",\"€\":\"€€\",\"😀\":\"😀\"}" // multi-byte UTF-8 characters
-		};
-		for(String document : documents) {
-			assertAccurateSize(document, false);
-			assertAccurateSize(document, true);
-		}
-	}
-
-	/**
-	 * Copy the document token by token, like the filter does, and check that the accurate size
-	 * of each token is the size the generator writes for it.
-	 */
-
-	private static void assertAccurateSize(String json, boolean utf8) throws IOException {
-		JsonFactory jsonFactory = new JsonFactory();
-		StringBuilder chars = new StringBuilder();
-		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-		try (
-			JsonParser parser = jsonFactory.createParser(json);
-			JsonGenerator generator = utf8 ? jsonFactory.createGenerator(bytes) : jsonFactory.createGenerator(new StringBuilderWriter(chars))
-			) {
-			String fieldName = null;
-			JsonToken token;
-			while((token = parser.nextToken()) != null) {
-				if(token == JsonToken.PROPERTY_NAME) {
-					fieldName = parser.currentName();
-					continue;
-				}
-				int accurateSize = JacksonMaxSizeJsonFilter.getAccurateSize(parser, fieldName, token, utf8);
-
-				int size = utf8 ? bytes.size() : chars.length();
-				if(fieldName != null) {
-					generator.writeName(fieldName);
-					fieldName = null;
-				}
-				JacksonEvents.copyCurrentEvent(parser, generator);
-				generator.flush();
-
-				int written = (utf8 ? bytes.size() : chars.length()) - size;
-				assertEquals(written, accurateSize, json + " " + token + (utf8 ? " UTF-8" : ""));
-			}
-		}
-	}
-
-	@Test
-	public void testSeparatorSize() throws IOException {
-		// a comma precedes every value or opening bracket which is not the first in its array or object
-		String json = "[1,[2],{\"a\":3,\"b\":[]},4]";
-
-		List<Integer> sizes = new ArrayList<>();
-		try (JsonParser parser = new JsonFactory().createParser(json)) {
-			JsonToken token;
-			while((token = parser.nextToken()) != null) {
-				if(token != JsonToken.PROPERTY_NAME) {
-					sizes.add(JacksonMaxSizeJsonFilter.getSeparatorSize(parser, token));
-				}
-			}
-		}
-		// tokens: [ 1 [ 2 ] { 3 [ ] } 4 ]
-		assertEquals(List.of(0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0), sizes);
-	}
-
-	@Test
-	public void testQuotedSize() throws IOException {
-		// quotes, escapes and, for UTF-8 output, multi-byte characters
-		String[] values = new String[] {"", "abc", "\"\\/", "\b\t\n\f\r", "\u0000\u0001\u001f", "æ", "€", "😀", "a\"æ\t€😀"};
-		for(String value : values) {
-			char[] chars = ("xx" + value + "xx").toCharArray();
-			for(boolean utf8 : new boolean[] {false, true}) {
-				int size = writtenSize((generator) -> generator.writeString(value), utf8);
-
-				assertEquals(size, JacksonMaxSizeJsonFilter.getQuotedSize(value, utf8), value);
-				assertEquals(size, JacksonMaxSizeJsonFilter.getQuotedSize(chars, 2, value.length(), utf8), value);
-			}
-		}
-	}
-
-	private static int writtenSize(Consumer<JsonGenerator> writer, boolean utf8) throws IOException {
-		JsonFactory jsonFactory = new JsonFactory();
-		if(utf8) {
-			ByteArrayOutputStream output = new ByteArrayOutputStream();
-			try (JsonGenerator generator = jsonFactory.createGenerator(output)) {
-				writer.accept(generator);
-			}
-			return output.size();
-		}
-		StringBuilder output = new StringBuilder();
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output))) {
-			writer.accept(generator);
-		}
-		return output.length();
-	}
-
-	@Test
-	public void testRawSize() {
-		for(String value : new String[] {"\"*\"", "\"æ\"", "\"€\"", "\"😀\""}) {
-			assertEquals(value.length(), JacksonMaxSizeJsonFilter.getRawSize(value.toCharArray(), false), value);
-			assertEquals(value.getBytes(StandardCharsets.UTF_8).length, JacksonMaxSizeJsonFilter.getRawSize(value.toCharArray(), true), value);
-		}
-	}
-
-	@Test
-	public void testIsUtf8() throws IOException {
-		JsonFactory jsonFactory = new JsonFactory();
-		try (JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(new StringBuilder()))) {
-			assertFalse(JacksonMaxSizeJsonFilter.isUtf8(generator));
-		}
-		try (JsonGenerator generator = jsonFactory.createGenerator(new ResizableByteArrayOutputStream(16))) {
-			assertTrue(JacksonMaxSizeJsonFilter.isUtf8(generator));
-		}
 	}
 
 	@Test

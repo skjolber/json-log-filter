@@ -14,6 +14,11 @@ import com.github.skjolber.jsonfilter.base.path.PathItem;
 
 public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
+	// sizes of the messages in UTF-8 bytes; in characters they are their lengths
+	private final int truncateStringValueUtf8Size;
+	private final int anonymizeJsonValueUtf8Size;
+	private final int pruneJsonValueUtf8Size;
+
 	public JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes) {
 		this(maxStringLength, maxSize, anonymizes, prunes, new JsonFactory());
 	}
@@ -28,6 +33,10 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 	protected JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
+
+		this.truncateStringValueUtf8Size = JacksonOutputSize.getRawSize(truncateStringValue, true);
+		this.anonymizeJsonValueUtf8Size = JacksonOutputSize.getRawSize(anonymizeJsonValue, true);
+		this.pruneJsonValueUtf8Size = JacksonOutputSize.getRawSize(pruneJsonValue, true);
 	}
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
@@ -102,7 +111,10 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 		long maxSize = this.maxSize;
 
-		boolean utf8 = JacksonMaxSizeJsonFilter.isUtf8(generator);
+		boolean utf8 = JacksonOutputSize.isUtf8(generator);
+		int truncateSize = utf8 ? truncateStringValueUtf8Size : truncateStringValue.length;
+		int anonymizeSize = utf8 ? anonymizeJsonValueUtf8Size : anonymizeJsonValue.length;
+		int pruneSize = utf8 ? pruneJsonValueUtf8Size : pruneJsonValue.length;
 
 		int level = 0;
 
@@ -179,13 +191,16 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 					// check size
 					if(nextToken.isScalarValue()) {
 						char[] message;
+						int messageSize;
 						if(anon) {
 							message = anonymizeJsonValue;
+							messageSize = anonymizeSize;
 						} else {
 							message = pruneJsonValue;
+							messageSize = pruneSize;
 						}
 						
-						long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 1 + JacksonMaxSizeJsonFilter.getRawSize(message, utf8) + outputSizeSupplier.getAsLong();
+						long size = JacksonOutputSize.getPrefixSize(parser, nextToken, currentName, utf8) + messageSize + outputSizeSupplier.getAsLong();
 
 						if(size > maxSize) {
 							if(metrics != null) {
@@ -201,7 +216,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						if(anon) {
 							
 							// field name, colon, and opening and closing bracket
-							long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 3 + outputSizeSupplier.getAsLong();
+							long size = JacksonOutputSize.getPrefixSize(parser, nextToken, currentName, utf8) + 2 + outputSizeSupplier.getAsLong();
 							
 							if(size > maxSize) {
 								if(metrics != null) {
@@ -213,11 +228,11 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 							generator.writeName(currentName);
 							JacksonEvents.copyCurrentEvent(parser, generator);
 							// keep structure, but mark all values
-							if(!anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, metrics)) {
+							if(!anonymizeChildren(parser, generator, maxSize - 1, outputSizeSupplier, anonymizeJsonValue, anonymizeSize, metrics)) {
 								break;
 							}
 						} else {
-							long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 1 + JacksonMaxSizeJsonFilter.getRawSize(pruneJsonValue, utf8) + outputSizeSupplier.getAsLong();
+							long size = JacksonOutputSize.getPrefixSize(parser, nextToken, currentName, utf8) + pruneSize + outputSizeSupplier.getAsLong();
 							
 							if(size > maxSize) {
 								if(metrics != null) {
@@ -254,7 +269,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			if(outputSize + size > maxSize) {
 
 				// do more accurate size calculation
-				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, utf8);
+				int accurateSize = JacksonOutputSize.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, truncateSize, utf8);
 
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
@@ -293,9 +308,27 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	
 
 	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
+		return anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, JacksonOutputSize.getRawSize(anonymizeJsonValue, JacksonOutputSize.isUtf8(generator)), metrics);
+	}
+
+	/**
+	 * Anonymize the scalar values of the current object or array, within max size.
+	 *
+	 * @param parser parser at the opening bracket
+	 * @param generator generator
+	 * @param maxSize max size
+	 * @param outputSizeSupplier size written so far
+	 * @param anonymizeJsonValue anonymize message
+	 * @param anonymizeSize size of the anonymize message, in bytes (UTF-8) or characters
+	 * @param metrics metrics, or null
+	 * @return false if max size was reached
+	 * @throws IOException on parse or write error
+	 */
+
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, int anonymizeSize, JsonFilterMetrics metrics) throws IOException {
 		int level = 1;
 		
-		boolean utf8 = JacksonMaxSizeJsonFilter.isUtf8(generator);
+		boolean utf8 = JacksonOutputSize.isUtf8(generator);
 		
         String fieldName = null;
 		while(level > 0) {
@@ -324,16 +357,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 				default: // do nothing
 			}
 
-			long outputSize;
+			long outputSize = JacksonOutputSize.getPrefixSize(parser, nextToken, fieldName, utf8);
 			if(nextToken.isScalarValue()) {
-				outputSize = JacksonMaxSizeJsonFilter.getRawSize(anonymizeJsonValue, utf8);
+				outputSize += anonymizeSize;
 			} else {
-				outputSize = 1;
+				outputSize++; // bracket
 			}
-			if(fieldName != null) {
-				outputSize += JacksonMaxSizeJsonFilter.getQuotedSize(fieldName, utf8) + 1; // colon
-			}
-			outputSize += JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken);
 			
 			long size = outputSizeSupplier.getAsLong();
 			
