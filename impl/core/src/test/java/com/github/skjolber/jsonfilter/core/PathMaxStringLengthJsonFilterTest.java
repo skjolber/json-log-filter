@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,6 +35,17 @@ public class PathMaxStringLengthJsonFilterTest extends DefaultJsonFilterTest {
 		PathMaxStringLengthJsonFilter filter = new PathMaxStringLengthJsonFilter(-1, 127, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(INCORRECT_LEVEL, new StringBuilder()));
 		assertNull(filter.process(INCORRECT_LEVEL.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	@Test
+	public void testByteArrayRangesMaxOutputLength() throws Exception {
+		// The prune message is 4 chars longer than the value it replaces. The byte[] ranges filter must
+		// know the input length to tell the output length, which PathMaxSizeMaxStringLengthJsonFilter
+		// uses to check whether the output fits within max size.
+		String json = "{\"key\":\"value\",\"other\":\"value\"}";
+		PathMaxStringLengthJsonFilter filter = new PathMaxStringLengthJsonFilter(-1, -1, null, new String[]{"/key"});
+		assertEquals(json.length() + 4, filter.ranges(json.getBytes(StandardCharsets.UTF_8), 0, json.length()).getMaxOutputLength());
+		assertEquals(json.length() + 4, filter.ranges(json.toCharArray(), 0, json.length()).getMaxOutputLength());
 	}
 	
 	@Test

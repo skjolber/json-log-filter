@@ -480,6 +480,30 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 	}
 
 	@Test
+	public void testPruneAndAnonymizeMessagesLongerThanValues() throws Exception {
+		// The document fits within max size, but the output does not: the prune and anonymize messages
+		// are longer than the values they replace (50 chars in, 66 chars out without max size).
+		// The growth (16 chars) is less than the max size, so for byte[] this only works if the
+		// ranges filter knows the input length.
+		// With max size 60, the max size limit still covers the rest of the document after the
+		// first match, so path-only mode must not be used, as the next matches grow the output further.
+		String json = "{\"id\":1,\"a\":{\"id\":true,\"b\":[1,2]},\"c\":{\"id\":null}}";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		String expected = "{\"id\":\"*\",\"a\":{\"id\":\"[removed]\",\"b\":[1,2]},\"c\":{}}";
+
+		for(int maxSize : new int[] {json.length(), 60}) {
+			PathMaxSizeMaxStringLengthJsonFilter filter =
+				new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, -1, new String[]{"//id"}, new String[]{"/a/id", "/c/id"});
+			StringBuilder charOutput = new StringBuilder();
+			assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+			assertEquals(expected, charOutput.toString());
+			byte[] byteResult = filter.process(jsonBytes);
+			assertNotNull(byteResult);
+			assertEquals(expected, new String(byteResult, StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void testSkipObjectMaxSizeOverflow() throws Exception {
 		// Truncating a long string inside a non-matched nested object can bring the remaining size limit up to the document length, causing the filter to transition to unconstrained processing.
 		String longVal = "a".repeat(200);
