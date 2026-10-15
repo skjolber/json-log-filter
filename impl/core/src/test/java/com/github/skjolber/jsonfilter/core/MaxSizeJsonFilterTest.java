@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -39,6 +41,48 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxSizeJsonFilter(size));
+	}
+
+	@Test
+	public void testMarkToLimitIncludesSingleCharacterValueAtMark() {
+		// the value right after an opening bracket starts at the mark
+		assertMarkToLimit(2, "[1,2,3]", 2, 2, 1);
+		assertMarkToLimit(7, "{\"a\":[1,2]}", 7, 7, 6);
+		assertMarkToLimit(3, "[[1],[2]]", 3, 3, 2);
+		// whitespace between the value and the cut
+		assertMarkToLimit(2, "[1 ,2]", 3, 3, 1);
+	}
+
+	@Test
+	public void testMarkToLimitExcludesValueAtMark() {
+		// value beyond the max size limit
+		assertMarkToLimit(-1, "[1,2,3]", 2, 1, 1);
+		// value continues after the cut
+		assertMarkToLimit(-1, "[12,3]", 2, 2, 1);
+		// a comma mark never ends the output
+		assertMarkToLimit(-1, "[1,]", 3, 4, 2);
+	}
+
+	@Test
+	public void testSingleCharacterValueAfterOpeningBracket() {
+		// kept if it fits
+		assertMaxSize("{\"a\":[1]}", "{\"a\":[1,2]}", 9);
+		assertMaxSize("[1]", "[1,2,3]", 3);
+		assertMaxSize("[[1]]", "[[1],[2]]", 5);
+		// dropped if it does not fit
+		assertMaxSize("{\"a\":[]}", "{\"a\":[1,2]}", 8);
+		assertMaxSize("[]", "[1,2,3]", 2);
+	}
+
+	private static void assertMarkToLimit(int expected, String json, int offset, int maxSizeLimit, int mark) {
+		assertEquals(expected, MaxSizeJsonFilter.markToLimit(json.toCharArray(), offset, json.length(), maxSizeLimit, mark), json);
+		assertEquals(expected, MaxSizeJsonFilter.markToLimit(json.getBytes(StandardCharsets.UTF_8), offset, json.length(), maxSizeLimit, mark), json);
+	}
+
+	private static void assertMaxSize(String expected, String json, int maxSize) {
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(maxSize);
+		assertEquals(expected, filter.process(json), json);
+		assertEquals(expected, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8), json);
 	}
 
 	@Test
@@ -100,9 +144,33 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(2);
+		for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new MaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// the output is written in one go at the end, so invalid input fails before anything is written:
+		// fail in the metrics callback instead, after the output is written
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics() {
+			@Override
+			public void onInput(int inputSize) {
+				throw new IllegalStateException();
+			}
+		};
+		String string = "{\"a\":\"b\",\"c\":[1,2],\"d\":\"eeeeeeeeeeeeeeeeeeee\"}";
+		assertExceptionLeavesOutputUntouched(new MaxSizeJsonFilter(string.length() - 1), string, metrics);
 	}
 
 	@Test

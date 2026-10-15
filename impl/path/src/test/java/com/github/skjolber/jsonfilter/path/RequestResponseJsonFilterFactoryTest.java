@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -433,6 +434,73 @@ public class RequestResponseJsonFilterFactoryTest {
 		assertTrue(f.getMaxSize() < Integer.MAX_VALUE);
 		
 		assertFalse(filter.isRemovingWhitespace());
+		assertFalse(maxSizeFilter.isRemovingWhitespace());
+	}
+
+	@Test
+	public void extractWithoutWhitespaceStrategy() {
+		JsonFilterProperties request = new JsonFilterProperties();
+		request.setAnonymizes(Arrays.asList("/a"));
+		request.setEnabled(true);
+		
+		JsonFilterPathProperties jsonFilterPathProperties = new JsonFilterPathProperties();
+		jsonFilterPathProperties.setMatcher("/myPath");
+		jsonFilterPathProperties.setRequest(request);
+		
+		ProcessingProperties processingProperties = new ProcessingProperties();
+		assertFalse(processingProperties.hasWhitespaceStrategy());
+		
+		List<JsonFilterPathMatcher> matchers = rrFactory.extract(new JsonFilterReplacementsProperties(), Arrays.asList(jsonFilterPathProperties), (f) -> f.getRequest(), processingProperties);
+		assertEquals(1, matchers.size());
+		
+		JsonFilterPathMatcher matcher = matchers.get(0);
+		assertTrue(matcher.matches("/myPath"));
+		
+		// same as WhitespaceStrategy.NEVER
+		JsonFilter validatingFilter = matcher.getFilter(true, 1024);
+		assertTrue(validatingFilter instanceof JacksonJsonFilter);
+		
+		JsonFilter filter = matcher.getFilter(false, 1024);
+		assertFalse(filter instanceof JacksonJsonFilter);
+		assertFalse(filter.isRemovingWhitespace());
+	}
+
+	@Test
+	public void extractWithoutWhitespaceStrategyMaxSize() {
+		JsonFilterProperties request = new JsonFilterProperties();
+		request.setAnonymizes(Arrays.asList("/a"));
+		request.setEnabled(true);
+		
+		JsonFilterPathProperties jsonFilterPathProperties = new JsonFilterPathProperties();
+		jsonFilterPathProperties.setMatcher("/myPath");
+		jsonFilterPathProperties.setRequest(request);
+		
+		ProcessingProperties processingProperties = new ProcessingProperties();
+		processingProperties.setMaxSize(1024);
+		assertFalse(processingProperties.hasWhitespaceStrategy());
+		
+		List<JsonFilterPathMatcher> matchers = rrFactory.extract(new JsonFilterReplacementsProperties(), Arrays.asList(jsonFilterPathProperties), (f) -> f.getRequest(), processingProperties);
+		assertEquals(1, matchers.size());
+		
+		JsonFilterPathMatcher matcher = matchers.get(0);
+		
+		// same as WhitespaceStrategy.NEVER
+		JsonFilter validatingFilter = matcher.getFilter(true, 1024);
+		assertTrue(validatingFilter instanceof JacksonJsonFilter);
+		assertEquals(Integer.MAX_VALUE, ((AbstractJsonFilter) validatingFilter).getMaxSize());
+		
+		JsonFilter validatingMaxSizeFilter = matcher.getFilter(true, 1025);
+		assertTrue(validatingMaxSizeFilter instanceof JacksonJsonFilter);
+		assertEquals(1024, ((AbstractJsonFilter) validatingMaxSizeFilter).getMaxSize());
+		
+		JsonFilter filter = matcher.getFilter(false, 1024);
+		assertFalse(filter instanceof JacksonJsonFilter);
+		assertEquals(Integer.MAX_VALUE, ((AbstractJsonFilter) filter).getMaxSize());
+		assertFalse(filter.isRemovingWhitespace());
+		
+		JsonFilter maxSizeFilter = matcher.getFilter(false, 1025);
+		assertFalse(maxSizeFilter instanceof JacksonJsonFilter);
+		assertEquals(1024, ((AbstractJsonFilter) maxSizeFilter).getMaxSize());
 		assertFalse(maxSizeFilter.isRemovingWhitespace());
 	}
 	

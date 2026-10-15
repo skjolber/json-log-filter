@@ -174,6 +174,14 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
 
 						if(nextOffset > maxSizeLimit) {
+							if(quoteIndex < maxSizeLimit) {
+								// the truncated string fits, but not the whitespace after it:
+								// keep the truncated string, and cut the document after it
+								mark = quoteIndex + 1;
+								offset = nextOffset;
+
+								break loop;
+							}
 							// corner case, even with removal we are over the limit
 							maxSizeLimit -= filter.getRemovedLength() - removedLength;
 
@@ -289,6 +297,14 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
 
 						if(nextOffset > maxSizeLimit) {
+							if(quoteIndex < maxSizeLimit) {
+								// the truncated string fits, but not the whitespace after it:
+								// keep the truncated string, and cut the document after it
+								mark = quoteIndex + 1;
+								offset = nextOffset;
+
+								break loop;
+							}
 							// corner case, even with removal we are over the limit
 							maxSizeLimit -= filter.getRemovedLength() - removedLength;
 							

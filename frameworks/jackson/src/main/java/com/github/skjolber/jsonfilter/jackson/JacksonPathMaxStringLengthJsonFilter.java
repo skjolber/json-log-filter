@@ -218,7 +218,7 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 			JacksonEvents.copyCurrentEvent(parser, generator);
 		}
 
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}	
 
 	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {

@@ -11,8 +11,10 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.core.JsonParser;
 import tools.jackson.core.json.JsonFactory;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics;
@@ -100,5 +102,31 @@ public class DefaultJacksonJsonFilterTest {
 		DefaultJacksonJsonFilter filter = new DefaultJacksonJsonFilter(jsonFactory);
 		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
 		assertFalse(filter.process(json, 0, json.length, new StringBuilder(), null));
+	}
+
+	@Test
+	public void testParseRejectsMultipleRootValues() throws Exception {
+		DefaultJacksonJsonFilter filter = new DefaultJacksonJsonFilter();
+		JsonFactory jsonFactory = new JsonFactory();
+
+		String json = IOUtils.toString(getClass().getResourceAsStream("/rootValues/multiple/objects.json"), StandardCharsets.UTF_8);
+		char[] chars = json.toCharArray();
+		try (JsonParser parser = jsonFactory.createParser(chars, 0, chars.length)) {
+			assertFalse(filter.parse(parser));
+		}
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+		try (JsonParser parser = jsonFactory.createParser(bytes, 0, bytes.length)) {
+			assertFalse(filter.parse(parser));
+		}
+
+		String single = IOUtils.toString(getClass().getResourceAsStream("/rootValues/single/objectKey.json"), StandardCharsets.UTF_8);
+		chars = single.toCharArray();
+		try (JsonParser parser = jsonFactory.createParser(chars, 0, chars.length)) {
+			assertTrue(filter.parse(parser));
+		}
+		bytes = single.getBytes(StandardCharsets.UTF_8);
+		try (JsonParser parser = jsonFactory.createParser(bytes, 0, bytes.length)) {
+			assertTrue(filter.parse(parser));
+		}
 	}
 }

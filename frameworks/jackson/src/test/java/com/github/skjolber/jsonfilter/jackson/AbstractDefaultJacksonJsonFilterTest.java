@@ -19,6 +19,29 @@ public abstract class AbstractDefaultJacksonJsonFilterTest extends DefaultJsonFi
 	public AbstractDefaultJacksonJsonFilterTest(boolean includePrettyPrinting) throws Exception {
 		super(false, includePrettyPrinting, false);
 	}
+
+	// the first root value is short, so that max size filters also read the start of the second root value
+	protected final String multipleRootValues = readResource("/rootValues/multiple/objects.json");
+
+	public void assertMultipleRootValuesRejected(JacksonJsonFilter filter) {
+		// rejected, leaving the output as it was
+		String prefix = "PREFIX|";
+
+		StringBuilder fromChars = new StringBuilder(prefix);
+		assertFalse(filter.process(multipleRootValues.toCharArray(), 0, multipleRootValues.length(), fromChars));
+		assertEquals(prefix, fromChars.toString());
+
+		byte[] bytes = multipleRootValues.getBytes(StandardCharsets.UTF_8);
+
+		ResizableByteArrayOutputStream fromBytes = new ResizableByteArrayOutputStream(128);
+		fromBytes.write(prefix.getBytes(StandardCharsets.UTF_8));
+		assertFalse(filter.process(bytes, 0, bytes.length, fromBytes));
+		assertEquals(prefix, fromBytes.toString(StandardCharsets.UTF_8));
+
+		StringBuilder fromBytesToChars = new StringBuilder(prefix);
+		assertFalse(filter.process(bytes, 0, bytes.length, fromBytesToChars));
+		assertEquals(prefix, fromBytesToChars.toString());
+	}
 	
 	public void testConvenienceMethods(JacksonJsonFilter successFilter, JacksonJsonFilter failureFilter, JacksonJsonFilter brokenFactory) throws IOException {
 		// returns true

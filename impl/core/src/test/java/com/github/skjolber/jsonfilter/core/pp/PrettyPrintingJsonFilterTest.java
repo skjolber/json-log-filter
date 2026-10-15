@@ -76,6 +76,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		assertExceptionLeavesOutputUntouched(getPrettyPrinter(), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(getPrettyPrinter().process(TRUNCATED));
 		assertNull(getPrettyPrinter().process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
@@ -194,6 +199,38 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
 		assertEquals("{\n  \"arr\": []\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testEmptyObject() throws Exception {
+		// JSON with empty object {} — kept on one line, like an empty array
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObject.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testEmptyObjectWithWhitespace() throws Exception {
+		// JSON with empty object containing whitespace { } — covers the while loop in empty-object detection
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObjectSpace.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test

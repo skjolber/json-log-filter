@@ -170,7 +170,8 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 				
 				int accurateSize = getAccurateSize(parser, fieldName, nextToken);
 
-				if(outputSize + accurateSize > maxSize) {
+				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
+				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
 					if(metrics != null) {
 						metrics.onMaxSize(-1);
 					}
@@ -190,7 +191,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 		}
 		generator.flush();
 		
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}
 
 	protected static int getAccurateSize(final JsonParser parser, String fieldName, JsonToken nextToken) throws IOException {

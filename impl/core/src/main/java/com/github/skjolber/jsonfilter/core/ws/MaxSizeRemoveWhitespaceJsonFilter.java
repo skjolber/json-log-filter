@@ -51,6 +51,10 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isNonStructural(chars, offset, length)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, buffer, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
@@ -68,6 +72,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			}
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			buffer.setLength(bufferLength);
 			return false;
 		}
 	}
@@ -187,6 +193,10 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isNonStructural(chars, offset, length)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, output, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
@@ -205,6 +215,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 			}
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			output.setSize(bufferLength);
 			return false;
 		}
 	}

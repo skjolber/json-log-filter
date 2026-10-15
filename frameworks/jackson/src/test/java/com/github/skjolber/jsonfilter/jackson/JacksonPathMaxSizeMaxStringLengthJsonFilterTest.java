@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,6 +69,15 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		
 		maxSize = (size) -> new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertThat(maxSize, new JacksonPathMaxStringLengthJsonFilter(-1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasPassthrough();
+	}
+
+	@Test
+	public void testRootScalarIsKept() throws Exception {
+		// dropping the root value would leave an empty (invalid) document
+		String json = "\"" + "s".repeat(28) + "\"";
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 10, new String[]{"/secret"}, null);
+		assertEquals(json, filter.process(json));
+		assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 	}
 	
 	@Test
@@ -338,5 +348,11 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		byte[] json = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		assertFalse(filter.process(json, 0, json.length, output, null));
 	}
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		// max size below the input size, so that the input is not passed on to the path filter
+		assertMultipleRootValuesRejected(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, multipleRootValues.length() - 1, new String[]{DEFAULT_PATH}, null));
+	}
+
 }
