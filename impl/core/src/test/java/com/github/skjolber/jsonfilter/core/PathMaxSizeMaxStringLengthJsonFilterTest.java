@@ -308,7 +308,13 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
-		String json = readResource("/json/text/maxSize/objectSecretNumbersOtherLong.json");
+		for(String path : new String[] {"/secret", "/card"}) {
+			MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, new String[]{path}, null);
+			assertThat(maxSize, new PathMaxStringLengthJsonFilter(-1, -1, new String[]{path}, null)).hasAnonymized(path);
+		}
+
+		// the directory check above does not run the max sizes below
+		String json = readResource("/json/text/anonymizeMaxSize/objectSecretNumbersOtherLong.json");
 		int[] maxSizes = {15, 18, 27};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
 		for(int maxStringLength : new int[] {-1, 50}) {
@@ -320,7 +326,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		}
 
 		// anonymize message longer than the anonymized values
-		json = readResource("/json/text/maxSize/objectCardNumbersOther.json");
+		json = readResource("/json/text/anonymizeMaxSize/objectCardNumbersOther.json");
 		maxSizes = new int[] {18, 24, 26, 35, 37};
 		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
 		for(int i = 0; i < maxSizes.length; i++) {
@@ -332,9 +338,13 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testDocumentFitsAfterAnonymizing() throws Exception {
-		String json = readResource("/json/text/maxSize/objectUserPassword.json");
-		for(int maxSize = 25; maxSize <= 27; maxSize++) {
-			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, -1, new String[]{"/user/password"}, null);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, new String[]{"/user/password"}, null);
+		assertThat(maxSize, new PathMaxStringLengthJsonFilter(-1, -1, new String[]{"/user/password"}, null)).hasAnonymized("/user/password");
+
+		// the directory check above does not run the max sizes below
+		String json = readResource("/json/text/anonymizeMaxSize/objectUserPassword.json");
+		for(int size = 25; size <= 27; size++) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, new String[]{"/user/password"}, null);
 			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
 			assertEquals("{\"user\":{\"password\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}
@@ -342,9 +352,13 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testMaxPathMatchesUsedUpClosesStructureOnce() throws Exception {
-		String json = readResource("/json/text/maxSize/objectABooleansBNumber.json");
-		for(int maxSize = 21; maxSize <= 23; maxSize++) {
-			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, 1, new String[]{"/a"}, null);
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, new String[]{"/a"}, null);
+		assertThat(maxSize, new PathMaxStringLengthJsonFilter(-1, 1, new String[]{"/a"}, null)).hasAnonymized("/a");
+
+		// the directory check above does not run the max sizes below
+		String json = readResource("/json/text/anonymizeMaxSize/objectABooleansBNumber.json");
+		for(int size = 21; size <= 23; size++) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, size, 1, new String[]{"/a"}, null);
 			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", filter.process(json));
 			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}

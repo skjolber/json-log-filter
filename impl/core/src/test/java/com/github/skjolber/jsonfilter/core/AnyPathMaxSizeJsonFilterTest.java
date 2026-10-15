@@ -202,7 +202,13 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
-		String json = readResource("/json/text/maxSize/objectSecretNumbersOtherLong.json");
+		for(String path : new String[] {"//secret", "//card"}) {
+			MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{path}, null);
+			assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{path}, null)).hasAnonymized(path);
+		}
+
+		// the directory check above does not run the max sizes below
+		String json = readResource("/json/text/anonymizeMaxSize/objectSecretNumbersOtherLong.json");
 		int[] maxSizes = {15, 18, 27};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
 		for(int i = 0; i < maxSizes.length; i++) {
@@ -212,8 +218,8 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		}
 
 		// anonymize message longer than the anonymized values, which are numbers or strings
-		String numbers = readResource("/json/text/maxSize/objectCardNumbersOther.json");
-		String strings = readResource("/json/text/maxSize/objectCardStringsOther.json");
+		String numbers = readResource("/json/text/anonymizeMaxSize/objectCardNumbersOther.json");
+		String strings = readResource("/json/text/anonymizeMaxSize/objectCardStringsOther.json");
 		String[] jsons = {numbers, numbers, numbers, strings, strings, strings};
 		maxSizes = new int[] {18, 24, 35, 20, 28, 37};
 		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
@@ -226,14 +232,20 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testDocumentFitsAfterAnonymizing() throws Exception {
-		String json = readResource("/json/text/maxSize/objectUserPassword.json");
+		for(String path : new String[] {"//password", "//key"}) {
+			MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{path}, null);
+			assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{path}, null)).hasAnonymized(path);
+		}
+
+		// the directory check above does not run the max sizes below
+		String json = readResource("/json/text/anonymizeMaxSize/objectUserPassword.json");
 		for(int maxSize = 25; maxSize <= 27; maxSize++) {
 			AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(maxSize, -1, new String[]{"//password"}, null);
 			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
 			assertEquals("{\"user\":{\"password\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}
 
-		String array = readResource("/json/text/maxSize/arrayObjectKeyNumber.json");
+		String array = readResource("/json/text/anonymizeMaxSize/arrayObjectKeyNumber.json");
 		AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(14, -1, new String[]{"//key"}, null);
 		assertEquals("[{\"key\":\"*\"}]", filter.process(array));
 		assertEquals("[{\"key\":\"*\"}]", new String(filter.process(array.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));

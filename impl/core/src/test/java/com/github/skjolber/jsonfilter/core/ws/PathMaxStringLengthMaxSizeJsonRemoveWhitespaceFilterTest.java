@@ -334,8 +334,12 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the string value which does not fit is left out, not cut
-		String strings = readResource("/json/text/maxSize/objectSecretStructuralStringsOtherLong.json");
-		String object = readResource("/json/text/maxSize/objectSecretStructuralObjectOtherLong.json");
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/secret"}, null)).hasAnonymized("/secret");
+
+		// the directory check above does not run the max sizes below
+		String strings = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralStringsOtherLong.json");
+		String object = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralObjectOtherLong.json");
 		String[] jsons = {strings, strings, object, object};
 		int[] maxSizes = {15, 19, 21, 30};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":{}}", "{\"secret\":{\"pin\":\"*\"}}"};
@@ -349,10 +353,14 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testMaxPathMatchesUsedUpWithinAnonymizedSubtree() throws Exception {
 		// max path matches used up by a subtree which was cut by max size
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, 1, new String[]{"//secret"}, null)).hasAnonymized("//secret");
+
+		// the directory check above does not run the max sizes below
 		// inline: files in /json must end with the root value, see SkipObjectJsonFilterTest
 		String json = "{\"secret\":{\"c\":\"S\",\"name\":\"SECRET\"}}  \n ";
-		for(int maxSize = 13; maxSize <= 16; maxSize++) {
-			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, 1, new String[]{"//secret"}, null);
+		for(int size = 13; size <= 16; size++) {
+			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
 			assertEquals("{\"secret\":{}}", filter.process(json));
 			assertEquals("{\"secret\":{}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}
@@ -361,14 +369,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testWildcardPathAfterMatchingSibling() throws Exception {
 		// the sibling "b" also matches the wildcard
-		String json = readResource("/json/text/maxSize/objectBNumberYTagsSecretMessage.json");
-		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 59, -1, new String[]{"/*/secret"}, null);
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", filter.process(json));
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-
-		filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 60, -1, new String[]{"/*/secret"}, null);
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\",\"message\":\"abc\"}}", filter.process(json));
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\",\"message\":\"abc\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/*/secret"}, null);
+		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/*/secret"}, null)).hasAnonymized("/*/secret");
 	}
 
 	@Test
