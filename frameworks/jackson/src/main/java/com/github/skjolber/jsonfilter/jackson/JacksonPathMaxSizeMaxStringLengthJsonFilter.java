@@ -293,7 +293,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			offset = nextOffset;
 		}
 		
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}
 	
 

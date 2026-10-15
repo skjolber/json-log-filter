@@ -172,7 +172,7 @@ public class JacksonMaxSizeJsonFilter extends DefaultJacksonJsonFilter implement
 		}
 		generator.flush();
 		
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}
 
 	protected static int getAccurateSize(final JsonParser parser, String fieldName, JsonToken nextToken) throws IOException {

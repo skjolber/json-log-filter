@@ -186,6 +186,11 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		assertTrue(filter.process(json, 0, json.length, sb, null));
 		assertEquals("{}", sb.toString());
 	}
-	
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		// max size below the input size, so that the input is not passed through as-is
+		assertMultipleRootValuesRejected(new JacksonMaxSizeJsonFilter(multipleRootValues.length() - 1));
+	}
+
 }

@@ -79,7 +79,7 @@ public class DefaultJacksonJsonFilter extends AbstractJacksonJsonFilter {
 		try {
 			while(parser.nextToken() != null);
 			
-			return true;
+			return JacksonEvents.isSingleRootValue(parser);
 		} catch(final Exception e) {
 			return false;
 		}
