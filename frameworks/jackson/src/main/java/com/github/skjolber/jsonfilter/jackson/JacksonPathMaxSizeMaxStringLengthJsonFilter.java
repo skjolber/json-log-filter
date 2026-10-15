@@ -102,6 +102,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 		long maxSize = this.maxSize;
 
+		boolean utf8 = JacksonMaxSizeJsonFilter.isUtf8(generator);
+
 		int level = 0;
 
 		PathItem pathItem = this.pathItem;
@@ -183,10 +185,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 							message = pruneJsonValue;
 						}
 						
-						long size = currentName.length() + 3 + message.length + outputSizeSupplier.getAsLong();
-						if(parser.streamReadContext().getCurrentIndex() >= 2) {
-							size++;
-						}
+						long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 1 + JacksonMaxSizeJsonFilter.getRawSize(message, utf8) + outputSizeSupplier.getAsLong();
 
 						if(size > maxSize) {
 							if(metrics != null) {
@@ -201,10 +200,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						// array or object
 						if(anon) {
 							
-							long size = currentName.length() + 4 + outputSizeSupplier.getAsLong();
-							if(parser.streamReadContext().getCurrentIndex() >= 2) {
-								size++;
-							}
+							// field name, colon, and opening and closing bracket
+							long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 3 + outputSizeSupplier.getAsLong();
 							
 							if(size > maxSize) {
 								if(metrics != null) {
@@ -220,10 +217,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 								break;
 							}
 						} else {
-							long size = currentName.length() + 3 + pruneJsonValue.length + outputSizeSupplier.getAsLong();
-							if(parser.streamReadContext().getCurrentIndex() >= 2) {
-								size++;
-							}
+							long size = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken) + JacksonMaxSizeJsonFilter.getQuotedSize(currentName, utf8) + 1 + JacksonMaxSizeJsonFilter.getRawSize(pruneJsonValue, utf8) + outputSizeSupplier.getAsLong();
 							
 							if(size > maxSize) {
 								if(metrics != null) {
@@ -260,7 +254,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			if(outputSize + size > maxSize) {
 
 				// do more accurate size calculation
-				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				int accurateSize = JacksonMaxSizeMaxStringLengthJsonFilter.getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, utf8);
 
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
@@ -301,6 +295,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
 		int level = 1;
 		
+		boolean utf8 = JacksonMaxSizeJsonFilter.isUtf8(generator);
+		
         String fieldName = null;
 		while(level > 0) {
 			JsonToken nextToken = parser.nextToken();
@@ -330,17 +326,14 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 			long outputSize;
 			if(nextToken.isScalarValue()) {
-				outputSize = anonymizeJsonValue.length;
+				outputSize = JacksonMaxSizeJsonFilter.getRawSize(anonymizeJsonValue, utf8);
 			} else {
 				outputSize = 1;
 			}
 			if(fieldName != null) {
-				outputSize += fieldName.length() + 3;
+				outputSize += JacksonMaxSizeJsonFilter.getQuotedSize(fieldName, utf8) + 1; // colon
 			}
-			
-			if(parser.streamReadContext().getCurrentIndex() >= 2) {
-				outputSize++;
-			}
+			outputSize += JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken);
 			
 			long size = outputSizeSupplier.getAsLong();
 			

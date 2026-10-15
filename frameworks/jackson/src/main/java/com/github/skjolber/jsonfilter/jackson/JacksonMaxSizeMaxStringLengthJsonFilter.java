@@ -105,6 +105,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 
 		int maxSize = this.maxSize;
 
+		boolean utf8 = JacksonMaxSizeJsonFilter.isUtf8(generator);
+
         String fieldName = null;
         
         long offset = offsetSupplier.getAsLong();
@@ -142,7 +144,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			if(outputSize + size > maxSize) {
 
 				// do more accurate size calculation
-				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
+				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, utf8);
 				
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
@@ -181,64 +183,56 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 	}
 
 	protected static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue) throws IOException {
-		int accurateSize;
+		return getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue, false);
+	}
+
+	/**
+	 * Size of the current token as written by the generator, including separator and field name, and
+	 * truncation of long string values.
+	 *
+	 * @param parser parser at the current token
+	 * @param fieldName pending field name, or null
+	 * @param nextToken current token
+	 * @param maxStringLength max string length
+	 * @param truncateStringValue truncate message
+	 * @param utf8 true if the output is UTF-8 bytes, false if characters
+	 * @return size in bytes (UTF-8) or characters
+	 * @throws IOException on parse error
+	 */
+
+	protected static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue, boolean utf8) throws IOException {
+		if(nextToken != JsonToken.VALUE_STRING || parser.getTextLength() <= maxStringLength) {
+			return JacksonMaxSizeJsonFilter.getAccurateSize(parser, fieldName, nextToken, utf8);
+		}
+		
+		int accurateSize = JacksonMaxSizeJsonFilter.getSeparatorSize(parser, nextToken);
 		if(fieldName != null) {
-			accurateSize = fieldName.length() + 2;
+			accurateSize += JacksonMaxSizeJsonFilter.getQuotedSize(fieldName, utf8) + 1; // colon
+		}
+
+		char[] textCharacters = parser.getTextCharacters();
+		int textOffset = parser.getTextOffset();
+		
+		// A high surrogate precedes a low surrogate.
+		// check last include character
+
+		int keepLength;
+		if(Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
+			keepLength = maxStringLength - 1;
 		} else {
-			accurateSize = 0;
+			keepLength = maxStringLength;
 		}
 		
-		if(parser.streamReadContext().getCurrentIndex() >= 2) {
-			accurateSize++;
-		}
-		
-		if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
-			
-			char[] textCharacters = parser.getTextCharacters();
-			int textOffset = parser.getTextOffset();
-			
-			// A high surrogate precedes a low surrogate.
-			// check last include character
+		int removeLength = parser.getTextLength() - keepLength;
 
-			int keepLength;
-			if(Character.isLowSurrogate(textCharacters[textOffset + maxStringLength])) {
-				keepLength = maxStringLength - 1;
-			} else {
-				keepLength = maxStringLength;
-			}
-			
-			int removeLength = parser.getTextLength() - keepLength;
-
-			int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
-			if(actualReductionLength > 0) {
-				accurateSize += parser.getTextLength() - actualReductionLength + 2;
-			} else {
-				accurateSize += parser.getTextLength() + 2;
-			}
+		// same condition as in JacksonMaxStringLengthJsonFilter.writeMaxStringLength(..)
+		int actualReductionLength = removeLength - truncateStringValue.length - lengthToDigits(removeLength);
+		if(actualReductionLength > 0) {
+			accurateSize += JacksonMaxSizeJsonFilter.getQuotedSize(textCharacters, textOffset, keepLength, utf8) + JacksonMaxSizeJsonFilter.getRawSize(truncateStringValue, utf8) + lengthToDigits(removeLength);
 		} else {
-			
-			switch(nextToken) {
-			case VALUE_STRING: {
-				accurateSize += parser.getTextLength() + 2;
-				break;
-			}
-			case VALUE_NUMBER_FLOAT:
-			case VALUE_NUMBER_INT: {
-				accurateSize += parser.getStringLength();
-				break;
-			}
-			case VALUE_TRUE: 
-			case VALUE_NULL: {
-				accurateSize += 4;
-				break;
-			}
-			case VALUE_FALSE: {
-				accurateSize += 5;
-				break;
-			}
-			}
+			accurateSize += JacksonMaxSizeJsonFilter.getQuotedSize(textCharacters, textOffset, parser.getTextLength(), utf8);
 		}
 		return accurateSize;
 	}
-	
+
 }
