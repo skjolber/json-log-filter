@@ -149,16 +149,6 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 	}
 
 	@Test
-	public void testTopLevelNumberOrLiteralIsKept() {
-		// there is no smaller valid document
-		MaxStringLengthMaxSizeJsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(5, 2);
-		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
-			assertEquals(json, filter.process(json));
-			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-	}
-
-	@Test
 	public void testLongKeyWithWhitespaceBeforeColon() throws Exception {
 		// A long key followed by multiple whitespace characters before the colon is handled without truncating the key.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/irregularWhitespace/objectLongKeySpacedValue.json"));

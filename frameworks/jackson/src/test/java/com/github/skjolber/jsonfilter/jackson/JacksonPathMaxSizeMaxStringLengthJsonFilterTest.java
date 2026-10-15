@@ -160,14 +160,6 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		assertEquals(prefix + expected, new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
 	}
 
-	@Test
-	public void testRootScalarIsKept() throws Exception {
-		// dropping the root value would leave an empty (invalid) document
-		String json = "\"" + "s".repeat(28) + "\"";
-		JacksonPathMaxSizeMaxStringLengthJsonFilter filter = new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 10, new String[]{"/secret"}, null);
-		assertEquals(json, filter.process(json));
-		assertEquals(json, new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
-	}
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {

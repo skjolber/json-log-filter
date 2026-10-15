@@ -40,7 +40,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {	
-		if(!mustConstrainMaxSize(length) || isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -203,7 +203,7 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {		
-		if(!mustConstrainMaxSize(length) || isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		if(!mustConstrainMaxSize(length)) {
 			if(chars.length < offset + length) {
 				return false;
 			}
@@ -358,53 +358,6 @@ public class MaxSizeJsonFilter extends AbstractJsonFilter {
 			previousOffset--;
 		}
 		return -1;
-	}
-
-	/**
-	 * Whether the document is a number, true, false or null, ignoring leading whitespace. There is no smaller
-	 * valid document, so the max-size filters keep such a document as-is. Objects, arrays and strings return false.
-	 *
-	 * @param chars input
-	 * @param offset start of document
-	 * @param limit end of document
-	 * @return true if a top-level number, true, false or null
-	 */
-
-	public static boolean isTopLevelNumberOrLiteral(final char[] chars, int offset, int limit) {
-		// invalid offset or length is handled by the caller
-		if(offset < 0) {
-			return false;
-		}
-		if(limit > chars.length) {
-			limit = chars.length;
-		}
-		while(offset < limit && chars[offset] <= 0x20) {
-			offset++;
-		}
-		return offset < limit && chars[offset] != '{' && chars[offset] != '[' && chars[offset] != '"';
-	}
-
-	/**
-	 * Byte variant of {@link #isTopLevelNumberOrLiteral(char[], int, int)}.
-	 *
-	 * @param chars input
-	 * @param offset start of document
-	 * @param limit end of document
-	 * @return true if a top-level number, true, false or null
-	 */
-
-	public static boolean isTopLevelNumberOrLiteral(final byte[] chars, int offset, int limit) {
-		// invalid offset or length is handled by the caller
-		if(offset < 0) {
-			return false;
-		}
-		if(limit > chars.length) {
-			limit = chars.length;
-		}
-		while(offset < limit && chars[offset] <= 0x20 && chars[offset] >= 0) {
-			offset++;
-		}
-		return offset < limit && chars[offset] != '{' && chars[offset] != '[' && chars[offset] != '"';
 	}
 
 	public static void closeStructure(int level, boolean[] squareBrackets, final StringBuilder buffer) {

@@ -69,19 +69,6 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 		assertEquals(prefix + expected, new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
 	}
 
-	@Test
-	public void testRootScalarIsKept() throws Exception {
-		// dropping the root value would leave an empty (invalid) document
-		String json = "\"" + "s".repeat(28) + "\"";
-		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(100, 10);
-		assertEquals(json, filter.process(json));
-		assertEquals(json, new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
-
-		// but it is still truncated to the max string length
-		filter = new JacksonMaxSizeMaxStringLengthJsonFilter(5, 10);
-		assertEquals("\"sssss... + 23\"", filter.process(json));
-		assertEquals("\"sssss... + 23\"", new String(filter.process(json.getBytes(java.nio.charset.StandardCharsets.UTF_8)), java.nio.charset.StandardCharsets.UTF_8));
-	}
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {

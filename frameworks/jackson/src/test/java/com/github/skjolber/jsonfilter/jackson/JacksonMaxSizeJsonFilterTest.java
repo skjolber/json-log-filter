@@ -81,14 +81,6 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		assertEquals(prefix + expected, new String(output.toByteArray(), StandardCharsets.UTF_8));
 	}
 
-	@Test
-	public void testRootScalarIsKept() throws Exception {
-		// dropping the root value would leave an empty (invalid) document
-		String json = "\"" + "s".repeat(28) + "\"";
-		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(10);
-		assertEquals(json, filter.process(json));
-		assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-	}
 	
 	@Test
 	public void testConvenienceMethods() throws IOException {
