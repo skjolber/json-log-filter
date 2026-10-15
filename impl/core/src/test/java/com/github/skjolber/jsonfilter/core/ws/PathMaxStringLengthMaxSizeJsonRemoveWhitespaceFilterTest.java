@@ -2,6 +2,9 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -168,6 +171,46 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 			.hasMaxPathMatches(2)
 			.hasPruned("/key3").hasPruneMetrics()
 			.hasAnonymized("/key1").hasAnonymizeMetrics();
+	}
+
+	@Test
+	public void maxStringLengthTopLevelStringLongerThanMaxSize() throws Exception {
+		// a string cannot be cut, so it is only truncated by max string length, even if longer than max size
+		String string = " \"hello world, a long string\"\n";
+		String truncated = "\"hello... + 21\"";
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10, -1, new String[]{DEFAULT_PATH}, new String[]{PASSTHROUGH_XPATH});
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertEquals(truncated, filter.process(string, metrics));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8), metrics));
+		assertEquals(2, metrics.getMaxStringLength());
+
+		// a colon after the slice must not make the string look like a key
+		String input = "x" + string + ":y";
+
+		StringBuilder builder = new StringBuilder();
+		assertTrue(filter.process(input.toCharArray(), 1, string.length(), builder));
+		assertEquals(truncated, builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(input.getBytes(StandardCharsets.UTF_8), 1, string.length(), output));
+		assertEquals(truncated, output.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		JsonFilter[] filters = {
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"//a"}, null)
+		};
+		for(JsonFilter filter : filters) {
+			for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+				assertEquals(json, filter.process(json));
+				assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			}
+		}
 	}
 
 	@Test

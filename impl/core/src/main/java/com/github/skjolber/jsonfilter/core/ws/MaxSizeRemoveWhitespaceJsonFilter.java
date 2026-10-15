@@ -51,6 +51,10 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isNonStructural(chars, offset, length)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, buffer, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
@@ -183,6 +187,10 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isNonStructural(chars, offset, length)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, output, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}

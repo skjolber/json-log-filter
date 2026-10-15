@@ -15,7 +15,8 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		CharArrayRangesFilter copy = ranges(chars, offset, length);
+		// a document which is not an object or array is rare, and handled separately
+		CharArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -28,7 +29,8 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		CharArrayRangesFilter copy = ranges(chars, offset, length);
+		// a document which is not an object or array is rare, and handled separately
+		CharArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -43,7 +45,8 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
-		ByteArrayRangesFilter copy = ranges(chars, offset, length);
+		// a document which is not an object or array is rare, and handled separately
+		ByteArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -54,7 +57,8 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
-		ByteArrayRangesFilter copy = ranges(chars, offset, length);
+		// a document which is not an object or array is rare, and handled separately
+		ByteArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
 		if(copy == null) {
 			return false;
 		}
@@ -66,6 +70,22 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	
 	protected abstract ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length);
 
+
+	protected CharArrayRangesFilter nonStructuralRanges(final char[] chars, int offset, int length) {
+		try {
+			return CharArrayRangesFilter.addNonStructural(chars, offset, length, maxStringLength, false, getCharArrayRangesFilter(-1, length));
+		} catch(Exception e) {
+			return null;
+		}
+	}
+
+	protected ByteArrayRangesFilter nonStructuralRanges(final byte[] chars, int offset, int length) {
+		try {
+			return ByteArrayRangesFilter.addNonStructural(chars, offset, length, maxStringLength, false, getByteArrayRangesFilter(-1, length));
+		} catch(Exception e) {
+			return null;
+		}
+	}
 
 	protected CharArrayRangesFilter getCharArrayRangesFilter(int length) {
 		return getCharArrayRangesFilter(-1, length);

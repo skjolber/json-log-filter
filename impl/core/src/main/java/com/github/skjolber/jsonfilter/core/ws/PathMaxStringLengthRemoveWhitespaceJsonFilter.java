@@ -52,6 +52,16 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 	}
 	
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		if(isNonStructural(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				CharArrayRangesFilter.filterNonStructural(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		CharArrayWhitespaceFilter filter = new CharArrayWhitespaceFilter(pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 		
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -243,6 +253,16 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 	}
 	
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		if(isNonStructural(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				ByteArrayRangesFilter.filterNonStructural(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		ByteArrayWhitespaceFilter filter = new ByteArrayWhitespaceFilter(pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 		
 		AnyPathFilters anyPathFilters = this.anyPathFilters;

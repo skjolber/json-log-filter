@@ -1,6 +1,11 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +41,32 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 	@Test
 	public void maxStringLength() throws Exception {
 		assertThat(new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
+	}
+
+	@Test
+	public void maxStringLengthTopLevelString() throws Exception {
+		// a document which is a single string has no structural character after the string
+		String string = "\"hello world, a long string\"";
+		String truncated = "\"hello... + 21\"";
+		MaxStringLengthJsonFilter filter = new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertEquals(truncated, filter.process(string));
+		assertEquals(truncated, filter.process(string, metrics));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8)));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8), metrics));
+		assertEquals(2, metrics.getMaxStringLength());
+
+		// a colon after the slice must not make the string look like a key
+		String input = "x" + string + ":y";
+
+		StringBuilder builder = new StringBuilder();
+		assertTrue(filter.process(input.toCharArray(), 1, string.length(), builder));
+		assertEquals(truncated, builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(input.getBytes(StandardCharsets.UTF_8), 1, string.length(), output));
+		assertEquals(truncated, output.toString(StandardCharsets.UTF_8));
 	}
 	
 }
