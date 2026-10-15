@@ -244,10 +244,11 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 				FilterType filterType = null;
 				
-				PathItem previousPathItem = pathItem;
+				// the item for this level, not one left behind by a previous sibling key
+				PathItem previousPathItem = pathItem.constrain(level);
 				
 				// match again any higher filter
-				pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, endQuoteIndex);
+				pathItem = previousPathItem.matchPath(level, chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
 					// matched
 					filterType = pathItem.getType();
@@ -415,6 +416,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					pathMatches--;
 					if(pathMatches == 0) {
 						// just remove whitespace
+						if(flushOffset <= mark) {
+							streamMark = buffer.length() + mark - flushOffset;
+						}
 						buffer.append(chars, flushOffset, offset - flushOffset);
 
 						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
@@ -677,10 +681,11 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 				FilterType filterType = null;
 				
-				PathItem previousPathItem = pathItem;
+				// the item for this level, not one left behind by a previous sibling key
+				PathItem previousPathItem = pathItem.constrain(level);
 				
 				// match again any higher filter
-				pathItem = pathItem.constrain(level).matchPath(level, chars, offset + 1, endQuoteIndex);
+				pathItem = previousPathItem.matchPath(level, chars, offset + 1, endQuoteIndex);
 				if(pathItem.hasType()) {
 					// matched
 					filterType = pathItem.getType();
@@ -847,6 +852,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					pathMatches--;
 					if(pathMatches == 0) {
 						// just remove whitespace
+						if(flushOffset <= mark) {
+							streamMark = stream.size() + mark - flushOffset;
+						}
 						stream.write(chars, flushOffset, offset - flushOffset);
 
 						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, stream, bracketLevel, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
