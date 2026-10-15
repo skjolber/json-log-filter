@@ -46,6 +46,9 @@ public class Indent {
 		}
 		
 		public Builder withPreparedLevels(int preparedLevels) {
+			if(preparedLevels < 1) {
+				throw new IllegalArgumentException("Expected at least one prepared level, got " + preparedLevels);
+			}
 			this.preparedLevels = preparedLevels;
 			
 			return this;
@@ -72,8 +75,6 @@ public class Indent {
 	
 	protected final char[][] charIndentations;
 	protected final byte[][] byteIndentations;
-	protected final char[] charIncrement;
-	protected final byte[] byteIncrement;
 	protected final char character;
 	protected final int count;
 	protected final int preparedLevels;
@@ -106,9 +107,6 @@ public class Indent {
 		
 		this.charIndentations = prepareChars(character, count, linebreak, preparedLevels);
 		this.byteIndentations = prepareBytes(character, count, linebreak, preparedLevels);
-
-		this.charIncrement = asIndent().toCharArray();
-		this.byteIncrement = asIndent().getBytes(StandardCharsets.UTF_8);
 	}
 
 	protected static byte[][] prepareBytes(char character, int count, LinebreakType linebreak, int levels) {
@@ -155,13 +153,6 @@ public class Indent {
 	public void append(ResizableByteArrayOutputStream stream, int level) {
 		if(level < charIndentations.length) {
 			stream.write(byteIndentations[level], 0, byteIndentations[level].length);
-		} else if(preparedLevels == 0) {
-			// no prepared levels
-			stream.write(byteIndentations[0], 0, byteIndentations[0].length);
-
-			for(int i = 0; i < level; i++) {
-				stream.write(byteIncrement, 0, byteIncrement.length);
-			}
 		} else {
 			// do not ensure capacity here, leave that up to the caller
 			// append a longer intent than we have prepared
@@ -178,13 +169,6 @@ public class Indent {
 	public void append(StringBuilder buffer, int level) {
 		if(level < charIndentations.length) {
 			buffer.append(charIndentations[level]);
-		} else if(preparedLevels == 0) {
-			// no prepared levels
-			buffer.append(charIndentations[0]);
-
-			for(int i = 0; i < level; i++) {
-				buffer.append(charIncrement);
-			}
 		} else {
 			// do not ensure capacity here, leave that up to the caller
 			// append a longer intent than we have prepared
