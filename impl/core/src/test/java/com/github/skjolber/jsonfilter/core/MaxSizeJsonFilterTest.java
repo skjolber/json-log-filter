@@ -67,29 +67,6 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
-	public void passthrough_success() throws Exception {
-		assertThat(new MaxSizeJsonFilter(-1)).hasPassthrough();
-	}
-
-	@Test
-	public void exception_returns_false() throws Exception {
-		assertFalse(new MaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
-		assertFalse(new MaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
-	}
-
-	@Test
-	public void exception_offset_if_not_exceeded() throws Exception {
-		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
-		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
-	}
-	
-	@Test
-	public void maxSize() throws Exception {
-		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
-		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
-	}
-
-	@Test
 	public void testHasContent() {
 		// whitespace and closing brackets are not content
 		String json = "{\"a\":[1 \n\t\r ]}";
@@ -114,6 +91,29 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		assertTrue(MaxSizeJsonFilter.hasContent(" ,".getBytes(StandardCharsets.UTF_8), 0, 2));
 		assertTrue(MaxSizeJsonFilter.hasContent(" \u00e6".toCharArray(), 0, 2));
 		assertTrue(MaxSizeJsonFilter.hasContent(" \u00e6".getBytes(StandardCharsets.UTF_8), 0, 3));
+	}
+
+	@Test
+	public void passthrough_success() throws Exception {
+		assertThat(new MaxSizeJsonFilter(-1)).hasPassthrough();
+	}
+
+	@Test
+	public void exception_returns_false() throws Exception {
+		assertFalse(new MaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
+		assertFalse(new MaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_offset_if_not_exceeded() throws Exception {
+		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
+		assertNull(new MaxSizeJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
+	}
+	
+	@Test
+	public void maxSize() throws Exception {
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMaxSizeJsonFilter(size);
+		assertThat(maxSize, new DefaultJsonFilter()).hasMaxSize();
 	}
 
 	@Test

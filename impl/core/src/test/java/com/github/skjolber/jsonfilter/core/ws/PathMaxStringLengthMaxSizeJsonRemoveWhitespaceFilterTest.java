@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.core.ws;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -288,7 +287,7 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		StringBuilder output = new StringBuilder();
-		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
 		assertEquals(compact, output.toString());
 		assertEquals(0, metrics.getMaxSize());
 		assertEquals(pretty.length(), metrics.getInputSize());
@@ -296,7 +295,7 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 		metrics = new DefaultJsonFilterMetrics();
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
-		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
 		assertEquals(compact, byteOutput.toString(StandardCharsets.UTF_8));
 		assertEquals(0, metrics.getMaxSize());
 		assertEquals(prettyBytes.length, metrics.getInputSize());
@@ -307,12 +306,12 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 		metrics = new DefaultJsonFilterMetrics();
 		output.setLength(0);
-		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
 		assertEquals(pretty.length() - output.length(), metrics.getMaxSize());
 
 		metrics = new DefaultJsonFilterMetrics();
 		byteOutput.reset();
-		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
 		assertEquals(prettyBytes.length - byteOutput.size(), metrics.getMaxSize());
 	}
 
