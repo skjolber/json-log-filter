@@ -186,7 +186,7 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 		}
 		generator.flush(); // don't close
 
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}	
 
 	protected void anonymizeChildren(JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {

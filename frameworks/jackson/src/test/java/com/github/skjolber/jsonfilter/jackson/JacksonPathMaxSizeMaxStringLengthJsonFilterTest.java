@@ -291,5 +291,11 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		byte[] json = "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		assertFalse(filter.process(json, 0, json.length, output, null));
 	}
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		// max size below the input size, so that the input is not passed on to the path filter
+		assertMultipleRootValuesRejected(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, multipleRootValues.length() - 1, new String[]{DEFAULT_PATH}, null));
+	}
+
 }

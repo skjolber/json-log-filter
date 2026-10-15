@@ -52,4 +52,10 @@ public class IndentTest {
 		Indent build = Indent.newBuilder().withSpace(2).withUnixLinebreak().withPreparedLevels(64).build();
 		assertEquals(build.asIndent(), "  ");
 	}
+
+	@Test
+	public void testBuilderRejectsZeroPreparedLevels() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> Indent.newBuilder().withPreparedLevels(0));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> Indent.newBuilder().withPreparedLevels(-1));
+	}
 }

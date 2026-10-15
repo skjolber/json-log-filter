@@ -30,6 +30,19 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		return new PrettyPrintingJsonFilter(ident);
 	}
 
+	private void assertPrettyPrinted(String json, String expected) {
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals(expected, charOutput.toString());
+
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals(expected, byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
 	@Test
 	public void testInvalidInput() throws Exception {
 		String string = new String(Generator.generateDeepObjectStructure(1000, true), StandardCharsets.UTF_8);
@@ -60,6 +73,11 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	public void exception_returns_false() throws Exception {
 		assertFalse(getPrettyPrinter().process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(getPrettyPrinter().process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		assertExceptionLeavesOutputUntouched(getPrettyPrinter(), UNTERMINATED_LAST_STRING);
 	}
 
 	@Test
@@ -102,6 +120,34 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testObjectValueEndingWithEscapedBackslash() throws Exception {
+		// a string which ends with an escaped backslash, like "x\\", ends at its closing quote
+		assertPrettyPrinted("{\"a\":\"x\\\\\",\"b\":1}", "{\n  \"a\": \"x\\\\\",\n  \"b\": 1\n}");
+	}
+
+	@Test
+	public void testArrayValueEndingWithEscapedBackslash() throws Exception {
+		// the whitespace inside the next string is kept
+		assertPrettyPrinted("[\"a\\\\\",\"b c\\\"d\"]", "[\n  \"a\\\\\",\n  \"b c\\\"d\"\n]");
+	}
+
+	@Test
+	public void testKeyEndingWithEscapedBackslash() throws Exception {
+		assertPrettyPrinted("{\"a\\\\\":\"b c\"}", "{\n  \"a\\\\\": \"b c\"\n}");
+	}
+
+	@Test
+	public void testValueEndingWithTwoEscapedBackslashes() throws Exception {
+		assertPrettyPrinted("[\"x\\\\\\\\\",\"b c\"]", "[\n  \"x\\\\\\\\\",\n  \"b c\"\n]");
+	}
+
+	@Test
+	public void testValueEndingWithEscapedBackslashAndQuote() throws Exception {
+		// an escaped backslash followed by an escaped quote: the string does not end at the escaped quote
+		assertPrettyPrinted("[\"a\\\\\\\"\",\"b c\"]", "[\n  \"a\\\\\\\"\",\n  \"b c\"\n]");
+	}
+
+	@Test
 	public void testEmptyArray() throws Exception {
 		// JSON with empty array [] — covers the empty-array shortcut in the second switch
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
@@ -131,6 +177,38 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
 		assertEquals("{\n  \"arr\": []\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testEmptyObject() throws Exception {
+		// JSON with empty object {} — kept on one line, like an empty array
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObject.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testEmptyObjectWithWhitespace() throws Exception {
+		// JSON with empty object containing whitespace { } — covers the while loop in empty-object detection
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObjectSpace.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test

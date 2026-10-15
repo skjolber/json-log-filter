@@ -176,7 +176,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		}
 		generator.flush();
 		
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}
 
 	protected static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue) throws IOException {

@@ -246,6 +246,8 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 			
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			buffer.setLength(bufferLength);
 			return false;
 		}
 	}
@@ -449,6 +451,8 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 			
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			output.setSize(bufferLength);
 			return false;
 		}
 	}

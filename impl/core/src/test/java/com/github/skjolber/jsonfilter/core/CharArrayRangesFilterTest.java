@@ -203,6 +203,36 @@ public class CharArrayRangesFilterTest {
 		assertEquals("abcdefghiF678g\\n\\na... + 22", splitAt(str, 19));
 		assertEquals("abcdefghiF678g\\n\\naa... + 21", splitAt(str, 20));
 	}
+
+	@Test
+	public void testNoUnicodeAlignmentForBackspaceAndFormFeedEscapes() {
+		// b and f are hex digits, but \b and \f are single character escapes
+		String str = "abcdefghiF678g\\b\\faaa01234567890123456789";
+		assertEquals("abcdefghiF678... + 28", splitAt(str, 13));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 14));
+		assertEquals("abcdefghiF678g... + 27", splitAt(str, 15));
+		assertEquals("abcdefghiF678g\\b... + 25", splitAt(str, 16));
+		assertEquals("abcdefghiF678g\\b... + 25", splitAt(str, 17));
+		assertEquals("abcdefghiF678g\\b\\f... + 23", splitAt(str, 18));
+		assertEquals("abcdefghiF678g\\b\\fa... + 22", splitAt(str, 19));
+		assertEquals("abcdefghiF678g\\b\\faa... + 21", splitAt(str, 20));
+	}
+
+	@Test
+	public void testStringAlignmentForBackspaceAndFormFeedEscapes() {
+		// a cut at the b or f of the escape moves to the backslash, a cut after the escape stays
+		for(String string : new String[] {"\"aaaa\\bccc\"", "\"aaaa\\fccc\"", "\"\\\\u\\bccc\""}) {
+			int index = string.lastIndexOf('\\'); // backslash of the \b or \f escape
+
+			assertEquals(index, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), index + 1));
+			assertEquals(index + 2, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), index + 2));
+		}
+
+		// an escaped backslash followed by a plain b or f: a cut before the letter stays
+		for(String string : new String[] {"\"aaa\\\\bccc\"", "\"aaa\\\\fccc\""}) {
+			assertEquals(6, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), 6));
+		}
+	}
 	
 	@Test
 	public void testNoUnicodeAlignmentForSingleInlinedUnicodeCharacters() {
@@ -275,6 +305,67 @@ public class CharArrayRangesFilterTest {
 		}
 	}
 	
+	@Test
+	public void testEscapedSurrogatePairAlignment() {
+		// a cut within an escaped surrogate pair (here U+1F600) removes the whole pair
+		for(String pair : new String[] {"\\uD83D\\uDE00", "\\ud83d\\ude00"}) {
+			String str = "ab" + pair + "cdefghijklmnopqrstuvwxyz0123";
+			for(int i = 3; i < 14; i++) {
+				assertEquals("ab... + 40", splitAt(str, i));
+			}
+			assertEquals("ab" + pair + "... + 28", splitAt(str, 14));
+		}
+
+		// a cut within the second of two consecutive pairs keeps the first pair
+		String pair = "\\uD83D\\uDE00";
+		String str = pair + pair + "cdefghijklmnopqrstuvwxyz0123";
+		for(int i = 12; i < 24; i++) {
+			assertEquals(pair + "... + 40", splitAt(str, i));
+		}
+		assertEquals(pair + pair + "... + 28", splitAt(str, 24));
+
+		// an escaped backslash followed by the plain text uD83D, which is not a high surrogate
+		assertEquals("a\\\\uD83D... + 29", splitAt("a\\\\uD83Dbcdefghijklmnopqrstuvwxyz0123", 8));
+		// an escaped backslash followed by an escaped surrogate pair
+		assertEquals("a\\\\... + 41", splitAt("a\\\\" + pair + "bcdefghijklmnopqrstuvwxyz0123", 9));
+	}
+
+	@Test
+	public void testStringAlignmentForEscapedSurrogatePair() {
+		// quote, two chars, then the pair at index 3 to 14: a cut within the pair moves to its start
+		char[] chars = "\"ab\\uD83D\\uDE00cd\"".toCharArray();
+		assertEquals(3, CharArrayRangesFilter.getStringAlignment(chars, 3));
+		for(int start = 4; start < 15; start++) {
+			assertEquals(3, CharArrayRangesFilter.getStringAlignment(chars, start), Integer.toString(start));
+		}
+		assertEquals(15, CharArrayRangesFilter.getStringAlignment(chars, 15));
+
+		// a cut right after an escaped high surrogate (D800 to DBFF) moves to its start, whatever follows
+		for(String escape : new String[] {"\\uD800", "\\uD83D", "\\uDBFF", "\\udbff"}) {
+			String string = "\"ab" + escape + "\\u00e9cd\"";
+			assertEquals(3, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), 9), escape);
+		}
+
+		// a cut right after any other escape stays
+		for(String escape : new String[] {"\\uD7FF", "\\uDC00", "\\uE000", "\\u0800"}) {
+			String string = "\"ab" + escape + "\\u00e9cd\"";
+			assertEquals(9, CharArrayRangesFilter.getStringAlignment(string.toCharArray(), 9), escape);
+		}
+
+		// a cut after an escaped backslash followed by the plain text uD83D stays
+		assertEquals(9, CharArrayRangesFilter.getStringAlignment("\"a\\\\uD83Dxy\"".toCharArray(), 9));
+	}
+
+	@Test
+	public void testIsHighSurrogateSecondHex() {
+		for(char c = 0; c < 256; c++) {
+			boolean expected = c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b';
+			assertEquals(expected, CharArrayRangesFilter.isHighSurrogateSecondHex(c), Integer.toString(c));
+		}
+		assertFalse(CharArrayRangesFilter.isHighSurrogateSecondHex((char)0xD83D));
+		assertFalse(CharArrayRangesFilter.isHighSurrogateSecondHex(Character.MAX_VALUE));
+	}
+
 	@Test
 	public void testAnonymizeSubtree() throws IOException {
 		String input = IOUtils.resourceToString("/input.json", StandardCharsets.UTF_8);

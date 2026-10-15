@@ -75,6 +75,12 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// max size below the input size, but large enough to reach the end of the input
+		assertExceptionLeavesOutputUntouched(new MaxSizeRemoveWhitespaceJsonFilter(UNTERMINATED_LAST_STRING.length() - 1), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(new MaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
 		assertNull(new MaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));

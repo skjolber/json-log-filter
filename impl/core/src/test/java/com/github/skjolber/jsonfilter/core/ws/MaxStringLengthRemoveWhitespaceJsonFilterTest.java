@@ -30,6 +30,11 @@ public class MaxStringLengthRemoveWhitespaceJsonFilterTest  extends DefaultJsonF
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		assertExceptionLeavesOutputUntouched(new MaxStringLengthRemoveWhitespaceJsonFilter(-1), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		MaxStringLengthRemoveWhitespaceJsonFilter maxStringLengthJsonFilter = new MaxStringLengthRemoveWhitespaceJsonFilter(-1);
 		assertNull(maxStringLengthJsonFilter.process(TRUNCATED));

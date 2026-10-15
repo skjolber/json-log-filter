@@ -126,5 +126,10 @@ public class JacksonAnyPathMaxStringLengthJsonFilterTest extends AbstractDefault
 			}			
 		);
 	}
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		assertMultipleRootValuesRejected(new JacksonAnyPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_ANY_PATH}, null));
+	}
+
 }
