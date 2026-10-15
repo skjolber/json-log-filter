@@ -159,7 +159,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validateAnonymizeExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, partial wildcards and whitespace around path segments are not supported");
+			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 
@@ -177,13 +177,16 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 	 * Reject syntax which is not supported, and so would silently never match: JSONPath bracket notation
 	 * (arrays are transparent, so use $.items.card rather than $.items[*].card), partial wildcards
 	 * like 'a*', and whitespace around a path segment.
+	 * <br>
+	 * Also reject backslashes: keys are compared with the JSON text as is, without unescaping it,
+	 * so a configured key with a backslash would match escape sequences instead of the keys it names.
 	 *
 	 * @param expression expression to check
 	 * @return true if each segment is supported
 	 */
 
 	private static boolean hasSupportedSegments(String expression) {
-		if(expression.indexOf('[') != -1 || expression.indexOf(']') != -1) {
+		if(expression.indexOf('[') != -1 || expression.indexOf(']') != -1 || expression.indexOf('\\') != -1) {
 			return false;
 		}
 		for(String segment : expression.split("/|\\.")) {
@@ -211,7 +214,7 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validatePruneExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, partial wildcards and whitespace around path segments are not supported");
+			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 	
@@ -246,19 +249,9 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
-			// a backslash in the key starts an escape sequence, so then the unescaped key is shorter than the attribute
-			return !containsBackslash(attribute);
+			return true;
 		}
 		return matchesEncoded(chars, start, end, attribute);
-	}
-
-	private static boolean containsBackslash(final char[] attribute) {
-		for(int i = 0; i < attribute.length; i++) {
-			if(attribute[i] == '\\') {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static boolean matchesEncoded(final char[] chars, int start, int end, final char[] attribute) {
@@ -315,20 +308,10 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 					return false;
 				}
 			}
-			// a backslash in the key starts an escape sequence, so then the unescaped key is shorter than the attribute
-			return !containsBackslash(attribute);
+			return true;
 		}
 		
 		return matchesEncoded(source, start, end, attribute);
-	}
-
-	private static boolean containsBackslash(final byte[] attribute) {
-		for(int i = 0; i < attribute.length; i++) {
-			if(attribute[i] == '\\') {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static boolean matchesEncoded(final byte[] source, int start, int end, final byte[] attribute) {
