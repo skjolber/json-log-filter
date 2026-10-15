@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,6 +40,48 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
 		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MaxSizeJsonFilter(size));
+	}
+
+	@Test
+	public void testMarkToLimitIncludesSingleCharacterValueAtMark() {
+		// the value right after an opening bracket starts at the mark
+		assertMarkToLimit(2, "[1,2,3]", 2, 2, 1);
+		assertMarkToLimit(7, "{\"a\":[1,2]}", 7, 7, 6);
+		assertMarkToLimit(3, "[[1],[2]]", 3, 3, 2);
+		// whitespace between the value and the cut
+		assertMarkToLimit(2, "[1 ,2]", 3, 3, 1);
+	}
+
+	@Test
+	public void testMarkToLimitExcludesValueAtMark() {
+		// value beyond the max size limit
+		assertMarkToLimit(-1, "[1,2,3]", 2, 1, 1);
+		// value continues after the cut
+		assertMarkToLimit(-1, "[12,3]", 2, 2, 1);
+		// a comma mark never ends the output
+		assertMarkToLimit(-1, "[1,]", 3, 4, 2);
+	}
+
+	@Test
+	public void testSingleCharacterValueAfterOpeningBracket() {
+		// kept if it fits
+		assertMaxSize("{\"a\":[1]}", "{\"a\":[1,2]}", 9);
+		assertMaxSize("[1]", "[1,2,3]", 3);
+		assertMaxSize("[[1]]", "[[1],[2]]", 5);
+		// dropped if it does not fit
+		assertMaxSize("{\"a\":[]}", "{\"a\":[1,2]}", 8);
+		assertMaxSize("[]", "[1,2,3]", 2);
+	}
+
+	private static void assertMarkToLimit(int expected, String json, int offset, int maxSizeLimit, int mark) {
+		assertEquals(expected, MaxSizeJsonFilter.markToLimit(json.toCharArray(), offset, json.length(), maxSizeLimit, mark), json);
+		assertEquals(expected, MaxSizeJsonFilter.markToLimit(json.getBytes(StandardCharsets.UTF_8), offset, json.length(), maxSizeLimit, mark), json);
+	}
+
+	private static void assertMaxSize(String expected, String json, int maxSize) {
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(maxSize);
+		assertEquals(expected, filter.process(json), json);
+		assertEquals(expected, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8), json);
 	}
 
 	@Test
