@@ -102,10 +102,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 						offset++;
 						mark = offset;
 						
-						if(bracketLevel == 0) {
-							// root structure closed: the document fit, only whitespace can follow
-							break loop;
-						}
 						continue;
 					case '[' : {
 						// check corner case
@@ -133,10 +129,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 						offset++;
 						mark = offset;
 
-						if(bracketLevel == 0) {
-							// root structure closed: the document fit, only whitespace can follow
-							break loop;
-						}
 						continue;
 					case ',' :
 						mark = offset;
@@ -325,10 +317,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 				offset++;
 			}
 
-			// the level is also needed when the whole document was processed
-			filter.setLevel(bracketLevel);
 			if(offset < maxReadLimit) {
 				// max size reached before end of document
+				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
 				filter.setMaxSizeLimit(maxSizeLimit);
 				
@@ -434,10 +425,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 						offset++;
 						mark = offset;
 						
-						if(bracketLevel == 0) {
-							// root structure closed: the document fit, only whitespace can follow
-							break loop;
-						}
 						continue;
 					case '[' : {
 						// check corner case
@@ -465,10 +452,6 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 						offset++;
 						mark = offset;
 	
-						if(bracketLevel == 0) {
-							// root structure closed: the document fit, only whitespace can follow
-							break loop;
-						}
 						continue;
 					case ',' :
 						mark = offset;
@@ -656,10 +639,9 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 				offset++;
 			}
 
-			// the level is also needed when the whole document was processed
-			filter.setLevel(bracketLevel);
 			if(offset < maxReadLimit) {
 				// max size reached before end of document
+				filter.setLevel(bracketLevel);
 				filter.setMark(mark);
 				filter.setMaxSizeLimit(maxSizeLimit);
 				

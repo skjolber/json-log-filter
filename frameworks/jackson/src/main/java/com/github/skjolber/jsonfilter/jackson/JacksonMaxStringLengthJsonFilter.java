@@ -189,7 +189,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 		}
 		generator.flush(); // don't close
 
-		return true;
+		return JacksonEvents.isSingleRootValue(parser);
 	}
 
 

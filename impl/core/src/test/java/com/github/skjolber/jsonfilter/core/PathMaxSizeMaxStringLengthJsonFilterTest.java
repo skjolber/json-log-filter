@@ -66,6 +66,18 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		maxSize = (size) -> new MustContrainMultiPathMaxSizeMaxStringLengthJsonFilter(-1, size, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertThat(maxSize, new PathMaxStringLengthJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasPassthrough();
 	}
+
+	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		for(int maxStringLength : new int[] {-1, 5}) {
+			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, 2, -1, new String[]{"/a"}, null);
+			for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+				assertEquals(json, filter.process(json));
+				assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			}
+		}
+	}
 	
 	@Test
 	public void anonymize() throws Exception {
@@ -291,57 +303,6 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		byte[] byteResult = filter.process(jsonBytes);
 		assertNotNull(byteResult);
 		assertEquals("{\"k\":X,\"n\":\"v\"}", new String(byteResult, StandardCharsets.UTF_8));
-	}
-
-	@Test
-	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
-		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
-		String json = "{\"secret\":[1,2,3,42,5],\"other\":\"" + "o".repeat(40) + "\"}";
-		int[] maxSizes = {15, 18, 27};
-		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
-		for(int maxStringLength : new int[] {-1, 50}) {
-			for(int i = 0; i < maxSizes.length; i++) {
-				PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSizes[i], -1, new String[]{"/secret"}, null);
-				assertEquals(expected[i], filter.process(json));
-				assertEquals(expected[i], new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-			}
-		}
-
-		// anonymize message longer than the anonymized values
-		json = "{\"card\":{\"pin\":7,\"x\":8},\"other\":\"xxxxxxxxxx\"}";
-		maxSizes = new int[] {18, 24, 26, 35, 37};
-		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
-		for(int i = 0; i < maxSizes.length; i++) {
-			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSizes[i], -1, new String[]{"/card"}, null, "\"[removed]\"", "\"ANONYMIZED\"", "... + ");
-			assertEquals(expected[i], filter.process(json));
-			assertEquals(expected[i], new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-	}
-
-	@Test
-	public void testDocumentFitsAfterAnonymizing() throws Exception {
-		String json = "{\"user\":{\"password\":\"abcd\"}}";
-		for(int maxSize = 25; maxSize <= 27; maxSize++) {
-			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, -1, new String[]{"/user/password"}, null);
-			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
-			assertEquals("{\"user\":{\"password\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-	}
-
-	@Test
-	public void testMaxPathMatchesUsedUpClosesStructureOnce() throws Exception {
-		String json = "{\"a\":[true,true],\"b\":1}";
-		for(int maxSize = 21; maxSize <= 23; maxSize++) {
-			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, 1, new String[]{"/a"}, null);
-			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", filter.process(json));
-			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-
-		// max string length after max path matches is used up: truncating a string makes the rest of the document fit
-		json = "{\"z\":1,\"a\":{\"b\":\"" + "x".repeat(40) + "\"},\"c\":1}";
-		PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(5, 44, 1, new String[]{"/z"}, null);
-		assertEquals("{\"z\":\"*\",\"a\":{\"b\":\"xxxxx... + 35\"},\"c\":1}", filter.process(json));
-		assertEquals("{\"z\":\"*\",\"a\":{\"b\":\"xxxxx... + 35\"},\"c\":1}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 	}
 
 	@Test

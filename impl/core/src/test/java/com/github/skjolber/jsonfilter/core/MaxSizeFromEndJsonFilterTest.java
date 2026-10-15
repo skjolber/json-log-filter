@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.DefaultJsonFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 import com.github.skjolber.jsonfilter.test.Generator;
 import com.github.skjolber.jsonfilter.test.cache.MaxSizeJsonFilterPair.MaxSizeJsonFilterFunction;
@@ -85,9 +86,33 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(2);
+		for (String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new MaxSizeFromEndJsonFilter(-1).process(new char[]{}, 1, 1, new StringBuilder()));
 		assertFalse(new MaxSizeFromEndJsonFilter(-1).process(new byte[]{}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// the output is written in one go at the end, so invalid input fails before anything is written:
+		// fail in the metrics callback instead, after the output is written
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics() {
+			@Override
+			public void onInput(int inputSize) {
+				throw new IllegalStateException();
+			}
+		};
+		String string = "{\"a\":\"b\",\"c\":[1,2],\"d\":\"eeeeeeeeeeeeeeeeeeee\"}";
+		assertExceptionLeavesOutputUntouched(new MaxSizeFromEndJsonFilter(string.length() - 1), string, metrics);
 	}
 
 	@Test

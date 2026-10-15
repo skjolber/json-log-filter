@@ -127,4 +127,9 @@ public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJac
 		assertFalse(filter.process(json, 0, json.length, output, null));
 	}
 
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		assertMultipleRootValuesRejected(new JacksonPathMaxStringLengthJsonFilter(-1, new String[]{DEFAULT_PATH}, null));
+	}
+
 }
