@@ -851,42 +851,53 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	/**
-	 * Add the ranges for a document which is a single string value, like <code>"abc"</code>; see
-	 * AbstractJsonFilter#isTopLevelString. Paths cannot match, so the string is only truncated
-	 * (max string length) and surrounding whitespace optionally removed.
+	 * Add the ranges for a document which is not an object or array; see AbstractJsonFilter#isNonStructural.
+	 * Paths cannot match, so a string is only truncated (max string length), and surrounding whitespace
+	 * is optionally removed.
 	 *
 	 * @param chars document
 	 * @param offset document offset
 	 * @param length document length
 	 * @param maxStringLength max string length, excluding quotes
-	 * @param removeWhitespace remove whitespace around the string
+	 * @param removeWhitespace remove whitespace around the value
 	 * @param filter filter to add ranges to
 	 * @return the filter
 	 */
 
-	public static ByteArrayRangesFilter addTopLevelString(final byte[] chars, int offset, int length, int maxStringLength, boolean removeWhitespace, ByteArrayRangesFilter filter) {
+	public static ByteArrayRangesFilter addNonStructural(final byte[] chars, int offset, int length, int maxStringLength, boolean removeWhitespace, ByteArrayRangesFilter filter) {
 		int limit = offset + length;
 		int start = offset;
-		while(chars[start] <= 0x20) {
+		while(chars[start] <= 0x20 && chars[start] >= 0) {
 			start++;
 		}
-		int end = scanQuotedValue(chars, start); // closing quote
+		// ranges are added in order
 		if(removeWhitespace && start > offset) {
 			filter.addDelete(offset, start);
 		}
-		if(end - start - 1 > maxStringLength) {
-			int removeStart = start + 1 + maxStringLength;
-			filter.addMaxLength(chars, removeStart, end, end - removeStart);
+		int end; // exclusive
+		if(chars[start] == '"') {
+			int quote = scanQuotedValue(chars, start); // closing quote
+			if(quote - start - 1 > maxStringLength) {
+				int removeStart = start + 1 + maxStringLength;
+				filter.addMaxLength(chars, removeStart, quote, quote - removeStart);
+			}
+			end = quote + 1;
+		} else {
+			// number, true, false or null
+			end = limit;
+			while(end > start && chars[end - 1] <= 0x20 && chars[end - 1] >= 0) {
+				end--;
+			}
 		}
-		if(removeWhitespace && end + 1 < limit) {
-			filter.addDelete(end + 1, limit);
+		if(removeWhitespace && end < limit) {
+			filter.addDelete(end, limit);
 		}
 		return filter;
 	}
 
 	/**
-	 * Filter a document which is a single string value, like <code>"abc"</code>; see
-	 * {@link #addTopLevelString(byte[], int, int, int, boolean, ByteArrayRangesFilter)}.
+	 * Filter a document which is not an object or array; see
+	 * {@link #addNonStructural(byte[], int, int, int, boolean, ByteArrayRangesFilter)}.
 	 *
 	 * @param chars document
 	 * @param offset document offset
@@ -894,14 +905,14 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * @param buffer output
 	 * @param metrics metrics, or null
 	 * @param maxStringLength max string length, excluding quotes
-	 * @param removeWhitespace remove whitespace around the string
+	 * @param removeWhitespace remove whitespace around the value
 	 * @param pruneMessage prune message
 	 * @param anonymizeMessage anonymize message
 	 * @param truncateMessage truncate message
 	 */
 
-	public static void filterTopLevelString(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
-		ByteArrayRangesFilter filter = addTopLevelString(chars, offset, length, maxStringLength, removeWhitespace, new ByteArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage, truncateMessage));
+	public static void filterNonStructural(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
+		ByteArrayRangesFilter filter = addNonStructural(chars, offset, length, maxStringLength, removeWhitespace, new ByteArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage, truncateMessage));
 		filter.filter(chars, offset, length, buffer, metrics);
 	}
 

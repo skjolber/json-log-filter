@@ -25,10 +25,10 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
-		if(isTopLevelString(chars, offset, length)) {
+		if(isNonStructural(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				CharArrayRangesFilter.filterTopLevelString(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				CharArrayRangesFilter.filterNonStructural(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				return true;
 			} catch(Exception e) {
 				return false;
@@ -44,10 +44,6 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		int maxSizeLimit = offset + maxSize;
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(isTopLevelNumberOrLiteral(chars, offset, maxReadLimit)) {
-				// there is no smaller valid document
-				return super.process(chars, offset, length, buffer, metrics);
-			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}
@@ -440,10 +436,10 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
-		if(isTopLevelString(chars, offset, length)) {
+		if(isNonStructural(chars, offset, length)) {
 			// rare, and cannot be handled by the regular scanners
 			try {
-				ByteArrayRangesFilter.filterTopLevelString(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				ByteArrayRangesFilter.filterNonStructural(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
 				return true;
 			} catch(Exception e) {
 				return false;
@@ -460,10 +456,6 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
-			if(isTopLevelNumberOrLiteral(chars, offset, maxReadLimit)) {
-				// there is no smaller valid document
-				return super.process(chars, offset, length, output, metrics);
-			}
 			if(maxSizeLimit >= maxReadLimit) {
 				maxSizeLimit = maxReadLimit;
 			}

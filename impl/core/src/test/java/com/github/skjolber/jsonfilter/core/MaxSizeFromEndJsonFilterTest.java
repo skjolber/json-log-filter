@@ -86,10 +86,10 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
-	public void testTopLevelNumberOrLiteralIsKept() {
+	public void testNonStructuralIsKept() {
 		// there is no smaller valid document
 		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(2);
-		for (String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+		for (String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
 			assertEquals(json, filter.process(json));
 			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}

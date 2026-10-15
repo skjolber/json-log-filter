@@ -122,70 +122,55 @@ public class AbstractJsonFilterTest {
 	}
 
 	@Test
-	public void testIsTopLevelString() {
-		for(String string : new String[] {"\"\"", "\"abc\"", " \t\r\n\"abc\" "}) {
-			assertTrue(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 0, string.length()), string);
-			assertTrue(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 0, string.length()), string);
-		}
-		for(String string : new String[] {"", "  ", "{\"a\":\"b\"}", "[\"a\"]", "123", "true", "null"}) {
-			assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 0, string.length()), string);
-			assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 0, string.length()), string);
-		}
-	}
-
-	@Test
-	public void testIsTopLevelStringForSlice() {
-		String string = "{\"a\": \"b\"}";
-
-		assertTrue(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 5, 4)); //  "b"
-		assertTrue(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 5, 4));
-
-		// the first non-whitespace character in the slice must be a quote
-		assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 4, 5)); // : "b"
-		assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 4, 5));
-
-		// a quote after the slice does not count
-		assertFalse(AbstractJsonFilter.isTopLevelString(string.toCharArray(), 5, 1));
-		assertFalse(AbstractJsonFilter.isTopLevelString(string.getBytes(StandardCharsets.UTF_8), 5, 1));
-	}
-
-	@Test
-	public void testIsTopLevelStringForInvalidOffset() {
-		// left to the regular filters, which handle the exception
-		assertFalse(AbstractJsonFilter.isTopLevelString(new char[] {'"', '"'}, -1, 2));
-		assertFalse(AbstractJsonFilter.isTopLevelString(new byte[] {'"', '"'}, -1, 2));
-
-		assertFalse(AbstractJsonFilter.isTopLevelString(new char[] {}, 1, 1));
-		assertFalse(AbstractJsonFilter.isTopLevelString(new byte[] {}, 1, 1));
-	}
-
-	@Test
-	public void testIsTopLevelNumberOrLiteral() {
-		for(String json : new String[] {"-1.5e3", "123456", "0", "true", "false", "null", " \t\r\n42"}) {
-			assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+	public void testIsNonStructural() {
+		for(String json : new String[] {"\"\"", "\"abc\"", " \t\r\n\"abc\" ", "-1.5e3", "123456", "0", "true", "false", "null", " \t\r\n42"}) {
+			assertTrue(AbstractJsonFilter.isNonStructural(json.toCharArray(), 0, json.length()), json);
 			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-			assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+			assertTrue(AbstractJsonFilter.isNonStructural(bytes, 0, bytes.length), json);
 		}
-		for(String json : new String[] {"{\"a\":1}", "[1]", "\"abc\"", " \n{}", "", "  "}) {
-			assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+		for(String json : new String[] {"{\"a\":\"b\"}", "[\"a\"]", " \n{}", "\t[1]", "", "  "}) {
+			assertFalse(AbstractJsonFilter.isNonStructural(json.toCharArray(), 0, json.length()), json);
 			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-			assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+			assertFalse(AbstractJsonFilter.isNonStructural(bytes, 0, bytes.length), json);
 		}
+	}
 
+	@Test
+	public void testIsNonStructuralForSlice() {
 		// only the given range is checked
-		String json = "{\"a\":1}";
-		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 6));
-		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 6));
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 5));
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 5));
+		String json = "{\"a\": \"b\", \"c\":1}";
+		char[] chars = json.toCharArray();
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-		// invalid offset or length is left to the caller
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("1".toCharArray(), -1, 1));
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("1".getBytes(StandardCharsets.UTF_8), -1, 1));
-		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(" 1".toCharArray(), 0, 10));
-		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(" 1".getBytes(StandardCharsets.UTF_8), 0, 10));
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("  ".toCharArray(), 0, 10));
-		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("  ".getBytes(StandardCharsets.UTF_8), 0, 10));
+		assertTrue(AbstractJsonFilter.isNonStructural(chars, 5, 4)); //  "b"
+		assertTrue(AbstractJsonFilter.isNonStructural(bytes, 5, 4));
+		assertTrue(AbstractJsonFilter.isNonStructural(chars, 15, 1)); // 1
+		assertTrue(AbstractJsonFilter.isNonStructural(bytes, 15, 1));
+
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 0, json.length()));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 0, json.length()));
+
+		// a value after the slice does not count
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 5, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 5, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(chars, 15, 0));
+		assertFalse(AbstractJsonFilter.isNonStructural(bytes, 15, 0));
+	}
+
+	@Test
+	public void testIsNonStructuralForInvalidOffset() {
+		// left to the regular filters, which handle the exception
+		assertFalse(AbstractJsonFilter.isNonStructural(new char[] {'"', '"'}, -1, 2));
+		assertFalse(AbstractJsonFilter.isNonStructural(new byte[] {'"', '"'}, -1, 2));
+
+		assertFalse(AbstractJsonFilter.isNonStructural(new char[] {}, 1, 1));
+		assertFalse(AbstractJsonFilter.isNonStructural(new byte[] {}, 1, 1));
+
+		// a length beyond the end of the input is limited to the input
+		assertTrue(AbstractJsonFilter.isNonStructural(" 1".toCharArray(), 0, 10));
+		assertTrue(AbstractJsonFilter.isNonStructural(" 1".getBytes(StandardCharsets.UTF_8), 0, 10));
+		assertFalse(AbstractJsonFilter.isNonStructural("  ".toCharArray(), 0, 10));
+		assertFalse(AbstractJsonFilter.isNonStructural("  ".getBytes(StandardCharsets.UTF_8), 0, 10));
 	}
 
 	private AbstractJsonFilter getJsonFilterMock() throws IOException {

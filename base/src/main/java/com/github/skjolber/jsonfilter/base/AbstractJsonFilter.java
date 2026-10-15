@@ -252,20 +252,21 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	
 
 	/**
-	 * Whether the document is a single string value, like <code>"abc"</code>, ignoring surrounding whitespace.
+	 * Whether the document is not an object or array, i.e. a single string, number, true, false or null,
+	 * ignoring surrounding whitespace.
 	 * <br><br>
-	 * The regular filters expect a structural character after each string, to tell keys from values,
-	 * which a top-level string does not have. Rather than adding bounds checks to the hot path,
-	 * filters check for this rare case once per document: paths cannot match, so the string is only
-	 * truncated (max string length) and surrounding whitespace optionally removed.
+	 * Such a document is rare, so filters check for it once per document rather than in the hot path.
+	 * The regular scanners expect a structural character after each string, to tell keys from values,
+	 * and max size cannot cut such a document into a smaller valid document. So paths cannot match,
+	 * a string is only truncated (max string length), surrounding whitespace is optionally removed,
+	 * and max size does not apply.
 	 *
 	 * @param chars input
 	 * @param offset document offset
 	 * @param length document length
-	 * @return true if the first non-whitespace character within the document is a quote
+	 * @return true if the first non-whitespace character within the document is not an opening bracket
 	 */
-
-	protected static boolean isTopLevelString(final char[] chars, int offset, int length) {
+	protected static boolean isNonStructural(final char[] chars, int offset, int length) {
 		if(offset < 0) {
 			return false;
 		}
@@ -274,75 +275,27 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 		while(offset < limit && chars[offset] <= 0x20) {
 			offset++;
 		}
-		return offset < limit && chars[offset] == '"';
+		return offset < limit && chars[offset] != '{' && chars[offset] != '[';
 	}
 
 	/**
-	 * Byte variant of {@link #isTopLevelString(char[], int, int)}.
+	 * Byte variant of {@link #isNonStructural(char[], int, int)}.
 	 *
 	 * @param chars input
 	 * @param offset document offset
 	 * @param length document length
-	 * @return true if the first non-whitespace character within the document is a quote
+	 * @return true if the first non-whitespace character within the document is not an opening bracket
 	 */
-
-	protected static boolean isTopLevelString(final byte[] chars, int offset, int length) {
+	protected static boolean isNonStructural(final byte[] chars, int offset, int length) {
 		if(offset < 0) {
 			return false;
 		}
 		// invalid offset or length is left to the regular filter, which handles the exception
 		int limit = Math.min(offset + length, chars.length);
-		while(offset < limit && chars[offset] <= 0x20) {
-			offset++;
-		}
-		return offset < limit && chars[offset] == '"';
-	}
-
-	/**
-	 * Whether the document is a number, true, false or null, ignoring leading whitespace. There is no smaller
-	 * valid document, so the max-size filters keep such a document as-is. Objects, arrays and strings return false.
-	 *
-	 * @param chars input
-	 * @param offset start of document
-	 * @param limit end of document
-	 * @return true if a top-level number, true, false or null
-	 */
-
-	protected static boolean isTopLevelNumberOrLiteral(final char[] chars, int offset, int limit) {
-		// invalid offset or length is handled by the caller
-		if(offset < 0) {
-			return false;
-		}
-		if(limit > chars.length) {
-			limit = chars.length;
-		}
-		while(offset < limit && chars[offset] <= 0x20) {
-			offset++;
-		}
-		return offset < limit && chars[offset] != '{' && chars[offset] != '[' && chars[offset] != '"';
-	}
-
-	/**
-	 * Byte variant of {@link #isTopLevelNumberOrLiteral(char[], int, int)}.
-	 *
-	 * @param chars input
-	 * @param offset start of document
-	 * @param limit end of document
-	 * @return true if a top-level number, true, false or null
-	 */
-
-	protected static boolean isTopLevelNumberOrLiteral(final byte[] chars, int offset, int limit) {
-		// invalid offset or length is handled by the caller
-		if(offset < 0) {
-			return false;
-		}
-		if(limit > chars.length) {
-			limit = chars.length;
-		}
 		while(offset < limit && chars[offset] <= 0x20 && chars[offset] >= 0) {
 			offset++;
 		}
-		return offset < limit && chars[offset] != '{' && chars[offset] != '[' && chars[offset] != '"';
+		return offset < limit && chars[offset] != '{' && chars[offset] != '[';
 	}
 
 	public static int lengthToDigits(int number) {
