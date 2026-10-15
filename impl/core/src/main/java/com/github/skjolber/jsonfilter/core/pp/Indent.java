@@ -46,6 +46,9 @@ public class Indent {
 		}
 		
 		public Builder withPreparedLevels(int preparedLevels) {
+			if(preparedLevels < 1) {
+				throw new IllegalArgumentException("Expected at least one prepared level, got " + preparedLevels);
+			}
 			this.preparedLevels = preparedLevels;
 			
 			return this;
