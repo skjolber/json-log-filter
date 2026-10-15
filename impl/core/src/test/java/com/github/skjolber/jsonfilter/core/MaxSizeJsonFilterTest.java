@@ -3,7 +3,6 @@ package com.github.skjolber.jsonfilter.core;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -90,16 +89,7 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 			}
 		};
 		String string = "{\"a\":\"b\",\"c\":[1,2],\"d\":\"eeeeeeeeeeeeeeeeeeee\"}";
-		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(string.length() - 1);
-
-		StringBuilder builder = new StringBuilder("PREFIX|");
-		assertFalse(filter.process(string.toCharArray(), 0, string.length(), builder, metrics));
-		assertEquals("PREFIX|", builder.toString());
-
-		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
-		output.write("PREFIX|".getBytes(StandardCharsets.UTF_8));
-		assertFalse(filter.process(string.getBytes(StandardCharsets.UTF_8), 0, string.length(), output, metrics));
-		assertEquals("PREFIX|", output.toString(StandardCharsets.UTF_8));
+		assertExceptionLeavesOutputUntouched(new MaxSizeJsonFilter(string.length() - 1), string, metrics);
 	}
 
 	@Test

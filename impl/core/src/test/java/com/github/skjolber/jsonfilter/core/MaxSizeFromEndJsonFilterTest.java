@@ -102,16 +102,7 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 			}
 		};
 		String string = "{\"a\":\"b\",\"c\":[1,2],\"d\":\"eeeeeeeeeeeeeeeeeeee\"}";
-		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(string.length() - 1);
-
-		StringBuilder builder = new StringBuilder("PREFIX|");
-		assertFalse(filter.process(string.toCharArray(), 0, string.length(), builder, metrics));
-		assertEquals("PREFIX|", builder.toString());
-
-		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
-		output.write("PREFIX|".getBytes(StandardCharsets.UTF_8));
-		assertFalse(filter.process(string.getBytes(StandardCharsets.UTF_8), 0, string.length(), output, metrics));
-		assertEquals("PREFIX|", output.toString(StandardCharsets.UTF_8));
+		assertExceptionLeavesOutputUntouched(new MaxSizeFromEndJsonFilter(string.length() - 1), string, metrics);
 	}
 
 	@Test

@@ -1,9 +1,6 @@
 package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,18 +28,8 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 
 	@Test
 	public void exception_leaves_output_untouched() throws Exception {
-		// the last string is not terminated
-		String invalid = "{ \"a\" : \"b\" , \"c\" : [ 1 , 2 ] , \"d\" : \"eeeeeeeeeeeeeeeeeeee";
 		PathMaxStringLengthRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
-
-		StringBuilder builder = new StringBuilder("PREFIX|");
-		assertFalse(filter.process(invalid.toCharArray(), 0, invalid.length(), builder));
-		assertEquals("PREFIX|", builder.toString());
-
-		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
-		output.write("PREFIX|".getBytes(StandardCharsets.UTF_8));
-		assertFalse(filter.process(invalid.getBytes(StandardCharsets.UTF_8), 0, invalid.length(), output));
-		assertEquals("PREFIX|", output.toString(StandardCharsets.UTF_8));
+		assertExceptionLeavesOutputUntouched(filter, UNTERMINATED_LAST_STRING);
 	}
 	
 	@Test
