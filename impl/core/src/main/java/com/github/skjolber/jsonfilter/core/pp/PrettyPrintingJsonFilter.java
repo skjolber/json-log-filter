@@ -100,6 +100,9 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 						continue;
 					}
 					indent.append(buffer, level);
+					// the whitespace up to nextOffset is dropped anyway
+					offset = nextOffset;
+					continue;
 				}
 				offset++;
 			}
@@ -181,6 +184,9 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 						continue;
 					}
 					indent.append(output, level);
+					// the whitespace up to nextOffset is dropped anyway
+					offset = nextOffset;
+					continue;
 				}		
 				
 				offset++;
