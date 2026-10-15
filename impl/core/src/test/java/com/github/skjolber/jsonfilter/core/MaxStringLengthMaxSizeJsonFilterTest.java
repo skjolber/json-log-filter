@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -59,6 +60,21 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
 		assertThat(maxSize, new MaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
+	}
+
+	@Test
+	public void maxStringLengthTopLevelStringLongerThanMaxSize() throws Exception {
+		// a string cannot be cut, so it is kept as-is, or truncated by max string length
+		String string = "\"hello world, a long string\"";
+		String truncated = "\"hello... + 21\"";
+
+		JsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(-1, 10);
+		assertEquals(string, filter.process(string));
+		assertArrayEquals(string.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8)));
+
+		filter = new MaxStringLengthMaxSizeJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10);
+		assertEquals(truncated, filter.process(string));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8)));
 	}
 	
 	@Test
