@@ -241,8 +241,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 
 	@Test
 	public void testAnonymizeFieldAtHigherIndex() throws Exception {
-		// A scalar field at index >= 2 in its parent object exercises the `size++` branch
-		// for getCurrentIndex() >= 2 in the anon/prune handling.
+		// An anonymized scalar field after other fields in its parent object; the comma
+		// before it is counted like any other separator.
 		String json = "{\"a\":\"x\",\"b\":\"y\",\"key\":\"value\"}";
 		char[] chars = json.toCharArray();
 		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
@@ -254,8 +254,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 
 	@Test
 	public void testAnonymizeObjectValueAtHigherIndex() throws Exception {
-		// An object-valued field at index >= 2 exercises the second `size++` branch
-		// for getCurrentIndex() >= 2 when the value is not scalar.
+		// An object-valued field after other fields in its parent object, anonymized
+		// within; the comma before it is counted like any other separator.
 		String json = "{\"a\":\"x\",\"b\":\"y\",\"key\":{\"nested\":\"value\"}}";
 		char[] chars = json.toCharArray();
 		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
