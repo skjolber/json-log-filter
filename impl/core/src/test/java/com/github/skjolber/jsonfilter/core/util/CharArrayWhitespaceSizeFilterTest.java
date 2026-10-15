@@ -41,6 +41,70 @@ public class CharArrayWhitespaceSizeFilterTest {
 		assertEquals(offset, 200);
 	}
 
+	@Test
+	public void testDeepBracketsMaxSizeKeepsGrownSquareBrackets() {
+		CharArrayWhitespaceSizeFilter filter = createDeepBracketsFilter(160);
+
+		String text = createMixedBracket(100);
+
+		StringBuilder builder = new StringBuilder();
+		int offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text.toCharArray(), 1, text.length(), builder, 100, null);
+		assertEquals(120, offset);
+		assertDeepSquareBrackets(filter, 40);
+	}
+
+	@Test
+	public void testDeepBracketsAnonymizeMaxSizeKeepsGrownSquareBrackets() {
+		CharArrayWhitespaceSizeFilter filter = createDeepBracketsFilter(160);
+
+		String text = createMixedBracket(100);
+
+		StringBuilder builder = new StringBuilder();
+		int offset = filter.anonymizeObjectOrArrayMaxSize(text.toCharArray(), 1, text.length(), builder, null);
+		assertEquals(120, offset);
+		assertDeepSquareBrackets(filter, 40);
+	}
+
+	private CharArrayWhitespaceSizeFilter createDeepBracketsFilter(int maxSizeLimit) {
+		CharArrayWhitespaceSizeFilter filter = new CharArrayWhitespaceSizeFilter("pruneMessage".toCharArray(), "anonymizeMessage".toCharArray(), "truncateMessage".toCharArray());
+
+		// state as set by the caller, just after the first bracket
+		filter.getSquareBrackets()[0] = true;
+		filter.setLevel(1);
+		filter.setMark(1);
+		filter.setFlushOffset(0);
+		filter.setWrittenMark(0);
+		filter.setMaxSizeLimit(maxSizeLimit);
+		return filter;
+	}
+
+	private void assertDeepSquareBrackets(CharArrayWhitespaceSizeFilter filter, int level) {
+		// max size was reached deeper than the initial 32 levels,
+		// so the caller must see the grown bracket array
+		assertEquals(level, filter.getLevel());
+
+		boolean[] squareBrackets = filter.getSquareBrackets();
+		assertEquals(64, squareBrackets.length);
+		for(int i = 0; i < level; i++) {
+			assertEquals(i % 2 == 0, squareBrackets[i]);
+		}
+	}
+
+	public String createMixedBracket(int count) {
+		// alternating arrays and objects: [{"k":[{"k":[ .. ]}]}]
+		StringBuilder builder = new StringBuilder();
+
+		for(int i = 0; i < count; i++) {
+			builder.append(i % 2 == 0 ? "[" : "{\"k\":");
+		}
+		builder.append('1');
+		for(int i = count - 1; i >= 0; i--) {
+			builder.append(i % 2 == 0 ? ']' : '}');
+		}
+
+		return builder.toString();
+	}
+
 	public String createBracket(char start, char end, int count) {
 		StringBuilder builder = new StringBuilder();
 		
