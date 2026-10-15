@@ -161,7 +161,7 @@ public class PathJsonFilter extends AbstractRangesPathJsonFilter {
 		
 		PathItem pathItem = this.pathItem;
 
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(maxPathMatches, length);
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(-1, length);
 
 		try {
 			while(offset < length) {
