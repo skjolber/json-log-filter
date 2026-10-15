@@ -75,6 +75,23 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// the last string is not terminated
+		String invalid = "{ \"a\" : \"b\" , \"c\" : [ 1 , 2 ] , \"d\" : \"eeeeeeeeeeeeeeeeeeee";
+		// max size below the input size, but large enough to reach the end of the input
+		MaxSizeRemoveWhitespaceJsonFilter filter = new MaxSizeRemoveWhitespaceJsonFilter(invalid.length() - 1);
+
+		StringBuilder builder = new StringBuilder("PREFIX|");
+		assertFalse(filter.process(invalid.toCharArray(), 0, invalid.length(), builder));
+		assertEquals("PREFIX|", builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		output.write("PREFIX|".getBytes(StandardCharsets.UTF_8));
+		assertFalse(filter.process(invalid.getBytes(StandardCharsets.UTF_8), 0, invalid.length(), output));
+		assertEquals("PREFIX|", output.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(new MaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED));
 		assertNull(new MaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));

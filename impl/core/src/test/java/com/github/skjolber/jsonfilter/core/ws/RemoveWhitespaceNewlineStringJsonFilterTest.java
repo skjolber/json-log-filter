@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,22 @@ public class RemoveWhitespaceNewlineStringJsonFilterTest extends DefaultJsonFilt
 	public void exception_returns_false() throws Exception {
 		assertFalse(new RemoveWhitespaceNewlineStringJsonFilter().process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new RemoveWhitespaceNewlineStringJsonFilter().process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// the last string is not terminated
+		String invalid = "{ \"a\" : \"b\" , \"c\" : [ 1 , 2 ] , \"d\" : \"eeeeeeeeeeeeeeeeeeee";
+		RemoveWhitespaceNewlineStringJsonFilter filter = new RemoveWhitespaceNewlineStringJsonFilter();
+
+		StringBuilder builder = new StringBuilder("PREFIX|");
+		assertFalse(filter.process(invalid.toCharArray(), 0, invalid.length(), builder));
+		assertEquals("PREFIX|", builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		output.write("PREFIX|".getBytes(StandardCharsets.UTF_8));
+		assertFalse(filter.process(invalid.getBytes(StandardCharsets.UTF_8), 0, invalid.length(), output));
+		assertEquals("PREFIX|", output.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
