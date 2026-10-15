@@ -162,8 +162,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 				// do more accurate size calculation
 				int accurateSize = getAccurateMaxStringSize(parser, fieldName, nextToken, maxStringLength, truncateStringValue);
 				
-				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
-				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
+				if(outputSize + accurateSize > maxSize) {
 					if(metrics != null) {
 						metrics.onMaxSize(-1);
 					}

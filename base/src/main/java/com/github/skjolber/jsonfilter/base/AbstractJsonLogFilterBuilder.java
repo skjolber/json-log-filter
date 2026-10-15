@@ -86,8 +86,12 @@ public abstract class AbstractJsonLogFilterBuilder<B extends AbstractJsonLogFilt
 	 * Limit the length of string values in the output. Strings exceeding this
 	 * length are truncated and a suffix (configurable via {@link #withTruncateMessage})
 	 * is appended.
+	 * <p>
+	 * The length is measured on the JSON text: in characters for {@code String} and {@code char[]}
+	 * input, in bytes (UTF-8) for {@code byte[]} input, with escape sequences counting their full length.
+	 * The Jackson filters measure decoded characters instead.
 	 *
-	 * @param length maximum number of characters per string value
+	 * @param length maximum number of characters (or bytes, see above) per string value
 	 * @return this builder
 	 */
 	public B withMaxStringLength(int length) {
@@ -109,9 +113,14 @@ public abstract class AbstractJsonLogFilterBuilder<B extends AbstractJsonLogFilt
 	}
 
 	/**
-	 * Limit the size of the output document. Content beyond the limit is dropped.
+	 * Limit the size of the output document. Content beyond the limit is dropped,
+	 * and open objects and arrays are closed, so the output is still valid JSON.
+	 * <p>
+	 * The size is measured in characters for {@code String} and {@code char[]} output,
+	 * and in bytes for {@code byte[]} output. The limit is approximate: to keep filtering
+	 * fast, the output can be somewhat shorter, and in some cases slightly longer.
 	 *
-	 * @param maxSize maximum output size in bytes
+	 * @param maxSize maximum output size, in characters or bytes
 	 * @return this builder
 	 */
 	public B withMaxSize(int maxSize) {

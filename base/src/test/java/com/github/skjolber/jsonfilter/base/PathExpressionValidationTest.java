@@ -45,6 +45,16 @@ public class PathExpressionValidationTest {
 	}
 
 	@Test
+	public void backslashIsRejected() {
+		// keys are compared with the JSON text as is, where a backslash starts an escape sequence
+		assertRejected("$.a\\b");
+		assertRejected("/a/b\\nc");
+		assertRejected("$..\\");
+		assertRejected("//a\\\\b");
+		assertRejected("$.a.*.\\u0041");
+	}
+
+	@Test
 	public void supportedExpressionsAreAccepted() {
 		assertAccepted("$.a.b");
 		assertAccepted("/a/b");

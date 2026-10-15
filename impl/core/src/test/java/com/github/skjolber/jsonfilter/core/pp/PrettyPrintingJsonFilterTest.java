@@ -30,6 +30,19 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		return new PrettyPrintingJsonFilter(ident);
 	}
 
+	private void assertPrettyPrinted(String json, String expected) {
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals(expected, charOutput.toString());
+
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals(expected, byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
 	@Test
 	public void testInvalidInput() throws Exception {
 		String string = new String(Generator.generateDeepObjectStructure(1000, true), StandardCharsets.UTF_8);
@@ -121,6 +134,34 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
 		assertEquals("{\n  \"key\": \"value\"\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testObjectValueEndingWithEscapedBackslash() throws Exception {
+		// a string which ends with an escaped backslash, like "x\\", ends at its closing quote
+		assertPrettyPrinted("{\"a\":\"x\\\\\",\"b\":1}", "{\n  \"a\": \"x\\\\\",\n  \"b\": 1\n}");
+	}
+
+	@Test
+	public void testArrayValueEndingWithEscapedBackslash() throws Exception {
+		// the whitespace inside the next string is kept
+		assertPrettyPrinted("[\"a\\\\\",\"b c\\\"d\"]", "[\n  \"a\\\\\",\n  \"b c\\\"d\"\n]");
+	}
+
+	@Test
+	public void testKeyEndingWithEscapedBackslash() throws Exception {
+		assertPrettyPrinted("{\"a\\\\\":\"b c\"}", "{\n  \"a\\\\\": \"b c\"\n}");
+	}
+
+	@Test
+	public void testValueEndingWithTwoEscapedBackslashes() throws Exception {
+		assertPrettyPrinted("[\"x\\\\\\\\\",\"b c\"]", "[\n  \"x\\\\\\\\\",\n  \"b c\"\n]");
+	}
+
+	@Test
+	public void testValueEndingWithEscapedBackslashAndQuote() throws Exception {
+		// an escaped backslash followed by an escaped quote: the string does not end at the escaped quote
+		assertPrettyPrinted("[\"a\\\\\\\"\",\"b c\"]", "[\n  \"a\\\\\\\"\",\n  \"b c\"\n]");
 	}
 
 	@Test
