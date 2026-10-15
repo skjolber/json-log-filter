@@ -20,6 +20,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics;
 
 public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJacksonJsonFilterTest {
 
@@ -114,6 +115,24 @@ public class JacksonPathMaxStringLengthJsonFilterTest extends AbstractDefaultJac
 		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
 		assertTrue(filter.process(bytes, 0, bytes.length, output, null));
 		assertEquals("{\"key\":\"*\"}", new String(output.toByteArray(), StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testSizeMetrics() throws Exception {
+		assertSizeMetrics(new JacksonPathMaxStringLengthJsonFilter(3, new String[]{"/a"}, null), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
+	public void testScalarMatchMetrics() throws Exception {
+		String json = "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}";
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertTrue(new JacksonPathMaxStringLengthJsonFilter(-1, new String[]{"/a", "/b"}, null).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertEquals(2, metrics.getAnonymize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		assertTrue(new JacksonPathMaxStringLengthJsonFilter(-1, null, new String[]{"/a", "/b"}).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertEquals(2, metrics.getPrune());
 	}
 
 	@Test

@@ -215,6 +215,45 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	}
 
 	@Test
+	public void testMaxSizeMetricsOnlyWhenContentIsDropped() throws Exception {
+		String pretty = "{\n  \"a\" : \"bbbbbbbbbb\",\n  \"c\" : [ 1, 2, 3 ],\n  \"d\" : { \"e\" : true }\n}";
+		String compact = "{\"a\":\"bbbbbbbbbb\",\"c\":[1,2,3],\"d\":{\"e\":true}}";
+		byte[] prettyBytes = pretty.getBytes(StandardCharsets.UTF_8);
+
+		// fits once the whitespace is removed
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(50, compact.length());
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder output = new StringBuilder();
+		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(compact, output.toString());
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(pretty.length(), metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(compact, byteOutput.toString(StandardCharsets.UTF_8));
+		assertEquals(0, metrics.getMaxSize());
+		assertEquals(prettyBytes.length, metrics.getInputSize());
+		assertEquals(compact.length(), metrics.getOutputSize());
+
+		// cut
+		filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(50, 20);
+
+		metrics = new DefaultJsonFilterMetrics();
+		output.setLength(0);
+		assertTrue(filter.process(pretty.toCharArray(), 0, pretty.length(), output, metrics));
+		assertEquals(pretty.length() - output.length(), metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		byteOutput.reset();
+		assertTrue(filter.process(prettyBytes, 0, prettyBytes.length, byteOutput, metrics));
+		assertEquals(prettyBytes.length - byteOutput.size(), metrics.getMaxSize());
+	}
+
+	@Test
 	public void testMustConstrainLongValueTruncated() throws IOException {
 		// A value longer than the string limit is truncated when the filter operates in size-constrained mode.
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/shortKey/objectKLongvalue.json"));

@@ -152,6 +152,12 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		// cut by max size, so the closing brackets are written when the generator is closed
+		assertSizeMetrics(new JacksonMaxSizeMaxStringLengthJsonFilter(3, 30), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
 	public void testSurrogatePairInAccurateMaxStringSizeCalculation() throws Exception {
 		// When the input exceeds maxSize, the size check fires before flushing the pending field,
 		// so only the opening brace is written.

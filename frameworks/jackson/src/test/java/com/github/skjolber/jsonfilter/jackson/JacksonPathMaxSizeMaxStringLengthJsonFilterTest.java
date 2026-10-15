@@ -266,6 +266,26 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		// cut by max size, so the closing brackets are written when the generator is closed
+		assertSizeMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(3, 30, new String[]{"/a"}, null), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
+	public void testScalarMatchMetrics() throws Exception {
+		String json = "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}";
+
+		com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics metrics =
+				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/a", "/b"}, null).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertEquals(2, metrics.getAnonymize());
+
+		metrics = new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, null, new String[]{"/a", "/b"}).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertEquals(2, metrics.getPrune());
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
 		// When input length <= maxSize, process(byte[], ResizableByteArrayOutputStream, metrics)
 		// delegates to super without engaging the size-constraint logic.

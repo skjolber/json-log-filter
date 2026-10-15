@@ -146,6 +146,12 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		// cut by max size, so the closing brackets are written when the generator is closed
+		assertSizeMetrics(new JacksonMaxSizeJsonFilter(30), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamPassthrough() throws Exception {
 		// When maxSize >= input length, process(byte[], ResizableByteArrayOutputStream) delegates to super
 		byte[] json = "{}".getBytes(StandardCharsets.UTF_8);
