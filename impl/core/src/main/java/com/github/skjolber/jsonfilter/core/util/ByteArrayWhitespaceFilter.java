@@ -224,6 +224,15 @@ public class ByteArrayWhitespaceFilter {
 							offset = nextOffset;
 							continue;
 						}
+
+						if(endQuoteIndex - offset < maxStringLength + 2) {
+							// was a value, followed by whitespace
+							output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
+
+							flushOffset = nextOffset;
+							offset = nextOffset;
+							continue;
+						}
 					} 
 					
 					// was a value
