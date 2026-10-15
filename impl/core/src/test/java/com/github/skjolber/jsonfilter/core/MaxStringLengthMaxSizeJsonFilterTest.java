@@ -78,6 +78,16 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		assertEquals(truncated, filter.process(string));
 		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8)));
 	}
+
+	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxStringLengthMaxSizeJsonFilter filter = new MaxStringLengthMaxSizeJsonFilter(5, 2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
 	
 	@Test
 	public void exception_returns_false() throws Exception {

@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,6 +71,16 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void passthrough_success() throws Exception {
 		assertThat(new MaxSizeJsonFilter(-1)).hasPassthrough();
+	}
+
+	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
 	}
 
 	@Test

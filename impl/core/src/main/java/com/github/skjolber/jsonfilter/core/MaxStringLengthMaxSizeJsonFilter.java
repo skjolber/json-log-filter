@@ -33,7 +33,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length)) {
+		if(!mustConstrainMaxSize(length) || isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -68,7 +68,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length)) {
+		if(!mustConstrainMaxSize(length) || isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
 			return super.ranges(chars, offset, length);
 		}
 		

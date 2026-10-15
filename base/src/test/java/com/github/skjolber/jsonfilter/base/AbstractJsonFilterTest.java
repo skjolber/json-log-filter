@@ -159,6 +159,35 @@ public class AbstractJsonFilterTest {
 		assertFalse(AbstractJsonFilter.isTopLevelString(new byte[] {}, 1, 1));
 	}
 
+	@Test
+	public void testIsTopLevelNumberOrLiteral() {
+		for(String json : new String[] {"-1.5e3", "123456", "0", "true", "false", "null", " \t\r\n42"}) {
+			assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+		}
+		for(String json : new String[] {"{\"a\":1}", "[1]", "\"abc\"", " \n{}", "", "  "}) {
+			assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 0, json.length()), json);
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(bytes, 0, bytes.length), json);
+		}
+
+		// only the given range is checked
+		String json = "{\"a\":1}";
+		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 6));
+		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 6));
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.toCharArray(), 5, 5));
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral(json.getBytes(StandardCharsets.UTF_8), 5, 5));
+
+		// invalid offset or length is left to the caller
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("1".toCharArray(), -1, 1));
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("1".getBytes(StandardCharsets.UTF_8), -1, 1));
+		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(" 1".toCharArray(), 0, 10));
+		assertTrue(AbstractJsonFilter.isTopLevelNumberOrLiteral(" 1".getBytes(StandardCharsets.UTF_8), 0, 10));
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("  ".toCharArray(), 0, 10));
+		assertFalse(AbstractJsonFilter.isTopLevelNumberOrLiteral("  ".getBytes(StandardCharsets.UTF_8), 0, 10));
+	}
+
 	private AbstractJsonFilter getJsonFilterMock() throws IOException {
 		AbstractJsonFilter mock = mock(AbstractJsonFilter.class);
 

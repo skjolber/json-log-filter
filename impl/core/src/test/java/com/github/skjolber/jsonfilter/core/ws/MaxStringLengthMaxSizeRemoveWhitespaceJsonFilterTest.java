@@ -124,6 +124,16 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	}
 
 	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 2);
+		for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
+	}
+
+	@Test
 	public void maxSizeWhitespaceHeavy() throws Exception {
 		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
 			new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, DEFAULT_MAX_SIZE);

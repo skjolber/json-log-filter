@@ -198,6 +198,22 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testTopLevelNumberOrLiteralIsKept() {
+		// there is no smaller valid document
+		JsonFilter[] filters = {
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"//a"}, null)
+		};
+		for(JsonFilter filter : filters) {
+			for(String json : new String[] {"-1.5e3", "123456", "true", "false", "null"}) {
+				assertEquals(json, filter.process(json));
+				assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	@Test
 	public void maxStringLengthUnmatchedValues() throws Exception {
 		// string values of keys which do not match the path are truncated too, also when max size is active
 		assertMaxStringLengthMaxSize("{\"a\":\"xxxxx... + 25\",\"b\":{\"c\":\"yyyyy... + 25\"},\"d\":1}", "/json/text/maxSize/objectALongBNestedCLongDNumber.json", 60);

@@ -64,6 +64,10 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 		try {
 			int maxReadLimit = CharArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isTopLevelNumberOrLiteral(chars, offset, maxReadLimit)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, buffer, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				// The entire document fits within maxSize — delegate immediately to the
 				// string-length-only filter, skipping all size-tracking overhead.
@@ -308,6 +312,10 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 
 		try {
 			int maxReadLimit = ByteArrayWhitespaceFilter.skipWhitespaceFromEnd(chars, length + offset);
+			if(isTopLevelNumberOrLiteral(chars, offset, maxReadLimit)) {
+				// there is no smaller valid document
+				return super.process(chars, offset, length, output, metrics);
+			}
 			if(maxSizeLimit >= maxReadLimit) {
 				// The entire document fits within maxSize — delegate immediately to the
 				// string-length-only filter, skipping all size-tracking overhead.
