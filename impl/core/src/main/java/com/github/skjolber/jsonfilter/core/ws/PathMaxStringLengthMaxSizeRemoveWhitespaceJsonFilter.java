@@ -25,6 +25,16 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
+		if(isNonStructural(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				CharArrayRangesFilter.filterNonStructural(chars, offset, length, buffer, metrics, maxStringLength, true, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, buffer, metrics);
 		}
@@ -58,6 +68,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 			}
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			buffer.setLength(bufferLength);
 			return false;
 		}
 	}
@@ -287,10 +299,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getMaxSizeLimit();
 					} else if(chars[nextOffset] == '"') {
-						flushOffset = nextOffset;
-						
-						nextOffset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-
+						// let the main loop handle the string value, which applies max string length
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;
@@ -431,6 +440,16 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	}
 	
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
+		if(isNonStructural(chars, offset, length)) {
+			// rare, and cannot be handled by the regular scanners
+			try {
+				ByteArrayRangesFilter.filterNonStructural(chars, offset, length, output, metrics, maxStringLength, true, pruneJsonValueAsBytes, anonymizeJsonValueAsBytes, truncateStringValueAsBytes);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
 		if(!mustConstrainMaxSize(length)) {
 			return super.process(chars, offset, length, output, metrics);
 		}
@@ -466,6 +485,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 			return true;
 		} catch(Exception e) {
+			// do not leave partial output in the buffer
+			output.setSize(bufferLength);
 			return false;
 		}
 	}
@@ -694,10 +715,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						squareBrackets = filter.getSquareBrackets();
 						maxSizeLimit = filter.getMaxSizeLimit();						
 					} else if(chars[nextOffset] == '"') {
-						flushOffset = nextOffset;
-						
-						nextOffset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, nextOffset);
-						
+						// let the main loop handle the string value, which applies max string length
 						offset = nextOffset;
 					} else {
 						flushOffset = nextOffset;

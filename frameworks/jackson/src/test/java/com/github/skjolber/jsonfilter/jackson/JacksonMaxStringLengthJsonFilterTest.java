@@ -134,5 +134,10 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractDefaultJackson
 			}
 		);
 	}
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		assertMultipleRootValuesRejected(new JacksonMaxStringLengthJsonFilter(-1));
+	}
+
 }

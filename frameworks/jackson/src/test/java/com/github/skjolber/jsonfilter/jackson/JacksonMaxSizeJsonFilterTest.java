@@ -40,6 +40,15 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 	}
 
 	@Test
+	public void testRootScalarIsKept() throws Exception {
+		// dropping the root value would leave an empty (invalid) document
+		String json = "\"" + "s".repeat(28) + "\"";
+		JacksonMaxSizeJsonFilter filter = new JacksonMaxSizeJsonFilter(10);
+		assertEquals(json, filter.process(json));
+		assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(new JacksonMaxSizeJsonFilter(-1).process(new byte[] {}, 1, 1, new StringBuilder()));
@@ -212,6 +221,11 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		assertTrue(filter.process(json, 0, json.length, sb, null));
 		assertEquals("{}", sb.toString());
 	}
-	
-	
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		// max size below the input size, so that the input is not passed through as-is
+		assertMultipleRootValuesRejected(new JacksonMaxSizeJsonFilter(multipleRootValues.length() - 1));
+	}
+
 }
