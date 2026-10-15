@@ -19,7 +19,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 
@@ -343,7 +343,7 @@ public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJso
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
-		if(!mustConstrainMaxSize(length) || MaxSizeJsonFilter.isTopLevelNumberOrLiteral(chars, offset, offset + length)) {
+		if(!mustConstrainMaxSize(length)) {
 			return super.ranges(chars, offset, length);
 		}
 		
