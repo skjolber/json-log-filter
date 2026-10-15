@@ -41,7 +41,7 @@ public interface JsonFilter {
 	 * Filter JSON characters to an output StringBuilder.
 	 * 
 	 * @param chars characters containing JSON to be filtered
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return a String instance if filtering was successful, null otherwise.
 	 */
 
@@ -63,7 +63,7 @@ public interface JsonFilter {
 	 * Filter JSON characters.
 	 * 
 	 * @param chars characters containing JSON to be filtered
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return a StringBuilder instance filtering was successful, null otherwise.
 	 */
 
@@ -87,7 +87,7 @@ public interface JsonFilter {
 	 * 
 	 * @param chars characters containing JSON to be filtered
 	 * @param output the buffer to which filtered JSON is appended
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
@@ -114,7 +114,7 @@ public interface JsonFilter {
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
 	 * @param output the buffer to which filtered JSON is appended
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return true if filtering was successful. If false, the output buffer is unaffected.
 	 */
 
@@ -136,7 +136,7 @@ public interface JsonFilter {
 	 * Filter JSON characters.
 	 * 
 	 * @param chars characters containing JSON to be filtered
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return a byte array instance if filtering was successful, null otherwise.
 	 */
 
@@ -161,7 +161,7 @@ public interface JsonFilter {
 	 * @param chars characters containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return a byte array instance if filtering was successful, null otherwise.
 	 */
 
@@ -187,7 +187,7 @@ public interface JsonFilter {
 	 * @param chars bytes containing JSON to be filtered
 	 * @param offset the offset within the chars where the JSON starts
 	 * @param length the length of the JSON within the chars
-	 * @param filterMetrics filter metrics
+	 * @param filterMetrics filter metrics. These are also updated if filtering is not successful; it is then up to the caller to reset them.
 	 * @return true if filtering was successful, false otherwise.
 	 */
 	

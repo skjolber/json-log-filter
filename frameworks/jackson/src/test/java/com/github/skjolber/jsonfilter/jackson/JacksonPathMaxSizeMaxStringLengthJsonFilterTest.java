@@ -236,12 +236,13 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 
 	@Test
 	public void testMetricsForPruneMessagesLongerThanValues() throws Exception {
-		// The document is first filtered without max size; the metrics are only passed on if that output is kept.
+		// The document is first filtered without max size, and again with max size if that output is too large.
+		// The metrics then include both passes.
 		// Pruned objects are counted (51 chars in, 96 chars out without max size).
 		String json = "[{\"id\":{}},{\"id\":{}},{\"id\":{}},{\"id\":{}},{\"id\":{}}]";
 
-		// output too large, filtered again with max size: two objects pruned
-		assertPruneMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, json.length(), null, new String[]{"//id"}), json, 2);
+		// output too large, filtered again with max size: five objects pruned in the first pass, and two in the second
+		assertPruneMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, json.length(), null, new String[]{"//id"}), json, 7);
 
 		// output within max size, kept: all five objects pruned
 		assertPruneMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 96, null, new String[]{"//id"}), json, 5);

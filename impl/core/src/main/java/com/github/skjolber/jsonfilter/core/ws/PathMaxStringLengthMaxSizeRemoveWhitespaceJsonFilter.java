@@ -2,7 +2,6 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import java.io.IOException;
 
-import com.github.skjolber.jsonfilter.base.DeferredJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
@@ -14,6 +13,14 @@ import com.github.skjolber.jsonfilter.core.util.ByteArrayWhitespaceSizeFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceSizeFilter;
+
+/**
+ * Filter for paths, max string length and max size, removing whitespace.
+ * <br>
+ * Prune and anonymize messages can be longer than the values they replace. So if the input fits within max size,
+ * it is first filtered without max size, and filtered again with max size if the output turns out too large.
+ * The metrics then include both passes.
+ */
 
 public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMaxStringLengthRemoveWhitespaceJsonFilter {
 
@@ -28,16 +35,13 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			// prune and anonymize messages can be longer than the values they replace,
-			// so check the output size, and filter with max size if it is too large
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
 			int start = buffer.length();
-			DeferredJsonFilterMetrics deferred = metrics != null ? new DeferredJsonFilterMetrics() : null;
-			if(!super.process(chars, offset, length, buffer, deferred)) {
+			if(!super.process(chars, offset, length, buffer, metrics)) {
 				return false;
 			}
 			if(!mustConstrainMaxSize(buffer.length() - start)) {
-				if(deferred != null) {
-					deferred.flush(metrics);
-				}
 				return true;
 			}
 			buffer.setLength(start);
@@ -451,16 +455,13 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
 			// prune and anonymize messages can be longer than the values they replace,
-			// so check the output size, and filter with max size if it is too large
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
 			int start = output.size();
-			DeferredJsonFilterMetrics deferred = metrics != null ? new DeferredJsonFilterMetrics() : null;
-			if(!super.process(chars, offset, length, output, deferred)) {
+			if(!super.process(chars, offset, length, output, metrics)) {
 				return false;
 			}
 			if(!mustConstrainMaxSize(output.size() - start)) {
-				if(deferred != null) {
-					deferred.flush(metrics);
-				}
 				return true;
 			}
 			output.setSize(start);
