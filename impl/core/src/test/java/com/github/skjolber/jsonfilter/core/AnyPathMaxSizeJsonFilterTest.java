@@ -372,6 +372,50 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testPruneMessagesLongerThanValues() throws Exception {
+		// The document fits within max size, but the output does not: each prune message is
+		// longer than the value it replaces (46 chars in, 96 chars out without max size).
+		String json = "[{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0}]";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(json.length(), -1, null, new String[]{"//id"});
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals("[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{}]", sb.toString());
+
+		byte[] result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{}]", new String(result, StandardCharsets.UTF_8));
+
+		// After the first prune, the max size limit still covers the rest of the document,
+		// so path-only mode must not be used, as the next prunes grow the output further.
+		filter = new AnyPathMaxSizeJsonFilter(60, -1, null, new String[]{"//id"});
+		sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals("[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{\"id\":\"[removed]\"}]", sb.toString());
+
+		result = filter.process(bytes);
+		assertNotNull(result);
+		assertEquals("[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{\"id\":\"[removed]\"}]", new String(result, StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testAnonymizeMessagesLongerThanValues() throws Exception {
+		// The document fits within max size, but the output does not: each anonymize message is
+		// longer than the value it replaces (46 chars in, 56 chars out without max size).
+		String json = "[{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0}]";
+
+		AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(json.length(), -1, new String[]{"//id"}, null);
+		StringBuilder sb = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb));
+		assertEquals("[{\"id\":\"*\"},{\"id\":\"*\"},{\"id\":\"*\"},{\"id\":\"*\"}]", sb.toString());
+
+		byte[] result = filter.process(json.getBytes(StandardCharsets.UTF_8));
+		assertNotNull(result);
+		assertEquals("[{\"id\":\"*\"},{\"id\":\"*\"},{\"id\":\"*\"},{\"id\":\"*\"}]", new String(result, StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testAnonBreakLoopMessageTooLarge() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainAnyPathMaxSizeJsonFilter(size, -1, new String[]{"//k"}, null);
 		assertThat(maxSize, new AnyPathMaxSizeJsonFilter(-1, -1, new String[]{"//k"}, null)).hasAnonymized("//k").hasAnonymizeMetrics();

@@ -244,6 +244,65 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 	}
 
 	@Test
+	public void testPruneMessagesLongerThanValues() throws Exception {
+		// The document fits within max size, but the output does not: each prune message is longer than
+		// the value it replaces (46 chars in, 96 chars out without max size). The output is rolled back
+		// and the document is filtered again with max size.
+		String json = "[{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0}]";
+		byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		String expected = "[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{}]";
+
+		JacksonPathMaxSizeMaxStringLengthJsonFilter filter =
+				new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, json.length(), null, new String[]{"//id"});
+
+		// output written before the document is kept
+		StringBuilder sb = new StringBuilder("[1,");
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), sb, null));
+		assertEquals("[1," + expected, sb.toString());
+
+		sb = new StringBuilder("[1,");
+		assertTrue(filter.process(bytes, 0, bytes.length, sb, null));
+		assertEquals("[1," + expected, sb.toString());
+
+		com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream output =
+				new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(128);
+		output.write("[1,".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		assertTrue(filter.process(bytes, 0, bytes.length, output, null));
+		assertEquals("[1," + expected, output.toString(java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testMetricsForPruneMessagesLongerThanValues() throws Exception {
+		// The document is first filtered without max size, and again with max size if that output is too large.
+		// The metrics then include both passes.
+		// Pruned objects are counted (51 chars in, 96 chars out without max size).
+		String json = "[{\"id\":{}},{\"id\":{}},{\"id\":{}},{\"id\":{}},{\"id\":{}}]";
+
+		// output too large, filtered again with max size: five objects pruned in the first pass, and two in the second
+		assertPruneMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, json.length(), null, new String[]{"//id"}), json, 7);
+
+		// output within max size, kept: all five objects pruned
+		assertPruneMetrics(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 96, null, new String[]{"//id"}), json, 5);
+	}
+
+	private static void assertPruneMetrics(JacksonPathMaxSizeMaxStringLengthJsonFilter filter, String json, int pruned) {
+		byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+		com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics metrics =
+				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertEquals(pruned, metrics.getPrune());
+
+		metrics = new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		assertTrue(filter.process(bytes, 0, bytes.length, new StringBuilder(), metrics));
+		assertEquals(pruned, metrics.getPrune());
+
+		metrics = new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
+		assertTrue(filter.process(bytes, 0, bytes.length, new com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream(128), metrics));
+		assertEquals(pruned, metrics.getPrune());
+	}
+
+	@Test
 	public void testAnonymizeObjectValue() throws Exception {
 		// When the anonymized field has an object value (not scalar), anonymizeChildren is called.
 		// The JSON has "/key" -> object {"nested":"value","other":"data"} which exercises

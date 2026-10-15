@@ -152,7 +152,7 @@ public class FullPathJsonFilter extends AbstractRangesPathJsonFilter {
 
 		int level = 0;
 		
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(-1, length);
 
 		try {
 			while(offset < length) {

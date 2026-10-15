@@ -400,6 +400,66 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testPruneMessagesLongerThanValues() throws Exception {
+		// The document fits within max size, but the output does not: each prune message is longer than
+		// the value it replaces (46 chars in, 96 chars out without max size). The output is rolled back
+		// and the document is filtered again with max size.
+		String json = "[{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0}]";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+		String expected = "[{\"id\":\"[removed]\"},{\"id\":\"[removed]\"},{}]";
+
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length(), -1, null, new String[]{"//id"});
+
+		// output written before the document is kept
+		StringBuilder charOutput = new StringBuilder("[1,");
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput));
+		org.junit.jupiter.api.Assertions.assertEquals("[1," + expected, charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		byteOutput.write("[1,".getBytes(StandardCharsets.UTF_8));
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput));
+		org.junit.jupiter.api.Assertions.assertEquals("[1," + expected, byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testMetricsForPruneMessagesLongerThanValues() throws Exception {
+		// The document is first filtered without max size, and again with max size if that output is too large.
+		// The metrics then include both passes.
+		String json = "[{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0},{\"id\":0}]";
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
+		// output too large, filtered again with max size: 5 pruned in the first pass, and 2 in the second
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter =
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length(), -1, null, new String[]{"//id"});
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		org.junit.jupiter.api.Assertions.assertEquals(7, metrics.getPrune());
+		org.junit.jupiter.api.Assertions.assertEquals(2 * json.length(), metrics.getInputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128), metrics));
+		org.junit.jupiter.api.Assertions.assertEquals(7, metrics.getPrune());
+		org.junit.jupiter.api.Assertions.assertEquals(2 * jsonBytes.length, metrics.getInputSize());
+
+		// output within max size, kept
+		filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 96, -1, null, new String[]{"//id"});
+
+		metrics = new DefaultJsonFilterMetrics();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		org.junit.jupiter.api.Assertions.assertEquals(5, metrics.getPrune());
+		org.junit.jupiter.api.Assertions.assertEquals(json.length(), metrics.getInputSize());
+		org.junit.jupiter.api.Assertions.assertEquals(96, metrics.getOutputSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		org.junit.jupiter.api.Assertions.assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128), metrics));
+		org.junit.jupiter.api.Assertions.assertEquals(5, metrics.getPrune());
+		org.junit.jupiter.api.Assertions.assertEquals(jsonBytes.length, metrics.getInputSize());
+		org.junit.jupiter.api.Assertions.assertEquals(96, metrics.getOutputSize());
+	}
+
+	@Test
 	public void testMaxSizeMetricsOnlyWhenContentIsDropped() throws Exception {
 		String pretty = "{\n  \"a\" : \"bbbbbbbbbb\",\n  \"c\" : [ 1, 2, 3 ],\n  \"d\" : { \"e\" : true }\n}";
 		String compact = "{\"a\":\"bbbbbbbbbb\",\"c\":[1,2,3],\"d\":{\"e\":true}}";

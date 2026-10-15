@@ -475,6 +475,22 @@ public class ByteArrayRangesFilterTest {
 	}
 
 	@Test
+	public void testReplacementGrowth() {
+		// set when prune or anonymize messages make the output larger than the input
+		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(-1, 100,
+			"prune".getBytes(StandardCharsets.UTF_8),
+			"anon".getBytes(StandardCharsets.UTF_8),
+			"trunc".getBytes(StandardCharsets.UTF_8));
+		assertFalse(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(true);
+		assertTrue(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(false);
+		assertFalse(filter.isReplacementGrowth());
+	}
+
+	@Test
 	public void testScanQuotedValueScalarWithDoubleBackslashBeforeClose() {
 		// A short string ending with a double-backslash causes the scalar path to detect a backslash
 		// before the closing quote and hand off to the escaped-value scanner.

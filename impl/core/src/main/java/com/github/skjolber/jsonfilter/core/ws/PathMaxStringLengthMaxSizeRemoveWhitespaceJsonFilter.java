@@ -14,6 +14,14 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceSizeFilter;
 
+/**
+ * Filter for paths, max string length and max size, removing whitespace.
+ * <br>
+ * Prune and anonymize messages can be longer than the values they replace. So if the input fits within max size,
+ * it is first filtered without max size, and filtered again with max size if the output turns out too large.
+ * The metrics then include both passes.
+ */
+
 public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMaxStringLengthRemoveWhitespaceJsonFilter {
 
 	public PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
@@ -36,7 +44,17 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, buffer, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
+			int start = buffer.length();
+			if(!super.process(chars, offset, length, buffer, metrics)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(buffer.length() - start)) {
+				return true;
+			}
+			buffer.setLength(start);
 		}
 
 		int bufferLength = buffer.length();
@@ -471,7 +489,17 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
+			int start = output.size();
+			if(!super.process(chars, offset, length, output, metrics)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(output.size() - start)) {
+				return true;
+			}
+			output.setSize(start);
 		}
 		
 		int bufferLength = output.size();

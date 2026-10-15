@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,21 @@ public class CharArrayRangesSizeFilterTest {
 		filter.setMark(0);
 		int result = filter.skipObjectOrArrayMaxSizeMaxStringLength(chars, 0, json.length(), json.length(), 3);
 		assertTrue(result >= 0);
+	}
+
+	// --- replacementGrowth ---
+
+	@Test
+	public void testReplacementGrowth() {
+		// set when prune or anonymize messages make the output larger than the input
+		CharArrayRangesSizeFilter filter = newFilter(10);
+		assertFalse(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(true);
+		assertTrue(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(false);
+		assertFalse(filter.isReplacementGrowth());
 	}
 
 	// --- anonymizeSubtree ---

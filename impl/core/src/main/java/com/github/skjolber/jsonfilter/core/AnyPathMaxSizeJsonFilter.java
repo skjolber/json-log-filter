@@ -18,12 +18,20 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 	
 	@Override
 	public CharArrayRangesFilter ranges(final char[] chars, int offset, int length) {
+		boolean replacementGrowth = false;
 		if(!mustConstrainMaxSize(length)) {
-			return super.ranges(chars, offset, length);
+			CharArrayRangesFilter filter = super.ranges(chars, offset, length);
+			// prune and anonymize messages can be longer than the values they replace
+			if(filter == null || !mustConstrainMaxSize(filter.getMaxOutputLength())) {
+				return filter;
+			}
+			// the output would be larger than the max size, so filter with max size
+			replacementGrowth = true;
 		}
 
 		CharArrayRangesSizeFilter filter = getCharArrayRangesBracketFilter(-1, length);
 		filter.setMark(offset);
+		filter.setReplacementGrowth(replacementGrowth);
 
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);
@@ -34,12 +42,20 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 
 	@Override
 	public ByteArrayRangesFilter ranges(final byte[] chars, int offset, int length) {
+		boolean replacementGrowth = false;
 		if(!mustConstrainMaxSize(length)) {
-			return super.ranges(chars, offset, length);
+			ByteArrayRangesFilter filter = super.ranges(chars, offset, length);
+			// prune and anonymize messages can be longer than the values they replace
+			if(filter == null || !mustConstrainMaxSize(filter.getMaxOutputLength())) {
+				return filter;
+			}
+			// the output would be larger than the max size, so filter with max size
+			replacementGrowth = true;
 		}
 		
 		ByteArrayRangesSizeFilter filter = getByteArrayRangesBracketFilter(-1, length);
 		filter.setMark(offset);
+		filter.setReplacementGrowth(replacementGrowth);
 		
 		try {
 			return rangesAnyPathMaxSize(chars, offset, offset + length, offset + maxSize, anyPathFilters, maxPathMatches, filter);
@@ -200,7 +216,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							}							
 						}
 
-						if(maxSizeLimit >= maxReadLimit) {
+						if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							
@@ -467,7 +483,7 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 							}							
 						}
 
-						if(maxSizeLimit >= maxReadLimit) {
+						if(maxSizeLimit >= maxReadLimit && !filter.isReplacementGrowth()) {
 							// filtering only for path, i.e. keep the rest of the document
 							filter.setLevel(0);
 							

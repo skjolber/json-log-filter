@@ -49,6 +49,16 @@ public class PathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testByteArrayRangesMaxOutputLength() throws Exception {
+		// The prune message is 4 chars longer than the value it replaces. The byte[] ranges filter must
+		// know the input length to tell the output length, like the char[] ranges filter.
+		String json = "{\"key\":\"value\",\"other\":\"value\"}";
+		PathJsonFilter filter = new PathJsonFilter(-1, null, new String[]{"/key"});
+		assertEquals(json.length() + 4, filter.ranges(json.getBytes(StandardCharsets.UTF_8), 0, json.length()).getMaxOutputLength());
+		assertEquals(json.length() + 4, filter.ranges(json.toCharArray(), 0, json.length()).getMaxOutputLength());
+	}
+
+	@Test
 	public void exception_returns_false_with_metrics() throws Exception {
 		// Processing invalid input with metrics tracking must return false rather than throw an exception.
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
