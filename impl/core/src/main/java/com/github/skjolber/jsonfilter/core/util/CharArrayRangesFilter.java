@@ -18,8 +18,31 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 
 	public static boolean isHex(char c) {
 	    return c < 103 && HEX[c];
-	}	
-	
+	}
+
+	private static final boolean[] HIGH_SURROGATE_SECOND_HEX = new boolean['b' + 1];
+
+	static {
+	    for (int i = 0; i < HIGH_SURROGATE_SECOND_HEX.length; i++) {
+	        HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
+	                             (i >= 'A' && i <= 'B') ||
+	                             (i >= 'a' && i <= 'b');
+	    }
+	}
+
+	/**
+	 * Check whether a char can be the second hex digit of an escaped high surrogate.
+	 * High surrogates are U+D800 to U+DBFF, escaped in JSON as \ uD800 to \ uDBFF (without the space):
+	 * the first hex digit is D, and the second is 8, 9, A or B, in upper or lower case.
+	 *
+	 * @param c char to check
+	 * @return true if 8, 9, A, B, a or b
+	 */
+
+	public static boolean isHighSurrogateSecondHex(char c) {
+	    return c <= 'b' && HIGH_SURROGATE_SECOND_HEX[c];
+	}
+
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
 	protected static final char[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.toCharArray();
 	protected static final char[] DEFAULT_FILTER_TRUNCATE_MESSAGE_CHARS = FILTER_TRUNCATE_MESSAGE.toCharArray();
@@ -496,10 +519,22 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 	
 	
+	/**
+	 * Do not split an escaped surrogate pair, i.e. \ uD83D\ uDE00 (without the spaces). If the cut comes
+	 * right after an escaped high surrogate (\ uD800 to \ uDBFF), the low surrogate which follows is
+	 * removed, leaving the high surrogate on its own, which is not a valid character. So move the cut to
+	 * before the high surrogate, unless its backslash is itself escaped, i.e. part of an even number of backslashes.
+	 * <br>
+	 * The caller has already checked for a backslash six chars before the cut.
+	 *
+	 * @param chars input
+	 * @param start index of the first char to remove
+	 * @return index of the first char to remove, before the high surrogate if necessary
+	 */
+
 	private static int alignEscapedSurrogatePair(char[] chars, int start) {
 		if(chars[start - 5] == 'u' && (chars[start - 4] == 'D' || chars[start - 4] == 'd')) {
-			char c = chars[start - 3];
-			if((c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b') && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
+			if(isHighSurrogateSecondHex(chars[start - 3]) && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
 				int slashCount = 7;
 				// is the unicode encoded with an odd number of slashes?
 				while(chars[start - slashCount] == '\\') {

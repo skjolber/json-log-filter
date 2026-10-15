@@ -288,6 +288,14 @@ public class ByteArrayRangesFilterTest {
 	}
 
 	@Test
+	public void testIsHighSurrogateSecondHex() {
+		for(int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++) {
+			boolean expected = i == '8' || i == '9' || i == 'A' || i == 'B' || i == 'a' || i == 'b';
+			assertEquals(expected, ByteArrayRangesFilter.isHighSurrogateSecondHex((byte)i), Integer.toString(i));
+		}
+	}
+
+	@Test
 	public void testAnonymizeSubtree() throws IOException {
 		String input = IOUtils.resourceToString("/input.json", StandardCharsets.UTF_8);
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);

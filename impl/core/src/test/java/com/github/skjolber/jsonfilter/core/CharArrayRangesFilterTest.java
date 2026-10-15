@@ -270,6 +270,16 @@ public class CharArrayRangesFilterTest {
 	}
 
 	@Test
+	public void testIsHighSurrogateSecondHex() {
+		for(char c = 0; c < 256; c++) {
+			boolean expected = c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b';
+			assertEquals(expected, CharArrayRangesFilter.isHighSurrogateSecondHex(c), Integer.toString(c));
+		}
+		assertFalse(CharArrayRangesFilter.isHighSurrogateSecondHex((char)0xD83D));
+		assertFalse(CharArrayRangesFilter.isHighSurrogateSecondHex(Character.MAX_VALUE));
+	}
+
+	@Test
 	public void testAnonymizeSubtree() throws IOException {
 		String input = IOUtils.resourceToString("/input.json", StandardCharsets.UTF_8);
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);

@@ -24,7 +24,30 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	public static boolean isHex(byte b) {
 	    return HEX[b & 0xFF];
 	}
-	
+
+	private static final boolean[] HIGH_SURROGATE_SECOND_HEX = new boolean[256];
+
+	static {
+	    for (int i = 0; i < 256; i++) {
+	        HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
+	                             (i >= 'A' && i <= 'B') ||
+	                             (i >= 'a' && i <= 'b');
+	    }
+	}
+
+	/**
+	 * Check whether a byte can be the second hex digit of an escaped high surrogate.
+	 * High surrogates are U+D800 to U+DBFF, escaped in JSON as \ uD800 to \ uDBFF (without the space):
+	 * the first hex digit is D, and the second is 8, 9, A or B, in upper or lower case.
+	 *
+	 * @param b byte to check
+	 * @return true if 8, 9, A, B, a or b
+	 */
+
+	public static boolean isHighSurrogateSecondHex(byte b) {
+	    return HIGH_SURROGATE_SECOND_HEX[b & 0xFF];
+	}
+
 	// Word-at-a-time quote scanning: reads 8 bytes as a long (little-endian) and
 	// uses the Hacker's Delight has-zero-byte trick to detect '"' (0x22) in bulk.
 	private static final VarHandle LONG_LE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
@@ -235,10 +258,22 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 
 	
 	
+	/**
+	 * Do not split an escaped surrogate pair, i.e. \ uD83D\ uDE00 (without the spaces). If the cut comes
+	 * right after an escaped high surrogate (\ uD800 to \ uDBFF), the low surrogate which follows is
+	 * removed, leaving the high surrogate on its own, which is not a valid character. So move the cut to
+	 * before the high surrogate, unless its backslash is itself escaped, i.e. part of an even number of backslashes.
+	 * <br>
+	 * The caller has already checked for a backslash six chars before the cut.
+	 *
+	 * @param chars input
+	 * @param start index of the first char to remove
+	 * @return index of the first char to remove, before the high surrogate if necessary
+	 */
+
 	private static int alignEscapedSurrogatePair(byte[] chars, int start) {
 		if(chars[start - 5] == 'u' && (chars[start - 4] == 'D' || chars[start - 4] == 'd')) {
-			byte c = chars[start - 3];
-			if((c == '8' || c == '9' || c == 'A' || c == 'B' || c == 'a' || c == 'b') && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
+			if(isHighSurrogateSecondHex(chars[start - 3]) && isHex(chars[start - 2]) && isHex(chars[start - 1])) {
 				int slashCount = 7;
 				// is the unicode encoded with an odd number of slashes?
 				while(chars[start - slashCount] == '\\') {
