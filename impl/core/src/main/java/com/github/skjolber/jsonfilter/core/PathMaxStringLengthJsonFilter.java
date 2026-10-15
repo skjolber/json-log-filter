@@ -165,7 +165,7 @@ public class PathMaxStringLengthJsonFilter extends AbstractRangesPathJsonFilter 
 
 		final int maxStringLength = this.maxStringLength + 2; // account for quotes
 
-		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches);
+		final ByteArrayRangesFilter filter = getByteArrayRangesFilter(pathMatches, length);
 
 		final PathItem pathItem = this.pathItem;
 
