@@ -29,9 +29,28 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 		this.indent = indent;
 	}
 
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {	
+	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {
 		int bufferLength = buffer.length();
+		if(prettyPrint(chars, offset, length, buffer)) {
+			return true;
+		}
+		// do not leave partial output in the buffer
+		buffer.setLength(bufferLength);
+		return false;
+	}
 
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
+		int bufferLength = output.size();
+		if(prettyPrint(chars, offset, length, output)) {
+			return true;
+		}
+		// do not leave partial output in the buffer
+		output.setSize(bufferLength);
+		return false;
+	}
+
+	// keep the loop free of other locals, these slow it down considerably
+	private boolean prettyPrint(final char[] chars, int offset, int length, final StringBuilder buffer) {
 		length += offset;
 		
 		int level = 0;
@@ -106,15 +125,11 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 		
 			return true;
 		} catch(Exception e) {
-			// do not leave partial output in the buffer
-			buffer.setLength(bufferLength);
 			return false;
 		}
 	}
 
-	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
-		int bufferLength = output.size();
-
+	private boolean prettyPrint(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		length += offset;
 
 		int level = 0;
@@ -190,8 +205,6 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 			
 			return true;
 		} catch(Exception e) {
-			// do not leave partial output in the buffer
-			output.setSize(bufferLength);
 			return false;
 		}
 	}
