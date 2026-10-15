@@ -295,7 +295,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 	@Test
 	public void testMultipleRootValuesAreRejected() {
 		// max size below the input size, so that the input is not passed on to the path filter
-		assertMultipleRootValuesRejected(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, MULTIPLE_ROOT_VALUES.length() - 1, new String[]{DEFAULT_PATH}, null));
+		assertMultipleRootValuesRejected(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, multipleRootValues.length() - 1, new String[]{DEFAULT_PATH}, null));
 	}
 
 }

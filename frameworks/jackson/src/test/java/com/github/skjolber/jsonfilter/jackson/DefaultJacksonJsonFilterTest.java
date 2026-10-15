@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.core.JsonParser;
@@ -80,7 +81,7 @@ public class DefaultJacksonJsonFilterTest {
 		DefaultJacksonJsonFilter filter = new DefaultJacksonJsonFilter();
 		JsonFactory jsonFactory = new JsonFactory();
 
-		String json = "{\"key\":1}{\"injected\":true}";
+		String json = IOUtils.toString(getClass().getResourceAsStream("/rootValues/multiple/objects.json"), StandardCharsets.UTF_8);
 		char[] chars = json.toCharArray();
 		try (JsonParser parser = jsonFactory.createParser(chars, 0, chars.length)) {
 			assertFalse(filter.parse(parser));
@@ -90,7 +91,7 @@ public class DefaultJacksonJsonFilterTest {
 			assertFalse(filter.parse(parser));
 		}
 
-		String single = "{\"key\":1}";
+		String single = IOUtils.toString(getClass().getResourceAsStream("/rootValues/single/objectKey.json"), StandardCharsets.UTF_8);
 		chars = single.toCharArray();
 		try (JsonParser parser = jsonFactory.createParser(chars, 0, chars.length)) {
 			assertTrue(filter.parse(parser));

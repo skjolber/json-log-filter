@@ -21,17 +21,17 @@ public abstract class AbstractDefaultJacksonJsonFilterTest extends DefaultJsonFi
 	}
 
 	// the first root value is short, so that max size filters also read the start of the second root value
-	protected static final String MULTIPLE_ROOT_VALUES = "{\"key\":1}{\"injected\":true}";
+	protected final String multipleRootValues = readResource("/rootValues/multiple/objects.json");
 
 	public void assertMultipleRootValuesRejected(JacksonJsonFilter filter) {
 		// rejected, leaving the output as it was
 		String prefix = "PREFIX|";
 
 		StringBuilder fromChars = new StringBuilder(prefix);
-		assertFalse(filter.process(MULTIPLE_ROOT_VALUES.toCharArray(), 0, MULTIPLE_ROOT_VALUES.length(), fromChars));
+		assertFalse(filter.process(multipleRootValues.toCharArray(), 0, multipleRootValues.length(), fromChars));
 		assertEquals(prefix, fromChars.toString());
 
-		byte[] bytes = MULTIPLE_ROOT_VALUES.getBytes(StandardCharsets.UTF_8);
+		byte[] bytes = multipleRootValues.getBytes(StandardCharsets.UTF_8);
 
 		ResizableByteArrayOutputStream fromBytes = new ResizableByteArrayOutputStream(128);
 		fromBytes.write(prefix.getBytes(StandardCharsets.UTF_8));
