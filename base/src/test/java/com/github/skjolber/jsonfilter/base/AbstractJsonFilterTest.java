@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,7 +18,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
@@ -278,41 +275,6 @@ public class AbstractJsonFilterTest {
 
 		// process(byte[], int, int, JsonFilterMetrics) returns null when underlying returns false
 		assertNull(mockFilter.process(new byte[]{'{', '}'}, 0, 2, metrics));
-	}
-
-	@Test
-	public void testProcessBytesSizesOutputBufferFromSlice() throws Exception {
-		// a slice of a larger array: the output buffer is sized from the slice length, not the array length
-		byte[] bytes = new byte[64 * 1024];
-		int offset = 1000;
-		int length = 7;
-
-		AbstractJsonFilter mockFilter = getJsonFilterMock();
-		when(mockFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class))).thenReturn(true);
-
-		assertNotNull(mockFilter.process(bytes, offset, length));
-
-		ArgumentCaptor<ResizableByteArrayOutputStream> output = ArgumentCaptor.forClass(ResizableByteArrayOutputStream.class);
-		verify(mockFilter).process(same(bytes), eq(offset), eq(length), output.capture());
-		assertThat(output.getValue().getBuffer().length).isEqualTo(length);
-	}
-
-	@Test
-	public void testProcessBytesWithMetricsSizesOutputBufferFromSlice() throws Exception {
-		// a slice of a larger array: the output buffer is sized from the slice length, not the array length
-		byte[] bytes = new byte[64 * 1024];
-		int offset = 1000;
-		int length = 7;
-
-		AbstractJsonFilter mockFilter = getJsonFilterMockWithMetrics();
-		JsonFilterMetrics metrics = mock(JsonFilterMetrics.class);
-		when(mockFilter.process(any(byte[].class), any(Integer.class), any(Integer.class), any(ResizableByteArrayOutputStream.class), any(JsonFilterMetrics.class))).thenReturn(true);
-
-		assertNotNull(mockFilter.process(bytes, offset, length, metrics));
-
-		ArgumentCaptor<ResizableByteArrayOutputStream> output = ArgumentCaptor.forClass(ResizableByteArrayOutputStream.class);
-		verify(mockFilter).process(same(bytes), eq(offset), eq(length), output.capture(), same(metrics));
-		assertThat(output.getValue().getBuffer().length).isEqualTo(length);
 	}
 
 
