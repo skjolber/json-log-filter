@@ -82,6 +82,7 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 					buffer.append(' ');
 					break;
 				case '[' :
+				case '{' :
 					int nextOffset = offset + 1;
 					// skip whitespace
 					// optimization: scan for highest value
@@ -89,14 +90,18 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 						nextOffset++;
 					}
 					
-					if(chars[nextOffset] == ']') {
-						buffer.append(']');
+					// empty array or object: keep it on one line
+					char end = chars[offset] == '[' ? ']' : '}';
+					if(chars[nextOffset] == end) {
+						buffer.append(end);
 						offset = nextOffset + 1;
 						level--;
 						continue;
 					}
-				case '{' :
 					indent.append(buffer, level);
+					// the whitespace up to nextOffset is dropped anyway
+					offset = nextOffset;
+					continue;
 				}
 				offset++;
 			}
@@ -158,6 +163,7 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 					output.write(' ');
 					break;
 				case '[' :
+				case '{' :
 					int nextOffset = offset + 1;
 					// skip whitespace
 					// optimization: scan for highest value
@@ -165,14 +171,18 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 						nextOffset++;
 					}
 					
-					if(chars[nextOffset] == ']') {
-						output.write(']');
+					// empty array or object: keep it on one line
+					byte end = chars[offset] == '[' ? (byte)']' : (byte)'}';
+					if(chars[nextOffset] == end) {
+						output.write(end);
 						offset = nextOffset + 1;
 						level--;
 						continue;
 					}
-				case '{' :
 					indent.append(output, level);
+					// the whitespace up to nextOffset is dropped anyway
+					offset = nextOffset;
+					continue;
 				}		
 				
 				offset++;

@@ -175,6 +175,38 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testEmptyObject() throws Exception {
+		// JSON with empty object {} — kept on one line, like an empty array
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObject.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testEmptyObjectWithWhitespace() throws Exception {
+		// JSON with empty object containing whitespace { } — covers the while loop in empty-object detection
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObjectSpace.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testNonAsciiBytes() throws Exception {
 		// JSON with non-ASCII UTF-8 character ('é') — covers the `chars[offset] < 0` path in the byte variant
 		PrettyPrintingJsonFilter filter = getPrettyPrinter();
