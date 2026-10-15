@@ -237,6 +237,57 @@ public class ByteArrayRangesFilterTest {
 	}
 	
 	@Test
+	public void testEscapedSurrogatePairAlignment() throws IOException {
+		// a cut within an escaped surrogate pair (here U+1F600) removes the whole pair
+		for(String pair : new String[] {"\\uD83D\\uDE00", "\\ud83d\\ude00"}) {
+			String str = "ab" + pair + "cdefghijklmnopqrstuvwxyz0123";
+			for(int i = 3; i < 14; i++) {
+				assertEquals("ab... + 40", splitAt(str, i));
+			}
+			assertEquals("ab" + pair + "... + 28", splitAt(str, 14));
+		}
+
+		// a cut within the second of two consecutive pairs keeps the first pair
+		String pair = "\\uD83D\\uDE00";
+		String str = pair + pair + "cdefghijklmnopqrstuvwxyz0123";
+		for(int i = 12; i < 24; i++) {
+			assertEquals(pair + "... + 40", splitAt(str, i));
+		}
+		assertEquals(pair + pair + "... + 28", splitAt(str, 24));
+
+		// an escaped backslash followed by the plain text uD83D, which is not a high surrogate
+		assertEquals("a\\\\uD83D... + 29", splitAt("a\\\\uD83Dbcdefghijklmnopqrstuvwxyz0123", 8));
+		// an escaped backslash followed by an escaped surrogate pair
+		assertEquals("a\\\\... + 41", splitAt("a\\\\" + pair + "bcdefghijklmnopqrstuvwxyz0123", 9));
+	}
+
+	@Test
+	public void testStringAlignmentForEscapedSurrogatePair() {
+		// quote, two chars, then the pair at index 3 to 14: a cut within the pair moves to its start
+		byte[] bytes = "\"ab\\uD83D\\uDE00cd\"".getBytes(StandardCharsets.UTF_8);
+		assertEquals(3, ByteArrayRangesFilter.getStringAlignment(bytes, 3));
+		for(int start = 4; start < 15; start++) {
+			assertEquals(3, ByteArrayRangesFilter.getStringAlignment(bytes, start), Integer.toString(start));
+		}
+		assertEquals(15, ByteArrayRangesFilter.getStringAlignment(bytes, 15));
+
+		// a cut right after an escaped high surrogate (D800 to DBFF) moves to its start, whatever follows
+		for(String escape : new String[] {"\\uD800", "\\uD83D", "\\uDBFF", "\\udbff"}) {
+			String string = "\"ab" + escape + "\\u00e9cd\"";
+			assertEquals(3, ByteArrayRangesFilter.getStringAlignment(string.getBytes(StandardCharsets.UTF_8), 9), escape);
+		}
+
+		// a cut right after any other escape stays
+		for(String escape : new String[] {"\\uD7FF", "\\uDC00", "\\uE000", "\\u0800"}) {
+			String string = "\"ab" + escape + "\\u00e9cd\"";
+			assertEquals(9, ByteArrayRangesFilter.getStringAlignment(string.getBytes(StandardCharsets.UTF_8), 9), escape);
+		}
+
+		// a cut after an escaped backslash followed by the plain text uD83D stays
+		assertEquals(9, ByteArrayRangesFilter.getStringAlignment("\"a\\\\uD83Dxy\"".getBytes(StandardCharsets.UTF_8), 9));
+	}
+
+	@Test
 	public void testAnonymizeSubtree() throws IOException {
 		String input = IOUtils.resourceToString("/input.json", StandardCharsets.UTF_8);
 		String output = IOUtils.resourceToString("/anon-subtree/output.json", StandardCharsets.UTF_8);
