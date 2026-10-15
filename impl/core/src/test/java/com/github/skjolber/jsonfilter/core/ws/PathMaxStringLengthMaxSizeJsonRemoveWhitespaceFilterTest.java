@@ -205,6 +205,20 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void testValueFollowedByWhitespaceMustFit() throws Exception {
+		// the whitespace after a value is not written, but does not make room for the value itself
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 10, -1, new String[]{"/zz"}, null);
+
+		String json = "[\"" + "v".repeat(200) + "\"" + " ".repeat(300) + "]";
+		org.junit.jupiter.api.Assertions.assertEquals("[]", filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals("[]", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		json = "[\"vvvvvv\"" + " ".repeat(300) + "]";
+		org.junit.jupiter.api.Assertions.assertEquals("[\"vvvvvv\"]", filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals("[\"vvvvvv\"]", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testGrowSquareBrackets() throws Exception {
 		// 35 levels of nesting forces the filter's bracket-tracking array to grow beyond its initial capacity.
 		// An any-path filter ensures all nested objects are traversed rather than skipped.
