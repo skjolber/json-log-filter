@@ -251,6 +251,53 @@ public abstract class AbstractJsonFilter implements JsonFilter {
 	}
 	
 
+	/**
+	 * Whether the document is not an object or array, i.e. a single string, number, true, false or null,
+	 * ignoring surrounding whitespace.
+	 * <br><br>
+	 * Such a document is rare, so filters check for it once per document rather than in the hot path.
+	 * The regular scanners expect a structural character after each string, to tell keys from values,
+	 * and max size cannot cut such a document into a smaller valid document. So paths cannot match,
+	 * a string is only truncated (max string length), surrounding whitespace is optionally removed,
+	 * and max size does not apply.
+	 *
+	 * @param chars input
+	 * @param offset document offset
+	 * @param length document length
+	 * @return true if the first non-whitespace character within the document is not an opening bracket
+	 */
+	protected static boolean isNonStructural(final char[] chars, int offset, int length) {
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
+		while(offset < limit && chars[offset] <= 0x20) {
+			offset++;
+		}
+		return offset < limit && chars[offset] != '{' && chars[offset] != '[';
+	}
+
+	/**
+	 * Byte variant of {@link #isNonStructural(char[], int, int)}.
+	 *
+	 * @param chars input
+	 * @param offset document offset
+	 * @param length document length
+	 * @return true if the first non-whitespace character within the document is not an opening bracket
+	 */
+	protected static boolean isNonStructural(final byte[] chars, int offset, int length) {
+		if(offset < 0) {
+			return false;
+		}
+		// invalid offset or length is left to the regular filter, which handles the exception
+		int limit = Math.min(offset + length, chars.length);
+		while(offset < limit && chars[offset] <= 0x20 && chars[offset] >= 0) {
+			offset++;
+		}
+		return offset < limit && chars[offset] != '{' && chars[offset] != '[';
+	}
+
 	public static int lengthToDigits(int number) {
 		if (number < 100000) {
 		    if (number < 100) {

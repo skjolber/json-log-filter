@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -75,6 +76,12 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 	}
 
 	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// max size below the input size, but large enough to reach the end of the input
+		assertExceptionLeavesOutputUntouched(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, UNTERMINATED_LAST_STRING.length() - 1), UNTERMINATED_LAST_STRING);
+	}
+
+	@Test
 	public void exception_offset_if_not_exceeded() throws Exception {
 		assertNull(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, DEFAULT_MAX_SIZE).process(TRUNCATED));
 		assertNull(new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, DEFAULT_MAX_SIZE).process(TRUNCATED.getBytes(StandardCharsets.UTF_8)));
@@ -90,6 +97,40 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilterTest  extends Defau
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size);
 		
 		assertThat(maxSize, new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1)).hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH).hasMaxStringLengthMetrics();
+	}
+
+	@Test
+	public void maxStringLengthTopLevelStringLongerThanMaxSize() throws Exception {
+		// a string cannot be cut, so it is only truncated by max string length, even if longer than max size
+		String string = " \"hello world, a long string\"\n";
+		String truncated = "\"hello... + 21\"";
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertEquals(truncated, filter.process(string, metrics));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8), metrics));
+		assertEquals(2, metrics.getMaxStringLength());
+
+		// a colon after the slice must not make the string look like a key
+		String input = "x" + string + ":y";
+
+		StringBuilder builder = new StringBuilder();
+		assertTrue(filter.process(input.toCharArray(), 1, string.length(), builder));
+		assertEquals(truncated, builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(input.getBytes(StandardCharsets.UTF_8), 1, string.length(), output));
+		assertEquals(truncated, output.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 2);
+		for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+			assertEquals(json, filter.process(json));
+			assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		}
 	}
 
 	@Test

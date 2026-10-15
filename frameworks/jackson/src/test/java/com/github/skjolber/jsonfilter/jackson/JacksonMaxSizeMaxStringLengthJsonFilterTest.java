@@ -1,5 +1,6 @@
 package com.github.skjolber.jsonfilter.jackson;
 
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +36,20 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 	public void passthrough_success() throws Exception {
 		MaxSizeJsonFilterFunction maxSize = (size) -> new JacksonMaxSizeMaxStringLengthJsonFilter(-1, size);
 		assertThat(maxSize, new JacksonMaxStringLengthJsonFilter(-1)).hasPassthrough();
+	}
+
+	@Test
+	public void testRootScalarIsKept() throws Exception {
+		// dropping the root value would leave an empty (invalid) document
+		String json = "\"" + "s".repeat(28) + "\"";
+		JacksonMaxSizeMaxStringLengthJsonFilter filter = new JacksonMaxSizeMaxStringLengthJsonFilter(100, 10);
+		assertEquals(json, filter.process(json));
+		assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+
+		// but it is still truncated to the max string length
+		filter = new JacksonMaxSizeMaxStringLengthJsonFilter(5, 10);
+		assertEquals("\"sssss... + 23\"", filter.process(json));
+		assertEquals("\"sssss... + 23\"", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 	}
 
 	@Test
@@ -188,6 +203,12 @@ public class JacksonMaxSizeMaxStringLengthJsonFilterTest extends AbstractDefault
 		StringBuilder sb = new StringBuilder();
 		filter.process(json.toCharArray(), 0, json.length(), sb, null);
 		assertEquals("{}", sb.toString());
+	}
+
+	@Test
+	public void testMultipleRootValuesAreRejected() {
+		// max size below the input size, so that the input is not passed on to the max string length filter
+		assertMultipleRootValuesRejected(new JacksonMaxSizeMaxStringLengthJsonFilter(DEFAULT_MAX_STRING_LENGTH, multipleRootValues.length() - 1));
 	}
 
 }

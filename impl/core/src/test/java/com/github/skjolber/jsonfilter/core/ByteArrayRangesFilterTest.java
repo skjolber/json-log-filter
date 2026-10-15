@@ -13,6 +13,8 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+import com.github.skjolber.jsonfilter.JsonFilterMetrics;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesFilter;
 import com.github.skjolber.jsonfilter.core.util.ByteArrayRangesSizeFilter;
 
@@ -34,6 +36,80 @@ public class ByteArrayRangesFilterTest {
 					
 			assertThat(ByteArrayRangesFilter.scanBeyondUnquotedValue(terminatedValue.getBytes(), 0)).isEqualTo(terminatedValue.length() - 1);
 		}
+	}
+
+	private static final String TOP_LEVEL_STRING = "\"hello world, a long string\"";
+	private static final String TOP_LEVEL_STRING_TRUNCATED = "\"hello... + 21\"";
+
+	@Test
+	public void testFilterNonStructural() {
+		// paths cannot match, so a string is only truncated, and surrounding whitespace optionally removed
+		for(String input : new String[] {"\"hello\"", " \"hello\" \n", "\"a\\\"b\\\\\"", TOP_LEVEL_STRING}) {
+			assertEquals(input, filterNonStructural(input, Integer.MAX_VALUE, false, null));
+			assertEquals(input, filterNonStructural(input, 100, false, null));
+		}
+		assertEquals("\"hello\"", filterNonStructural(" \"hello\" \n", Integer.MAX_VALUE, true, null));
+		assertEquals("\"hello\"", filterNonStructural("\r\n\t\"hello\"", Integer.MAX_VALUE, true, null));
+		assertEquals("\"a\\\"b\\\\\"", filterNonStructural(" \"a\\\"b\\\\\" ", Integer.MAX_VALUE, true, null));
+
+		assertEquals(TOP_LEVEL_STRING_TRUNCATED, filterNonStructural(TOP_LEVEL_STRING, 5, false, null));
+		assertEquals(" " + TOP_LEVEL_STRING_TRUNCATED + "\n", filterNonStructural(" " + TOP_LEVEL_STRING + "\n", 5, false, null));
+		assertEquals(TOP_LEVEL_STRING_TRUNCATED, filterNonStructural(" " + TOP_LEVEL_STRING + "\n", 5, true, null));
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertEquals(TOP_LEVEL_STRING_TRUNCATED, filterNonStructural(TOP_LEVEL_STRING, 5, false, metrics));
+		assertEquals(1, metrics.getMaxStringLength());
+
+		// numbers and literals are never truncated
+		for(String input : new String[] {"123456789", "-1.5e3", "true", "false", "null"}) {
+			assertEquals(input, filterNonStructural(input, 1, false, null));
+			assertEquals(" " + input + "\n", filterNonStructural(" " + input + "\n", 1, false, null));
+			assertEquals(input, filterNonStructural(" \r\n" + input + "\t ", 1, true, null));
+		}
+	}
+
+	@Test
+	public void testFilterNonStructuralSlice() {
+		// a colon after the slice must not make the string look like a key
+		String input = "x" + TOP_LEVEL_STRING + ":y";
+		assertEquals(TOP_LEVEL_STRING_TRUNCATED, filterNonStructural(input, 1, TOP_LEVEL_STRING.length(), 5, false, null));
+
+		// whitespace is removed within the slice only
+		input = "x " + TOP_LEVEL_STRING + " :y";
+		assertEquals(TOP_LEVEL_STRING_TRUNCATED, filterNonStructural(input, 1, TOP_LEVEL_STRING.length() + 2, 5, true, null));
+		assertEquals(" " + TOP_LEVEL_STRING + " ", filterNonStructural(input, 1, TOP_LEVEL_STRING.length() + 2, Integer.MAX_VALUE, false, null));
+
+		// a number ends at the end of the slice
+		input = "[12345]";
+		assertEquals("123", filterNonStructural(input, 1, 3, Integer.MAX_VALUE, false, null));
+		input = "x 123 :y";
+		assertEquals("123", filterNonStructural(input, 1, 5, Integer.MAX_VALUE, true, null));
+		assertEquals(" 123 ", filterNonStructural(input, 1, 5, Integer.MAX_VALUE, false, null));
+	}
+
+	@Test
+	public void testAddNonStructural() {
+		// no ranges for a string which is kept as-is
+		assertEquals(0, ByteArrayRangesFilter.addNonStructural(TOP_LEVEL_STRING.getBytes(StandardCharsets.UTF_8), 0, TOP_LEVEL_STRING.length(), Integer.MAX_VALUE, false, new ByteArrayRangesFilter(-1, TOP_LEVEL_STRING.length())).getFilterIndex());
+
+		// one range per whitespace run, one for truncation
+		String input = " " + TOP_LEVEL_STRING + "\n";
+		assertEquals(9, ByteArrayRangesFilter.addNonStructural(input.getBytes(StandardCharsets.UTF_8), 0, input.length(), 5, true, new ByteArrayRangesFilter(-1, input.length())).getFilterIndex());
+
+		// one range per whitespace run for a number
+		input = " 123\n";
+		assertEquals(6, ByteArrayRangesFilter.addNonStructural(input.getBytes(StandardCharsets.UTF_8), 0, input.length(), 1, true, new ByteArrayRangesFilter(-1, input.length())).getFilterIndex());
+		assertEquals(0, ByteArrayRangesFilter.addNonStructural(input.getBytes(StandardCharsets.UTF_8), 0, input.length(), 1, false, new ByteArrayRangesFilter(-1, input.length())).getFilterIndex());
+	}
+
+	private static String filterNonStructural(String input, int maxStringLength, boolean removeWhitespace, JsonFilterMetrics metrics) {
+		return filterNonStructural(input, 0, input.length(), maxStringLength, removeWhitespace, metrics);
+	}
+
+	private static String filterNonStructural(String input, int offset, int length, int maxStringLength, boolean removeWhitespace, JsonFilterMetrics metrics) {
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		ByteArrayRangesFilter.filterNonStructural(input.getBytes(StandardCharsets.UTF_8), offset, length, output, metrics, maxStringLength, removeWhitespace, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		return output.toString(StandardCharsets.UTF_8);
 	}
 
 	@Test

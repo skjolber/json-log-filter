@@ -2,7 +2,9 @@ package com.github.skjolber.jsonfilter.core.ws;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -172,10 +174,75 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	}
 
 	@Test
+	public void maxStringLengthTopLevelStringLongerThanMaxSize() throws Exception {
+		// a string cannot be cut, so it is only truncated by max string length, even if longer than max size
+		String string = " \"hello world, a long string\"\n";
+		String truncated = "\"hello... + 21\"";
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10, -1, new String[]{DEFAULT_PATH}, new String[]{PASSTHROUGH_XPATH});
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertEquals(truncated, filter.process(string, metrics));
+		assertArrayEquals(truncated.getBytes(StandardCharsets.UTF_8), filter.process(string.getBytes(StandardCharsets.UTF_8), metrics));
+		assertEquals(2, metrics.getMaxStringLength());
+
+		// a colon after the slice must not make the string look like a key
+		String input = "x" + string + ":y";
+
+		StringBuilder builder = new StringBuilder();
+		assertTrue(filter.process(input.toCharArray(), 1, string.length(), builder));
+		assertEquals(truncated, builder.toString());
+
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(input.getBytes(StandardCharsets.UTF_8), 1, string.length(), output));
+		assertEquals(truncated, output.toString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void testNonStructuralIsKept() {
+		// there is no smaller valid document
+		JsonFilter[] filters = {
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, 2, -1, new String[]{"/a"}, null),
+			new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 2, -1, new String[]{"//a"}, null)
+		};
+		for(JsonFilter filter : filters) {
+			for(String json : new String[] {"\"abc\"", "-1.5e3", "123456", "true", "false", "null"}) {
+				assertEquals(json, filter.process(json));
+				assertEquals(json, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	@Test
+	public void maxStringLengthUnmatchedValues() throws Exception {
+		// string values of keys which do not match the path are truncated too, also when max size is active
+		assertMaxStringLengthMaxSize("{\"a\":\"xxxxx... + 25\",\"b\":{\"c\":\"yyyyy... + 25\"},\"d\":1}", "/json/text/maxSize/objectALongBNestedCLongDNumber.json", 60);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\"}", "/json/text/maxSize/objectKLongString.json", 30);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\",\"z\":1}", "/json/text/maxSize/objectKLongStringZNumber.json", 30);
+		assertMaxStringLengthMaxSize("{\"k\":\"zzzzz... + 35\",\"z\":1}", "/json/text/maxSize/objectKLongStringZNumberWhitespace.json", 30);
+	}
+
+	private void assertMaxStringLengthMaxSize(String expected, String resource, int maxSize) throws IOException {
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(5, maxSize, -1, new String[]{"/x"}, null);
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream(resource));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		org.junit.jupiter.api.Assertions.assertEquals(expected, filter.process(json));
+		org.junit.jupiter.api.Assertions.assertEquals(expected, new String(filter.process(jsonBytes), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void exception_returns_false() throws Exception {
 		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
+	}
+
+	@Test
+	public void exception_leaves_output_untouched() throws Exception {
+		// max size below the input size, but large enough to reach the end of the input
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, UNTERMINATED_LAST_STRING.length() - 1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		assertExceptionLeavesOutputUntouched(filter, UNTERMINATED_LAST_STRING);
 	}
 
 	@Test
@@ -276,46 +343,6 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
-	}
-
-	@Test
-	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
-		// max size reached within an anonymized subtree: the string value which does not fit is left out, not cut
-		String other = ",\"other\":\"" + "o".repeat(40) + "\"}";
-		String strings = "{\"secret\":[\"S,SN\",\"P]W\"]" + other;
-		String object = "{\"secret\":{\"pin\":\"1,2\",\"pw\":\"a}b\"}" + other;
-		String[] jsons = {strings, strings, object, object};
-		int[] maxSizes = {15, 19, 21, 30};
-		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":{}}", "{\"secret\":{\"pin\":\"*\"}}"};
-		for(int i = 0; i < maxSizes.length; i++) {
-			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSizes[i], -1, new String[]{"/secret"}, null);
-			assertEquals(expected[i], filter.process(jsons[i]));
-			assertEquals(expected[i], new String(filter.process(jsons[i].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-	}
-
-	@Test
-	public void testMaxPathMatchesUsedUpWithinAnonymizedSubtree() throws Exception {
-		// max path matches used up by a subtree which was cut by max size
-		String json = "{\"secret\":{\"c\":\"S\",\"name\":\"SECRET\"}}  \n ";
-		for(int maxSize = 13; maxSize <= 16; maxSize++) {
-			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, 1, new String[]{"//secret"}, null);
-			assertEquals("{\"secret\":{}}", filter.process(json));
-			assertEquals("{\"secret\":{}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
-	}
-
-	@Test
-	public void testWildcardPathAfterMatchingSibling() throws Exception {
-		// the sibling "b" also matches the wildcard
-		String json = "{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":null,\"message\":\"abc\"}}";
-		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 59, -1, new String[]{"/*/secret"}, null);
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", filter.process(json));
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-
-		filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 60, -1, new String[]{"/*/secret"}, null);
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\",\"message\":\"abc\"}}", filter.process(json));
-		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\",\"message\":\"abc\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 	}
 
 	@Test

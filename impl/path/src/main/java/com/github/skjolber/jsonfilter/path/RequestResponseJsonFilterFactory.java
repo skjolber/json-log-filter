@@ -54,6 +54,10 @@ public class RequestResponseJsonFilterFactory {
 				configureFactory(nonvalidating, properties, replacements);
 
 				WhitespaceStrategy whitespaceStrategy = processingProperties.getWhitespaceStrategy();
+				if(whitespaceStrategy == null) {
+					// not configured; do not silently drop the filters
+					whitespaceStrategy = WhitespaceStrategy.NEVER;
+				}
 
 				int maxSize = properties.getMaxSize();
 				if(maxSize == -1) {
