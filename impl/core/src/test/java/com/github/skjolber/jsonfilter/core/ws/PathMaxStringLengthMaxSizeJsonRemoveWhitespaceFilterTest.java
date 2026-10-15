@@ -334,9 +334,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the string value which does not fit is left out, not cut
-		String other = ",\"other\":\"" + "o".repeat(40) + "\"}";
-		String strings = "{\"secret\":[\"S,SN\",\"P]W\"]" + other;
-		String object = "{\"secret\":{\"pin\":\"1,2\",\"pw\":\"a}b\"}" + other;
+		String strings = readResource("/json/text/maxSize/objectSecretStructuralStringsOtherLong.json");
+		String object = readResource("/json/text/maxSize/objectSecretStructuralObjectOtherLong.json");
 		String[] jsons = {strings, strings, object, object};
 		int[] maxSizes = {15, 19, 21, 30};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":{}}", "{\"secret\":{\"pin\":\"*\"}}"};
@@ -350,6 +349,7 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testMaxPathMatchesUsedUpWithinAnonymizedSubtree() throws Exception {
 		// max path matches used up by a subtree which was cut by max size
+		// inline: files in /json must end with the root value, see SkipObjectJsonFilterTest
 		String json = "{\"secret\":{\"c\":\"S\",\"name\":\"SECRET\"}}  \n ";
 		for(int maxSize = 13; maxSize <= 16; maxSize++) {
 			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, 1, new String[]{"//secret"}, null);
@@ -361,7 +361,7 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void testWildcardPathAfterMatchingSibling() throws Exception {
 		// the sibling "b" also matches the wildcard
-		String json = "{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":null,\"message\":\"abc\"}}";
+		String json = readResource("/json/text/maxSize/objectBNumberYTagsSecretMessage.json");
 		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, 59, -1, new String[]{"/*/secret"}, null);
 		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", filter.process(json));
 		assertEquals("{\"b\":1,\"y\":{\"tags\":{\"id\":\"x\"},\"secret\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));

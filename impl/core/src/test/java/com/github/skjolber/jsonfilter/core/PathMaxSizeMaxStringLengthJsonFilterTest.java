@@ -308,7 +308,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
-		String json = "{\"secret\":[1,2,3,42,5],\"other\":\"" + "o".repeat(40) + "\"}";
+		String json = readResource("/json/text/maxSize/objectSecretNumbersOtherLong.json");
 		int[] maxSizes = {15, 18, 27};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
 		for(int maxStringLength : new int[] {-1, 50}) {
@@ -320,7 +320,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 		}
 
 		// anonymize message longer than the anonymized values
-		json = "{\"card\":{\"pin\":7,\"x\":8},\"other\":\"xxxxxxxxxx\"}";
+		json = readResource("/json/text/maxSize/objectCardNumbersOther.json");
 		maxSizes = new int[] {18, 24, 26, 35, 37};
 		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
 		for(int i = 0; i < maxSizes.length; i++) {
@@ -332,7 +332,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testDocumentFitsAfterAnonymizing() throws Exception {
-		String json = "{\"user\":{\"password\":\"abcd\"}}";
+		String json = readResource("/json/text/maxSize/objectUserPassword.json");
 		for(int maxSize = 25; maxSize <= 27; maxSize++) {
 			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, -1, new String[]{"/user/password"}, null);
 			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
@@ -342,7 +342,7 @@ public class PathMaxSizeMaxStringLengthJsonFilterTest extends DefaultJsonFilterT
 
 	@Test
 	public void testMaxPathMatchesUsedUpClosesStructureOnce() throws Exception {
-		String json = "{\"a\":[true,true],\"b\":1}";
+		String json = readResource("/json/text/maxSize/objectABooleansBNumber.json");
 		for(int maxSize = 21; maxSize <= 23; maxSize++) {
 			PathMaxSizeMaxStringLengthJsonFilter filter = new PathMaxSizeMaxStringLengthJsonFilter(-1, maxSize, 1, new String[]{"/a"}, null);
 			assertEquals("{\"a\":[\"*\",\"*\"],\"b\":1}", filter.process(json));

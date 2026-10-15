@@ -202,7 +202,7 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	@Test
 	public void testMaxSizeWithinAnonymizedSubtree() throws Exception {
 		// max size reached within an anonymized subtree: the value which does not fit is left out, not kept as-is
-		String json = "{\"secret\":[1,2,3,42,5],\"other\":\"" + "o".repeat(40) + "\"}";
+		String json = readResource("/json/text/maxSize/objectSecretNumbersOtherLong.json");
 		int[] maxSizes = {15, 18, 27};
 		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":[\"*\",\"*\",\"*\"]}"};
 		for(int i = 0; i < maxSizes.length; i++) {
@@ -212,8 +212,8 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 		}
 
 		// anonymize message longer than the anonymized values, which are numbers or strings
-		String numbers = "{\"card\":{\"pin\":7,\"x\":8},\"other\":\"xxxxxxxxxx\"}";
-		String strings = "{\"card\":{\"pin\":\"7\",\"x\":\"8\"},\"other\":\"xxxxxxxxxx\"}";
+		String numbers = readResource("/json/text/maxSize/objectCardNumbersOther.json");
+		String strings = readResource("/json/text/maxSize/objectCardStringsOther.json");
 		String[] jsons = {numbers, numbers, numbers, strings, strings, strings};
 		maxSizes = new int[] {18, 24, 35, 20, 28, 37};
 		expected = new String[] {"{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}", "{\"card\":{}}", "{\"card\":{}}", "{\"card\":{\"pin\":\"ANONYMIZED\"}}"};
@@ -226,16 +226,17 @@ public class AnyPathMaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testDocumentFitsAfterAnonymizing() throws Exception {
-		String json = "{\"user\":{\"password\":\"abcd\"}}";
+		String json = readResource("/json/text/maxSize/objectUserPassword.json");
 		for(int maxSize = 25; maxSize <= 27; maxSize++) {
 			AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(maxSize, -1, new String[]{"//password"}, null);
 			assertEquals("{\"user\":{\"password\":\"*\"}}", filter.process(json));
 			assertEquals("{\"user\":{\"password\":\"*\"}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 		}
 
+		String array = readResource("/json/text/maxSize/arrayObjectKeyNumber.json");
 		AnyPathMaxSizeJsonFilter filter = new AnyPathMaxSizeJsonFilter(14, -1, new String[]{"//key"}, null);
-		assertEquals("[{\"key\":\"*\"}]", filter.process("[{\"key\":66163}]"));
-		assertEquals("[{\"key\":\"*\"}]", new String(filter.process("[{\"key\":66163}]".getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		assertEquals("[{\"key\":\"*\"}]", filter.process(array));
+		assertEquals("[{\"key\":\"*\"}]", new String(filter.process(array.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
 
 		// the filter must not read beyond the given length, here into an unterminated string
 		String padded = "]]}}\"" + json + "\"x";
