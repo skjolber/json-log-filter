@@ -30,11 +30,11 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics filterMetrics) {
-		int outputStart = buffer.length();
-		if(process(chars, offset, length, buffer)) {
+		int bufferLength = buffer.length();
+		if(prettyPrint(chars, offset, length, buffer)) {
 			if(filterMetrics != null) {
 				filterMetrics.onInput(length);
-				filterMetrics.onOutput(buffer.length() - outputStart);
+				filterMetrics.onOutput(buffer.length() - bufferLength);
 			}
 			return true;
 		}
@@ -42,20 +42,19 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics filterMetrics) {
-		int outputStart = output.size();
-		if(process(chars, offset, length, output)) {
+		int bufferLength = output.size();
+		if(prettyPrint(chars, offset, length, output)) {
 			if(filterMetrics != null) {
 				filterMetrics.onInput(length);
-				filterMetrics.onOutput(output.size() - outputStart);
+				filterMetrics.onOutput(output.size() - bufferLength);
 			}
 			return true;
 		}
 		return false;
 	}
 
-	@Override
-	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
-		// metrics are recorded by the caller, keeping this loop as small as possible
+	// keep the loop free of other locals, these slow it down considerably
+	private boolean prettyPrint(final char[] chars, int offset, int length, final StringBuilder buffer) {
 		length += offset;
 		
 		int level = 0;
@@ -134,9 +133,7 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 		}
 	}
 
-	@Override
-	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
-		// metrics are recorded by the caller, keeping this loop as small as possible
+	private boolean prettyPrint(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
 		length += offset;
 
 		int level = 0;
@@ -214,5 +211,15 @@ public class PrettyPrintingJsonFilter extends AbstractJsonFilter {
 		} catch(Exception e) {
 			return false;
 		}
+	}
+
+	@Override
+	public boolean process(char[] chars, int offset, int length, StringBuilder output) {
+		return process(chars, offset, length, output, null);
+	}
+
+	@Override
+	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output) {
+		return process(chars, offset, length, output, null);
 	}
 }
