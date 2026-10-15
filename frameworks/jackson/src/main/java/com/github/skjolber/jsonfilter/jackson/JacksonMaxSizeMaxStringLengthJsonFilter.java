@@ -49,6 +49,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.length() - outputSize);
 				}
@@ -76,6 +78,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.length() - outputSize);
 				}
@@ -102,6 +106,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.size() - outputSize);
 				}

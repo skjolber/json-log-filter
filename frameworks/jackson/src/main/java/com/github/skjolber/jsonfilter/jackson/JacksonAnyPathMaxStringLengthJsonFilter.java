@@ -78,6 +78,8 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 			) {
 			if(process(parser, generator, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.length() - outputSize);
 				}
@@ -101,6 +103,8 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 			) {
 			if(process(parser, generator, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.length() - outputSize);
 				}
@@ -122,6 +126,8 @@ public class JacksonAnyPathMaxStringLengthJsonFilter extends AbstractMultiPathJs
 			) {
 			if(process(parser, generator, metrics)) {
 				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
 					metrics.onInput(length);
 					metrics.onOutput(output.size() - outputSize);
 				}
