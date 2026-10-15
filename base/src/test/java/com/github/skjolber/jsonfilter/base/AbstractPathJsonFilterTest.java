@@ -210,7 +210,24 @@ public class AbstractPathJsonFilterTest {
 			}
 		}
 	}
-	
+
+	@Test
+	public void testMatchBackslash() {
+		// a backslash in the configured key matches an escaped backslash
+		test("\\", "\\\\", true);
+		test("\\", "\\u005C", true);
+		test("\\", "\\u005c", true);
+		test("\\n", "\\\\n", true);
+		test("\\n", "\\u005Cn", true);
+		test("\\u0041", "\\\\u0041", true);
+
+		// but not another escape sequence with the same raw text as the configured key
+		test("\\n", "\\n", false); // newline
+		test("\\b", "\\b", false); // backspace
+		test("\\\"", "\\\"", false); // quote
+		test("\\u0041", "\\u0041", false); // A
+	}
+
 	@Test
 	public void testEscapes() {
 		assertTrue(AbstractPathJsonFilter.isEscape('/', '/'));

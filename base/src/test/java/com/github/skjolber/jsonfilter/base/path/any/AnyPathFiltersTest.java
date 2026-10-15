@@ -114,6 +114,27 @@ public class AnyPathFiltersTest {
 	}
 
 	@Test
+	public void testMatchBackslash() {
+		AnyPathFilters anyPathFilters = AnyPathFilters.create(AnyPathFilter.create("\\n", FilterType.ANON), AnyPathFilter.create("a\\b", FilterType.PRUNE));
+
+		// an escaped backslash, also as a unicode escape, matches a backslash in the key
+		for(String key : new String[] {"\\\\n", "\\u005Cn"}) {
+			assertEquals(FilterType.ANON, anyPathFilters.matchPath(key.toCharArray(), 0, key.length()), key);
+			assertEquals(FilterType.ANON, anyPathFilters.matchPath(key.getBytes(StandardCharsets.UTF_8), 0, key.length()), key);
+		}
+		for(String key : new String[] {"a\\\\b", "a\\u005cb"}) {
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath(key.toCharArray(), 0, key.length()), key);
+			assertEquals(FilterType.PRUNE, anyPathFilters.matchPath(key.getBytes(StandardCharsets.UTF_8), 0, key.length()), key);
+		}
+
+		// an escaped newline, or a followed by an escaped backspace, has the same raw text as a key, but does not match
+		for(String key : new String[] {"\\n", "a\\b"}) {
+			assertNull(anyPathFilters.matchPath(key.toCharArray(), 0, key.length()), key);
+			assertNull(anyPathFilters.matchPath(key.getBytes(StandardCharsets.UTF_8), 0, key.length()), key);
+		}
+	}
+
+	@Test
 	public void testAnyPathFilterToString() {
 		AnyPathFilter filter = AnyPathFilter.create("mykey", FilterType.ANON);
 		String str = filter.toString();
