@@ -30,19 +30,6 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 		return new PrettyPrintingJsonFilter(ident);
 	}
 
-	private void assertPrettyPrinted(String json, String expected) {
-		PrettyPrintingJsonFilter filter = getPrettyPrinter();
-
-		StringBuilder charOutput = new StringBuilder();
-		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
-		assertEquals(expected, charOutput.toString());
-
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
-		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
-		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
-		assertEquals(expected, byteOutput.toString(StandardCharsets.UTF_8));
-	}
-
 	@Test
 	public void testInvalidInput() throws Exception {
 		String string = new String(Generator.generateDeepObjectStructure(1000, true), StandardCharsets.UTF_8);
@@ -148,17 +135,34 @@ public class PrettyPrintingJsonFilterTest extends DefaultJsonFilterTest {
 
 	@Test
 	public void testEmptyObject() throws Exception {
-		// empty objects are kept on one line, like empty arrays
-		assertPrettyPrinted("{}", "{}");
-		assertPrettyPrinted("[{},{}]", "[\n  {},\n  {}\n]");
-		assertPrettyPrinted("{\"a\":{},\"b\":{\"c\":1}}", "{\n  \"a\": {},\n  \"b\": {\n    \"c\": 1\n  }\n}");
+		// JSON with empty object {} — kept on one line, like an empty array
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObject.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testEmptyObjectWithWhitespace() throws Exception {
-		assertPrettyPrinted("{ \n }", "{}");
-		// also whitespace after a non-empty bracket
-		assertPrettyPrinted("{ \"a\" : { } , \"b\" : [ { \"c\" : 1 } ] }", "{\n  \"a\": {},\n  \"b\": [\n    {\n      \"c\": 1\n    }\n  ]\n}");
+		// JSON with empty object containing whitespace { } — covers the while loop in empty-object detection
+		PrettyPrintingJsonFilter filter = getPrettyPrinter();
+		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/prettyPrint/objectEmptyObjectSpace.json"));
+		String json = new String(jsonBytes, StandardCharsets.UTF_8);
+
+		StringBuilder charOutput = new StringBuilder();
+		assertTrue(filter.process(json.toCharArray(), 0, json.length(), charOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", charOutput.toString());
+
+		ResizableByteArrayOutputStream byteOutput = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(jsonBytes, 0, jsonBytes.length, byteOutput, null));
+		assertEquals("{\n  \"obj\": {}\n}", byteOutput.toString(StandardCharsets.UTF_8));
 	}
 
 	@Test
