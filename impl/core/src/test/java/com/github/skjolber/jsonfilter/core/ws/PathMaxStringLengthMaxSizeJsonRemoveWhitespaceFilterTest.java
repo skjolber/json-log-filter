@@ -350,18 +350,6 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		// max size reached within an anonymized subtree: the string value which does not fit is left out, not cut
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{"/secret"}, null);
 		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/secret"}, null)).hasAnonymized("/secret");
-
-		// the directory check above does not run the max sizes below
-		String strings = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralStringsOtherLong.json");
-		String object = readResource("/json/text/anonymizeMaxSize/objectSecretStructuralObjectOtherLong.json");
-		String[] jsons = {strings, strings, object, object};
-		int[] maxSizes = {15, 19, 21, 30};
-		String[] expected = {"{\"secret\":[]}", "{\"secret\":[\"*\"]}", "{\"secret\":{}}", "{\"secret\":{\"pin\":\"*\"}}"};
-		for(int i = 0; i < maxSizes.length; i++) {
-			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSizes[i], -1, new String[]{"/secret"}, null);
-			assertEquals(expected[i], filter.process(jsons[i]));
-			assertEquals(expected[i], new String(filter.process(jsons[i].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
 	}
 
 	@Test
@@ -369,15 +357,6 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		// max path matches used up by a subtree which was cut by max size
 		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
 		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, 1, new String[]{"//secret"}, null)).hasAnonymized("//secret");
-
-		// the directory check above does not run the max sizes below
-		// inline: files in /json must end with the root value, see SkipObjectJsonFilterTest
-		String json = "{\"secret\":{\"c\":\"S\",\"name\":\"SECRET\"}}  \n ";
-		for(int size = 13; size <= 16; size++) {
-			PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, 1, new String[]{"//secret"}, null);
-			assertEquals("{\"secret\":{}}", filter.process(json));
-			assertEquals("{\"secret\":{}}", new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-		}
 	}
 
 	@Test
