@@ -113,7 +113,7 @@ public class JsonFilterDirectoryUnitTestCollection {
 		metrics.add(m);
 	}
 	
-	private boolean filter(Function<DefaultJsonFilterMetrics, Integer> object) {
+	private boolean filter(Function<DefaultJsonFilterMetrics, Long> object) {
 		for (DefaultJsonFilterMetrics defaultJsonFilterMetrics : metrics) {
 			if(object.apply(defaultJsonFilterMetrics) != 0) {
 				return true;

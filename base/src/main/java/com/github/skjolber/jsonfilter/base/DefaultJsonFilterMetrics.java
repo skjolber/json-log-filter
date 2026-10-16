@@ -2,14 +2,19 @@ package com.github.skjolber.jsonfilter.base;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 
+/**
+ * Metrics which add up the counts and sizes of all filter operations. The totals are long, so that they do not
+ * overflow after about 2 GB of input, while each operation reports int values.
+ */
+
 public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 
-	private int maxStringLength;
-	private int maxSize;
-	private int prune;
-	private int anonymize;
-	private int inputSize;
-	private int outputSize;
+	private long maxStringLength;
+	private long maxSize;
+	private long prune;
+	private long anonymize;
+	private long inputSize;
+	private long outputSize;
 	
 	@Override
 	public void onMaxStringLength(int count) {
@@ -31,19 +36,19 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 		anonymize += count;
 	}
 	
-	public int getAnonymize() {
+	public long getAnonymize() {
 		return anonymize;
 	}
 	
-	public int getMaxSize() {
+	public long getMaxSize() {
 		return maxSize;
 	}
 	
-	public int getMaxStringLength() {
+	public long getMaxStringLength() {
 		return maxStringLength;
 	}
 	
-	public int getPrune() {
+	public long getPrune() {
 		return prune;
 	}
 
@@ -57,11 +62,11 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 		this.outputSize += outputSize;
 	}
 	
-	public int getInputSize() {
+	public long getInputSize() {
 		return inputSize;
 	}
 	
-	public int getOutputSize() {
+	public long getOutputSize() {
 		return outputSize;
 	}
 

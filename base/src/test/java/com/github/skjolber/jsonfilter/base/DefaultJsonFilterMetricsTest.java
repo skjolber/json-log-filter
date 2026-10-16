@@ -28,4 +28,25 @@ public class DefaultJsonFilterMetricsTest {
 		metrics.onPrune(6);
 		assertEquals(metrics.getPrune(), 6);
 	}
+
+	@Test
+	public void testTotalsBeyondIntRange() {
+		// the totals are long, so they keep counting beyond about 2 GB of input
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		for(int i = 0; i < 3; i++) {
+			metrics.onAnonymize(Integer.MAX_VALUE);
+			metrics.onInput(Integer.MAX_VALUE);
+			metrics.onMaxSize(Integer.MAX_VALUE);
+			metrics.onMaxStringLength(Integer.MAX_VALUE);
+			metrics.onOutput(Integer.MAX_VALUE);
+			metrics.onPrune(Integer.MAX_VALUE);
+		}
+		long expected = 3L * Integer.MAX_VALUE;
+		assertEquals(expected, metrics.getAnonymize());
+		assertEquals(expected, metrics.getInputSize());
+		assertEquals(expected, metrics.getMaxSize());
+		assertEquals(expected, metrics.getMaxStringLength());
+		assertEquals(expected, metrics.getOutputSize());
+		assertEquals(expected, metrics.getPrune());
+	}
 }
