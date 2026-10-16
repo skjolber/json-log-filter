@@ -169,7 +169,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					}
 					
 					int removedLength = filter.getRemovedLength();
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
+					if(filter.addMaxLengthMaxSize(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;
 
@@ -291,7 +291,7 @@ public class MaxStringLengthMaxSizeJsonFilter extends MaxStringLengthJsonFilter 
 					
 					int removedLength = filter.getRemovedLength();
 
-					if(filter.addMaxLength(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
+					if(filter.addMaxLengthMaxSize(chars, offset + maxStringLength - 1, quoteIndex, -(offset - 1 + maxStringLength - quoteIndex))) {
 
 						// increment limit since we removed something
 						maxSizeLimit += filter.getRemovedLength() - removedLength;

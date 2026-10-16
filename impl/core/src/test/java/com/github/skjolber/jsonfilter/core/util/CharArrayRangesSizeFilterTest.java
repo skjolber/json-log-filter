@@ -129,4 +129,36 @@ public class CharArrayRangesSizeFilterTest {
 		int result = filter.anonymizeSubtree(chars, 0, json.length());
 		assertTrue(result > 0);
 	}
+
+	// --- addMaxLengthMaxSize ---
+
+	@Test
+	public void testAddMaxLengthMaxSizeLikeAddMaxLength() {
+		// a copy of addMaxLength with a fast path for the alignment: cut each value at every position and compare
+		String[] values = {
+			"abcdefghijklmnopqrstuvwxyz0123456789",
+			"ab\\ncd\\\\ef\\\"gh\\u00e9ij\\\\u1234kl\\\\\\u00e9mn\\uD83D\\uDE00op\\bq\\fr",
+			"ab\uD83D\uDE00cd\u00e6ef\u20acgh\uD83D\uDE00ij\u00f8kl\uD83D\uDE00mn"
+		};
+		for(String value : values) {
+			String json = "[\"" + value + "\"]";
+			char[] chars = json.toCharArray();
+			int quoteIndex = json.length() - 2;
+			for(int start = 3; start < quoteIndex; start++) {
+				CharArrayRangesSizeFilter expected = newFilter(json.length());
+				CharArrayRangesSizeFilter actual = newFilter(json.length());
+
+				String message = json + " cut at " + start;
+				assertEquals(expected.addMaxLength(chars, start, quoteIndex, quoteIndex - start), actual.addMaxLengthMaxSize(chars, start, quoteIndex, quoteIndex - start), message);
+				assertEquals(expected.getRemovedLength(), actual.getRemovedLength(), message);
+				assertEquals(output(expected, chars), output(actual, chars), message);
+			}
+		}
+	}
+
+	private static String output(CharArrayRangesSizeFilter filter, char[] chars) {
+		StringBuilder buffer = new StringBuilder();
+		filter.filter(chars, 0, chars.length, buffer);
+		return buffer.toString();
+	}
 }

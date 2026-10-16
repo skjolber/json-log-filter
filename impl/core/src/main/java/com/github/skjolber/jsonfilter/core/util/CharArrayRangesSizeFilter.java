@@ -25,6 +25,61 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 		return replacementGrowth;
 	}
 
+	/**
+	 * A copy of {@link CharArrayRangesFilter#addMaxLength(char[], int, int, int)} for the max size scanning loop of
+	 * MaxStringLengthMaxSizeJsonFilter. HotSpot profiles branches per method, so if both that loop and the
+	 * plain max string length loop, which takes over when the rest of the document fits, inline the same method,
+	 * they share the profile of the rarely taken alignment branches, and that profile decides how each loop is
+	 * compiled. With its own copy, each loop gets its own profile and code.
+	 *
+	 * @param chars input
+	 * @param start index of the first char to remove
+	 * @param end index of the closing quote
+	 * @param length number of chars removed, excluding the alignment
+	 * @return true if the value was truncated
+	 */
+
+	public boolean addMaxLengthMaxSize(char[] chars, int start, int end, int length) {
+		int alignedStart = getStringAlignmentMaxSize(chars, start);
+
+		length += start - alignedStart;
+
+		// if truncate message + digits is smaller than the actual payload, trim it.
+		int remove = end - alignedStart - truncateMessage.length - lengthToDigits(length);
+		if(remove > 0) {
+			addMaxLength(alignedStart, end, length);
+
+			this.removedLength += remove;
+
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * The alignment for {@link #addMaxLengthMaxSize(char[], int, int, int)}.
+	 * The common case comes first: the cut can only split a surrogate pair or an escape if the char at
+	 * the cut is a low surrogate, or a backslash is among the six chars before it.
+	 * The rest is left to {@link #getStringAlignment(char[], int)}, which rarely runs.
+	 * <br>
+	 * This is a separate method so that where the call is cold, C2 keeps it out of line, like the call to
+	 * getStringAlignment(..) it replaces. Inlining it there changes how the max size loop is compiled.
+	 *
+	 * @param chars input
+	 * @param start index of the first char to remove
+	 * @return start, moved backwards if needed
+	 */
+
+	private static int getStringAlignmentMaxSize(char[] chars, int start) {
+		if(start > 6
+				&& chars[start - 1] != '\\' && chars[start - 2] != '\\' && chars[start - 3] != '\\'
+				&& chars[start - 4] != '\\' && chars[start - 5] != '\\' && chars[start - 6] != '\\'
+				&& !Character.isLowSurrogate(chars[start])) {
+			return start;
+		}
+		return getStringAlignment(chars, start);
+	}
+
 	public boolean[] grow(boolean[] squareBrackets) {
 		boolean[] next = new boolean[squareBrackets.length + 32];
 		System.arraycopy(squareBrackets, 0, next, 0, squareBrackets.length);
