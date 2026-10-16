@@ -93,7 +93,7 @@ Uncheck the "Live filtering" checkbox to show an explicit Apply button instead.
 | Tool  | Version |
 |-------|---------|
 | Java  | 17+     |
-| Maven | 3.6.3+  |
+| Maven | 3.9.10+ |
 
 ---
 

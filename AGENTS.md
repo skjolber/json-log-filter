@@ -23,7 +23,7 @@ Each directory contains its own `AGENTS.md` with module-specific details.
 ## Prerequisites
 
 - Java 17+ (CI runs Java 25 / Temurin)
-- Maven 3.6.3+
+- Maven 3.9.10+, or the Maven Wrapper `./mvnw`, which downloads Maven 3.9.10 (the commands below work with either)
 
 ## Build
 
