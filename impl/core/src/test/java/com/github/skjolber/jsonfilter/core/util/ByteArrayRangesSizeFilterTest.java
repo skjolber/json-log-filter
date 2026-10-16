@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
+
 public class ByteArrayRangesSizeFilterTest {
 
 	private static ByteArrayRangesSizeFilter newFilter(int jsonLength) {
@@ -47,5 +49,37 @@ public class ByteArrayRangesSizeFilterTest {
 			assertEquals(marks[i], filter.getMark(), jsons[i]);
 			assertEquals(1, filter.getLevel(), jsons[i]);
 		}
+	}
+
+	// --- addMaxLengthMaxSize ---
+
+	@Test
+	public void testAddMaxLengthMaxSizeLikeAddMaxLength() {
+		// a copy of addMaxLength with a fast path for the alignment: cut each value at every position and compare
+		String[] values = {
+			"abcdefghijklmnopqrstuvwxyz0123456789",
+			"ab\\ncd\\\\ef\\\"gh\\u00e9ij\\\\u1234kl\\\\\\u00e9mn\\uD83D\\uDE00op\\bq\\fr",
+			"ab\uD83D\uDE00cd\u00e6ef\u20acgh\uD83D\uDE00ij\u00f8kl\uD83D\uDE00mn"
+		};
+		for(String value : values) {
+			String json = "[\"" + value + "\"]";
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			int quoteIndex = bytes.length - 2;
+			for(int start = 3; start < quoteIndex; start++) {
+				ByteArrayRangesSizeFilter expected = newFilter(bytes.length);
+				ByteArrayRangesSizeFilter actual = newFilter(bytes.length);
+
+				String message = json + " cut at " + start;
+				assertEquals(expected.addMaxLength(bytes, start, quoteIndex, quoteIndex - start), actual.addMaxLengthMaxSize(bytes, start, quoteIndex, quoteIndex - start), message);
+				assertEquals(expected.getRemovedLength(), actual.getRemovedLength(), message);
+				assertEquals(output(expected, bytes), output(actual, bytes), message);
+			}
+		}
+	}
+
+	private static String output(ByteArrayRangesSizeFilter filter, byte[] bytes) {
+		ResizableByteArrayOutputStream buffer = new ResizableByteArrayOutputStream(128);
+		filter.filter(bytes, 0, bytes.length, buffer);
+		return buffer.toString(StandardCharsets.UTF_8);
 	}
 }
