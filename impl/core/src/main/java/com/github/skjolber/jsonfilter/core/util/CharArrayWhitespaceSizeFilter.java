@@ -86,9 +86,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 					maxSizeLimit++;
 				} while(chars[offset] <= 0x20);
 
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}
 
 				flushOffset = offset;
 				c = chars[offset];
@@ -119,9 +116,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 			case ']' :
 				bracketLevel--;
 				maxSizeLimit++;
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}
 				
 				offset++;
 				mark = offset;
@@ -159,9 +153,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 
 						if(chars[nextOffset] == ':') {
 							maxSizeLimit += whitespace;
-							if(maxSizeLimit >= maxReadLimit) {
-								maxSizeLimit = maxReadLimit;
-							}
 							break colon;
 						}
 					}
@@ -183,9 +174,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 
 					// the whitespace after the value is not written
 					maxSizeLimit += whitespace;
-					if(maxSizeLimit >= maxReadLimit) {
-						maxSizeLimit = maxReadLimit;
-					}
 
 					offset = nextOffset;
 					flushOffset = nextOffset;
@@ -210,14 +198,8 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 					} while(chars[nextOffset] <= 0x20);
 					
 					maxSizeLimit += nextOffset - offset;
-					if(maxSizeLimit >= maxReadLimit) {
-						maxSizeLimit = maxReadLimit;
-					}
 				}
 					
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}
 				
 				flushOffset = nextOffset;
 				offset = nextOffset;
@@ -264,9 +246,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 					maxSizeLimit++;
 				} while(chars[offset] <= 0x20);
 
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}
 
 				flushOffset = offset;
 				c = chars[offset];
@@ -297,9 +276,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 			case ']' :
 				bracketLevel--;
 				maxSizeLimit++;
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}
 				
 				offset++;
 				mark = offset;
@@ -344,9 +320,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 						buffer.append(':');
 						
 						maxSizeLimit += nextOffset - endQuoteIndex - 1;
-						if(maxSizeLimit >= maxReadLimit) {
-							maxSizeLimit = maxReadLimit;
-						}
 						
 						flushOffset = offset;
 					}
@@ -368,9 +341,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				buffer.append(anonymizeMessage);
 				
 				maxSizeLimit += nextOffset - offset - anonymizeMessage.length;
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}					
 				
 				if(metrics != null) {
 					metrics.onAnonymize(1);
@@ -400,9 +370,6 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				buffer.append(anonymizeMessage);
 
 				maxSizeLimit += nextOffset - offset - anonymizeMessage.length;
-				if(maxSizeLimit >= maxReadLimit) {
-					maxSizeLimit = maxReadLimit;
-				}					
 				
 				if(metrics != null) {
 					metrics.onAnonymize(1);

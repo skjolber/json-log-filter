@@ -93,6 +93,36 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		assertEquals("{\"secret\":[\"*\",\"*\",\"*\",\"*\",\"*\"", builder.toString(StandardCharsets.UTF_8));
 	}
 
+	@Test
+	public void testSkipObjectOrArrayMaxSizeKeepsLimitBeyondReadLimit() {
+		// the limit is not capped at the end of the input: prune and anonymize messages later in the document
+		// can be longer than the values they replace, and need the room
+		String text = "[ 1 , 2 ]";
+		ByteArrayWhitespaceSizeFilter filter = newFilterWithinArray(1, 1, 100);
+		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(128);
+		int offset = filter.skipObjectOrArrayMaxSizeMaxStringLength(text.getBytes(StandardCharsets.UTF_8), 1, text.length(), builder, 5, null);
+		assertEquals(text.length(), offset);
+		// the caller writes the rest, from the flush offset
+		assertEquals("[1,2", builder.toString(StandardCharsets.UTF_8));
+		assertEquals(0, filter.getLevel());
+		// four spaces removed, and the closing bracket
+		assertEquals(105, filter.getMaxSizeLimit());
+	}
+
+	@Test
+	public void testAnonymizeObjectOrArrayMaxSizeKeepsLimitBeyondReadLimit() {
+		// the limit is not capped at the end of the input, see testSkipObjectOrArrayMaxSizeKeepsLimitBeyondReadLimit
+		String text = "[ 1 , 2 ]";
+		ByteArrayWhitespaceSizeFilter filter = newFilterWithinArray(1, 1, 100);
+		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(128);
+		int offset = filter.anonymizeObjectOrArrayMaxSize(text.getBytes(StandardCharsets.UTF_8), 1, text.length(), builder, null);
+		assertEquals(text.length(), offset);
+		assertEquals("[\"*\",\"*\"", builder.toString(StandardCharsets.UTF_8));
+		assertEquals(0, filter.getLevel());
+		// four spaces removed, two messages two characters longer than the values, and the closing bracket
+		assertEquals(101, filter.getMaxSizeLimit());
+	}
+
 	private static ByteArrayWhitespaceSizeFilter newFilterWithinArray(int level, int mark, int maxSizeLimit) {
 		// state right after the opening bracket of an array, with nothing written yet
 		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
