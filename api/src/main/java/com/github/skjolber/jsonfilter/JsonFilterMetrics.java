@@ -20,9 +20,9 @@ public interface JsonFilterMetrics {
 	void onMaxStringLength(int count);
 	
 	/**
-	 * Record document truncated
+	 * Record document truncated by max size
 	 * 
-	 * @param count number of values truncated, or -1 if unknown count
+	 * @param count approximate size of the input left out, in characters or bytes like the input size, or -1 if unknown
 	 */
 	
 	void onMaxSize(int count);

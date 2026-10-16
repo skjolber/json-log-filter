@@ -91,6 +91,36 @@ public abstract class AbstractDefaultJacksonJsonFilterTest extends DefaultJsonFi
 		assertEquals(output.size() - 1, metrics.getOutputSize());
 	}
 
+	/**
+	 * Check the max size metric, the size of the input left out, for char[] and byte[] input, also as a slice
+	 * of a larger array.
+	 */
+
+	public static void assertMaxSizeMetric(JacksonJsonFilter filter, String json, String expectedOutput, int expected) {
+		String padding = "]]}\"x";
+		char[] chars = (padding + json + padding).toCharArray();
+		byte[] bytes = (padding + json + padding).getBytes(StandardCharsets.UTF_8);
+		int offset = padding.length();
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder builder = new StringBuilder();
+		assertTrue(filter.process(chars, offset, json.length(), builder, metrics));
+		assertEquals(expectedOutput, builder.toString());
+		assertEquals(expected, metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		builder = new StringBuilder();
+		assertTrue(filter.process(bytes, offset, json.length(), builder, metrics));
+		assertEquals(expectedOutput, builder.toString());
+		assertEquals(expected, metrics.getMaxSize());
+
+		metrics = new DefaultJsonFilterMetrics();
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+		assertTrue(filter.process(bytes, offset, json.length(), output, metrics));
+		assertEquals(expectedOutput, output.toString(StandardCharsets.UTF_8));
+		assertEquals(expected, metrics.getMaxSize());
+	}
+
 	private JacksonJsonFilter getFilter(JacksonJsonFilter filter) throws IOException {
 		JacksonJsonFilter successFilter = spy(filter);
 		

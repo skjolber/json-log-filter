@@ -114,7 +114,7 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 	}
 
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2));
+		StringBuilder builder = null; // allocated when the first value is truncated
 
 		int level = 0;
 
@@ -206,6 +206,9 @@ public class JacksonPathMaxStringLengthJsonFilter extends AbstractMultiPathJsonF
 					continue;
 				}
 			} else if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				if(builder == null) {
+					builder = JacksonMaxStringLengthJsonFilter.newTruncationBuilder(maxStringLength, truncateStringValue);
+				}
 				JacksonMaxStringLengthJsonFilter.writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
 				if(metrics != null) {
