@@ -10,6 +10,7 @@
 #   FORCE=1       start even if another java/mvn process is running or CPU boost is on
 #   ALLOW_OPEN=1  start even if review PRs are still open
 #   TARGET=<ref>  target commit (default origin/master, fetched first)
+#   RELEASE=<ref> latest release as a third side (default parent-6.0.8); empty to leave it out
 #   FORKS=<n>     forks per side (default 3), run interleaved
 set -euo pipefail
 
@@ -19,15 +20,17 @@ OUT_ROOT=$REPO/benchmark/jmh/target/review
 BASE_COMMIT=91da7f4
 BASE_WT=$REPO-bench-base
 FINAL_WT=$REPO-bench-final
+REL_WT=$REPO-bench-release
 TMP_SOURCES="TmpPrettyInputBenchmark.java TmpMaxSizeFromEndBenchmark.java"
 TMP_DIR=benchmark/jmh/src/main/java/com/github/skjolber/jsonfilter/jmh/tmp
 # head branches of the review PRs which change main code (the max-size assertion PR only changes tests)
-REVIEW_BRANCHES="fix/jackson-max-size-estimate fix/metrics fix/whitespace-max-size-overshoot fix/max-size-replacement-growth fix/max-size-path-filters"
+REVIEW_BRANCHES="fix/jackson-max-size-estimate fix/metrics fix/whitespace-max-size-overshoot fix/max-size-replacement-growth fix/max-size-path-filters fix/whitespace-trailing-whitespace-growth"
 
 SMOKE=${SMOKE:-0}
 FORCE=${FORCE:-0}
 ALLOW_OPEN=${ALLOW_OPEN:-0}
 TARGET=${TARGET:-origin/master}
+RELEASE=${RELEASE-parent-6.0.8}
 if [ "$SMOKE" = 1 ]; then
 	FORKS=${FORKS:-1}
 	REGEX='CveFilterBenchmark\.maxSize_core$|TmpMaxSizeFromEndBenchmark\.from_end_char$'
@@ -91,12 +94,17 @@ log() { echo "$(date +%T) $*" | tee -a "$INFO"; }
 git -C "$REPO" fetch -q origin
 TARGET_SHA=$(git -C "$REPO" rev-parse --short "$TARGET")
 BASE_SHA=$(git -C "$REPO" rev-parse --short "$BASE_COMMIT")
+REL_SHA=""
+if [ -n "$RELEASE" ]; then
+	REL_SHA=$(git -C "$REPO" rev-parse --short "$RELEASE^{commit}")
+fi
 if [ -n "$(git -C "$REPO" diff --stat "$BASE_SHA" "$TARGET_SHA" -- benchmark/jmh/src benchmark/jmh/pom.xml)" ]; then
 	echo "WARNING: the benchmark module differs between $BASE_SHA and $TARGET_SHA; differences may come from benchmark code:" | tee -a "$INFO"
 	git -C "$REPO" diff --stat "$BASE_SHA" "$TARGET_SHA" -- benchmark/jmh/src benchmark/jmh/pom.xml | tee -a "$INFO"
 fi
 
 BASE_JAR=$OUT_ROOT/base-$BASE_SHA.jar
+REL_JAR=$OUT_ROOT/release-$REL_SHA.jar
 if [ "$SMOKE" = 1 ]; then
 	TARGET_JAR=$OUT/target-$TARGET_SHA.jar
 else
@@ -107,6 +115,9 @@ fi
 	echo "mode: $([ "$SMOKE" = 1 ] && echo smoke || echo full)"
 	echo "baseline: $(git -C "$REPO" log -1 --format='%h %s' "$BASE_SHA")"
 	echo "target:   $(git -C "$REPO" log -1 --format='%h %s' "$TARGET_SHA") ($TARGET)"
+	if [ -n "$RELEASE" ]; then
+		echo "release:  $(git -C "$REPO" log -1 --format='%h %s' "$REL_SHA") ($RELEASE)"
+	fi
 	echo "forks per side: $FORKS, interleaved; iterations: ${ITERATIONS[*]}; params: $PARAMS"
 	echo "regex: $REGEX"
 	echo "cpu boost: $BOOST; governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo unknown); cpus: $(nproc)"
@@ -153,16 +164,34 @@ build "$BASE_WT" "$BASE_SHA" "$BASE_JAR" base
 if [ -d "$BASE_WT" ]; then
 	git -C "$REPO" worktree remove --force "$BASE_WT"
 fi
+if [ -n "$RELEASE" ]; then
+	build "$REL_WT" "$REL_SHA" "$REL_JAR" release
+	if [ -d "$REL_WT" ]; then
+		git -C "$REPO" worktree remove --force "$REL_WT"
+	fi
+fi
 build "$FINAL_WT" "$TARGET_SHA" "$TARGET_JAR" target
 # the benchmarks read their documents relative to the benchmark module directory
 worktree "$FINAL_WT" "$TARGET_SHA"
 RUN_DIR=$FINAL_WT/benchmark/jmh
 
-# --- run, interleaved: base target, target base, base target, ... -------------------------------------
+# --- run, interleaved: each fork rotates the order of the sides, so drift affects all of them --------
+
+SIDES=(base target)
+if [ -n "$RELEASE" ]; then
+	SIDES=(release base target)
+fi
+jar_of() { # side
+	case $1 in
+		base) echo "$BASE_JAR" ;;
+		target) echo "$TARGET_JAR" ;;
+		release) echo "$REL_JAR" ;;
+	esac
+}
 
 COUNT=$(cd "$RUN_DIR" && java -jar "$BASE_JAR" -l "$REGEX" 2>/dev/null | grep -c '^com\.' || true)
 SIZES=$(echo "$PARAMS" | tr ',' '\n' | wc -l)
-log "$COUNT benchmarks x $SIZES sizes x $FORKS forks x 2 sides; estimated $(( COUNT * SIZES * FORKS * 2 * 82 / 10 / 60 )) min at ~8.2 s per benchmark, size and fork"
+log "$COUNT benchmarks x $SIZES sizes x $FORKS forks x ${#SIDES[@]} sides; estimated $(( COUNT * SIZES * FORKS * ${#SIDES[@]} * 82 / 10 / 60 )) min at ~8.2 s per benchmark, size and fork"
 
 run() { # jar side fork
 	if [ -n "$(busy)" ]; then
@@ -174,13 +203,10 @@ run() { # jar side fork
 }
 
 for fork in $(seq 1 "$FORKS"); do
-	if [ $((fork % 2)) = 1 ]; then
-		run "$BASE_JAR" base "$fork"
-		run "$TARGET_JAR" target "$fork"
-	else
-		run "$TARGET_JAR" target "$fork"
-		run "$BASE_JAR" base "$fork"
-	fi
+	for k in $(seq 0 $(( ${#SIDES[@]} - 1 ))); do
+		side=${SIDES[$(( (fork - 1 + k) % ${#SIDES[@]} ))]}
+		run "$(jar_of "$side")" "$side" "$fork"
+	done
 done
 log "runs done"
 
@@ -188,7 +214,7 @@ git -C "$REPO" worktree remove --force "$FINAL_WT"
 
 # --- merge, compare and draft the comment ---------------------------------------------------------
 
-for side in base target; do
+for side in "${SIDES[@]}"; do
 	if ! ls "$OUT/$side"-fork*.json > /dev/null 2>&1; then
 		echo "No $side results in $OUT, see the logs there" >&2
 		exit 1
@@ -196,6 +222,9 @@ for side in base target; do
 done
 python3 -I "$BENCH/merge_forks.py" "$OUT/base.json" "$OUT"/base-fork*.json
 python3 -I "$BENCH/merge_forks.py" "$OUT/target.json" "$OUT"/target-fork*.json
+if [ -n "$RELEASE" ]; then
+	python3 -I "$BENCH/merge_forks.py" "$OUT/release.json" "$OUT"/release-fork*.json
+fi
 python3 -I - "$OUT/base.json" "$OUT/target.json" <<'PY' | tee -a "$INFO"
 import json, sys
 keys = lambda p: {(r["benchmark"], json.dumps(r.get("params"), sort_keys=True)) for r in json.load(open(p))}
@@ -218,5 +247,19 @@ TARGET="$TARGET" FORKS="$FORKS_TEXT" ERRNOTE="$ERRNOTE" python3 -I "$BENCH/comme
 	"Backward max-size scan and the default composite filter|$OUT/base.json|$OUT/target.json|TmpMaxSizeFromEndBenchmark." \
 	"Pretty-printed input and the pretty printer|$OUT/base.json|$OUT/target.json|TmpPrettyInputBenchmark." \
 	| relabel > "$OUT/comment.md"
+
+if [ -n "$RELEASE" ]; then
+	relabel_release() { sed "s/| master ops\/s | PR ops\/s |/| $RELEASE ops\/s | master ops\/s |/"; }
+	python3 -I "$BENCH/compare.py" "$OUT/release.json" "$OUT/target.json" | relabel_release > "$OUT/comparison-release.md"
+	ERRNOTE="Compared with $RELEASE ($REL_SHA), the latest release, from the same interleaved run. The ± is the 99.9% confidence interval over all measurement iterations of the $FORKS forks. ▲ and ▼ mark changes beyond the combined error. "
+	TARGET="$TARGET" FORKS="$FORKS_TEXT" ERRNOTE="$ERRNOTE" python3 -I "$BENCH/comment.py" "SUMMARY (to be written)" \
+		"Core filters|$OUT/release.json|$OUT/target.json|CveFilterBenchmark." \
+		"Path filters with max size and max string length|$OUT/release.json|$OUT/target.json|CvePathMaxSizeMaxStringLengthFilterBenchmark." \
+		"Max size, limited to half the smallest document|$OUT/release.json|$OUT/target.json|CveMaxSizeFilterBenchmark." \
+		"Max string length and max size, limited|$OUT/release.json|$OUT/target.json|CveMaxStringLengthMaxSizeFilterBenchmark." \
+		"Backward max-size scan and the default composite filter|$OUT/release.json|$OUT/target.json|TmpMaxSizeFromEndBenchmark." \
+		"Pretty-printed input and the pretty printer|$OUT/release.json|$OUT/target.json|TmpPrettyInputBenchmark." \
+		| relabel_release > "$OUT/comment-release.md"
+fi
 
 log "done: $OUT/comparison.md and $OUT/comment.md"
