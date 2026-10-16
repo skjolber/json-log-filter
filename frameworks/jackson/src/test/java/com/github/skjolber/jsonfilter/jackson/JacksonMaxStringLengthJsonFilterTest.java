@@ -48,6 +48,25 @@ public class JacksonMaxStringLengthJsonFilterTest extends AbstractDefaultJackson
 	}
 
 	@Test
+	public void testNewTruncationBuilder() {
+		char[] message = "... + ".toCharArray();
+		// sized for one truncated value: the kept characters, the message, the number of removed characters and the quotes
+		assertEquals(5 + message.length + 11 + 2, JacksonMaxStringLengthJsonFilter.newTruncationBuilder(5, message).capacity());
+		// without max string length nothing is truncated, but the size must not overflow
+		assertEquals(16 * 1024 + message.length + 11 + 2, JacksonMaxStringLengthJsonFilter.newTruncationBuilder(Integer.MAX_VALUE - 2, message).capacity());
+	}
+
+	@Test
+	public void testTruncateValuesWithEscapes() throws Exception {
+		// the builder is allocated for the first truncated value, grows for its escapes, and is reused for the next value
+		String json = "{\"a\":\"" + "\\u0001".repeat(20) + "\",\"b\":\"" + "b".repeat(20) + "\",\"c\":\"c\"}";
+		String expected = "{\"a\":\"\\u0001\\u0001\\u0001... + 17\",\"b\":\"bbb... + 17\",\"c\":\"c\"}";
+		JacksonMaxStringLengthJsonFilter filter = new JacksonMaxStringLengthJsonFilter(3);
+		assertEquals(expected, filter.process(json));
+		assertEquals(expected, new String(filter.process(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStream() throws Exception {
 		// Verify process(byte[], int, int, ResizableByteArrayOutputStream, metrics) works correctly.
 		// "value" (5 chars) with maxStringLength=3: the truncation message "val... + 2" is longer than

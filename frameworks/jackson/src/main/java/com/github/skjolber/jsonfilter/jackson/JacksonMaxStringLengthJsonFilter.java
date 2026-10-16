@@ -36,6 +36,21 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 
 	/**
+	 * Builder for {@link #writeMaxStringLength(JsonParser, JsonGenerator, StringBuilder, int, char[])}. The filters
+	 * allocate it when the first value is truncated, as most documents have none, and reuse it for the rest of the
+	 * document.
+	 *
+	 * @param maxStringLength max string length
+	 * @param truncateStringValue truncate message
+	 * @return builder sized for one truncated value, which grows if the value has escapes
+	 */
+
+	static StringBuilder newTruncationBuilder(int maxStringLength, char[] truncateStringValue) {
+		// the kept characters, the message, the number of removed characters and the quotes
+		return new StringBuilder(Math.min(maxStringLength, 16 * 1024) + truncateStringValue.length + 11 + 2);
+	}
+
+	/**
 	 * Number of characters to keep when truncating a string value longer than max string length. Used both
 	 * for writing and for the size of what is written, so that the two agree.
 	 *
@@ -186,7 +201,7 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 	}
 	
 	public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
-		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
+		StringBuilder builder = null; // allocated when the first value is truncated
 
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
@@ -195,6 +210,9 @@ public class JacksonMaxStringLengthJsonFilter extends AbstractJsonFilter impleme
 			}
 			
 			if(nextToken == JsonToken.VALUE_STRING && parser.getTextLength() > maxStringLength) {
+				if(builder == null) {
+					builder = newTruncationBuilder(maxStringLength, truncateStringValue);
+				}
 				writeMaxStringLength(parser, generator, builder, maxStringLength, truncateStringValue);
 				
 				if(metrics != null) {
