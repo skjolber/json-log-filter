@@ -339,6 +339,32 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	// -----------------------------------------------------------------------
+	// backward scan over quoted values
+	// -----------------------------------------------------------------------
+
+	@Test
+	public void testScanBackwardBeyondQuotedValue() {
+		// the scan checks four characters per iteration, so cover every length modulo four,
+		// with escaped quotes and backslashes at different positions
+		String[] values = new String[] {
+			"", "a", "ab", "abc", "abcd", "abcde", "abcdef", "abcdefg", "abcdefgh", "abcdefghi",
+			"\\\"", "a\\\"", "a\\\"b", "\\\"abcd", "abcd\\\"", "\\\"\\\"\\\"",
+			"\\\\", "a\\\\", "\\\\\\\"", "abc\\\\\\\"d", "\\\\\\\\\\\\"
+		};
+		String[] prefixes = new String[] {"", "x", "xx", "xxx", "{\"key\":"};
+
+		for (String prefix : prefixes) {
+			for (String value : values) {
+				String json = prefix + '"' + value + '"';
+				int closing = json.length() - 1;
+
+				assertEquals(prefix.length(), MaxSizeFromEndJsonFilter.scanBackwardBeyondQuotedValue(json.toCharArray(), closing), json);
+				assertEquals(prefix.length(), MaxSizeFromEndJsonFilter.scanBackwardBeyondQuotedValue(json.getBytes(StandardCharsets.UTF_8), closing), json);
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------------
 	// invalid / broken input
 	// -----------------------------------------------------------------------
 

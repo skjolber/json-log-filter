@@ -334,7 +334,27 @@ public class MaxSizeFromEndJsonFilter extends AbstractJsonFilter {
 	 */
 	public static int scanBackwardBeyondQuotedValue(final char[] chars, int pos) {
 		while (true) {
-			while (chars[--pos] != '"');
+			// unrolled: one loop test and safepoint poll per four characters, which also
+			// makes the speed much less dependent on where the JIT places the loop
+			while (true) {
+				if (chars[pos - 1] == '"') {
+					pos -= 1;
+					break;
+				}
+				if (chars[pos - 2] == '"') {
+					pos -= 2;
+					break;
+				}
+				if (chars[pos - 3] == '"') {
+					pos -= 3;
+					break;
+				}
+				if (chars[pos - 4] == '"') {
+					pos -= 4;
+					break;
+				}
+				pos -= 4;
+			}
 
 			int slashOffset = pos - 1;
 			while (slashOffset >= 0 && chars[slashOffset] == '\\') slashOffset--;
@@ -351,7 +371,27 @@ public class MaxSizeFromEndJsonFilter extends AbstractJsonFilter {
 	 */
 	public static int scanBackwardBeyondQuotedValue(final byte[] chars, int pos) {
 		while (true) {
-			while (chars[--pos] != '"');
+			// unrolled: one loop test and safepoint poll per four characters, which also
+			// makes the speed much less dependent on where the JIT places the loop
+			while (true) {
+				if (chars[pos - 1] == '"') {
+					pos -= 1;
+					break;
+				}
+				if (chars[pos - 2] == '"') {
+					pos -= 2;
+					break;
+				}
+				if (chars[pos - 3] == '"') {
+					pos -= 3;
+					break;
+				}
+				if (chars[pos - 4] == '"') {
+					pos -= 4;
+					break;
+				}
+				pos -= 4;
+			}
 
 			int slashOffset = pos - 1;
 			while (slashOffset >= 0 && chars[slashOffset] == '\\') slashOffset--;
