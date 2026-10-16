@@ -4,11 +4,12 @@
 Usage: jit_report.py LOG...
 
 Per log, for the library's methods (com.github.skjolber.jsonfilter, outside the jmh package):
-- the time (ms since JVM start) and tier of each method's first C1 (tiers 1-3) and C2 (tier 4) compilation,
-  and whether it was an OSR compilation (%),
-- how often a compiled version was made not entrant (deoptimized or replaced),
-- inlining failures of library callees, by reason (e.g. "too big", "hot method too big",
-  "already compiled into a big method", "callee is too large").
+- the time (ms since JVM start) of each method's first C1 (tiers 1-3) and C2 (tier 4) compilation,
+  and whether the first C2 compilation was on stack replacement (OSR, %),
+- how often C2 code was made not entrant, i.e. deoptimized or replaced (C1 code being replaced by C2 is
+  normal and not counted),
+- inlining failures of library callees within C2 compilations, by reason (e.g. "hot method too big",
+  "already compiled into a big method", "inlining too deep", "NodeCountInliningCutoff").
 """
 import collections, re, sys
 
@@ -19,44 +20,51 @@ INLINE = re.compile(r"@\s*\d+\s+(\S+::\S+)\s+\((\d+) bytes\)\s+(.*)$")
 def short(method):
     return method.replace(LIB, "")
 
+def lib(method):
+    return method.startswith(LIB) and ".jmh." not in method
+
 for path in sys.argv[1:]:
-    first_c1, first_c2, not_entrant = {}, {}, collections.Counter()
+    first_c1, first_c2 = {}, {}
+    c2_not_entrant = collections.Counter()
     failures = collections.defaultdict(collections.Counter)
     sizes = {}
+    tier = None
     for line in open(path, errors="replace"):
         m = COMPILE.match(line)
         if m:
-            ts, _, flags, tier, method, size, rest = m.groups()
-            if not method.startswith(LIB) or ".jmh." in method:
+            ts, _, flags, t, method, size, rest = m.groups()
+            if "made not entrant" in rest or "made zombie" in rest:
+                if lib(method) and t == "4":
+                    c2_not_entrant[method] += 1
+                continue
+            tier = t
+            if not lib(method):
                 continue
             sizes[method] = int(size)
-            if "made not entrant" in rest:
-                not_entrant[method] += 1
-                continue
-            target = first_c2 if tier == "4" else first_c1
+            target = first_c2 if t == "4" else first_c1
             if method not in target:
-                target[method] = (int(ts), tier, "%" in flags)
+                target[method] = (int(ts), "%" in flags)
             continue
         m = INLINE.search(line)
-        if m:
+        if m and tier == "4":
             callee, size, decision = m.groups()
-            if callee.startswith(LIB) and ".jmh." not in callee and ("fail" in decision or "too" in decision or "not inline" in decision):
-                reason = re.sub(r"^(failed to inline:|failed to inline \(intrinsic\):)\s*", "", decision.strip())
+            sizes.setdefault(callee, int(size))
+            if lib(callee) and not decision.startswith(("inline", "accessor")) and "intrinsic" not in decision:
+                reason = re.sub(r"^failed to inline:\s*", "", decision.strip())
                 failures[callee][reason] += 1
     print(f"## {path.rsplit('/', 1)[-1]}\n")
-    print("| Method | Bytes | First C1 ms | First C2 ms | Made not entrant |")
+    print("| Method | Bytes | First C1 ms | First C2 ms | C2 code made not entrant |")
     print("|---|---|---|---|---|")
-    methods = sorted(set(first_c1) | set(first_c2) | set(not_entrant), key=lambda m: -sizes.get(m, 0))
+    methods = sorted(set(first_c1) | set(first_c2), key=lambda m: -sizes.get(m, 0))
     for method in methods:
-        c1 = first_c1.get(method)
-        c2 = first_c2.get(method)
-        fmt = lambda c: "" if c is None else f"{c[0]}{' (OSR)' if c[2] else ''}"
-        print(f"| {short(method)} | {sizes.get(method, '')} | {fmt(c1)} | {fmt(c2)} | {not_entrant.get(method, 0)} |")
+        c1, c2 = first_c1.get(method), first_c2.get(method)
+        fmt = lambda c: "" if c is None else f"{c[0]}{' (OSR)' if c[1] else ''}"
+        print(f"| {short(method)} | {sizes.get(method, '')} | {fmt(c1)} | {fmt(c2) or 'never'} | {c2_not_entrant.get(method, 0)} |")
     if failures:
-        print("\nInlining failures of library methods:\n")
-        print("| Callee | Reason | Count |")
-        print("|---|---|---|")
+        print("\nLibrary callees not inlined in C2 compilations:\n")
+        print("| Callee | Bytes | Reason | Count |")
+        print("|---|---|---|---|")
         for callee in sorted(failures, key=lambda c: -sum(failures[c].values())):
             for reason, count in failures[callee].most_common():
-                print(f"| {short(callee)} | {reason} | {count} |")
+                print(f"| {short(callee)} | {sizes.get(callee, '')} | {reason} | {count} |")
     print()

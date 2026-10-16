@@ -78,3 +78,11 @@ benchmark/jmh/review/run.sh
 
 - **Overrides:** `FORCE=1` skips the process and boost checks; `ALLOW_OPEN=1` skips the open-PR check; `TARGET=<ref>` picks another target; `FORKS=<n>` changes the forks per side.
 - **Smoke test:** `SMOKE=1 FORCE=1 benchmark/jmh/review/run.sh` runs the whole pipeline with two benchmarks on 2 KB, one fork and one iteration, and writes to `benchmark/jmh/target/review/smoke-<timestamp>/`. With one iteration the error is `nan`, which flags every row; the numbers are only a pipeline check.
+
+## The benchmark campaign
+
+`campaign.sh` has the helpers used for the other measurements in [`../EXPERIMENTS.md`](../EXPERIMENTS.md):
+interleaved runs of experiment builds, single-shot cold starts, long runs and JIT logs. Its reports come from
+`summary.py`, `oneshot_report.py`, `metrics_report.py`, `alloc_report.py`, `jit_report.py` and
+`bytecode_sizes.py`, and `TmpMetricsBenchmark.java` measures the cost of metrics. `run.sh` also takes the
+latest release as a third build (`RELEASE`, default `parent-6.0.8`).

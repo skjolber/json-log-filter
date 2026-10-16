@@ -6,7 +6,8 @@
 #   build_jar <worktree> <jar>                      build a benchmark jar with the Tmp*.java sources of this directory
 #   interleave <name> <regex> <params> <forks> <jmh options> <side>=<jar> ...
 #                                                   forks per side, rotating the order of the sides per fork,
-#                                                   then merged forks and a comparison against the first side
+#                                                   then merged forks and a comparison against the first side;
+#                                                   SIDE_ARGS_<side> adds JMH options for one side
 #   oneshot <name> <regex> <params> <forks> <iterations> <side>=<jar> ...
 #                                                   single-shot times from fresh JVMs, iteration 1 being the first call
 #   jit_log <name> <jar> <regex> <params>           one fork with PrintCompilation and PrintInlining
@@ -52,9 +53,9 @@ campaign_run() { # jar output-json log jmh-args...
 }
 
 interleave() { # name regex params forks "jmh options" side=jar ...
-	local name=$1 regex=$2 params=$3 forks=$4 opts=$5
+	local name=$1 regex=$2 params=$3 forks=$4 opts=$5 out=$CAMPAIGN/$1
 	shift 5
-	local sides=("$@") n=$# out=$CAMPAIGN/$1
+	local sides=("$@") n=$#
 	mkdir -p "$out"
 	campaign_log "interleave $name: $regex ($params), $forks forks x $n sides, $opts"
 	for fork in $(seq 1 "$forks"); do
@@ -62,8 +63,10 @@ interleave() { # name regex params forks "jmh options" side=jar ...
 			local entry=${sides[$(( (fork - 1 + k) % n ))]}
 			local side=${entry%%=*} jar=${entry#*=}
 			campaign_log "  $name $side fork $fork"
+			# extra JMH options for one side, e.g. SIDE_ARGS_inline="-jvmArgsAppend -XX:CompileCommand=inline,.."
+			local extra_var="SIDE_ARGS_$side"
 			# shellcheck disable=SC2086
-			campaign_run "$jar" "$out/$side-fork$fork.json" "$out/log-$side-fork$fork.txt" "$regex" -f 1 $opts -p "fileName=$params"
+			campaign_run "$jar" "$out/$side-fork$fork.json" "$out/log-$side-fork$fork.txt" "$regex" -f 1 $opts ${!extra_var:-} -p "fileName=$params"
 		done
 	done
 	for entry in "${sides[@]}"; do
@@ -80,9 +83,9 @@ interleave() { # name regex params forks "jmh options" side=jar ...
 }
 
 oneshot() { # name regex params forks iterations side=jar ...
-	local name=$1 regex=$2 params=$3 forks=$4 iterations=$5
+	local name=$1 regex=$2 params=$3 forks=$4 iterations=$5 out=$CAMPAIGN/$1
 	shift 5
-	local sides=("$@") n=$# out=$CAMPAIGN/$1
+	local sides=("$@") n=$#
 	mkdir -p "$out"
 	campaign_log "oneshot $name: $regex ($params), $forks forks x $n sides, $iterations single shots per fork"
 	for fork in $(seq 1 "$forks"); do
