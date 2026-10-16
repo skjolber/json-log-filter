@@ -47,7 +47,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, length, metrics)) {
 				if(metrics != null) {
 					// writes buffered output and closes open structures, so the output size is final
 					generator.close();
@@ -76,7 +76,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(new StringBuilderWriter(output));
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, length, metrics)) {
 				if(metrics != null) {
 					// writes buffered output and closes open structures, so the output size is final
 					generator.close();
@@ -104,7 +104,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 			JsonGenerator generator = jsonFactory.createGenerator(output);
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
-			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, metrics)) {
+			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, length, metrics)) {
 				if(metrics != null) {
 					// writes buffered output and closes open structures, so the output size is final
 					generator.close();
@@ -122,6 +122,23 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 	}
 	
 	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+		return process(parser, generator, offsetSupplier, outputSizeSupplier, -1, metrics);
+	}
+
+	/**
+	 * Filter with max size.
+	 *
+	 * @param parser parser
+	 * @param generator generator
+	 * @param offsetSupplier input offset, relative to the start of the input
+	 * @param outputSizeSupplier output written so far, in characters or bytes
+	 * @param inputLength input length in characters or bytes, for the max size metric, or -1 if unknown
+	 * @param metrics metrics, or null
+	 * @return true if the input was a single root value
+	 * @throws IOException if the input could not be read or the output written
+	 */
+
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = new StringBuilder(Math.max(16 * 1024, maxStringLength + 11 + truncateStringValue.length + 2)); // i.e
@@ -173,7 +190,7 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 				// a scalar root value is kept even if too big; dropping it would leave an empty (invalid) document
 				if(outputSize + accurateSize > maxSize && !parser.streamReadContext().inRoot()) {
 					if(metrics != null) {
-						metrics.onMaxSize(-1);
+						metrics.onMaxSize(JacksonOutputSize.getLeftOutSize(inputLength, offset));
 					}
 					
 					break;

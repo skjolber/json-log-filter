@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
 
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.TokenStreamLocation;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.TokenStreamContext;
@@ -221,6 +222,32 @@ final class JacksonOutputSize {
 			return c < 0x800 || Character.isSurrogate(c) ? 1 : 2;
 		}
 		return 0;
+	}
+
+
+	/**
+	 * Size of the input left out by max size, for the max size metric.
+	 *
+	 * @param inputLength input length in characters or bytes, or -1 if unknown
+	 * @param offset offset of the end of the last input written, relative to the start of the input
+	 * @return input left out, or -1 if unknown
+	 */
+
+	static int getLeftOutSize(int inputLength, long offset) {
+		return inputLength == -1 ? -1 : (int)(inputLength - offset);
+	}
+
+	/**
+	 * Start of the current token, in the input's characters or bytes.
+	 *
+	 * @param parser parser
+	 * @return offset relative to the start of the input
+	 */
+
+	static long getTokenStart(JsonParser parser) {
+		TokenStreamLocation location = parser.currentTokenLocation();
+		long byteOffset = location.getByteOffset();
+		return byteOffset != -1 ? byteOffset : location.getCharOffset();
 	}
 
 }
