@@ -43,6 +43,28 @@ public class CharArrayRangesFilterTest {
 	private static final String TOP_LEVEL_STRING_TRUNCATED = "\"hello... + 21\"";
 
 	@Test
+	public void testScanQuotedValue() {
+		// the scan checks four characters per iteration, so cover every length modulo four,
+		// with escaped quotes and backslashes at different positions
+		String[] values = new String[] {
+			"", "a", "ab", "abc", "abcd", "abcde", "abcdef", "abcdefg", "abcdefgh", "abcdefghi",
+			"\\\"", "a\\\"", "a\\\"b", "\\\"abcd", "abcd\\\"", "\\\"\\\"\\\"",
+			"\\\\", "a\\\\", "\\\\\\\"", "abc\\\\\\\"d", "\\\\\\\\\\\\"
+		};
+		String[] suffixes = new String[] {"", "x", "xx", "xxx", ",\"key\":1}"};
+
+		for (String suffix : suffixes) {
+			for (String value : values) {
+				String json = '"' + value + '"' + suffix;
+				int closing = value.length() + 1;
+
+				assertEquals(closing, CharArrayRangesFilter.scanQuotedValue(json.toCharArray(), 0), json);
+				assertEquals(closing + 1, CharArrayRangesFilter.scanBeyondQuotedValue(json.toCharArray(), 0), json);
+			}
+		}
+	}
+
+	@Test
 	public void testFilterNonStructural() {
 		// paths cannot match, so a string is only truncated, and surrounding whitespace optionally removed
 		for(String input : new String[] {"\"hello\"", " \"hello\" \n", "\"a\\\"b\\\\\"", TOP_LEVEL_STRING}) {
