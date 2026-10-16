@@ -883,6 +883,104 @@ function setupJsonPathTooltip() {
   });
 }
 
+/* ── Path helper ──────────────────────────────────────────── */
+function collectJsonPaths(root) {
+  var set = {};
+  (function walk(node, path) {
+    if (Array.isArray(node)) {
+      node.forEach(function(child) { walk(child, path); });
+    } else if (node !== null && typeof node === 'object') {
+      Object.keys(node).forEach(function(k) {
+        var p = path + '.' + k;
+        set[p] = true;
+        walk(node[k], p);
+      });
+    }
+  })(root, '$');
+  return Object.keys(set).sort(function(a, b) { return a < b ? -1 : a > b ? 1 : 0; });
+}
+
+function setupPathHelper() {
+  var dialog = document.getElementById('pathDialog');
+  var search = document.getElementById('pathSearch');
+  var list   = document.getElementById('pathList');
+  var status = document.getElementById('pathStatus');
+  var paths  = [];
+  var MAX_SHOWN = 1000;
+
+  function render() {
+    var q = search.value.toLowerCase();
+    var hits = q ? paths.filter(function(p) { return p.toLowerCase().indexOf(q) !== -1; }) : paths;
+    var shown = hits.slice(0, MAX_SHOWN);
+    list.textContent = '';
+    var frag = document.createDocumentFragment();
+    shown.forEach(function(p) {
+      var li = document.createElement('li');
+      var span = document.createElement('span');
+      span.className = 'path-text';
+      span.textContent = p;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'header-btn';
+      btn.textContent = 'Copy';
+      li.appendChild(span);
+      li.appendChild(btn);
+      frag.appendChild(li);
+    });
+    list.appendChild(frag);
+    status.textContent = hits.length + ' of ' + paths.length + ' paths' +
+      (hits.length > shown.length ? ' (showing first ' + MAX_SHOWN + ')' : '');
+  }
+
+  function close() { dialog.classList.remove('visible'); }
+
+  document.getElementById('pathHelperBtn').addEventListener('click', function() {
+    var text = document.getElementById('inputJson').value.trim();
+    try {
+      paths = text ? collectJsonPaths(JSON.parse(text)) : [];
+      status.textContent = '';
+    } catch (e) {
+      paths = [];
+      status.textContent = 'Input is not valid JSON: ' + e.message;
+      list.textContent = '';
+      search.value = '';
+      dialog.classList.add('visible');
+      search.focus();
+      return;
+    }
+    search.value = '';
+    render();
+    dialog.classList.add('visible');
+    search.focus();
+  });
+  search.addEventListener('input', render);
+  list.addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var path = btn.parentNode.querySelector('.path-text').textContent;
+    var done = function() {
+      btn.textContent = 'Copied';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(path).then(done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = path;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    }
+  });
+  document.getElementById('pathCloseBtn').addEventListener('click', close);
+  dialog.addEventListener('click', function(e) { if (e.target === dialog) close(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && dialog.classList.contains('visible')) close();
+  });
+}
+
 /* ── Init ─────────────────────────────────────────────────── */
 (function() {
   if (typeof _teaVMGetFilterClass === 'function' && typeof _teaVMApplyFilter === 'function') {
@@ -897,6 +995,7 @@ function setupJsonPathTooltip() {
     setupInputContextMenu();
     setupOutputContextMenu();
     setupJsonPathTooltip();
+    setupPathHelper();
     document.addEventListener('input',  saveSettings);
     document.addEventListener('change', saveSettings);
   } else {
