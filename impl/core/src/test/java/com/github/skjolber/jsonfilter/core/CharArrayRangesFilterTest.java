@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.core.util.CharArrayRangesFilter;
+import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 
 public class CharArrayRangesFilterTest {
 
@@ -415,6 +417,26 @@ public class CharArrayRangesFilterTest {
 			
 			assertThat(buffer.toString()).isEqualTo(outputs[i]);
 		}
+	}
+
+	@Test
+	public void testOutputMetricsIncludeClosedStructure() {
+		// cut within an array within an object: the closing brackets added by the size filter are output too
+		String input = "{\"a\":[1,2,3]}";
+		char[] chars = input.toCharArray();
+
+		CharArrayRangesSizeFilter filter = new CharArrayRangesSizeFilter(12, chars.length, "\"[removed]\"".toCharArray(), "\"*\"".toCharArray(), "...".toCharArray());
+		filter.addDelete(7, chars.length);
+		filter.setLevel(2);
+		filter.getSquareBrackets()[1] = true;
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		StringBuilder buffer = new StringBuilder();
+		filter.filter(chars, 0, chars.length, buffer, metrics);
+
+		assertThat(buffer.toString()).isEqualTo("{\"a\":[1]}");
+		assertEquals(buffer.length(), metrics.getOutputSize());
+		assertEquals(chars.length, metrics.getInputSize());
 	}
 
 	@Test

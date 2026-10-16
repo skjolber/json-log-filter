@@ -91,6 +91,11 @@ public class JacksonAnyPathMaxStringLengthJsonFilterTest extends AbstractDefault
 	}
 
 	@Test
+	public void testSizeMetrics() throws Exception {
+		assertSizeMetrics(new JacksonAnyPathMaxStringLengthJsonFilter(3, new String[]{"//a"}, null), "{\"a\":\"secret\",\"b\":1,\"c\":{\"d\":true},\"e\":[1,2]}");
+	}
+
+	@Test
 	public void testProcessByteArrayResizableStreamException() throws Exception {
 		// Verify catch block in process(byte[], ResizableByteArrayOutputStream) via broken factory
 		JsonFactory jsonFactory = mock(JsonFactory.class);

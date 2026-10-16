@@ -12,6 +12,14 @@ import com.github.skjolber.jsonfilter.JsonFilterMetrics;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.path.PathItem;
 
+/**
+ * Jackson filter for paths, max string length and max size.
+ * <br>
+ * Prune and anonymize messages can be longer than the values they replace. So if the input fits within max size,
+ * it is first filtered without max size, and filtered again with max size if the output turns out too large.
+ * The metrics then include both passes.
+ */
+
 public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxStringLengthJsonFilter implements JacksonJsonFilter {
 
 	// sizes of the messages in UTF-8 bytes; in characters they are their lengths
@@ -41,7 +49,17 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 	public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(chars, offset, length, output, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
+			int start = output.length();
+			if(!super.process(chars, offset, length, output, metrics)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(output.length() - start)) {
+				return true;
+			}
+			output.setLength(start);
 		}
 		output.ensureCapacity(output.length() + length);
 
@@ -51,6 +69,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(chars, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getCharOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.length() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -63,7 +87,17 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	
 	public boolean process(byte[] bytes, int offset, int length, StringBuilder output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
+			int start = output.length();
+			if(!super.process(bytes, offset, length, output, metrics)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(output.length() - start)) {
+				return true;
+			}
+			output.setLength(start);
 		}
 		output.ensureCapacity(output.length() + length);
 
@@ -73,6 +107,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.length() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.length() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -85,7 +125,17 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	
 	public boolean process(byte[] bytes, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
 		if(!mustConstrainMaxSize(length)) {
-			return super.process(bytes, offset, length, output, metrics);
+			// prune and anonymize messages can be longer than the values they replace,
+			// so check the output size, and filter with max size if it is too large.
+			// The metrics then include both passes.
+			int start = output.size();
+			if(!super.process(bytes, offset, length, output, metrics)) {
+				return false;
+			}
+			if(!mustConstrainMaxSize(output.size() - start)) {
+				return true;
+			}
+			output.setSize(start);
 		}
 	
 		int outputSize = output.size();
@@ -94,6 +144,12 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 			JsonParser parser = jsonFactory.createParser(bytes, offset, length)
 			) {
 			if(process(parser, generator, () -> parser.currentLocation().getByteOffset(), () -> generator.streamWriteOutputBuffered() + output.size() - outputSize, metrics)) {
+				if(metrics != null) {
+					// writes buffered output and closes open structures, so the output size is final
+					generator.close();
+					metrics.onInput(length);
+					metrics.onOutput(output.size() - outputSize);
+				}
 				return true;
 			}
 		} catch(final Exception e) {
@@ -211,6 +267,14 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 						
 						generator.writeName(currentName);
 						generator.writeRawValue(message, 0, message.length);
+						
+						if(metrics != null) {
+							if(anon) {
+								metrics.onAnonymize(1);
+							} else {
+								metrics.onPrune(1);
+							}
+						}
 					} else {
 						// array or object
 						if(anon) {

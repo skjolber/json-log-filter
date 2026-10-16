@@ -1,6 +1,7 @@
 package com.github.skjolber.jsonfilter.core.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,21 @@ public class CharArrayRangesSizeFilterTest {
 		assertTrue(result >= 0);
 	}
 
+	// --- replacementGrowth ---
+
+	@Test
+	public void testReplacementGrowth() {
+		// set when prune or anonymize messages make the output larger than the input
+		CharArrayRangesSizeFilter filter = newFilter(10);
+		assertFalse(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(true);
+		assertTrue(filter.isReplacementGrowth());
+
+		filter.setReplacementGrowth(false);
+		assertFalse(filter.isReplacementGrowth());
+	}
+
 	// --- anonymizeSubtree ---
 
 	@Test
@@ -54,6 +70,38 @@ public class CharArrayRangesSizeFilterTest {
 		filter.setMark(0);
 		int result = filter.anonymizeSubtree(chars, 0, json.length());
 		assertTrue(result > 0);
+	}
+
+	@Test
+	public void testAnonymizeSubtreeStopsAtValueWhichDoesNotFit() {
+		// The anonymize message does not fit: stop at the start of the value and lower the max size limit to it,
+		// so that the caller cannot include (part of) the raw value.
+		// A number, a string and a string followed by whitespace.
+		String[] jsons = {"[1,2]", "[\"a\",\"b\"]", "[\"a\" ,\"b\"]"};
+
+		// the first value does not fit
+		for(String json : jsons) {
+			CharArrayRangesSizeFilter filter = newFilter(json.length());
+			filter.setLevel(0);
+			filter.setMark(0);
+			assertEquals(1, filter.anonymizeSubtree(json.toCharArray(), 0, 6), json);
+			assertEquals(1, filter.getMaxSizeLimit(), json);
+			assertEquals(1, filter.getMark(), json);
+			assertEquals(1, filter.getLevel(), json);
+		}
+
+		// the first value is anonymized, the second does not fit
+		int[] valueOffsets = {3, 5, 6};
+		int[] marks = {2, 4, 5};
+		for(int i = 0; i < jsons.length; i++) {
+			CharArrayRangesSizeFilter filter = newFilter(jsons[i].length());
+			filter.setLevel(0);
+			filter.setMark(0);
+			assertEquals(valueOffsets[i], filter.anonymizeSubtree(jsons[i].toCharArray(), 0, 10), jsons[i]);
+			assertEquals(valueOffsets[i], filter.getMaxSizeLimit(), jsons[i]);
+			assertEquals(marks[i], filter.getMark(), jsons[i]);
+			assertEquals(1, filter.getLevel(), jsons[i]);
+		}
 	}
 
 	@Test

@@ -42,6 +42,16 @@ public class FullPathJsonFilterTest extends DefaultJsonFilterTest {
 	}
 
 	@Test
+	public void testByteArrayRangesMaxOutputLength() throws Exception {
+		// The prune message is 4 chars longer than the value it replaces. The byte[] ranges filter must
+		// know the input length to tell the output length, like the char[] ranges filter.
+		String json = "{\"key\":\"value\",\"other\":\"value\"}";
+		FullPathJsonFilter filter = new FullPathJsonFilter(-1, null, new String[]{"/key"});
+		Assertions.assertEquals(json.length() + 4, filter.ranges(json.getBytes(StandardCharsets.UTF_8), 0, json.length()).getMaxOutputLength());
+		Assertions.assertEquals(json.length() + 4, filter.ranges(json.toCharArray(), 0, json.length()).getMaxOutputLength());
+	}
+
+	@Test
 	public void anonymize() throws Exception {
 		assertThat(new FullPathJsonFilter(-1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		assertThat(new FullPathJsonFilter(-1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();

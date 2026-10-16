@@ -76,7 +76,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				metrics.onInput(length);
 				
 				int written = buffer.length() - bufferLength;
-				if(written < length) {
+				if(level > 0) {
+					// the document was cut, i.e. not only whitespace was removed
 					metrics.onMaxSize(length - written);
 				}
 				
@@ -263,11 +264,13 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			offset++;
 		}
 
+		int kept = mark;
 		if(bracketLevel > 0) {
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
+					kept = markLimit;
 					if(markLimit >= flushedOffset) {
 						buffer.append(chars, flushedOffset, markLimit - flushedOffset);
 					}
@@ -286,7 +289,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			buffer.append(chars, flushedOffset, offset - flushedOffset);
 		}		
 		
-		return bracketLevel;
+		// report a cut only if content was dropped, not just whitespace
+		return bracketLevel > 0 && MaxSizeJsonFilter.hasContent(chars, kept, maxReadLimit) ? bracketLevel : 0;
 	}
 
 	public boolean process(byte[] chars, int offset, int length, ResizableByteArrayOutputStream output, JsonFilterMetrics metrics) {
@@ -331,7 +335,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				metrics.onInput(length);
 				
 				int written = output.size() - bufferLength;
-				if(written < length) {
+				if(level > 0) {
+					// the document was cut, i.e. not only whitespace was removed
 					metrics.onMaxSize(length - written);
 				}
 				
@@ -516,11 +521,13 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			offset++;
 		}
 		
+		int kept = mark;
 		if(bracketLevel > 0) {
 			markLimit:
 			if(mark <= maxSizeLimit) {
 				int markLimit = MaxSizeJsonFilter.markToLimit(chars, offset, maxReadLimit, maxSizeLimit, mark);
 				if(markLimit != -1 && markLimit <= maxSizeLimit) {
+					kept = markLimit;
 					if(markLimit >= flushedOffset) {
 						stream.write(chars, flushedOffset, markLimit - flushedOffset);
 					}
@@ -539,7 +546,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 			stream.write(chars, flushedOffset, offset - flushedOffset);
 		}
 		
-		return bracketLevel;
+		// report a cut only if content was dropped, not just whitespace
+		return bracketLevel > 0 && MaxSizeJsonFilter.hasContent(chars, kept, maxReadLimit) ? bracketLevel : 0;
 	}
 
 	@Override

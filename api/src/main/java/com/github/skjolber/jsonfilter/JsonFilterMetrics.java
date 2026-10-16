@@ -2,7 +2,10 @@ package com.github.skjolber.jsonfilter;
 
 /**
  * 
- * Interface for recording the filtering operation
+ * Interface for recording the filtering operation.
+ * <br>
+ * Metrics are recorded while filtering, so they are also updated if filtering is not successful,
+ * i.e. the filter returns false or null. It is then up to the caller to reset them.
  *
  */
 
