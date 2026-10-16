@@ -182,7 +182,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
@@ -190,7 +190,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
 			},
@@ -198,7 +198,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}				
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}
@@ -209,7 +209,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
@@ -217,7 +217,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
 			},
@@ -225,7 +225,7 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}			
@@ -332,7 +332,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(chars, 0, chars.length, sb, metrics));
 		assertEquals("{\"key\":{}}", sb.toString());
-		assertEquals(-1, metrics.getMaxSize());
+		// the input left out, from the start of the value which did not fit
+		assertEquals(json.length() - "{\"key\":{\"nested\":".length(), metrics.getMaxSize());
 	}
 
 	@Test
@@ -359,6 +360,22 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 		StringBuilder sb = new StringBuilder();
 		assertTrue(filter.process(chars, 0, chars.length, sb, null));
 		assertEquals("{\"a\":\"x\",\"b\":\"y\",\"key\":{\"nested\":\"*\"}}", sb.toString());
+	}
+
+	@Test
+	public void testMaxSizeMetricIsInputLeftOut() throws Exception {
+		// the input left out, from the end of the last value written
+		String json = "{\"a\":1,\"b\":2,\"c\":3}";
+		// an anonymized value which does not fit
+		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 14, new String[]{"/b"}, null), json, "{\"a\":1}", json.length() - "{\"a\":1".length());
+		// a pruned value which does not fit
+		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 14, null, new String[]{"/b"}), json, "{\"a\":1}", json.length() - "{\"a\":1".length());
+		// a value which does not match
+		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 14, new String[]{"/c"}, null), json, "{\"a\":1,\"b\":2}", json.length() - "{\"a\":1,\"b\":2".length());
+
+		// within an anonymized object: from the start of the value which does not fit
+		json = "{\"a\":1,\"b\":{\"x\":1,\"y\":2}}";
+		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 24, new String[]{"/b"}, null), json, "{\"a\":1,\"b\":{\"x\":\"*\"}}", json.length() - "{\"a\":1,\"b\":{\"x\":1,\"y\":".length());
 	}
 
 	@Test
