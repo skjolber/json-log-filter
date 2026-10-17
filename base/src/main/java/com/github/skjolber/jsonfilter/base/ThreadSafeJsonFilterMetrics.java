@@ -109,23 +109,6 @@ public class ThreadSafeJsonFilterMetrics implements JsonFilterMetrics {
 
 	@Override
 	public String toString() {
-		long input = getInputSize();
-		long output = getOutputSize();
-
-		StringBuilder builder = new StringBuilder(160);
-		builder.append(getClass().getSimpleName());
-		builder.append("[input size ").append(input);
-		builder.append(", output size ").append(output);
-		if(input > 0) {
-			// how much of the input was written, to one decimal
-			long permille = (output * 1000 + input / 2) / input;
-			builder.append(" (").append(permille / 10).append('.').append(permille % 10).append("% of input)");
-		}
-		builder.append(", anonymized ").append(getAnonymize());
-		builder.append(", pruned ").append(getPrune());
-		builder.append(", strings truncated ").append(getMaxStringLength());
-		builder.append(", left out by max size ").append(getMaxSize());
-		builder.append(']');
-		return builder.toString();
+		return DefaultJsonFilterMetrics.toString(getClass().getSimpleName(), getInputSize(), getOutputSize(), getAnonymize(), getPrune(), getMaxStringLength(), getMaxSize());
 	}
 }

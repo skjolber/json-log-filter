@@ -70,4 +70,27 @@ public class DefaultJsonFilterMetrics implements JsonFilterMetrics {
 		return outputSize;
 	}
 
+	@Override
+	public String toString() {
+		return toString(getClass().getSimpleName(), inputSize, outputSize, anonymize, prune, maxStringLength, maxSize);
+	}
+
+	static String toString(String name, long inputSize, long outputSize, long anonymize, long prune, long maxStringLength, long maxSize) {
+		StringBuilder builder = new StringBuilder(160);
+		builder.append(name);
+		builder.append("[input size ").append(inputSize);
+		builder.append(", output size ").append(outputSize);
+		if(inputSize > 0) {
+			// how much of the input was written, to one decimal
+			long permille = (outputSize * 1000 + inputSize / 2) / inputSize;
+			builder.append(" (").append(permille / 10).append('.').append(permille % 10).append("% of input)");
+		}
+		builder.append(", anonymized ").append(anonymize);
+		builder.append(", pruned ").append(prune);
+		builder.append(", strings truncated ").append(maxStringLength);
+		builder.append(", left out by max size ").append(maxSize);
+		builder.append(']');
+		return builder.toString();
+	}
+
 }
