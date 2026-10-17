@@ -55,6 +55,12 @@ public class ByteArrayWhitespaceFilter {
 	}
 
 	public static void process(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream output) {
+		// whitespace is only removed, so the output is no longer than the input: make room once,
+		// and copy into the buffer directly, so that the loop does not use the output stream
+		int written = output.size();
+		output.ensureCapacity(written + limit - offset);
+		byte[] buffer = output.getBuffer();
+
 		int flushOffset = offset;
 		
 		while(offset < limit) {
@@ -64,7 +70,8 @@ public class ByteArrayWhitespaceFilter {
 				continue;
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
-				output.write(chars, flushOffset, offset - flushOffset);
+				System.arraycopy(chars, flushOffset, buffer, written, offset - flushOffset);
+				written += offset - flushOffset;
 				offset = skipWhitespace(chars, offset);
 				
 				flushOffset = offset;
@@ -73,7 +80,8 @@ public class ByteArrayWhitespaceFilter {
 			}
 			offset++;
 		}
-		output.write(chars, flushOffset, offset - flushOffset);
+		System.arraycopy(chars, flushOffset, buffer, written, offset - flushOffset);
+		output.setSize(written + offset - flushOffset);
 	}
 	
 	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
