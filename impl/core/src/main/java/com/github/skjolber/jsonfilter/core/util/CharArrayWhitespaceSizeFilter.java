@@ -81,10 +81,12 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				}
 				// skip this char and any other whitespace
 				buffer.append(chars, flushOffset, offset - flushOffset);
+				// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+				// without a bounds check and a safepoint poll per character
 				do {
 					offset++;
 					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < maxReadLimit && chars[offset] <= 0x20);
 
 
 				flushOffset = offset;
@@ -147,7 +149,7 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						} while(nextOffset < maxReadLimit && chars[nextOffset] <= 0x20);
 
 						whitespace = nextOffset - endQuoteIndex - 1;
 
@@ -195,7 +197,7 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				if(chars[nextOffset] <= 0x20) {
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					} while(nextOffset < maxReadLimit && chars[nextOffset] <= 0x20);
 					
 					maxSizeLimit += nextOffset - offset;
 				}
@@ -241,10 +243,12 @@ public class CharArrayWhitespaceSizeFilter extends CharArrayWhitespaceFilter {
 				}
 				// skip this char and any other whitespace
 				buffer.append(chars, flushOffset, offset - flushOffset);
+				// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+				// without a bounds check and a safepoint poll per character
 				do {
 					offset++;
 					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < maxReadLimit && chars[offset] <= 0x20);
 
 
 				flushOffset = offset;

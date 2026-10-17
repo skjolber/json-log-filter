@@ -776,9 +776,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 							// carriage return: 0x0D
 							// newline: 0x0A
 	
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 							
 							if(chars[nextOffset] == ':') {
 								// key
@@ -860,9 +858,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 								// optimization: scan for highest value
 
 								int end = nextOffset;
-								do {
-									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);
+								nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 								if(chars[nextOffset] == ':') {
 									// was a key

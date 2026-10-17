@@ -207,9 +207,7 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 						if(chars[nextOffset] <= 0x20) {
 							// fast-forward over whitespace
 							// optimization: scan for highest value
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 							if(chars[nextOffset] == ':') {
 								// was a key
@@ -376,9 +374,7 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 							// carriage return: 0x0D
 							// newline: 0x0A
 	
-							do {
-								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 							
 							if(chars[nextOffset] == ':') {
 								// key

@@ -38,9 +38,11 @@ public class CharArrayWhitespaceFilter {
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.append(chars, flushOffset, offset - flushOffset);
+				// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+				// without a bounds check and a safepoint poll per character
 				do {
 					offset++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < limit && chars[offset] <= 0x20);
 
 				flushOffset = offset;
 				c = chars[offset];
@@ -149,6 +151,8 @@ public class CharArrayWhitespaceFilter {
 				output.append(chars, start, offset - start);
 				// with the limit, this is a counted loop, without a bounds check and a safepoint poll per character;
 				// the limit is not whitespace, so the run always ends before it
+				// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+				// without a bounds check and a safepoint poll per character
 				do {
 					offset++;
 				} while(offset < limit && chars[offset] <= 0x20);
@@ -183,9 +187,11 @@ public class CharArrayWhitespaceFilter {
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.append(chars, flushOffset, offset - flushOffset);
+				// the whitespace skips stop at the end of the array, so that C2 compiles them as counted loops,
+				// without a bounds check and a safepoint poll per character
 				do {
 					offset++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < chars.length && chars[offset] <= 0x20);
 
 				flushOffset = offset;
 				c = chars[offset];
@@ -205,7 +211,7 @@ public class CharArrayWhitespaceFilter {
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
 							// whitespace before colon
@@ -218,7 +224,7 @@ public class CharArrayWhitespaceFilter {
 								// whitespace before and after colon
 								do {
 									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);				
+								} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 							} else {
 								// whitespace before colon, but not after
 							}
@@ -265,7 +271,7 @@ public class CharArrayWhitespaceFilter {
 					
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);				
+					} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 					
 					flushOffset = nextOffset;
 					offset = nextOffset;
