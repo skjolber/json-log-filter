@@ -35,11 +35,13 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 		this(maxStringLength, maxSize, anonymizes, prunes, FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, jsonFactory);
 	}
 
-	protected JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	protected JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage) {
 		this(maxStringLength, maxSize, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, new JsonFactory());
 	}
 
-	protected JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage, JsonFactory jsonFactory) {
+	protected JacksonPathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage,
+			JsonFactory jsonFactory) {
 		super(maxStringLength, maxSize, -1, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage, jsonFactory);
 
 		this.truncateStringValueUtf8Size = JacksonOutputSize.getRawSize(truncateStringValue, true);
@@ -177,7 +179,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	 * @throws IOException if the input could not be read or the output written
 	 */
 
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+			JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = null; // allocated when the first value is truncated
@@ -193,9 +196,9 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 
 		PathItem pathItem = this.pathItem;
 
-        String fieldName = null;
+		String fieldName = null;
         
-        long offset = offsetSupplier.getAsLong();
+		long offset = offsetSupplier.getAsLong();
         
 		while(true) {
 			JsonToken nextToken = parser.nextToken();
@@ -395,7 +398,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	}
 	
 
-	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, JsonFilterMetrics metrics) throws IOException {
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue,
+			JsonFilterMetrics metrics) throws IOException {
 		return anonymizeChildren(parser, generator, maxSize, outputSizeSupplier, anonymizeJsonValue, JacksonOutputSize.getRawSize(anonymizeJsonValue, JacksonOutputSize.isUtf8(generator)), metrics);
 	}
 
@@ -413,12 +417,13 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilter extends JacksonPathMaxS
 	 * @throws IOException on parse or write error
 	 */
 
-	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, int anonymizeSize, JsonFilterMetrics metrics) throws IOException {
+	protected static boolean anonymizeChildren(final JsonParser parser, JsonGenerator generator, long maxSize, LongSupplier outputSizeSupplier, char[] anonymizeJsonValue, int anonymizeSize,
+			JsonFilterMetrics metrics) throws IOException {
 		int level = 1;
 		
 		boolean utf8 = JacksonOutputSize.isUtf8(generator);
 		
-        String fieldName = null;
+		String fieldName = null;
 		while(level > 0) {
 			JsonToken nextToken = parser.nextToken();
 			if(nextToken == null) {

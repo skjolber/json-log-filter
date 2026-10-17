@@ -159,7 +159,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validateAnonymizeExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
+			throw new IllegalArgumentException("Illegal anonymize expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. "
+					+ "Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 
@@ -214,7 +215,8 @@ public abstract class AbstractPathJsonFilter extends AbstractJsonFilter {
 
 	public static void validatePruneExpression(String expression) {
 		if(!validateExpression(expression)) {
-			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
+			throw new IllegalArgumentException("Illegal prune expression '" + expression + "'. Expected expression on the form /a/b/c or $.a.b.c with wildcards or //a or $..a without wildcards. "
+					+ "Bracket notation, backslashes, partial wildcards and whitespace around path segments are not supported");
 		}
 	}
 	

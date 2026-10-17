@@ -51,17 +51,25 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	@ResourceLock(value = "jackson")
 	public void testMaxSize() throws IOException {
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"}, null));
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1, null, new String[] {"/CVE_Items/cve/CVE_data_meta"}));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1, new String[] {"/CVE_Items/cve/CVE_data_meta"},
+				null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1, null,
+				new String[] {"/CVE_Items/cve/CVE_data_meta"}));
 		
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/severity"}, null));
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/severity"}));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size,
+				-1,new String[] {"/CVE_Items/impact/baseMetricV2/severity"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null,
+				new String[] {"/CVE_Items/impact/baseMetricV2/severity"}));
 
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}, null));
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size,
+				-1,new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null,
+				new String[] {"/CVE_Items/impact/baseMetricV2/impactScore"}));
 		
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}, null));
-		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null, new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size,
+				-1,new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}, null));
+		validate("/json/maxSize/cve2006.json.gz.json", (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(128, size, -1,null,
+				new String[] {"/CVE_Items/impact/baseMetricV2/obtainAllPrivilege"}));
 	}
 	
 	@Test
@@ -89,10 +97,12 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
-		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH},
+				new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
 		
 		maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, size, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
-		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH},
+				new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 	}
 	
 	@Test
@@ -164,7 +174,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	
 	@Test
 	public void maxStringLengthAnonymizePrune() throws Exception {
-		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 2, new String[]{"/key1"}, new String[]{"/key3"});
+		MaxSizeJsonFilterFunction maxSize = (size) -> new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, size, 2, new String[]{"/key1"},
+				new String[]{"/key3"});
 
 		assertThat(maxSize, new PathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 2, new String[]{"/key1"}, new String[]{"/key3"}))
 			.hasMaxStringLength(DEFAULT_MAX_STRING_LENGTH)
@@ -178,7 +189,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		// a string cannot be cut, so it is only truncated by max string length, even if longer than max size
 		String string = " \"hello world, a long string\"\n";
 		String truncated = "\"hello... + 21\"";
-		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10, -1, new String[]{DEFAULT_PATH}, new String[]{PASSTHROUGH_XPATH});
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, 10, -1, new String[]{DEFAULT_PATH},
+				new String[]{PASSTHROUGH_XPATH});
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		assertEquals(truncated, filter.process(string, metrics));
@@ -233,7 +245,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 
 	@Test
 	public void exception_returns_false() throws Exception {
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, -1, -1,
+				new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertFalse(filter.process(new char[] {}, 1, 1, new StringBuilder()));
 		assertFalse(filter.process(new byte[] {}, 1, 1, new ResizableByteArrayOutputStream(128)));
 	}
@@ -241,7 +254,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 	@Test
 	public void exception_leaves_output_untouched() throws Exception {
 		// max size below the input size, but large enough to reach the end of the input
-		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, UNTERMINATED_LAST_STRING.length() - 1, -1, new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
+		PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, UNTERMINATED_LAST_STRING.length() - 1, -1,
+				new String[]{PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH});
 		assertExceptionLeavesOutputUntouched(filter, UNTERMINATED_LAST_STRING);
 	}
 
@@ -583,7 +597,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedLongNumber.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = 17;
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"},
+				null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
 	}
@@ -607,7 +622,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedArrayLevels.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = 11;
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"},
+				null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
 	}
@@ -618,7 +634,8 @@ public class PathMaxStringLengthMaxSizeJsonRemoveWhitespaceFilterTest extends De
 		byte[] jsonBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/json/text/maxSize/objectKNestedObjectWithArray.json"));
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 		int maxSize = 1000;
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"}, null);
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, maxSize, -1, new String[]{"/k"},
+				null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes));
 	}
@@ -647,14 +664,16 @@ public void testAnonSubtreeWithInternalWhitespace() throws Exception {
 		byte[] jsonBytes = Generator.generateDeepPathWithObjectLeaf(numIntermediate, "target", false);
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1, new String[]{path}, null);
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1,
+				new String[]{path}, null);
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128)));
 	}
 
 	@Test
 	public void testGrowSquareBracketsProcessMaxSizeSkipPath() throws Exception {
-		// The target path is nested 63 levels deep so that when a non-matching sibling key's object value is entered, the already-grown bracket-tracking array must grow again. Uses a prune action on the matched path.
+		// The target path is nested 63 levels deep so that when a non-matching sibling key's object value is entered, the already-grown bracket-tracking array must grow again. Uses a prune action on
+		// the matched path.
 		int numIntermediate = 62;
 		StringBuilder pathBuilder = new StringBuilder();
 		for (int i = 0; i < numIntermediate; i++) {
@@ -666,7 +685,8 @@ public void testAnonSubtreeWithInternalWhitespace() throws Exception {
 		byte[] jsonBytes = Generator.generateDeepPathWithSiblings(numIntermediate, "skip", "target", "found", false);
 		String json = new String(jsonBytes, StandardCharsets.UTF_8);
 
-		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1, null, new String[]{path});
+		MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter filter = new MustContrainMultiPathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(-1, json.length() + 1000, -1, null,
+				new String[]{path});
 		assertNotNull(filter.process(json.toCharArray(), 0, json.length(), new StringBuilder()));
 		assertNotNull(filter.process(jsonBytes, 0, jsonBytes.length, new ResizableByteArrayOutputStream(128)));
 	}

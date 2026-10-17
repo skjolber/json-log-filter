@@ -4,7 +4,8 @@ JSONPath-aware request/response filter combining `core` and `jackson`.
 
 ## Purpose
 
-Provides `RequestResponseJsonFilter` for scenarios where the same filter must handle both trusted (core) and untrusted (jackson) JSON within a single request/response pair, and `RequestResponseJsonFilterFactory` to build these filters.
+Provides `RequestResponseJsonFilter` for scenarios where the same filter must handle both trusted (core) and untrusted (jackson) JSON within a single request/response pair, and
+`RequestResponseJsonFilterFactory` to build these filters.
 
 ## Key types
 

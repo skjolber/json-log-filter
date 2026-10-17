@@ -138,7 +138,8 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 	 * @throws IOException if the input could not be read or the output written
 	 */
 
-	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+	public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+			JsonFilterMetrics metrics) throws IOException {
 		// estimate output size based on input size
 		// if size limit is reached, do a more accurate output measurement
 		StringBuilder builder = null; // allocated when the first value is truncated
@@ -148,9 +149,9 @@ public class JacksonMaxSizeMaxStringLengthJsonFilter extends JacksonMaxStringLen
 		boolean utf8 = JacksonOutputSize.isUtf8(generator);
 		int truncateSize = utf8 ? truncateStringValueUtf8Size : truncateStringValue.length;
 
-        String fieldName = null;
+		String fieldName = null;
         
-        long offset = offsetSupplier.getAsLong();
+		long offset = offsetSupplier.getAsLong();
         
 		while(true) {
 			JsonToken nextToken = parser.nextToken();

@@ -9,25 +9,25 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	private static final boolean[] HEX = new boolean[123];
 	
 	static {
-	    for (int i = 0; i < 103; i++) {
-	        HEX[i] = (i >= 'a' && i <= 'f') || 
-	                             (i >= 'A' && i <= 'F') || 
-	                             (i >= '0' && i <= '9');
-	    }
+		for (int i = 0; i < 103; i++) {
+			HEX[i] = (i >= 'a' && i <= 'f') || 
+								 (i >= 'A' && i <= 'F') || 
+								 (i >= '0' && i <= '9');
+		}
 	}
 
 	public static boolean isHex(char c) {
-	    return c < 103 && HEX[c];
+		return c < 103 && HEX[c];
 	}
 
 	private static final boolean[] HIGH_SURROGATE_SECOND_HEX = new boolean['b' + 1];
 
 	static {
-	    for (int i = 0; i < HIGH_SURROGATE_SECOND_HEX.length; i++) {
-	        HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
-	                             (i >= 'A' && i <= 'B') ||
-	                             (i >= 'a' && i <= 'b');
-	    }
+		for (int i = 0; i < HIGH_SURROGATE_SECOND_HEX.length; i++) {
+			HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
+								 (i >= 'A' && i <= 'B') ||
+								 (i >= 'a' && i <= 'b');
+		}
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	 */
 
 	public static boolean isHighSurrogateSecondHex(char c) {
-	    return c <= 'b' && HIGH_SURROGATE_SECOND_HEX[c];
+		return c <= 'b' && HIGH_SURROGATE_SECOND_HEX[c];
 	}
 
 	protected static final char[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.toCharArray();
@@ -762,8 +762,10 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	 * @param truncateMessage truncate message
 	 */
 
-	public static void filterNonStructural(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace, char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
-		CharArrayRangesFilter filter = addNonStructural(chars, offset, length, maxStringLength, removeWhitespace, new CharArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage, truncateMessage));
+	public static void filterNonStructural(final char[] chars, int offset, int length, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace,
+			char[] pruneMessage, char[] anonymizeMessage, char[] truncateMessage) {
+		CharArrayRangesFilter filter = addNonStructural(chars, offset, length, maxStringLength, removeWhitespace, new CharArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage,
+				truncateMessage));
 		buffer.ensureCapacity(buffer.length() + filter.getMaxOutputLength());
 		filter.filter(chars, offset, length, buffer, metrics);
 	}

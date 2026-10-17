@@ -4,7 +4,8 @@ Shared abstract base classes for filter implementations.
 
 ## Purpose
 
-Provides reusable scaffolding — abstract filters, builder DSL, and range-tracking data structures — that both `impl/core` and `frameworks/jackson` extend. Keeps cross-cutting concerns (path matching, string-length capping, max-size truncation) in one place.
+Provides reusable scaffolding — abstract filters, builder DSL, and range-tracking data structures — that both `impl/core` and `frameworks/jackson` extend. Keeps cross-cutting concerns (path matching,
+string-length capping, max-size truncation) in one place.
 
 ## Key types
 

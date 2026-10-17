@@ -92,7 +92,8 @@ final class JacksonOutputSize {
 	 * @throws IOException on parse error
 	 */
 
-	static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue, int truncateSize, boolean utf8) throws IOException {
+	static int getAccurateMaxStringSize(final JsonParser parser, String fieldName, JsonToken nextToken, int maxStringLength, char[] truncateStringValue, int truncateSize,
+			boolean utf8) throws IOException {
 		if(nextToken != JsonToken.VALUE_STRING || parser.getTextLength() <= maxStringLength) {
 			return getAccurateSize(parser, fieldName, nextToken, utf8);
 		}

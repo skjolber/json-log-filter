@@ -35,7 +35,8 @@ public abstract class AbstractAnyPathFilterBenchmark {
 		
 		String[] paths = new String[]{path};
 		
-		jacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null), true, false);
+		jacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null),
+				true, false);
 		coreMultipleJsonFilter = new BenchmarkRunner<>(file, true, new AnyPathJsonFilter(-1, type == FilterType.ANON ? paths : null, type == FilterType.PRUNE ? paths : null), true, false);
 
 		JsonFilter filter = null;

@@ -9,7 +9,8 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
 public class PathMaxSizeMaxStringLengthJsonFilter extends PathMaxStringLengthJsonFilter {
 
-	public PathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public PathMaxSizeMaxStringLengthJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	

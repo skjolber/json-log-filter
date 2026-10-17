@@ -182,7 +182,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
@@ -190,7 +191,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
 			},
@@ -198,7 +200,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}				
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}
@@ -209,7 +212,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 			}, 
@@ -217,7 +221,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
 			},
@@ -225,7 +230,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 				public boolean process(final JsonParser parser, JsonGenerator generator, JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 			}			
@@ -375,7 +381,8 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 
 		// within an anonymized object: from the start of the value which does not fit
 		json = "{\"a\":1,\"b\":{\"x\":1,\"y\":2}}";
-		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 24, new String[]{"/b"}, null), json, "{\"a\":1,\"b\":{\"x\":\"*\"}}", json.length() - "{\"a\":1,\"b\":{\"x\":1,\"y\":".length());
+		assertMaxSizeMetric(new JacksonPathMaxSizeMaxStringLengthJsonFilter(-1, 24, new String[]{"/b"}, null), json, "{\"a\":1,\"b\":{\"x\":\"*\"}}",
+				json.length() - "{\"a\":1,\"b\":{\"x\":1,\"y\":".length());
 	}
 
 	@Test
@@ -390,11 +397,13 @@ public class JacksonPathMaxSizeMaxStringLengthJsonFilterTest extends AbstractDef
 
 		com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics metrics =
 				new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
-		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/a", "/b"}, null).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, new String[]{"/a", "/b"}, null).process(json.toCharArray(), 0, json.length(), new StringBuilder(),
+				metrics));
 		assertEquals(2, metrics.getAnonymize());
 
 		metrics = new com.github.skjolber.jsonfilter.base.DefaultJsonFilterMetrics();
-		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, null, new String[]{"/a", "/b"}).process(json.toCharArray(), 0, json.length(), new StringBuilder(), metrics));
+		assertTrue(new MustContrainJacksonMultiPathMaxSizeMaxStringLengthJsonFilter(-1, 1024, null, new String[]{"/a", "/b"}).process(json.toCharArray(), 0, json.length(), new StringBuilder(),
+				metrics));
 		assertEquals(2, metrics.getPrune());
 	}
 

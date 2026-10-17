@@ -35,7 +35,8 @@ public class DefaultJsonFilterTest extends AbstractJsonFilterDirectoryUnitTest i
 	}
 	
 	public DefaultJsonFilterTest(boolean literal, boolean whitespace, boolean unicode, boolean jsonTestSuite) throws Exception {
-		super(new JsonFilterDirectoryUnitTestCollectionRunner(NULLABLE, literal, unicode, JsonFileCache.getInstance()), jsonTestSuite ? JsonTestSuiteRunner.fromResource("/jsonTestSuite/test_parsing", "/jsonTestSuite/test_transform") : null);
+		super(new JsonFilterDirectoryUnitTestCollectionRunner(NULLABLE, literal, unicode, JsonFileCache.getInstance()), jsonTestSuite ? JsonTestSuiteRunner.fromResource("/jsonTestSuite/test_parsing",
+				"/jsonTestSuite/test_transform") : null);
 	}
 	
 	public DefaultJsonFilterTest(boolean literal) throws Exception {

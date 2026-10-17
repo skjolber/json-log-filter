@@ -16,17 +16,17 @@ import tools.jackson.core.io.CharTypes;
 
 public class JsonNormalizer {
 
-    private final static char BYTE_u = 'u';
-    private final static char BYTE_0 = '0';
-    private final static char BYTE_BACKSLASH = '\\';
+	private final static char BYTE_u = 'u';
+	private final static char BYTE_0 = '0';
+	private final static char BYTE_BACKSLASH = '\\';
 
-    private final static char[] HEX_CHARS = CharTypes.copyHexChars(true);
+	private final static char[] HEX_CHARS = CharTypes.copyHexChars(true);
 
-    public static String normalize(byte[] value) {
-    	return normalize(new String(value, StandardCharsets.UTF_8));
-    }
+	public static String normalize(byte[] value) {
+		return normalize(new String(value, StandardCharsets.UTF_8));
+	}
 
-    public static String normalize(String value) {
+	public static String normalize(String value) {
 		if(isHighSurrogate(value) || isEscape(value)) {
 			String filtered = filterMaxStringLength(value);
 
@@ -105,29 +105,29 @@ public class JsonNormalizer {
 		return false;
 	}
 
-    /**
-     * Method called to write a generic Unicode escape for given character.
-     * 
-     * @param charToEscape Character to escape using escape sequence (\\uXXXX)
-     * @param builder escape target
-     */
+	/**
+	 * Method called to write a generic Unicode escape for given character.
+	 * 
+	 * @param charToEscape Character to escape using escape sequence (\\uXXXX)
+	 * @param builder escape target
+	 */
     
-    public static void writeGenericEscape(int charToEscape, StringBuilder builder) {
-    	builder.append(BYTE_BACKSLASH);
-    	builder.append(BYTE_u);
+	public static void writeGenericEscape(int charToEscape, StringBuilder builder) {
+		builder.append(BYTE_BACKSLASH);
+		builder.append(BYTE_u);
     	
-        if (charToEscape > 0xFF) {
-            int hi = (charToEscape >> 8) & 0xFF;
-            builder.append(HEX_CHARS[hi >> 4]);
-            builder.append(HEX_CHARS[hi & 0xF]);
-            charToEscape &= 0xFF;
-        } else {
-        	builder.append(BYTE_0);
-        	builder.append(BYTE_0);
-        }
-        // We know it's a control char, so only the last 2 chars are non-0
-        builder.append(HEX_CHARS[charToEscape >> 4]);
-        builder.append(HEX_CHARS[charToEscape & 0xF]);
-    }
+		if (charToEscape > 0xFF) {
+			int hi = (charToEscape >> 8) & 0xFF;
+			builder.append(HEX_CHARS[hi >> 4]);
+			builder.append(HEX_CHARS[hi & 0xF]);
+			charToEscape &= 0xFF;
+		} else {
+			builder.append(BYTE_0);
+			builder.append(BYTE_0);
+		}
+		// We know it's a control char, so only the last 2 chars are non-0
+		builder.append(HEX_CHARS[charToEscape >> 4]);
+		builder.append(HEX_CHARS[charToEscape & 0xF]);
+	}
 
 }

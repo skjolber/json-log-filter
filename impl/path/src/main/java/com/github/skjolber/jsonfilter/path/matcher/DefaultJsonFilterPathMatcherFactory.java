@@ -5,7 +5,8 @@ import com.github.skjolber.jsonfilter.JsonFilter;
 public class DefaultJsonFilterPathMatcherFactory implements JsonFilterPathMatcherFactory {
 
 	@Override
-	public JsonFilterPathMatcher createMatcher(String matcher, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter, int maxSize) {
+	public JsonFilterPathMatcher createMatcher(String matcher, JsonFilter validatingFilter, JsonFilter validatingMaxSizeFilter, JsonFilter nonvalidatingFilter, JsonFilter nonvalidatingMaxSizeFilter,
+			int maxSize) {
 		JsonFilterPathMatcher m; 
 		if(matcher == null || matcher.isEmpty()) {
 			m = new AllJsonFilterPathMatcher(validatingFilter, validatingMaxSizeFilter, nonvalidatingFilter, nonvalidatingMaxSizeFilter, maxSize);

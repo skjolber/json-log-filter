@@ -210,7 +210,8 @@ public class JacksonOutputSizeTest {
 					fieldName = parser.currentName();
 					continue;
 				}
-				int accurateSize = JacksonOutputSize.getAccurateMaxStringSize(parser, fieldName, token, maxStringLength, truncateStringValue, JacksonOutputSize.getRawSize(truncateStringValue, utf8), utf8);
+				int accurateSize = JacksonOutputSize.getAccurateMaxStringSize(parser, fieldName, token, maxStringLength, truncateStringValue, JacksonOutputSize.getRawSize(truncateStringValue, utf8),
+						utf8);
 
 				int size = utf8 ? bytes.size() : chars.length();
 				if(fieldName != null) {

@@ -71,7 +71,8 @@ Typical use-cases:
 - **GDPR compliance**: anonymize personal data in request/response logging
 - **Log readability**: prune large base64 blobs or low-value subtrees
 - **Log size control**: stay within GCP (256 KB) or Azure (64 KB) per-entry limits
-- **Safe structured logging**: selectively apply core/Jackson filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers and ingestors never choke on it
+- **Safe structured logging**: selectively apply core/Jackson filters (to trusted/untrusted JSON) so to always output valid JSON. Then inline filtered JSON directly into a JSON log line — log parsers
+  and ingestors never choke on it
 
 The library automatically selects the most efficient filter implementation for the configured combination of features. 
 
@@ -355,7 +356,8 @@ Using full paths generally improves performance.
 
 ## Max path matches
 
-`withMaxPathMatches(n)` stops path-based filtering after `n` matches. When the target field appears a known fixed number of times near the start of the document, this lets the filter skip the rest at near pass-through speed.
+`withMaxPathMatches(n)` stops path-based filtering after `n` matches. When the target field appears a known fixed number of times near the start of the document, this lets the filter skip the rest at
+near pass-through speed.
 
 ```java
 // Stop after finding the single "jwt" field
@@ -371,7 +373,8 @@ filter = DefaultJsonLogFilterBuilder.newBuilder()
 
 The size is measured like the output: in characters for `String` and `char[]` output, in bytes for `byte[]` output.
 
-The limit is approximate. To keep filtering fast, the output can be somewhat shorter than the limit, and in some cases slightly longer, for example when a value that does not fit is kept because there is no smaller valid document.
+The limit is approximate. To keep filtering fast, the output can be somewhat shorter than the limit, and in some cases slightly longer, for example when a value that does not fit is kept because there
+is no smaller valid document.
 
 ## Metrics
 
@@ -409,7 +412,10 @@ Typical dual-filter setup in a webserver:
 ## Performance
 This project trades parser/serializer features for performance, running multiple times faster than a traditional parse-then-serialize approach.
 
-See the benchmark results ([JDK 25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk25.json&topBar=off) / [JDK 26](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk26.json&topBar=off)) and the [JMH] module for running detailed benchmarks.
+See the benchmark results ([JDK
+25](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk25.json&topBar=off) / [JDK
+26](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/skjolber/json-log-filter/refs/heads/master/benchmark/jmh/results/jmh-results-6.0.7.jdk26.json&topBar=off)) and the [JMH] module
+for running detailed benchmarks.
 
 # See also
 See the [xml-log-filter] for corresponding high-performance filtering of XML, and [JsonPath](https://github.com/json-path/JsonPath) for more advanced filtering.

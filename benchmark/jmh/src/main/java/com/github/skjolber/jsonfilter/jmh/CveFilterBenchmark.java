@@ -102,8 +102,10 @@ public class CveFilterBenchmark {
 		jacksonPathMaxSizeMaxStringLengthJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, anon, prune), prettyPrinted);
 		pathMaxSizeMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, size, -1, anon, prune), prettyPrinted);
 		
-		pathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
-		pathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
+		pathMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true,
+				(JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(), prettyPrinted);
+		pathMaxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new DefaultJsonLogFilterBuilder().withMaxStringLength(maxStringLength).withAnonymize(anon).withPrune(prune).build(),
+				prettyPrinted);
 
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, (JacksonJsonFilter) new JacksonJsonLogFilterBuilder().withMaxStringLength(maxStringLength).build(), prettyPrinted);
 		maxStringLengthJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new MaxStringLengthJsonFilter(maxStringLength), prettyPrinted);
@@ -124,9 +126,9 @@ public class CveFilterBenchmark {
 		
 		// other filters
 		var singlePathJsonMasker = JsonMasker.getMasker(
-	        JsonMaskingConfig.builder()
-	                .maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
-	                .build()
+			JsonMaskingConfig.builder()
+					.maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
+					.build()
 		);
 		
 		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(JsonMasker.getMasker(Set.of("version"))), false);

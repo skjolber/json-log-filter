@@ -92,7 +92,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		}
 	}
 
-	public static int processMaxStringLengthMaxSize(final char[] chars, int offset, int maxSizeLimit, int maxReadLimit, final StringBuilder buffer, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, int maxStringLength, char[] truncateStringValue, JsonFilterMetrics metrics) {
+	public static int processMaxStringLengthMaxSize(final char[] chars, int offset, int maxSizeLimit, int maxReadLimit, final StringBuilder buffer, int bracketLevel, boolean[] squareBrackets,
+			int mark, int streamMark, int maxStringLength, char[] truncateStringValue, JsonFilterMetrics metrics) {
 		
 		int flushedOffset = offset;
 
@@ -331,7 +332,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				return super.process(chars, offset, length, output, metrics);
 			}
 
-			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, output, level, squareBrackets, mark, writtenMark, digit, maxStringLength, truncateStringValueAsBytes, metrics);
+			level = processMaxStringLengthMaxSize(chars, offset, maxSizeLimit, maxReadLimit, output, level, squareBrackets, mark, writtenMark, digit, maxStringLength, truncateStringValueAsBytes,
+					metrics);
 			
 			if(metrics != null) {
 				metrics.onInput(length);
@@ -353,7 +355,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 		}		
 	}
 
-	public static int processMaxStringLengthMaxSize(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, ResizableByteArrayOutputStream stream, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark, byte[] digit, int maxStringLength, byte[] truncateStringValueAsBytes, JsonFilterMetrics metrics) throws IOException {
+	public static int processMaxStringLengthMaxSize(byte[] chars, int offset, int maxSizeLimit, int maxReadLimit, ResizableByteArrayOutputStream stream, int bracketLevel, boolean[] squareBrackets,
+			int mark, int streamMark, byte[] digit, int maxStringLength, byte[] truncateStringValueAsBytes, JsonFilterMetrics metrics) throws IOException {
 		
 		int flushedOffset = offset;
 
@@ -443,7 +446,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 						if(chars[nextOffset] == ':') {
 							maxSizeLimit += whitespace;
 							if(maxSizeLimit >= maxReadLimit) {
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, flushedOffset, stream, digit, metrics, maxStringLength,
+										truncateStringValueAsBytes);
 
 								return 0;
 							}
@@ -468,7 +472,8 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					// the whitespace after the value is not written
 					maxSizeLimit += whitespace;
 					if(maxSizeLimit >= maxReadLimit) {
-						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, stream, digit, metrics, maxStringLength, truncateStringValueAsBytes);
+						MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, nextOffset, maxReadLimit, nextOffset, stream, digit, metrics, maxStringLength,
+								truncateStringValueAsBytes);
 
 						return 0;
 					}

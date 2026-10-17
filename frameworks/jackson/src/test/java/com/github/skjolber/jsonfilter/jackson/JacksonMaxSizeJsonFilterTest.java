@@ -99,7 +99,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		
 		testConvenienceMethods(
 			new JacksonMaxSizeJsonFilter(1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return true;
 				}
 				public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
@@ -107,7 +108,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 				}
 			}, 
 			new JacksonMaxSizeJsonFilter(1) {
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					return false;
 				}
 				public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
@@ -115,7 +117,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 				}
 			},
 			new JacksonMaxSizeJsonFilter(1, jsonFactory) {
-				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+				public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+						JsonFilterMetrics metrics) throws IOException {
 					throw new RuntimeException();
 				}
 				@Override
@@ -127,7 +130,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 		
 		testConvenienceMethods(
 				new JacksonMaxSizeJsonFilter(1024) {
-					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+							JsonFilterMetrics metrics) throws IOException {
 						return true;					
 					}
 					public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
@@ -144,7 +148,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 					}
 				}, 
 				new JacksonMaxSizeJsonFilter(1024) {
-					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+							JsonFilterMetrics metrics) throws IOException {
 						return false;
 					}
 					public boolean process(char[] chars, int offset, int length, StringBuilder output, JsonFilterMetrics filterMetrics) {
@@ -161,7 +166,8 @@ public class JacksonMaxSizeJsonFilterTest extends AbstractDefaultJacksonJsonFilt
 					}
 				},
 				new JacksonMaxSizeJsonFilter(1024, jsonFactory) {
-					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength, JsonFilterMetrics metrics) throws IOException {
+					public boolean process(final JsonParser parser, JsonGenerator generator, LongSupplier offsetSupplier, LongSupplier outputSizeSupplier, int inputLength,
+							JsonFilterMetrics metrics) throws IOException {
 						throw new RuntimeException();
 					}
 					

@@ -13,7 +13,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	
 	@Test
 	public void testDeepBrackets1() {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		
 		String text = createBracket('{', '}', 100);
 		
@@ -24,7 +25,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	
 	@Test
 	public void testDeepBrackets2() {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		
 		String text = createBracket('{', '}', 100);
 		
@@ -36,7 +38,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 
 	@Test
 	public void testDeepBrackets3() {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		
 		String text = createBracket('[', ']', 100);
 		
@@ -125,7 +128,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 
 	private static ByteArrayWhitespaceSizeFilter newFilterWithinArray(int level, int mark, int maxSizeLimit) {
 		// state right after the opening bracket of an array, with nothing written yet
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8),
+				"... + ".getBytes(StandardCharsets.UTF_8));
 		filter.getSquareBrackets()[level - 1] = true;
 		filter.setLevel(level);
 		filter.setMark(mark);
@@ -150,7 +154,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	
 	@Test
 	public void testLongKey() {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		
 		String text = "{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\":\"x\"}";
 		
@@ -163,7 +168,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	
 	@Test
 	public void testLongKeyWhitespace() {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		
 		String text = "{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" : \"x\"}";
 		
@@ -180,7 +186,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 		byte[] text = "[\"S,SN\",\"P]W\"]".getBytes(StandardCharsets.UTF_8);
 
 		// the first value does not fit
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "truncateMessage".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8),
+				"truncateMessage".getBytes(StandardCharsets.UTF_8));
 		ResizableByteArrayOutputStream builder = new ResizableByteArrayOutputStream(1024);
 		filter.setLevel(1);
 		filter.setMark(1);
@@ -223,7 +230,8 @@ public class ByteArrayWhitespaceSizeFilterTest {
 	}
 
 	private void assertSkipObjectMaxStringLength(String expected, String input, int maxStringLength) {
-		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		ByteArrayWhitespaceSizeFilter filter = new ByteArrayWhitespaceSizeFilter("pruneMessage".getBytes(StandardCharsets.UTF_8), "anonymizeMessage".getBytes(StandardCharsets.UTF_8),
+				"... + ".getBytes(StandardCharsets.UTF_8));
 
 		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(1024);
 		int offset = filter.skipObjectMaxStringLength(input.getBytes(StandardCharsets.UTF_8), 1, maxStringLength, output, null);

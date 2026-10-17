@@ -28,7 +28,8 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceFilter;
 
 public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMultiPathJsonFilter {
 
-	public PathMaxStringLengthRemoveWhitespaceJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public PathMaxStringLengthRemoveWhitespaceJsonFilter(int maxStringLength, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage) {
 		this(maxStringLength, -1, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 	
@@ -419,7 +420,8 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 							pathMatches--;
 							if(pathMatches == 0) {
 								// remove whitespace + max string length
-								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, output, filter.getDigit(), metrics, maxStringLength, filter.getTruncateMessage());
+								MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, limit, flushOffset, output, filter.getDigit(), metrics, maxStringLength,
+										filter.getTruncateMessage());
 								
 								if(metrics != null) {
 									metrics.onInput(length);

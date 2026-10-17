@@ -4,7 +4,8 @@ Shared test utilities for json-log-filter modules.
 
 ## Purpose
 
-Provides reusable test infrastructure — JSON generators, directory-based test suites, Truth extensions, and filter test harnesses — used by `base`, `impl/core`, `impl/path`, and `frameworks/jackson`. Compiled as a regular `compile`-scoped jar so other modules can declare it as a `test`-scoped dependency.
+Provides reusable test infrastructure — JSON generators, directory-based test suites, Truth extensions, and filter test harnesses — used by `base`, `impl/core`, `impl/path`, and `frameworks/jackson`.
+Compiled as a regular `compile`-scoped jar so other modules can declare it as a `test`-scoped dependency.
 
 ## Key types
 

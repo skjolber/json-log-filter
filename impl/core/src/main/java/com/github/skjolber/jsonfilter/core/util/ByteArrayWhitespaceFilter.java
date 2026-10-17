@@ -339,7 +339,8 @@ public class ByteArrayWhitespaceFilter {
 
 	}
 
-	public static int addMaxLength(final byte[] chars, int offset, final ResizableByteArrayOutputStream output, int flushOffset, int endQuoteIndex, byte[] truncateStringValueAsBytes, int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
+	public static int addMaxLength(final byte[] chars, int offset, final ResizableByteArrayOutputStream output, int flushOffset, int endQuoteIndex, byte[] truncateStringValueAsBytes,
+			int maxStringLength, byte[] digit, JsonFilterMetrics metrics) {
 		// was a value
 		int aligned = ByteArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 		

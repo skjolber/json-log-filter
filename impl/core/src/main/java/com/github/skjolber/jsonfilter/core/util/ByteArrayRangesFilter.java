@@ -14,25 +14,25 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	private static final boolean[] HEX = new boolean[256];
 	
 	static {
-	    for (int i = 0; i < 256; i++) {
-	        HEX[i] = (i >= '0' && i <= '9') || 
-	                             (i >= 'A' && i <= 'F') || 
-	                             (i >= 'a' && i <= 'f');
-	    }
+		for (int i = 0; i < 256; i++) {
+			HEX[i] = (i >= '0' && i <= '9') || 
+								 (i >= 'A' && i <= 'F') || 
+								 (i >= 'a' && i <= 'f');
+		}
 	}
 
 	public static boolean isHex(byte b) {
-	    return HEX[b & 0xFF];
+		return HEX[b & 0xFF];
 	}
 
 	private static final boolean[] HIGH_SURROGATE_SECOND_HEX = new boolean[256];
 
 	static {
-	    for (int i = 0; i < 256; i++) {
-	        HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
-	                             (i >= 'A' && i <= 'B') ||
-	                             (i >= 'a' && i <= 'b');
-	    }
+		for (int i = 0; i < 256; i++) {
+			HIGH_SURROGATE_SECOND_HEX[i] = (i >= '8' && i <= '9') ||
+								 (i >= 'A' && i <= 'B') ||
+								 (i >= 'a' && i <= 'b');
+		}
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 */
 
 	public static boolean isHighSurrogateSecondHex(byte b) {
-	    return HIGH_SURROGATE_SECOND_HEX[b & 0xFF];
+		return HIGH_SURROGATE_SECOND_HEX[b & 0xFF];
 	}
 
 	// Word-at-a-time quote scanning: reads 8 bytes as a long (little-endian) and
@@ -103,39 +103,39 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * @param buf   target buffer, Latin1-encoded
 	 * @return index of the most significant digit or minus sign, if present
 	 */
-    static int getChars(int i, int index, byte[] buf) {
-        int q, r;
-        int charPos = index;
+	static int getChars(int i, int index, byte[] buf) {
+		int q, r;
+		int charPos = index;
 
-        boolean negative = i < 0;
-        if (!negative) {
-            i = -i;
-        }
+		boolean negative = i < 0;
+		if (!negative) {
+			i = -i;
+		}
 
-        // Generate two digits per iteration
-        while (i <= -100) {
-            q = i / 100;
-            r = (q * 100) - i;
-            i = q;
-            buf[--charPos] = DigitOnes[r];
-            buf[--charPos] = DigitTens[r];
-        }
+		// Generate two digits per iteration
+		while (i <= -100) {
+			q = i / 100;
+			r = (q * 100) - i;
+			i = q;
+			buf[--charPos] = DigitOnes[r];
+			buf[--charPos] = DigitTens[r];
+		}
 
-        // We know there are at most two digits left at this point.
-        q = i / 10;
-        r = (q * 10) - i;
-        buf[--charPos] = (byte)('0' + r);
+		// We know there are at most two digits left at this point.
+		q = i / 10;
+		r = (q * 10) - i;
+		buf[--charPos] = (byte)('0' + r);
 
-        // Whatever left is the remaining digit.
-        if (q < 0) {
-            buf[--charPos] = (byte)('0' - q);
-        }
+		// Whatever left is the remaining digit.
+		if (q < 0) {
+			buf[--charPos] = (byte)('0' - q);
+		}
 
-        if (negative) {
-            buf[--charPos] = (byte)'-';
-        }
-        return charPos;
-    }
+		if (negative) {
+			buf[--charPos] = (byte)'-';
+		}
+		return charPos;
+	}
 	
 	protected final byte[] pruneMessage;
 	protected final byte[] anonymizeMessage;
@@ -960,8 +960,10 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	 * @param truncateMessage truncate message
 	 */
 
-	public static void filterNonStructural(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics, int maxStringLength, boolean removeWhitespace, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
-		ByteArrayRangesFilter filter = addNonStructural(chars, offset, length, maxStringLength, removeWhitespace, new ByteArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage, truncateMessage));
+	public static void filterNonStructural(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics, int maxStringLength,
+			boolean removeWhitespace, byte[] pruneMessage, byte[] anonymizeMessage, byte[] truncateMessage) {
+		ByteArrayRangesFilter filter = addNonStructural(chars, offset, length, maxStringLength, removeWhitespace, new ByteArrayRangesFilter(-1, length, pruneMessage, anonymizeMessage,
+				truncateMessage));
 		filter.filter(chars, offset, length, buffer, metrics);
 	}
 

@@ -16,7 +16,8 @@ We want to create filters which do the following:
  * remove whitespace
  * generate metrics (what was actually done to the document)
 
-For specifying which values to hide or remove, the filters supports paths, i.e. a chain of field names like `/myRoot/myUser/myPassword`. As there is no field names in arrays, the parsers ignores array constructs, i.e. the path for "abcdef" in
+For specifying which values to hide or remove, the filters supports paths, i.e. a chain of field names like `/myRoot/myUser/myPassword`. As there is no field names in arrays, the parsers ignores array
+constructs, i.e. the path for "abcdef" in
 
 ```
 {
@@ -187,7 +188,8 @@ both `notMyUser` and `notMyValue` values are hidden from the main loop. This mea
 Where we looking a specific field name at any level. While it against is sufficient to identify field name strings, skipping unknown structures is no longer an option.
 
 ## Max path matches
-The feature is intended for documents where it is known that the targeted paths will only hit a certain number of times within the same document. This lets the filter simplify or skip processing the remainder of the document.
+The feature is intended for documents where it is known that the targeted paths will only hit a certain number of times within the same document. This lets the filter simplify or skip processing the
+remainder of the document.
 
 ## Skipping objects or arrays
 Keeping track of the current level and exiting at zero is all it takes:
@@ -427,7 +429,8 @@ As only strings should contain whitespace
  * locate strings and skip them, otherwise
  * skip all whitespace characters
  
-In order to avoid flushing every single character to the output, we keep track of a `flushOffset` variable which tracks progress in writing to the output. Writing to the output is necessary whenever encountering whitespace:
+In order to avoid flushing every single character to the output, we keep track of a `flushOffset` variable which tracks progress in writing to the output. Writing to the output is necessary whenever
+encountering whitespace:
 
 ```
 int flushOffset = offset;

@@ -36,7 +36,8 @@ public abstract class AbstractMultiPathJsonFilter extends AbstractPathJsonFilter
 	protected final PathItem pathItem; 
 	protected final AnyPathFilters anyPathFilters;
 
-	public AbstractMultiPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public AbstractMultiPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 		
 		List<String> pathsList = new ArrayList<>();
