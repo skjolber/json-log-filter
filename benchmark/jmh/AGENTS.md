@@ -27,6 +27,8 @@ Compared implementations include:
 | `cve.CveProcessStringMaxSizeFilterBenchmark` | `process(String)` with the max-size filters, for documents which fit and documents which are cut |
 | `cve.CveMetricsFilterBenchmark` | The metrics variants, `process(String, metrics)` and `process(byte[], metrics)` |
 | `cve.CvePrettyPrintedRemoveWhitespaceBenchmark` | Whitespace removal on pretty-printed documents; the other CVE benchmarks run on compact ones |
+| `cve.CvePrettyPrintedPathFilterBenchmark` | The path filters on pretty-printed documents, anonymizing a whole object |
+| `cve.CveUnchangedOutputFilterBenchmark` | Filters with nothing to do: whitespace removal on compacted documents, max size on documents which fit |
 | `BenchmarkRunner` / `JacksonBenchmarkRunner` | Main entry points for ad-hoc runs |
 
 Payload directories: `entur/`, `fda/`, `shopify/`, `usgs/`, `cve/`

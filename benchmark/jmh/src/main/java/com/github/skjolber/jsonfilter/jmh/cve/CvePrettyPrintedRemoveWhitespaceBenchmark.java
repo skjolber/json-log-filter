@@ -73,7 +73,7 @@ public class CvePrettyPrintedRemoveWhitespaceBenchmark {
 	 * @return the length of the shortest compact document
 	 */
 
-	private static int prettyPrint(File source, File target) throws IOException {
+	static int prettyPrint(File source, File target) throws IOException {
 		PrettyPrintingJsonFilter prettyPrinter = new PrettyPrintingJsonFilter(Indent.newBuilder().build());
 
 		target.mkdirs();
