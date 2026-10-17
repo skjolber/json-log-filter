@@ -83,6 +83,29 @@ public class ByteArrayWhitespaceFilter {
 		System.arraycopy(chars, flushOffset, buffer, written, offset - flushOffset);
 		output.setSize(written + offset - flushOffset);
 	}
+
+	/**
+	 * Find the first whitespace outside of strings, so that a document without any can be returned as it is.
+	 *
+	 * @param chars input
+	 * @param offset start offset
+	 * @param limit end offset
+	 * @return index of the first whitespace byte, or limit if there is none
+	 */
+
+	public static int findWhitespace(byte[] chars, int offset, int limit) {
+		while(offset < limit) {
+			byte c = chars[offset];
+			if(c == '"') {
+				offset = ByteArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+			} else if(c <= 0x20) {
+				return offset;
+			} else {
+				offset++;
+			}
+		}
+		return limit;
+	}
 	
 	public int anonymizeObjectOrArray(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream buffer, JsonFilterMetrics metrics) {
 		int level = 1;

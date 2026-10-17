@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -29,6 +30,22 @@ public class MaxSizeRemoveWhitespaceJsonFilterTest extends DefaultJsonFilterTest
 
 	public MaxSizeRemoveWhitespaceJsonFilterTest() throws Exception {
 		super(false);
+	}
+
+	@Test
+	public void testProcessCutsDocumentWithoutWhitespace() {
+		String compact = "{\"key\":\"value\",\"list\":[1,2,3]}";
+
+		// too long: cut as before, even though there is no whitespace to remove
+		MaxSizeRemoveWhitespaceJsonFilter smaller = new MaxSizeRemoveWhitespaceJsonFilter(compact.length() - 1);
+		String expected = smaller.process(compact.toCharArray());
+		assertEquals(expected, smaller.process(compact));
+		assertEquals(expected, new String(smaller.process(compact.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+		assertFalse(compact.equals(expected));
+
+		// fits: returned as it is
+		MaxSizeRemoveWhitespaceJsonFilter fits = new MaxSizeRemoveWhitespaceJsonFilter(compact.length());
+		assertSame(compact, fits.process(compact));
 	}
 
 	@Test

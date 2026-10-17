@@ -16,6 +16,8 @@
  */
 package com.github.skjolber.jsonfilter.core;
 
+import java.util.Arrays;
+
 import java.io.IOException;
 
 import com.github.skjolber.jsonfilter.JsonFilterMetrics;
@@ -74,6 +76,24 @@ public class MaxSizeFromEndJsonFilter extends AbstractJsonFilter {
 			return jsonString;
 		}
 		return super.process(jsonString, metrics);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, int offset, int length) {
+		return process(chars, offset, length, (JsonFilterMetrics)null);
+	}
+
+	@Override
+	public byte[] process(byte[] chars, int offset, int length, JsonFilterMetrics metrics) {
+		if(!mustConstrainMaxSize(length) && offset + length <= chars.length) {
+			// the document fits, so the output is a copy of the input, without the output stream's copy
+			if(metrics != null) {
+				metrics.onInput(length);
+				metrics.onOutput(length);
+			}
+			return Arrays.copyOfRange(chars, offset, offset + length);
+		}
+		return super.process(chars, offset, length, metrics);
 	}
 
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
