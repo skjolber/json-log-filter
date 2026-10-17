@@ -101,9 +101,11 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
+						// with the limit, the skip loops are counted loops, without a bounds check and a safepoint poll per
+						// character; the limit is not whitespace, so a run always ends before it
 						do {
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						} while(nextOffset < limit && chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == ':') {
 							// whitespace before colon
@@ -116,7 +118,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 								// whitespace before and after colon
 								do {
 									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);				
+								} while(nextOffset < limit && chars[nextOffset] <= 0x20);				
 							} else {
 								// whitespace before colon, but not after
 							}
@@ -154,7 +156,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 					
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);				
+					} while(nextOffset < limit && chars[nextOffset] <= 0x20);				
 					
 					flushOffset = nextOffset;
 					offset = nextOffset;
@@ -165,7 +167,7 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 				buffer.append(chars, flushOffset, offset - flushOffset);
 				do {
 					offset++;
-				} while(chars[offset] <= 0x20);					
+				} while(offset < limit && chars[offset] <= 0x20);					
 				
 				flushOffset = offset;
 
