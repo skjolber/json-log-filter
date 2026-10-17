@@ -31,28 +31,15 @@ A review of every filter for correctness, followed by a round of performance wor
 
 ### Performance
 
-Compared with 6.0.8 on JDK 25 and 27, approximately:
+Approximate gains, measured on JDK 25 and 27:
 
-* char[] and `String` input: 15% to 90% faster for most core filters. The search for the end of a string checks four
-  characters per iteration (#328), as does the backward max size scan (#326), and the max size loop has its own copy
-  of the string truncation helper (#327).
-* `process(String)` on documents the filter leaves unchanged: 75% to 150% faster, as the input is returned as it is
-  (#330, #333). The max size filters return the input when the document fits (#332), and whitespace removal when
-  there is no whitespace (#340).
-* `process(byte[])`: the ranges filters return their output without an extra copy (#329, #333), the max size filters
-  and whitespace removal a single copy when there is nothing to do (#340).
-* Any-path filters: 10% to 20% faster, as most keys are rejected on their first character (#331).
-* Whitespace removal on pretty-printed input: up to 170% faster, as runs of whitespace are skipped several characters
-  at a time (#334, #335, #336, #339, #341).
-* byte[] quote search: one operation less per eight bytes (#338).
-* Jackson: allocate the truncation builder only when a value is truncated (#321).
-
-Still slower than 6.0.8: byte[] max string length and max size with whitespace removal, by about 13% on 2 KB
-documents.
-
-### Build and other
-
-* Code is indented with tabs, and lines are at most 200 columns (#342).
-* Webapp improvements, including a path helper, loading from a file or URL and a download button (#275, #277, #278,
-  #325).
-* Jackson 3.1.7 (#276, #283, #284, #285), and updated GitHub Actions (#271 to #274, #280, #282).
+| Area | Approximately | How |
+|---|---|---|
+| char[] and `String` input, most core filters | 15% to 90% faster than 6.0.8 | Four characters per iteration in the quote searches (#326, #328), own truncation helper for max size (#327) |
+| `process(String)` when the filter changes nothing | 75% to 150% faster than 6.0.8 | The input is returned as it is (#330, #332, #333, #340) |
+| `process(byte[])` | 9% to 16% faster, up to 2.5 times when there is nothing to do | No extra copy of the output (#329, #333), a single copy when there is nothing to do (#340) |
+| Any-path filters | 10% to 20% faster | Most keys are rejected on their first character (#331) |
+| Whitespace removal on pretty-printed input | up to 170% faster | Runs of whitespace are skipped several characters at a time (#334, #335, #336, #339, #341) |
+| byte[] input, most filters | 1% to 6% faster | One operation less per eight bytes in the quote search (#338) |
+| Jackson, when truncating strings | 6% to 15% faster on 2 KB documents | The truncation builder is allocated only when a value is truncated (#321) |
+| byte[] max string length and max size with whitespace removal, 2 KB documents | about 13% slower than 6.0.8 | |
