@@ -81,6 +81,9 @@ Bugs, feature suggestions and help requests can be filed with the [issue-tracker
 ## License
 [Apache 2.0]
 
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md) for the changes in each release.
+
 ## Obtain
 The project is built with [Maven] and is available on the central Maven repository.
 
