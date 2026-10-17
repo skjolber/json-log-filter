@@ -409,6 +409,19 @@
 			<id>base</id>
 		</profile>
 		<profile>
+			<!-- for building the benchmark jar in automated performance testing: mvn -Pquick package -pl benchmark/jmh -am
+			     skips javadoc, sources, module descriptors, coverage, the enforcer and test compilation -->
+			<id>quick</id>
+			<properties>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+				<maven.source.skip>true</maven.source.skip>
+				<moditect.skip>true</moditect.skip>
+				<jacoco.skip>true</jacoco.skip>
+				<enforcer.skip>true</enforcer.skip>
+				<maven.test.skip>true</maven.test.skip>
+			</properties>
+		</profile>
+		<profile>
 			<!-- mvn -P release release:perform also see https://stackoverflow.com/questions/8304110/skip-a-submodule-during-a-maven-build -->
 			<id>release</id>
 			<properties>
