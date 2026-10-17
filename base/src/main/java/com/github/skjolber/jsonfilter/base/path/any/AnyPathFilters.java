@@ -129,6 +129,10 @@ public class AnyPathFilters {
 	protected final AnyPathFilter[][] encodingFiltersChars;
 
 	protected final Map<String, FilterType> names;
+
+	/** Whether a filter starts with the byte, or char {@code & 0xFF}, at each index. */
+	protected final boolean[] firstBytes;
+	protected final boolean[] firstChars;
 	
 	public AnyPathFilters(AnyPathFilter[][][] exactFiltersBytes, AnyPathFilter[][][] exactFiltersChars,
 			AnyPathFilter[][] encodingFiltersBytes, AnyPathFilter[][] encodingFiltersChars, Map<String, FilterType> names) {
@@ -138,6 +142,22 @@ public class AnyPathFilters {
 		this.encodingFiltersBytes = encodingFiltersBytes;
 		this.encodingFiltersChars = encodingFiltersChars;
 		this.names = names;
+		this.firstBytes = getFirsts(exactFiltersBytes);
+		this.firstChars = getFirsts(exactFiltersChars);
+	}
+
+	private static boolean[] getFirsts(AnyPathFilter[][][] exactFilters) {
+		boolean[] result = new boolean[256];
+		for(AnyPathFilter[][] lengthBucket : exactFilters) {
+			if(lengthBucket != null) {
+				for(int i = 0; i < lengthBucket.length; i++) {
+					if(lengthBucket[i] != null) {
+						result[i] = true;
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	public FilterType matchPath(String key) {
@@ -146,7 +166,15 @@ public class AnyPathFilters {
 	
 	public FilterType matchPath(final byte[] chars, int start, int end) {
 		int length = end - start;
-		if(length > 0 && length < exactFiltersBytes.length) {
+		if(length <= 0) {
+			return null;
+		}
+		// most keys match no filter: an unescaped first byte must be the first of the filter's name,
+		// both for an exact and for an encoded match
+		if(chars[start] != '\\' && !firstBytes[chars[start] & 0xFF]) {
+			return null;
+		}
+		if(length < exactFiltersBytes.length) {
 			AnyPathFilter[][] lengthBucket = exactFiltersBytes[length];
 			if(lengthBucket != null) {
 				AnyPathFilter[] candidates = lengthBucket[chars[start] & 0xFF];
@@ -159,13 +187,12 @@ public class AnyPathFilters {
 			}
 		}
 
-		// check for encoded key (rare: JSON field names with Unicode escapes)
-		for(int i = start; i < end; i++) {
+		// check for encoded key (rare: JSON field names with Unicode escapes);
+		// a backslash further in than the longest filter's name can not be part of a match
+		int encodedEnd = Math.min(end, start + encodingFiltersBytes.length);
+		for(int i = start; i < encodedEnd; i++) {
 			if(chars[i] == '\\') {
 				int readLength = i - start;
-				if(readLength >= encodingFiltersBytes.length) {
-					return null;
-				}
 				for(AnyPathFilter filter : encodingFiltersBytes[readLength]) {
 					if(AbstractMultiPathJsonFilter.matchesEncoded(chars, start, end, filter.pathBytes)) {
 						return filter.getFilterType();
@@ -179,7 +206,15 @@ public class AnyPathFilters {
 	
 	public FilterType matchPath(final char[] chars, int start, int end) {
 		int length = end - start;
-		if(length > 0 && length < exactFiltersChars.length) {
+		if(length <= 0) {
+			return null;
+		}
+		// most keys match no filter: an unescaped first character must be the first of the filter's name,
+		// both for an exact and for an encoded match
+		if(chars[start] != '\\' && !firstChars[chars[start] & 0xFF]) {
+			return null;
+		}
+		if(length < exactFiltersChars.length) {
 			AnyPathFilter[][] lengthBucket = exactFiltersChars[length];
 			if(lengthBucket != null) {
 				AnyPathFilter[] candidates = lengthBucket[chars[start] & 0xFF];
@@ -192,13 +227,12 @@ public class AnyPathFilters {
 			}
 		}
 
-		// check for encoded key (rare: JSON field names with Unicode escapes)
-		for(int i = start; i < end; i++) {
+		// check for encoded key (rare: JSON field names with Unicode escapes);
+		// a backslash further in than the longest filter's name can not be part of a match
+		int encodedEnd = Math.min(end, start + encodingFiltersChars.length);
+		for(int i = start; i < encodedEnd; i++) {
 			if(chars[i] == '\\') {
 				int readLength = i - start;
-				if(readLength >= encodingFiltersChars.length) {
-					return null;
-				}
 				for(AnyPathFilter filter : encodingFiltersChars[readLength]) {
 					if(AbstractMultiPathJsonFilter.matchesEncoded(chars, start, end, filter.pathChars)) {
 						return filter.getFilterType();

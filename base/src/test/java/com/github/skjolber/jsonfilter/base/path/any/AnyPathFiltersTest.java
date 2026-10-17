@@ -114,6 +114,41 @@ public class AnyPathFiltersTest {
 	}
 
 	@Test
+	public void testFirstCharacter() {
+		// keys are rejected early unless their first character is a backslash or the first of a filter's name
+		AnyPathFilters f = AnyPathFilters.create(AnyPathFilter.create("version", FilterType.PRUNE), AnyPathFilter.create("\u00e6ble", FilterType.ANON));
+
+		String[] matching = new String[] {
+			"version", "\\u0076ersion", "ver\\u0073ion", "\\u0076\\u0065rsion",
+			"\u00e6ble", "\\u00e6ble", "\\u00E6ble", "\u00e6\\u0062le"
+		};
+		String[] notMatching = new String[] {
+			"name", "vendor", "versio", "versions", "\\u0076ersions", "\\u0077ersion", "\u0176ersion", "\u00e6bl", "\u00e7ble",
+			"version_\\u0061", "x\\u0076ersion"
+		};
+
+		for(String key : matching) {
+			// as in a document, so that the key does not start at offset 0
+			String json = "{\"" + key + "\":1}";
+			char[] chars = json.toCharArray();
+			assertNotNull(f.matchPath(chars, 2, 2 + key.length()), key);
+
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertNotNull(f.matchPath(bytes, 2, bytes.length - 4), key);
+		}
+		for(String key : notMatching) {
+			String json = "{\"" + key + "\":1}";
+			char[] chars = json.toCharArray();
+			assertNull(f.matchPath(chars, 2, 2 + key.length()), key);
+
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			assertNull(f.matchPath(bytes, 2, bytes.length - 4), key);
+		}
+		assertEquals(FilterType.PRUNE, f.matchPath("\\u0076ersion".toCharArray(), 0, 12));
+		assertEquals(FilterType.ANON, f.matchPath("\\u00e6ble".getBytes(StandardCharsets.UTF_8), 0, 9));
+	}
+
+	@Test
 	public void testAnyPathFilterToString() {
 		AnyPathFilter filter = AnyPathFilter.create("mykey", FilterType.ANON);
 		String str = filter.toString();
