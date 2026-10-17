@@ -84,4 +84,41 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 		assertNotSame(changed, output);
 		assertEquals(filter.process(changed.toCharArray()), output);
 	}
+
+	@Test
+	public void testProcessWithMetricsLikeWithoutMetrics() {
+		// the same output and metrics as the char[] path and the output stream, without a copy if unchanged
+		MaxStringLengthJsonFilter filter = new MaxStringLengthJsonFilter(8);
+
+		for(String json : new String[] {"{\"a\":\"short\"}", "{\"a\":\"longer than eight\",\"b\":[1]}"}) {
+			DefaultJsonFilterMetrics expected = new DefaultJsonFilterMetrics();
+			String expectedOutput = filter.process(json.toCharArray(), expected);
+
+			DefaultJsonFilterMetrics actual = new DefaultJsonFilterMetrics();
+			String output = filter.process(json, actual);
+			assertEquals(expectedOutput, output);
+			assertMetricsEquals(expected, actual);
+			if(json.equals(output)) {
+				assertSame(json, output);
+			}
+
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			DefaultJsonFilterMetrics expectedBytes = new DefaultJsonFilterMetrics();
+			ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(16);
+			assertTrue(filter.process(bytes, 0, bytes.length, stream, expectedBytes));
+
+			DefaultJsonFilterMetrics actualBytes = new DefaultJsonFilterMetrics();
+			assertArrayEquals(stream.toByteArray(), filter.process(bytes, actualBytes));
+			assertMetricsEquals(expectedBytes, actualBytes);
+		}
+	}
+
+	private static void assertMetricsEquals(DefaultJsonFilterMetrics expected, DefaultJsonFilterMetrics actual) {
+		assertEquals(expected.getInputSize(), actual.getInputSize());
+		assertEquals(expected.getOutputSize(), actual.getOutputSize());
+		assertEquals(expected.getMaxStringLength(), actual.getMaxStringLength());
+		assertEquals(expected.getMaxSize(), actual.getMaxSize());
+		assertEquals(expected.getAnonymize(), actual.getAnonymize());
+		assertEquals(expected.getPrune(), actual.getPrune());
+	}
 }
