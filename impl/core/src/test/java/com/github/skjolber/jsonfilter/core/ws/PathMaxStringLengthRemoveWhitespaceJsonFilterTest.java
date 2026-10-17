@@ -41,8 +41,10 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 	@Test
 	public void anonymize() throws Exception {
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH}, null)).hasAnonymized(DEFAULT_PATH);
-		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
-		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH}, new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEFAULT_PATH, PASSTHROUGH_XPATH},
+				new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEFAULT_PATH).hasAnonymizeMetrics();
+		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{DEEP_PATH1, PASSTHROUGH_XPATH},
+				new String[]{PASSTHROUGH_XPATH})).hasAnonymized(DEEP_PATH1).hasAnonymizeMetrics();
 		assertThat(new PathMaxStringLengthRemoveWhitespaceJsonFilter(-1, -1, new String[]{"/k"}, null)).hasAnonymized("/k").hasAnonymizeMetrics();
 	}
 	
@@ -108,7 +110,8 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilterTest extends DefaultJs
 		// a document which is a single string has no structural character after the string
 		String string = " \"hello world, a long string\"\n";
 		String truncated = "\"hello... + 21\"";
-		PathMaxStringLengthRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, new String[]{DEFAULT_PATH}, new String[]{PASSTHROUGH_XPATH});
+		PathMaxStringLengthRemoveWhitespaceJsonFilter filter = new PathMaxStringLengthRemoveWhitespaceJsonFilter(DEFAULT_MAX_STRING_LENGTH, -1, new String[]{DEFAULT_PATH},
+				new String[]{PASSTHROUGH_XPATH});
 
 		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 		assertEquals(truncated, filter.process(string, metrics));

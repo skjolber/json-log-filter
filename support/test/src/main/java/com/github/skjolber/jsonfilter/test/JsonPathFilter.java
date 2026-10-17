@@ -32,62 +32,62 @@ public class JsonPathFilter implements JsonFilter {
 	public static final String FILTER_ANONYMIZE = "*";
 	public static final String FILTER_TRUNCATE_MESSAGE = "... + ";
 	
-    private static final ParseContext CONTEXT = JsonPath.using(
-            Configuration.builder()
-                    .jsonProvider(new Jackson3JsonNodeJsonProvider())
-                    .mappingProvider(new Jackson3MappingProvider())
-                    .options(Option.SUPPRESS_EXCEPTIONS)
-                    .options(Option.ALWAYS_RETURN_LIST)
-                    .build());
+	private static final ParseContext CONTEXT = JsonPath.using(
+			Configuration.builder()
+					.jsonProvider(new Jackson3JsonNodeJsonProvider())
+					.mappingProvider(new Jackson3MappingProvider())
+					.options(Option.SUPPRESS_EXCEPTIONS)
+					.options(Option.ALWAYS_RETURN_LIST)
+					.build());
     
-    public static Builder newBuilder() {
-    	return new Builder();
-    }
+	public static Builder newBuilder() {
+		return new Builder();
+	}
     
-    public static class Builder {
-    	protected List<String> anonymizeFilters = new ArrayList<>();
-    	protected List<String> pruneFilters = new ArrayList<>();
+	public static class Builder {
+		protected List<String> anonymizeFilters = new ArrayList<>();
+		protected List<String> pruneFilters = new ArrayList<>();
     	
-    	/** Raw JSON */
-    	protected String pruneJsonValue;
-    	/** Raw JSON */
-    	protected String anonymizeJsonValue;
+		/** Raw JSON */
+		protected String pruneJsonValue;
+		/** Raw JSON */
+		protected String anonymizeJsonValue;
     	
-    	/** Raw (escaped) JSON string */
-    	protected String truncateStringValue;
+		/** Raw (escaped) JSON string */
+		protected String truncateStringValue;
 
-    	protected int maxStringLength = -1;
+		protected int maxStringLength = -1;
 
-    	public Builder withMaxStringLength(int length) {
-    		this.maxStringLength = length;
-    		return this;
-    	}	
+		public Builder withMaxStringLength(int length) {
+			this.maxStringLength = length;
+			return this;
+		}	
 
-    	public Builder withPrune(String ... filters) {
-    		Collections.addAll(pruneFilters, filters);
-    		return this;
-    	}
+		public Builder withPrune(String ... filters) {
+			Collections.addAll(pruneFilters, filters);
+			return this;
+		}
     	
-    	public Builder withAnonymize(String ... filters) {
-    		Collections.addAll(anonymizeFilters, filters);
-    		return this;
-    	}
+		public Builder withAnonymize(String ... filters) {
+			Collections.addAll(anonymizeFilters, filters);
+			return this;
+		}
 
-    	public JsonPathFilter build() {
-    		return new JsonPathFilter(maxStringLength, anonymizeFilters.toArray(new String[anonymizeFilters.size()]), pruneFilters.toArray(new String[pruneFilters.size()]));
-    	}
-    }
+		public JsonPathFilter build() {
+			return new JsonPathFilter(maxStringLength, anonymizeFilters.toArray(new String[anonymizeFilters.size()]), pruneFilters.toArray(new String[pruneFilters.size()]));
+		}
+	}
 
-    private final String[] anonPaths;
-    private final String[] prunePaths;
+	private final String[] anonPaths;
+	private final String[] prunePaths;
 
-    private final List<JsonPath> anon;
-    private final List<JsonPath> prune;
-    private final int maxStringLength;
+	private final List<JsonPath> anon;
+	private final List<JsonPath> prune;
+	private final int maxStringLength;
 
-    public JsonPathFilter(int maxStringLength, String[] anonymize, String[] prune) {
-    	List<String> anonymizeFilters = anonymize != null ? Arrays.asList(anonymize) : Collections.emptyList();
-    	List<String> pruneFilters = prune != null ? Arrays.asList(prune) : Collections.emptyList();
+	public JsonPathFilter(int maxStringLength, String[] anonymize, String[] prune) {
+		List<String> anonymizeFilters = anonymize != null ? Arrays.asList(anonymize) : Collections.emptyList();
+		List<String> pruneFilters = prune != null ? Arrays.asList(prune) : Collections.emptyList();
     	
 		this.anon = anonymizeFilters.stream().map(a -> JsonPath.compile(convert(a))).collect(Collectors.toList());
 		this.prune = pruneFilters.stream().map(a -> JsonPath.compile(convert(a))).collect(Collectors.toList());
@@ -309,41 +309,41 @@ public class JsonPathFilter implements JsonFilter {
 	
 	public static int lengthToDigits(int number) {
 		if (number < 100000) {
-		    if (number < 100) {
-		        if (number < 10) {
-		            return 1;
-		        } else {
-		            return 2;
-		        }
-		    } else {
-		        if (number < 1000) {
-		            return 3;
-		        } else {
-		            if (number < 10000) {
-		                return 4;
-		            } else {
-		                return 5;
-		            }
-		        }
-		    }
+			if (number < 100) {
+				if (number < 10) {
+					return 1;
+				} else {
+					return 2;
+				}
+			} else {
+				if (number < 1000) {
+					return 3;
+				} else {
+					if (number < 10000) {
+						return 4;
+					} else {
+						return 5;
+					}
+				}
+			}
 		} else {
-		    if (number < 10000000) {
-		        if (number < 1000000) {
-		            return 6;
-		        } else {
-		            return 7;
-		        }
-		    } else {
-		        if (number < 100000000) {
-		            return 8;
-		        } else {
-		            if (number < 1000000000) {
-		                return 9;
-		            } else {
-		                return 10;
-		            }
-		        }
-		    }
+			if (number < 10000000) {
+				if (number < 1000000) {
+					return 6;
+				} else {
+					return 7;
+				}
+			} else {
+				if (number < 100000000) {
+					return 8;
+				} else {
+					if (number < 1000000000) {
+						return 9;
+					} else {
+						return 10;
+					}
+				}
+			}
 		}
 	}
 

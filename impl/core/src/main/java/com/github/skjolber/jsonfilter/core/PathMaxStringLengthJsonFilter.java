@@ -37,7 +37,8 @@ public class PathMaxStringLengthJsonFilter extends AbstractRangesPathJsonFilter 
 		}		
 	}
 
-	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem, final CharArrayRangesFilter filter) {
+	protected CharArrayRangesFilter rangesMultiPathMaxStringLength(final char[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem,
+			final CharArrayRangesFilter filter) {
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {
@@ -176,7 +177,8 @@ public class PathMaxStringLengthJsonFilter extends AbstractRangesPathJsonFilter 
 		}		
 	}
 
-	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem, final ByteArrayRangesFilter filter) {
+	protected ByteArrayRangesFilter rangesMultiPathMaxStringLength(final byte[] chars, int offset, int limit, final int maxStringLength, int pathMatches, int level, PathItem pathItem,
+			final ByteArrayRangesFilter filter) {
 		loop:
 		while(offset < limit) {
 			switch(chars[offset]) {

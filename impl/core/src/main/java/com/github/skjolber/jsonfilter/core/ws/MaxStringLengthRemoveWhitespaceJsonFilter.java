@@ -81,7 +81,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(final char[] chars, int offset, int limit, int flushOffset, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength, char[] truncateMessage) {
+	public static void processMaxStringLength(final char[] chars, int offset, int limit, int flushOffset, final StringBuilder buffer, JsonFilterMetrics metrics, int maxStringLength,
+			char[] truncateMessage) {
 		while(offset < limit) {
 			char c = chars[offset];
 			if(c == '"') {
@@ -211,7 +212,8 @@ public class MaxStringLengthRemoveWhitespaceJsonFilter extends AbstractJsonFilte
 		}
 	}
 
-	public static void processMaxStringLength(byte[] chars, int offset, int limit, int flushOffset, ResizableByteArrayOutputStream output, byte[] digit, JsonFilterMetrics metrics, int maxStringLength, byte[] truncateMessage) throws IOException {
+	public static void processMaxStringLength(byte[] chars, int offset, int limit, int flushOffset, ResizableByteArrayOutputStream output, byte[] digit, JsonFilterMetrics metrics, int maxStringLength,
+			byte[] truncateMessage) throws IOException {
 		while(offset < limit) {
 			byte c = chars[offset];
 			if(c == '"') {

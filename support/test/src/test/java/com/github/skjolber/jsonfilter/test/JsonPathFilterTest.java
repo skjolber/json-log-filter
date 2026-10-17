@@ -23,13 +23,13 @@ import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 
 public class JsonPathFilterTest extends DefaultJsonFilterTest {
 
-    private static final ParseContext CONTEXT = JsonPath.using(
-            Configuration.builder()
-                    .jsonProvider(new Jackson3JsonNodeJsonProvider())
-                    .mappingProvider(new Jackson3MappingProvider())
-                    .options(Option.SUPPRESS_EXCEPTIONS)
-                    .options(Option.ALWAYS_RETURN_LIST)
-                    .build());
+	private static final ParseContext CONTEXT = JsonPath.using(
+			Configuration.builder()
+					.jsonProvider(new Jackson3JsonNodeJsonProvider())
+					.mappingProvider(new Jackson3MappingProvider())
+					.options(Option.SUPPRESS_EXCEPTIONS)
+					.options(Option.ALWAYS_RETURN_LIST)
+					.build());
     
 	public JsonPathFilterTest() throws Exception {
 		super(false, true, false);

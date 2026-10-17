@@ -78,7 +78,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public static int process(final char[] chars, int offset, int flushedOffset, final StringBuilder buffer, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark) {
+	public static int process(final char[] chars, int offset, int flushedOffset, final StringBuilder buffer, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark,
+			int streamMark) {
 		loop:
 		while(offset < maxSizeLimit) {
 			char c = chars[offset];
@@ -223,7 +224,8 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 		}
 	}
 
-	public static int process(byte[] chars, int offset, int flushedOffset, ResizableByteArrayOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets, int mark, int streamMark) throws IOException {
+	public static int process(byte[] chars, int offset, int flushedOffset, ResizableByteArrayOutputStream stream, int maxSizeLimit, int maxReadLimit, int bracketLevel, boolean[] squareBrackets,
+			int mark, int streamMark) throws IOException {
 		loop:
 		while(offset < maxSizeLimit) {
 			

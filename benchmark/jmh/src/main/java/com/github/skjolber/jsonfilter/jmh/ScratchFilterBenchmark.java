@@ -74,16 +74,16 @@ public class ScratchFilterBenchmark {
 		JsonMasker masker = JsonMasker.getMasker(hashSet);
 
 		JsonMasker.getMasker(
-		        JsonMaskingConfig.builder()
-		                .maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
-		                .build());
+				JsonMaskingConfig.builder()
+						.maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
+						.build());
 		
 		boolean prettyPrint = false;
 		
 		var singlePathJsonMasker = JsonMasker.getMasker(
-	        JsonMaskingConfig.builder()
-	                .maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
-	                .build()
+			JsonMaskingConfig.builder()
+					.maskJsonPaths(Set.of("$.CVE_Items.cve.affects.vendor.vendor_data.vendor_name"))
+					.build()
 		);
 		
 		modified1 = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(singlePathJsonMasker), false);

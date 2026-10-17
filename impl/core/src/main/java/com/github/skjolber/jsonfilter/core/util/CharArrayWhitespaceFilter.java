@@ -344,7 +344,8 @@ public class CharArrayWhitespaceFilter {
 		return truncateMessage;
 	}
 		
-	public static int addMaxLength(final char[] chars, int offset, final StringBuilder buffer, int flushOffset, int endQuoteIndex, char[] truncateStringValue, int maxStringLength, JsonFilterMetrics metrics) {
+	public static int addMaxLength(final char[] chars, int offset, final StringBuilder buffer, int flushOffset, int endQuoteIndex, char[] truncateStringValue, int maxStringLength,
+			JsonFilterMetrics metrics) {
 		// was a value
 		int aligned = CharArrayRangesFilter.getStringAlignment(chars, offset + maxStringLength + 1);
 		

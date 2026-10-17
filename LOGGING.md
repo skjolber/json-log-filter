@@ -26,4 +26,5 @@ For a typical REST service, the above operations might be necessary for the (unt
 Note that
   
  * the `Jackson`-based processors in this project do both of these automatically, and 
- * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the databinding fails, otherwise logging as (filtered) JSON.
+ * most frameworks do databinding and/or schema-validation, so at some point the incoming request is known to be valid JSON. An ideal implementation takes advantage of this, logging as text if the
+   databinding fails, otherwise logging as (filtered) JSON.

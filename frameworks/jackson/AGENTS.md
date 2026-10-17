@@ -4,7 +4,8 @@ Jackson-based JSON filter for **untrusted** input.
 
 ## Purpose
 
-Uses Jackson's streaming API (`JsonParser` / `JsonGenerator`) to parse, filter, and re-serialize JSON. Validates structure while applying the same anonymize/prune rules as `impl/core`. Use this when input may be malformed or comes from an external source.
+Uses Jackson's streaming API (`JsonParser` / `JsonGenerator`) to parse, filter, and re-serialize JSON. Validates structure while applying the same anonymize/prune rules as `impl/core`. Use this when
+input may be malformed or comes from an external source.
 
 ## Key types
 

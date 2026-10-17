@@ -190,7 +190,8 @@ public class MaxStringLengthMaxSizeJsonFilterTest extends DefaultJsonFilterTest 
 		assertEquals(expected, builder.toString(), Integer.toString(maxSize));
 
 		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-		ByteArrayRangesSizeFilter byteFilter = new ByteArrayRangesSizeFilter(-1, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		ByteArrayRangesSizeFilter byteFilter = new ByteArrayRangesSizeFilter(-1, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8),
+				"... + ".getBytes(StandardCharsets.UTF_8));
 		byteFilter.setMark(0);
 		assertEquals(comma, MaxStringLengthMaxSizeJsonFilter.rangesMaxSizeMaxStringLength(bytes, 0, bytes.length, maxSize, 3 + 2, byteFilter));
 		assertEquals(expectedMark, byteFilter.getMark(), Integer.toString(maxSize));

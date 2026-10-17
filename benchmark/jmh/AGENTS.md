@@ -4,7 +4,8 @@ JMH micro-benchmarks for json-log-filter.
 
 ## Purpose
 
-Measures throughput and latency of all filter implementations under realistic workloads. Used to validate that performance improvements in `impl/core` and `frameworks/jackson` are real, and to catch regressions.
+Measures throughput and latency of all filter implementations under realistic workloads. Used to validate that performance improvements in `impl/core` and `frameworks/jackson` are real, and to catch
+regressions.
 
 Compared implementations include:
 - `impl/core` filters (trusted JSON, zero dependencies)

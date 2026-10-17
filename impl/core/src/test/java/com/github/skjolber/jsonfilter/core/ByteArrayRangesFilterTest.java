@@ -91,7 +91,8 @@ public class ByteArrayRangesFilterTest {
 	@Test
 	public void testAddNonStructural() {
 		// no ranges for a string which is kept as-is
-		assertEquals(0, ByteArrayRangesFilter.addNonStructural(TOP_LEVEL_STRING.getBytes(StandardCharsets.UTF_8), 0, TOP_LEVEL_STRING.length(), Integer.MAX_VALUE, false, new ByteArrayRangesFilter(-1, TOP_LEVEL_STRING.length())).getFilterIndex());
+		assertEquals(0, ByteArrayRangesFilter.addNonStructural(TOP_LEVEL_STRING.getBytes(StandardCharsets.UTF_8), 0, TOP_LEVEL_STRING.length(), Integer.MAX_VALUE, false, new ByteArrayRangesFilter(-1,
+				TOP_LEVEL_STRING.length())).getFilterIndex());
 
 		// one range per whitespace run, one for truncation
 		String input = " " + TOP_LEVEL_STRING + "\n";
@@ -109,7 +110,8 @@ public class ByteArrayRangesFilterTest {
 
 	private static String filterNonStructural(String input, int offset, int length, int maxStringLength, boolean removeWhitespace, JsonFilterMetrics metrics) {
 		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
-		ByteArrayRangesFilter.filterNonStructural(input.getBytes(StandardCharsets.UTF_8), offset, length, output, metrics, maxStringLength, removeWhitespace, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
+		ByteArrayRangesFilter.filterNonStructural(input.getBytes(StandardCharsets.UTF_8), offset, length, output, metrics, maxStringLength, removeWhitespace,
+				"\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "... + ".getBytes(StandardCharsets.UTF_8));
 		return output.toString(StandardCharsets.UTF_8);
 	}
 
@@ -438,7 +440,8 @@ public class ByteArrayRangesFilterTest {
 		// cut within an array within an object: the closing brackets added by the size filter are output too
 		byte[] bytes = "{\"a\":[1,2,3]}".getBytes(StandardCharsets.UTF_8);
 
-		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(12, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8), "...".getBytes(StandardCharsets.UTF_8));
+		ByteArrayRangesSizeFilter filter = new ByteArrayRangesSizeFilter(12, bytes.length, "\"[removed]\"".getBytes(StandardCharsets.UTF_8), "\"*\"".getBytes(StandardCharsets.UTF_8),
+				"...".getBytes(StandardCharsets.UTF_8));
 		filter.addDelete(7, bytes.length);
 		filter.setLevel(2);
 		filter.getSquareBrackets()[1] = true;

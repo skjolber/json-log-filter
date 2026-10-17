@@ -64,7 +64,8 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		}
 	}
 
-	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches, CharArrayRangesSizeFilter filter) {
+	protected static CharArrayRangesSizeFilter rangesAnyPathMaxSize(final char[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches,
+			CharArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();
@@ -334,7 +335,8 @@ public class AnyPathMaxSizeJsonFilter extends AnyPathJsonFilter {
 		return filter;
 	}
 	
-	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches, ByteArrayRangesSizeFilter filter) {
+	protected static ByteArrayRangesSizeFilter rangesAnyPathMaxSize(final byte[] chars, int offset, int maxReadLimit, int maxSizeLimit, AnyPathFilters anyPathFilters, int pathMatches,
+			ByteArrayRangesSizeFilter filter) {
 
 		boolean[] squareBrackets = filter.getSquareBrackets();
 		int bracketLevel = filter.getLevel();

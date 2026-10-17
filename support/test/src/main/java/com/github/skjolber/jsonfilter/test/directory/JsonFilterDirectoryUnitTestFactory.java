@@ -43,7 +43,7 @@ public class JsonFilterDirectoryUnitTestFactory {
 			
 			List<String> resourceNames;
 			try (ScanResult scanResult = new ClassGraph().acceptPaths(path).scan()) {
-			    resourceNames = scanResult.getAllResources().getPaths();
+				resourceNames = scanResult.getAllResources().getPaths();
 			}
 			for(String str : resourceNames) {
 				String s = "/" + str;

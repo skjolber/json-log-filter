@@ -11,12 +11,12 @@ public class ExtractFieldNames {
 		List<String> result = new ArrayList<>();
 		
 		String regex = "\".+\":"; // Matches one or more digits
-	    Pattern pattern = Pattern.compile(regex);
-	    Matcher matcher = pattern.matcher(json);
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(json);
 	    
-	    while (matcher.find()) {
-	        result.add(json.substring(matcher.start() + 1, matcher.end() - 2));
-	    }
+		while (matcher.find()) {
+			result.add(json.substring(matcher.start() + 1, matcher.end() - 2));
+		}
 		return result;
 	}
 

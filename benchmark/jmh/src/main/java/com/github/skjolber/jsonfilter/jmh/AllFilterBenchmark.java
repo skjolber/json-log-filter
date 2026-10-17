@@ -94,7 +94,8 @@ public class AllFilterBenchmark {
 		// jackson
 		pathMaxSizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxSizeMaxStringLengthJsonFilter(20, -1, new String[] {xpath}, null), prettyPrinted);
 		pathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonPathMaxStringLengthJsonFilter(20, new String[] {xpath}, null), prettyPrinted);
-		anyPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(20, new String[] {DEFAULT_ANY_XPATH}, null), prettyPrinted);
+		anyPathAnonymizeMaxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonAnyPathMaxStringLengthJsonFilter(20, new String[] {DEFAULT_ANY_XPATH}, null),
+				prettyPrinted);
 		maxStringLengthJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxStringLengthJsonFilter(20), prettyPrinted);
 		maxSizeJacksonJsonFilter = new JacksonBenchmarkRunner(file, true, new JacksonMaxSizeJsonFilter(128), prettyPrinted);
 		
@@ -114,9 +115,9 @@ public class AllFilterBenchmark {
 
 		// other filters
 		var singlePathJsonMasker = JsonMasker.getMasker(
-	        JsonMaskingConfig.builder()
-	                .maskJsonPaths(Set.of("$.address"))
-	                .build()
+			JsonMaskingConfig.builder()
+					.maskJsonPaths(Set.of("$.address"))
+					.build()
 		);
 		
 		anyPathJsonMaskerJsonFilter = new BenchmarkRunner<JsonFilter>(file, true, new JsonMaskerJsonFilter(JsonMasker.getMasker(Set.of("address"))), false);

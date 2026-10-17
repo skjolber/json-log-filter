@@ -24,7 +24,8 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayWhitespaceSizeFilter;
 
 public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMaxStringLengthRemoveWhitespaceJsonFilter {
 
-	public PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage,
+			String anonymizeMessage, String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 
@@ -91,7 +92,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 	}
 
-	protected int processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) {
+	protected int processMaxSize(final char[] chars, int offset, int maxReadLimit, int level, final StringBuilder buffer, int pathMatches, CharArrayWhitespaceSizeFilter filter,
+			JsonFilterMetrics metrics) {
 		PathItem pathItem = this.pathItem;
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -425,7 +427,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						}
 						buffer.append(chars, flushOffset, offset - flushOffset);
 
-						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, Math.min(maxSizeLimit, maxReadLimit), maxReadLimit, buffer, bracketLevel, squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
+						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, Math.min(maxSizeLimit, maxReadLimit), maxReadLimit, buffer, bracketLevel,
+								squareBrackets, mark, streamMark, maxStringLength, filter.getTruncateMessage(), metrics);
 					}							
 				}
 
@@ -524,7 +527,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 		}
 	}
 
-	protected int processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int pathMatches, ByteArrayWhitespaceSizeFilter filter, JsonFilterMetrics metrics) throws IOException {
+	protected int processMaxSize(final byte[] chars, int offset, int maxReadLimit, int level, final ResizableByteArrayOutputStream stream, int pathMatches, ByteArrayWhitespaceSizeFilter filter,
+			JsonFilterMetrics metrics) throws IOException {
 		PathItem pathItem = this.pathItem;
 
 		AnyPathFilters anyPathFilters = this.anyPathFilters;
@@ -655,7 +659,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 					if(endQuoteIndex - offset < maxStringLength + 2) {
 						stream.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					} else {
-						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(), metrics);
+						maxSizeLimit += ByteArrayWhitespaceFilter.addMaxLength(chars, offset, stream, flushOffset, endQuoteIndex, filter.getTruncateMessage(), maxStringLength, filter.getDigit(),
+								metrics);
 					}
 					
 					if(endQuoteIndex >= maxSizeLimit) {
@@ -850,7 +855,8 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 						}
 						stream.write(chars, flushOffset, offset - flushOffset);
 
-						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, Math.min(maxSizeLimit, maxReadLimit), maxReadLimit, stream, bracketLevel, squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
+						return MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter.processMaxStringLengthMaxSize(chars, offset, Math.min(maxSizeLimit, maxReadLimit), maxReadLimit, stream, bracketLevel,
+								squareBrackets, mark, streamMark, filter.getDigit(), maxStringLength, truncateStringValueAsBytes, metrics);
 					}							
 				}
 

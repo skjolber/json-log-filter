@@ -212,7 +212,8 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		byte[] output = maxSizeJsonFilterPair.getMaxSizeJsonFilter(maxSize).process(input, metrics);
 		String failure = getMaxSizeFailure(output, maxSize, minimumSize, expected, complete);
 		if(failure != null) {
-			fail("Max size " + maxSize + " (bytes) gave " + failure + " for " + source + "\n" + new String(input, StandardCharsets.UTF_8) + "\nOutput:\n" + (output != null ? new String(output, StandardCharsets.UTF_8) : null) + "\nOutput without max size:\n" + new String(expectedOutput, StandardCharsets.UTF_8));
+			fail("Max size " + maxSize + " (bytes) gave " + failure + " for " + source + "\n" + new String(input, StandardCharsets.UTF_8) + "\nOutput:\n" + (output != null ? new String(output,
+					StandardCharsets.UTF_8) : null) + "\nOutput without max size:\n" + new String(expectedOutput, StandardCharsets.UTF_8));
 		}
 	}
 
@@ -274,7 +275,8 @@ public class MaxSizeJsonFilterAssertion extends AbstractJsonFilterSymmetryAssert
 		}
 		for(int i = count; i < actual.size(); i++) {
 			if(!actual.get(i).startsWith(JsonToken.END_OBJECT.name()) && !actual.get(i).startsWith(JsonToken.END_ARRAY.name())) {
-				return "output which is not a prefix of the output without max size: " + actual.get(count) + " instead of " + (count < expected.size() ? expected.get(count) : "nothing") + " at token " + count;
+				return "output which is not a prefix of the output without max size: " + actual.get(count) + " instead of " + (count < expected.size() ? expected.get(count) : "nothing") + " at token "
+						+ count;
 			}
 		}
 		return null;

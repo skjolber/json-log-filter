@@ -22,7 +22,8 @@ public class PrettyPrinterFactory {
 	protected static final Indenter defaultIntenterSpaceCarriageReturnLinefeed = new DefaultIndenter("  ", "\r\n");
 	protected static final Indenter defaultIntenterTabCarriageReturnLinefeed = new DefaultIndenter("\t", "\r\n");
 	
-	protected static final Indenter[] intenders = new Indenter[]{defaultIntenterSpaceLinefeed, defaultIntenterTabLinefeed, defaultIntenterSpaceCarriageReturn, defaultIntenterTabCarriageReturn, defaultIntenterSpaceCarriageReturnLinefeed, defaultIntenterTabCarriageReturnLinefeed};
+	protected static final Indenter[] intenders = new Indenter[]{defaultIntenterSpaceLinefeed, defaultIntenterTabLinefeed, defaultIntenterSpaceCarriageReturn, defaultIntenterTabCarriageReturn,
+			defaultIntenterSpaceCarriageReturnLinefeed, defaultIntenterTabCarriageReturnLinefeed};
 
 	protected static final int[] MAX_DIMENSIONS = new int[] {
 			1, 5, 5

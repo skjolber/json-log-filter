@@ -24,7 +24,8 @@ import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 
 public class JacksonJsonFilterNumbersAndFailureTest {
 
-	private static final String NUMBERS = "{\"amount\": 12345678901234567890.12, \"big\": 1e400, \"tiny\": 1e-400, \"x\": 1.10, \"e\": 1E+2, \"neg\": -0, \"int\": 123456789012345678901234567890, \"array\": [1.0, -2.50e-3]}";
+	private static final String NUMBERS = "{\"amount\": 12345678901234567890.12, \"big\": 1e400, \"tiny\": 1e-400, \"x\": 1.10, \"e\": 1E+2, \"neg\": -0, "
+			+ "\"int\": 123456789012345678901234567890, \"array\": [1.0, -2.50e-3]}";
 	private static final String NUMBERS_COMPACT = NUMBERS.replace(" ", "");
 
 	private static final String INVALID = "{\"a\": \"xxxxxxxxxxxxxxxxxxxx\", \"b\": [1, 2, 3], \"c\": tru}";

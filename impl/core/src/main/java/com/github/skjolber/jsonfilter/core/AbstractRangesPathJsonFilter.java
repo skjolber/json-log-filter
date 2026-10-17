@@ -10,7 +10,8 @@ import com.github.skjolber.jsonfilter.core.util.CharArrayRangesSizeFilter;
 
 public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJsonFilter {
 
-	public AbstractRangesPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage, String truncateMessage) {
+	public AbstractRangesPathJsonFilter(int maxStringLength, int maxSize, int maxPathMatches, String[] anonymizes, String[] prunes, String pruneMessage, String anonymizeMessage,
+			String truncateMessage) {
 		super(maxStringLength, maxSize, maxPathMatches, anonymizes, prunes, pruneMessage, anonymizeMessage, truncateMessage);
 	}
 

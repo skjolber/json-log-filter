@@ -51,7 +51,8 @@ public class AbstractMultiPathJsonFilterTest {
 		new MyAbstractMultiPathJsonFilter(-1, -1, null, new String[] {"/abc", "//def"}, "pruneMessage", "anonymizeMessage", "truncateMessage");
 		new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc", "//def"}, new String[] {"/abc", "//def"}, "pruneMessage", "anonymizeMessage", "truncateMessage");
 		
-		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc/def/ghi", "/def", "/ghi", "/abc/yyy", "/abc/zzz"}, null, "pruneMessage", "anonymizeMessage", "truncateMessage");
+		MyAbstractMultiPathJsonFilter filter = new MyAbstractMultiPathJsonFilter(127, 127, new String[] {"/abc/def/ghi", "/def", "/ghi", "/abc/yyy", "/abc/zzz"}, null, "pruneMessage",
+				"anonymizeMessage", "truncateMessage");
 	}
 
 	@Test

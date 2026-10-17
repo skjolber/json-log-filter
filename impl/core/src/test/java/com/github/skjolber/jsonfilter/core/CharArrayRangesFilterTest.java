@@ -113,7 +113,8 @@ public class CharArrayRangesFilterTest {
 	@Test
 	public void testAddNonStructural() {
 		// no ranges for a string which is kept as-is
-		assertEquals(0, CharArrayRangesFilter.addNonStructural(TOP_LEVEL_STRING.toCharArray(), 0, TOP_LEVEL_STRING.length(), Integer.MAX_VALUE, false, new CharArrayRangesFilter(-1, TOP_LEVEL_STRING.length())).getFilterIndex());
+		assertEquals(0, CharArrayRangesFilter.addNonStructural(TOP_LEVEL_STRING.toCharArray(), 0, TOP_LEVEL_STRING.length(), Integer.MAX_VALUE, false, new CharArrayRangesFilter(-1,
+				TOP_LEVEL_STRING.length())).getFilterIndex());
 
 		// one range per whitespace run, one for truncation
 		String input = " " + TOP_LEVEL_STRING + "\n";
@@ -131,7 +132,8 @@ public class CharArrayRangesFilterTest {
 
 	private static String filterNonStructural(String input, int offset, int length, int maxStringLength, boolean removeWhitespace, JsonFilterMetrics metrics) {
 		StringBuilder output = new StringBuilder();
-		CharArrayRangesFilter.filterNonStructural(input.toCharArray(), offset, length, output, metrics, maxStringLength, removeWhitespace, "\"[removed]\"".toCharArray(), "\"*\"".toCharArray(), "... + ".toCharArray());
+		CharArrayRangesFilter.filterNonStructural(input.toCharArray(), offset, length, output, metrics, maxStringLength, removeWhitespace, "\"[removed]\"".toCharArray(), "\"*\"".toCharArray(),
+				"... + ".toCharArray());
 		return output.toString();
 	}
 	

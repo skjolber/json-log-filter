@@ -4,7 +4,8 @@ Public API for json-log-filter. All consumer-facing contracts live here.
 
 ## Purpose
 
-Defines the core interfaces and value types that all filter implementations must satisfy. Consumers program to these abstractions; concrete implementations are in `impl/core`, `impl/path`, and `frameworks/jackson`.
+Defines the core interfaces and value types that all filter implementations must satisfy. Consumers program to these abstractions; concrete implementations are in `impl/core`, `impl/path`, and
+`frameworks/jackson`.
 
 ## Key types
 

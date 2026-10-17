@@ -75,7 +75,8 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 			if(removeWhitespace) {
 				// TODO more filters for removing whitespace
 				if(isActiveMaxSize()) {
-					return new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+					return new PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue,
+							truncateStringValue);
 				}
 				return new PathMaxStringLengthRemoveWhitespaceJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				
@@ -91,7 +92,8 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 
 				if(isActiveMaxStringLength()) {
 					if(isActiveMaxSize()) {
-						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue,
+								truncateStringValue);
 					}
 					return new PathMaxStringLengthJsonFilter(maxStringLength, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				} else {
@@ -102,7 +104,8 @@ public class DefaultJsonFilterFactory extends AbstractJsonFilterFactory {
 					}
 					if(isActiveMaxSize()) {
 						// TODO MultiPathJsonMaxSizeFilter
-						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
+						return new PathMaxSizeMaxStringLengthJsonFilter(maxStringLength, maxSize, maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue,
+								truncateStringValue);
 					}
 					return new PathJsonFilter(maxPathMatches, anonymizeFilters, pruneFilters, pruneJsonValue, anonymizeJsonValue, truncateStringValue);
 				}
