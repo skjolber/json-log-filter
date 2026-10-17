@@ -53,7 +53,8 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	private static final VarHandle LONG_LE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
 	private static final long QUOTE_MASK     = 0x2222222222222222L; // '"' (0x22) repeated 8×
 	private static final long MAGIC1         = 0x0101010101010101L;
-	private static final long MAGIC2         = 0x8080808080808080L;
+	// ~(x | MAGIC3) is ~x & MAGIC2 with one constant and one operation less (andn)
+	private static final long MAGIC3         = 0x7F7F7F7F7F7F7F7FL;
 
 	protected static final byte[] DEFAULT_FILTER_PRUNE_MESSAGE_CHARS = FILTER_PRUNE_MESSAGE_JSON.getBytes(StandardCharsets.UTF_8);
 	protected static final byte[] DEFAULT_FILTER_ANONYMIZE_MESSAGE_CHARS = FILTER_ANONYMIZE_MESSAGE.getBytes(StandardCharsets.UTF_8);
@@ -575,7 +576,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		while (i <= safeEnd16) {
 			long word1 = (long) LONG_LE.get(chars, i);
 			long x1 = word1 ^ QUOTE_MASK;
-			long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+			long y1 = (x1 - MAGIC1) & ~(x1 | MAGIC3);
 			if (y1 != 0) {
 				i += Long.numberOfTrailingZeros(y1) >>> 3;
 				if (chars[i - 1] != '\\') return i;
@@ -583,7 +584,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			}
 			long word2 = (long) LONG_LE.get(chars, i + 8);
 			long x2 = word2 ^ QUOTE_MASK;
-			long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+			long y2 = (x2 - MAGIC1) & ~(x2 | MAGIC3);
 			if (y2 != 0) {
 				i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
 				if (chars[i - 1] != '\\') return i;
@@ -596,7 +597,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 		while (i <= safeEnd8) {
 			long word = (long) LONG_LE.get(chars, i);
 			long x = word ^ QUOTE_MASK;
-			long y = (x - MAGIC1) & ~x & MAGIC2;
+			long y = (x - MAGIC1) & ~(x | MAGIC3);
 			if (y != 0) {
 				i += Long.numberOfTrailingZeros(y) >>> 3;
 				if (chars[i - 1] != '\\') return i;
@@ -627,14 +628,14 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			while (i <= safeEnd16) {
 				long word1 = (long) LONG_LE.get(chars, i);
 				long x1 = word1 ^ QUOTE_MASK;
-				long y1 = (x1 - MAGIC1) & ~x1 & MAGIC2;
+				long y1 = (x1 - MAGIC1) & ~(x1 | MAGIC3);
 				if (y1 != 0) {
 					i += Long.numberOfTrailingZeros(y1) >>> 3;
 					break;
 				}
 				long word2 = (long) LONG_LE.get(chars, i + 8);
 				long x2 = word2 ^ QUOTE_MASK;
-				long y2 = (x2 - MAGIC1) & ~x2 & MAGIC2;
+				long y2 = (x2 - MAGIC1) & ~(x2 | MAGIC3);
 				if (y2 != 0) {
 					i += 8 + (Long.numberOfTrailingZeros(y2) >>> 3);
 					break;
@@ -645,7 +646,7 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 			while (i <= safeEnd8) {
 				long word = (long) LONG_LE.get(chars, i);
 				long x = word ^ QUOTE_MASK;
-				long y = (x - MAGIC1) & ~x & MAGIC2;
+				long y = (x - MAGIC1) & ~(x | MAGIC3);
 				if (y != 0) {
 					i += Long.numberOfTrailingZeros(y) >>> 3;
 					break;
