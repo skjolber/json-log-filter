@@ -1,13 +1,18 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Test;
 import com.github.skjolber.jsonfilter.ResizableByteArrayOutputStream;
 import com.github.skjolber.jsonfilter.base.AbstractJsonFilter;
+import com.github.skjolber.jsonfilter.test.DefaultJsonFilterMetrics;
 import com.github.skjolber.jsonfilter.test.DefaultJsonFilterTest;
 
 public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
@@ -110,5 +115,42 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 		String output = filter.process(changed);
 		assertNotSame(changed, output);
 		assertEquals(filter.process(changed.toCharArray()), output);
+	}
+
+	@Test
+	public void testProcessWithMetricsLikeWithoutMetrics() {
+		// the same output and metrics as the char[] path and the output stream, without a copy if unchanged
+		AnyPathJsonFilter filter = new AnyPathJsonFilter(-1, new String[] {"//secret"}, new String[] {"//other"});
+
+		for(String json : new String[] {"{\"a\":\"value\"}", "{\"secret\":\"value\",\"other\":[1,2]}"}) {
+			DefaultJsonFilterMetrics expected = new DefaultJsonFilterMetrics();
+			String expectedOutput = filter.process(json.toCharArray(), expected);
+
+			DefaultJsonFilterMetrics actual = new DefaultJsonFilterMetrics();
+			String output = filter.process(json, actual);
+			assertEquals(expectedOutput, output);
+			assertMetricsEquals(expected, actual);
+			if(json.equals(output)) {
+				assertSame(json, output);
+			}
+
+			byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+			DefaultJsonFilterMetrics expectedBytes = new DefaultJsonFilterMetrics();
+			ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(16);
+			assertTrue(filter.process(bytes, 0, bytes.length, stream, expectedBytes));
+
+			DefaultJsonFilterMetrics actualBytes = new DefaultJsonFilterMetrics();
+			assertArrayEquals(stream.toByteArray(), filter.process(bytes, actualBytes));
+			assertMetricsEquals(expectedBytes, actualBytes);
+		}
+	}
+
+	private static void assertMetricsEquals(DefaultJsonFilterMetrics expected, DefaultJsonFilterMetrics actual) {
+		assertEquals(expected.getInputSize(), actual.getInputSize());
+		assertEquals(expected.getOutputSize(), actual.getOutputSize());
+		assertEquals(expected.getMaxStringLength(), actual.getMaxStringLength());
+		assertEquals(expected.getMaxSize(), actual.getMaxSize());
+		assertEquals(expected.getAnonymize(), actual.getAnonymize());
+		assertEquals(expected.getPrune(), actual.getPrune());
 	}
 }
