@@ -154,6 +154,45 @@ public class ByteArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	/**
+	 * Length of the output of {@link #filter(byte[], int, int, ResizableByteArrayOutputStream)}, so that the output
+	 * can be written into an array of the exact size.
+	 *
+	 * @param length input length
+	 * @return output length
+	 */
+
+	public int getOutputLength(int length) {
+		int outputLength = length + getCloseStructureLength();
+
+		int filterIndex = this.filterIndex;
+		int[] filter = this.filter;
+
+		for(int i = 0; i < filterIndex; i += 3) {
+			outputLength -= filter[i + 1] - filter[i];
+
+			int type = filter[i + 2];
+			if(type == FILTER_ANON) {
+				outputLength += anonymizeMessage.length;
+			} else if(type == FILTER_PRUNE) {
+				outputLength += pruneMessage.length;
+			} else if(type != FILTER_DELETE) {
+				outputLength += truncateMessage.length + lengthToDigits(-type);
+			}
+		}
+		return outputLength;
+	}
+
+	/**
+	 * Number of bytes {@link #closeStructure(ResizableByteArrayOutputStream)} writes. None by default.
+	 *
+	 * @return number of bytes
+	 */
+
+	protected int getCloseStructureLength() {
+		return 0;
+	}
+
+	/**
 	 * Close open objects and arrays after the filtered content. Does nothing by default.
 	 *
 	 * @param buffer output

@@ -549,4 +549,29 @@ public class ByteArrayRangesFilterTest {
 		assertTrue(result.contains("\"*\""));
 	}
 
+	@Test
+	public void testOutputLength() {
+		// the length of what filter(..) writes, with each kind of range, and with the document at an offset
+		String json = "{\"a\":\"abcdefghijklmnopqrstuvwxyz\",\"b\":\"secret\",\"c\":[1,2,3],\"d\":\"tail\"}";
+		for(String prefix : new String[] {"", "xyz"}) {
+			String input = prefix + json;
+			byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+			int offset = prefix.length();
+
+			ByteArrayRangesFilter filter = new ByteArrayRangesFilter(3, json.length());
+			int a = input.indexOf("abc");
+			assertTrue(filter.addMaxLength(bytes, a + 5, a + 26, 21));
+			int b = input.indexOf("\"secret\"");
+			filter.addAnon(b, b + 8);
+			int c = input.indexOf("[1,2,3]");
+			filter.addPrune(c, c + 7);
+			int d = input.indexOf(",\"d\"");
+			filter.addDelete(d, d + 11);
+
+			ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(128);
+			filter.filter(bytes, offset, json.length(), output);
+
+			assertEquals(output.size(), filter.getOutputLength(json.length()), input);
+		}
+	}
 }

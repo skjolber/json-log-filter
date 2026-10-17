@@ -53,6 +53,26 @@ public abstract class AbstractRangesPathJsonFilter extends AbstractMultiPathJson
 		return output.toString();
 	}
 
+	@Override
+	public byte[] process(byte[] chars, int offset, int length) {
+		// a document which is not an object or array is rare, and handled separately
+		ByteArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
+		if(copy == null) {
+			return null;
+		}
+
+		// write into an array of the exact output length, so that it can be returned without a copy
+		ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(copy.getOutputLength(length));
+
+		copy.filter(chars, offset, length, output);
+
+		byte[] buffer = output.getBuffer();
+		if(output.size() == buffer.length) {
+			return buffer;
+		}
+		return output.toByteArray();
+	}
+
 	public boolean process(final byte[] chars, int offset, int length, final ResizableByteArrayOutputStream buffer) {
 		// a document which is not an object or array is rare, and handled separately
 		ByteArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);
