@@ -45,6 +45,29 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 	protected abstract CharArrayRangesFilter ranges(final char[] chars, int offset, int length);
 
 	@Override
+	public String process(String jsonString) {
+		char[] chars = jsonString.toCharArray();
+
+		// a document which is not an object or array is rare, and handled separately
+		CharArrayRangesFilter copy = isNonStructural(chars, 0, chars.length) ? nonStructuralRanges(chars, 0, chars.length) : ranges(chars, 0, chars.length);
+		if(copy == null) {
+			return null;
+		}
+
+		if(copy.isUnchanged()) {
+			// nothing to filter, as for most documents: the output is the input
+			return jsonString;
+		}
+
+		StringBuilder output = new StringBuilder(chars.length);
+		output.ensureCapacity(copy.getMaxOutputLength());
+
+		copy.filter(chars, 0, chars.length, output);
+
+		return output.toString();
+	}
+
+	@Override
 	public byte[] process(byte[] chars, int offset, int length) {
 		// a document which is not an object or array is rare, and handled separately
 		ByteArrayRangesFilter copy = isNonStructural(chars, offset, length) ? nonStructuralRanges(chars, offset, length) : ranges(chars, offset, length);

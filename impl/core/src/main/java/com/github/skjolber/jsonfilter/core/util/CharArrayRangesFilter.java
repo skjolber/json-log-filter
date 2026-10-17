@@ -63,6 +63,26 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	/**
+	 * Check whether {@link #filter(char[], int, int, StringBuilder)} would write the input as it is.
+	 *
+	 * @return true if there is nothing to filter
+	 */
+
+	public boolean isUnchanged() {
+		return filterIndex == 0 && getCloseStructureLength() == 0;
+	}
+
+	/**
+	 * Number of characters {@link #closeStructure(StringBuilder)} writes. None by default.
+	 *
+	 * @return number of characters
+	 */
+
+	protected int getCloseStructureLength() {
+		return 0;
+	}
+
+	/**
 	 * Close open objects and arrays after the filtered content. Does nothing by default.
 	 *
 	 * @param buffer output
