@@ -1,5 +1,7 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,4 +71,17 @@ public class MaxStringLengthJsonFilterTest  extends DefaultJsonFilterTest {
 		assertEquals(truncated, output.toString(StandardCharsets.UTF_8));
 	}
 	
+
+	@Test
+	public void testProcessStringReturnsInputIfUnchanged() {
+		MaxStringLengthJsonFilter filter = new MaxStringLengthJsonFilter(8);
+
+		String unchanged = "{\"a\":\"short\",\"b\":[1,2]}";
+		assertSame(unchanged, filter.process(unchanged));
+
+		String changed = "{\"a\":\"longer than eight\",\"b\":[1,2]}";
+		String output = filter.process(changed);
+		assertNotSame(changed, output);
+		assertEquals(filter.process(changed.toCharArray()), output);
+	}
 }

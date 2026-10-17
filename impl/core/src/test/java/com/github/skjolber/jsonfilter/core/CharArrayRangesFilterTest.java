@@ -475,4 +475,12 @@ public class CharArrayRangesFilterTest {
 		assertEquals(13, end);
 	}
 
+	@Test
+	public void testIsEmpty() {
+		CharArrayRangesFilter filter = new CharArrayRangesFilter(3, 10);
+		assertTrue(filter.isEmpty());
+
+		filter.addAnon(2, 5);
+		assertFalse(filter.isEmpty());
+	}
 }
