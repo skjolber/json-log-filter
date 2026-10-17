@@ -147,9 +147,11 @@ public class CharArrayWhitespaceFilter {
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.append(chars, start, offset - start);
+				// with the limit, this is a counted loop, without a bounds check and a safepoint poll per character;
+				// the limit is not whitespace, so the run always ends before it
 				do {
 					offset++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < limit && chars[offset] <= 0x20);
 				
 				start = offset;
 				
