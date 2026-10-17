@@ -28,6 +28,7 @@ OUT=$2
 shift 2
 mkdir -p "$OUT"
 for config in "$@"; do
-	"${PIN[@]}" "$JAVA" ${JVM_ARGS:--Xms1g -Xmx1g -XX:+AlwaysPreTouch} -cp "$JAR" "$HERE/JitProbe.java" "$config" "$DOCS" "$SECONDS_PER_CONFIG" > "$OUT/$config.txt" 2> "$OUT/$config.err" || { echo "FAILED $config, see $OUT/$config.err" >&2; continue; }
+	"${PIN[@]}" "$JAVA" ${JVM_ARGS:--Xms1g -Xmx1g -XX:+AlwaysPreTouch} -cp "$JAR" "$HERE/JitProbe.java" "$config" "$DOCS" "$SECONDS_PER_CONFIG" \
+		> "$OUT/$config.txt" 2> "$OUT/$config.err" || { echo "FAILED $config, see $OUT/$config.err" >&2; continue; }
 	echo "$OUT/$config.txt: $(head -1 "$OUT/$config.txt" | cut -c3-)"
 done

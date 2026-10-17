@@ -4,7 +4,8 @@ JMH micro-benchmarks for json-log-filter.
 
 ## Purpose
 
-Measures throughput and latency of all filter implementations under realistic workloads. Used to validate that performance improvements in `impl/core` and `frameworks/jackson` are real, and to catch regressions.
+Measures throughput and latency of all filter implementations under realistic workloads. Used to validate that performance improvements in `impl/core` and `frameworks/jackson` are real, and to catch
+regressions.
 
 Compared implementations include:
 - `impl/core` filters (trusted JSON, zero dependencies)
@@ -57,10 +58,12 @@ For agents measuring and improving performance, see `jit/README.md`.
   - **Measured on 2 real cores:** a full build takes 15.7 s and `-Pquick` 7.6 s from clean. Rebuilding after a change to one core file takes 7.1 s with `mvn` and 3.4 s with a warm `mvnd`.
 - **A/B comparisons:** `jit/ab.sh` builds a base commit and the working tree, and runs interleaved forks on JDK 27. Don't run single forks: hot loops move 10–30% between builds on small changes.
   - **New benchmarks on old commits:** a benchmark class added to the working tree is copied into the base build, so it can measure commits from before it existed.
-  - **Fork JVM:** forks get a fixed, pre-touched heap (`JVM_ARGS`, default `-Xms1g -Xmx1g -XX:+AlwaysPreTouch`), so they don't differ in heap growth. Pass the same `-jvmArgsAppend` to manual runs you want to compare.
+  - **Fork JVM:** forks get a fixed, pre-touched heap (`JVM_ARGS`, default `-Xms1g -Xmx1g -XX:+AlwaysPreTouch`), so they don't differ in heap growth. Pass the same `-jvmArgsAppend` to manual runs you
+    want to compare.
 - **JIT snapshots:** `jit/probe.sh` records C2 compilations, inlining decisions, deoptimizations and allocation sites, for diffing two builds.
 - **Machine:**
-  - **Cores:** use at most 4 of the 16 real cores at a time unless permitted. Pin builds and benchmarks with `taskset`, or `CPUS=...` for the scripts, e.g. `CPUS=0,1,16,17`. A core and its SMT sibling are one real core.
+  - **Cores:** use at most 4 of the 16 real cores at a time unless permitted. Pin builds and benchmarks with `taskset`, or `CPUS=...` for the scripts, e.g. `CPUS=0,1,16,17`. A core and its SMT sibling
+    are one real core.
   - **Quiet machine:** nothing else should build or benchmark on the same cores during a measurement.
 
 ## Notes

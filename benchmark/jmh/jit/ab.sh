@@ -137,7 +137,9 @@ run() { # jar side fork
 		jvm_args="$jvm_args -XX:+UnlockDiagnosticVMOptions -XX:+LogCompilation -XX:LogFile=$OUT/$2-fork$3-%p.xml"
 	fi
 	echo "$(date +%T) $2 fork $3"
-	(cd "$REPO/benchmark/jmh" && "${PIN[@]}" "$JAVA" "${JMH_LOCK[@]}" -jar "$1" "$REGEX" -f 1 "${ITER[@]}" -p "$PARAMS" -jvmArgsAppend "$jvm_args" "${PROF_ARGS[@]}" -rf json -rff "$OUT/$2-fork$3.json") > "$OUT/$2-fork$3.log" 2>&1 || echo "FAILED $2 fork $3, see $OUT/$2-fork$3.log"
+	(cd "$REPO/benchmark/jmh" && "${PIN[@]}" "$JAVA" "${JMH_LOCK[@]}" -jar "$1" "$REGEX" -f 1 "${ITER[@]}" -p "$PARAMS" \
+		-jvmArgsAppend "$jvm_args" "${PROF_ARGS[@]}" -rf json -rff "$OUT/$2-fork$3.json") > "$OUT/$2-fork$3.log" 2>&1 \
+		|| echo "FAILED $2 fork $3, see $OUT/$2-fork$3.log"
 }
 for fork in $(seq 1 "$FORKS"); do
 	if [ $((fork % 2)) = 1 ]; then
