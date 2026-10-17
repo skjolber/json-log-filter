@@ -82,4 +82,29 @@ public class ByteArrayRangesSizeFilterTest {
 		filter.filter(bytes, 0, bytes.length, buffer);
 		return buffer.toString(StandardCharsets.UTF_8);
 	}
+
+	// --- getOutputLength ---
+
+	@Test
+	public void testOutputLengthWithClosedStructure() {
+		// what filter(..) writes includes the brackets which close the open object and array
+		String json = "{\"a\":[1,2,{\"b\":3}]}";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		for(int level = 0; level <= 2; level++) {
+			ByteArrayRangesSizeFilter filter = newFilter(json.length());
+			int cut = json.indexOf(",2");
+			filter.addDelete(cut, json.length());
+			filter.setLevel(level);
+			filter.setSquareBrackets(new boolean[] {false, true});
+
+			ResizableByteArrayOutputStream output = new ResizableByteArrayOutputStream(64);
+			filter.filter(bytes, 0, bytes.length, output);
+
+			if(level == 2) {
+				assertEquals("{\"a\":[1]}", output.toString(StandardCharsets.UTF_8));
+			}
+			assertEquals(output.size(), filter.getOutputLength(bytes.length));
+		}
+	}
 }

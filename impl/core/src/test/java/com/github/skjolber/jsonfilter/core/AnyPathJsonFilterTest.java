@@ -1,5 +1,8 @@
 package com.github.skjolber.jsonfilter.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -96,5 +99,16 @@ public class AnyPathJsonFilterTest extends DefaultJsonFilterTest {
 		});
 	}
 
+	@Test
+	public void testProcessStringReturnsInputIfUnchanged() {
+		AnyPathJsonFilter filter = new AnyPathJsonFilter(-1, new String[] {"//secret"}, null);
 
+		String unchanged = "{\"a\":\"value\",\"b\":{\"c\":1}}";
+		assertSame(unchanged, filter.process(unchanged));
+
+		String changed = "{\"a\":\"value\",\"b\":{\"secret\":1}}";
+		String output = filter.process(changed);
+		assertNotSame(changed, output);
+		assertEquals(filter.process(changed.toCharArray()), output);
+	}
 }

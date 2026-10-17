@@ -112,6 +112,12 @@ public class ByteArrayRangesSizeFilter extends ByteArrayRangesFilter {
 		this.mark = mark;
 	}
 	
+	@Override
+	protected int getCloseStructureLength() {
+		// one bracket per open object or array
+		return Math.max(level, 0);
+	}
+
 	public void closeStructure(ResizableByteArrayOutputStream output) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
