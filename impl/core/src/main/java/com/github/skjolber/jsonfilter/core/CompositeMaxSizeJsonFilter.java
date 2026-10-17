@@ -52,6 +52,28 @@ public class CompositeMaxSizeJsonFilter extends AbstractJsonFilter {
 		this(FILTER_PRUNE_MESSAGE_JSON, FILTER_ANONYMIZE_JSON, FILTER_TRUNCATE_MESSAGE, maxSize);
 	}
 
+	@Override
+	public String process(String jsonString) {
+		if(!mustConstrainMaxSize(jsonString.length())) {
+			// the document fits, so the output is the input
+			return jsonString;
+		}
+		return super.process(jsonString);
+	}
+
+	@Override
+	public String process(String jsonString, JsonFilterMetrics metrics) {
+		if(!mustConstrainMaxSize(jsonString.length())) {
+			// the document fits, so the output is the input
+			if(metrics != null) {
+				metrics.onInput(jsonString.length());
+				metrics.onOutput(jsonString.length());
+			}
+			return jsonString;
+		}
+		return super.process(jsonString, metrics);
+	}
+
 	public boolean process(final char[] chars, int offset, int length, final StringBuilder buffer) {
 		return process(chars, offset, length, buffer, null);
 	}

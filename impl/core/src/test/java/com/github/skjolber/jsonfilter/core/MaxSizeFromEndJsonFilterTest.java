@@ -2,6 +2,7 @@ package com.github.skjolber.jsonfilter.core;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,6 +80,24 @@ public class MaxSizeFromEndJsonFilterTest extends DefaultJsonFilterTest {
 	// -----------------------------------------------------------------------
 	// pass-through / exception guards
 	// -----------------------------------------------------------------------
+
+	@Test
+	public void testProcessStringReturnsInputWhenDocumentFits() {
+		String json = "{\"key\":\"value\",\"list\":[1,2,3]}";
+
+		MaxSizeFromEndJsonFilter filter = new MaxSizeFromEndJsonFilter(json.length());
+		assertSame(json, filter.process(json));
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertSame(json, filter.process(json, metrics));
+		assertEquals(json.length(), metrics.getInputSize());
+		assertEquals(json.length(), metrics.getOutputSize());
+
+		// one character too long: filtered as before
+		MaxSizeFromEndJsonFilter smaller = new MaxSizeFromEndJsonFilter(json.length() - 1);
+		assertEquals(smaller.process(json.toCharArray()), smaller.process(json));
+		assertEquals(smaller.process(json.toCharArray(), new DefaultJsonFilterMetrics()), smaller.process(json, new DefaultJsonFilterMetrics()));
+	}
 
 	@Test
 	public void passthrough_success() throws Exception {
