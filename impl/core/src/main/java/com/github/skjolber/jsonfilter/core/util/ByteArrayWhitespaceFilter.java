@@ -27,6 +27,33 @@ public class ByteArrayWhitespaceFilter {
 		return flushOffset;
 	}
 	
+	/**
+	 * Skip a run of whitespace.
+	 *
+	 * @param chars input
+	 * @param offset index of a whitespace byte
+	 * @return index of the first byte after offset which is not whitespace
+	 */
+
+	public static int skipWhitespace(final byte[] chars, int offset) {
+		// unrolled: one loop test and safepoint poll per four bytes, as there is no limit to count to
+		while(true) {
+			if(chars[offset + 1] > 0x20) {
+				return offset + 1;
+			}
+			if(chars[offset + 2] > 0x20) {
+				return offset + 2;
+			}
+			if(chars[offset + 3] > 0x20) {
+				return offset + 3;
+			}
+			if(chars[offset + 4] > 0x20) {
+				return offset + 4;
+			}
+			offset += 4;
+		}
+	}
+
 	public static void process(byte[] chars, int offset, int limit, ResizableByteArrayOutputStream output) {
 		int flushOffset = offset;
 		
@@ -38,9 +65,7 @@ public class ByteArrayWhitespaceFilter {
 			} else if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
+				offset = skipWhitespace(chars, offset);
 				
 				flushOffset = offset;
 				
