@@ -54,7 +54,7 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 			return null;
 		}
 
-		if(copy.isUnchanged()) {
+		if(copy.isEmpty()) {
 			// nothing to filter, as for most documents: the output is the input
 			return jsonString;
 		}
@@ -97,7 +97,7 @@ public abstract class AbstractRangesJsonFilter extends AbstractJsonFilter {
 			return null;
 		}
 
-		if(copy.isUnchanged()) {
+		if(copy.isEmpty()) {
 			// nothing to filter, as for most documents: the output is the input
 			if(metrics != null) {
 				metrics.onInput(chars.length);

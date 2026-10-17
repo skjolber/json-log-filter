@@ -63,12 +63,13 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	/**
-	 * Check whether {@link #filter(char[], int, int, StringBuilder)} would write the input as it is.
+	 * Check whether there is nothing to filter: no ranges and no structure to close, so
+	 * {@link #filter(char[], int, int, StringBuilder)} would write the input as it is.
 	 *
 	 * @return true if there is nothing to filter
 	 */
 
-	public boolean isUnchanged() {
+	public boolean isEmpty() {
 		return filterIndex == 0 && getCloseStructureLength() == 0;
 	}
 
@@ -355,7 +356,27 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	public static final int scanQuotedValue(final char[] chars, int offset) {
-		while(chars[++offset] != '"');
+		// unrolled: one loop test and safepoint poll per four characters, which also
+		// makes the speed much less dependent on where the JIT places the loop
+		while(true) {
+			if(chars[offset + 1] == '"') {
+				offset += 1;
+				break;
+			}
+			if(chars[offset + 2] == '"') {
+				offset += 2;
+				break;
+			}
+			if(chars[offset + 3] == '"') {
+				offset += 3;
+				break;
+			}
+			if(chars[offset + 4] == '"') {
+				offset += 4;
+				break;
+			}
+			offset += 4;
+		}
 		if(chars[offset - 1] != '\\') {
 			return offset;
 		}
@@ -373,7 +394,27 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 				return offset;
 			}
 
-			while(chars[++offset] != '"');
+			// unrolled: one loop test and safepoint poll per four characters, which also
+			// makes the speed much less dependent on where the JIT places the loop
+			while(true) {
+				if(chars[offset + 1] == '"') {
+					offset += 1;
+					break;
+				}
+				if(chars[offset + 2] == '"') {
+					offset += 2;
+					break;
+				}
+				if(chars[offset + 3] == '"') {
+					offset += 3;
+					break;
+				}
+				if(chars[offset + 4] == '"') {
+					offset += 4;
+					break;
+				}
+				offset += 4;
+			}
 
 			if(chars[offset - 1] != '\\') {
 				return offset;
