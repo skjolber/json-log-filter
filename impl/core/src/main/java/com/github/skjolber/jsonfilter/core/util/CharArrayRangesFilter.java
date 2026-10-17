@@ -63,12 +63,13 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 	}
 
 	/**
-	 * Check whether {@link #filter(char[], int, int, StringBuilder)} would write the input as it is.
+	 * Check whether there is nothing to filter: no ranges and no structure to close, so
+	 * {@link #filter(char[], int, int, StringBuilder)} would write the input as it is.
 	 *
 	 * @return true if there is nothing to filter
 	 */
 
-	public boolean isUnchanged() {
+	public boolean isEmpty() {
 		return filterIndex == 0 && getCloseStructureLength() == 0;
 	}
 

@@ -162,18 +162,18 @@ public class CharArrayRangesSizeFilterTest {
 		return buffer.toString();
 	}
 
-	// --- isUnchanged ---
+	// --- isEmpty ---
 
 	@Test
-	public void testIsUnchangedWithOpenStructure() {
+	public void testIsEmptyWithOpenStructure() {
 		// closing an open object or array changes the output, even without ranges
 		CharArrayRangesSizeFilter filter = newFilter(10);
-		assertTrue(filter.isUnchanged());
+		assertTrue(filter.isEmpty());
 
 		filter.setLevel(1);
-		assertFalse(filter.isUnchanged());
+		assertFalse(filter.isEmpty());
 
 		filter.setLevel(0);
-		assertTrue(filter.isUnchanged());
+		assertTrue(filter.isEmpty());
 	}
 }

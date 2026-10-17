@@ -454,11 +454,11 @@ public class CharArrayRangesFilterTest {
 	}
 
 	@Test
-	public void testIsUnchanged() {
+	public void testIsEmpty() {
 		CharArrayRangesFilter filter = new CharArrayRangesFilter(3, 10);
-		assertTrue(filter.isUnchanged());
+		assertTrue(filter.isEmpty());
 
 		filter.addAnon(2, 5);
-		assertFalse(filter.isUnchanged());
+		assertFalse(filter.isEmpty());
 	}
 }
