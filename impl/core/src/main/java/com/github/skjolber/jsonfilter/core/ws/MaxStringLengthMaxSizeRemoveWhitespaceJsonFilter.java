@@ -105,10 +105,12 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				}
 				// skip this char and any other whitespace
 				buffer.append(chars, flushedOffset, offset - flushedOffset);
+				// with the limit, the skip loops are counted loops, without a bounds check and a safepoint poll per
+				// character; the limit is not whitespace, so a run always ends before it
 				do {
 					offset++;
 					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < maxReadLimit && chars[offset] <= 0x20);
 
 				if(maxSizeLimit >= maxReadLimit) {
 					MaxStringLengthRemoveWhitespaceJsonFilter.processMaxStringLength(chars, offset, maxReadLimit, offset, buffer, metrics, maxStringLength, truncateStringValue);
@@ -179,7 +181,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 					if(chars[nextOffset] <= 0x20) {
 						do {
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						} while(nextOffset < maxReadLimit && chars[nextOffset] <= 0x20);
 
 						whitespace = nextOffset - endQuoteIndex - 1;
 
@@ -236,7 +238,7 @@ public class MaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends MaxStringL
 				if(chars[nextOffset] <= 0x20) {
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					} while(nextOffset < maxReadLimit && chars[nextOffset] <= 0x20);
 					
 					maxSizeLimit += nextOffset - offset;
 					if(maxSizeLimit >= maxReadLimit) {

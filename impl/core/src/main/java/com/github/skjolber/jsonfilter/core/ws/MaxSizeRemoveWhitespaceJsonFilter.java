@@ -89,10 +89,12 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				
 				// skip this char and any other whitespace
 				buffer.append(chars, flushedOffset, offset - flushedOffset);
+				// with the limit, the skip loops are counted loops, without a bounds check and a safepoint poll per
+				// character; the limit is not whitespace, so a run always ends before it
 				do {
 					offset++;
 					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				} while(offset < maxReadLimit && chars[offset] <= 0x20);
 
 				if(maxSizeLimit >= maxReadLimit) {
 					maxSizeLimit = maxReadLimit;
