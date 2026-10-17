@@ -85,9 +85,11 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
 					buffer.append(chars, flushOffset, offset - flushOffset);
+					// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+					// without a bounds check and a safepoint poll per character
 					do {
 						offset++;
-					} while(chars[offset] <= 0x20);
+					} while(offset < limit && chars[offset] <= 0x20);
 
 					flushOffset = offset;
 					c = chars[offset];
@@ -123,7 +125,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 					// optimization: scan for highest value
 					do {
 						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					} while(nextOffset < limit && chars[nextOffset] <= 0x20);
 
 					if(chars[nextOffset] != ':') {
 						// was a value
@@ -165,7 +167,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 						// optimization: scan for highest value
 						do {
 							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						} while(nextOffset < limit && chars[nextOffset] <= 0x20);
 
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {

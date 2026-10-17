@@ -199,9 +199,11 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 						if(chars[nextOffset] <= 0x20) {
 							// fast-forward over whitespace
 							// optimization: scan for highest value
+							// the whitespace skips stop at the read limit, so that C2 compiles them as counted loops,
+							// without a bounds check and a safepoint poll per character
 							do {
 								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							} while(nextOffset < maxReadLimit && chars[nextOffset] <= 0x20);
 
 							if(chars[nextOffset] == ':') {
 								// was a key
@@ -366,9 +368,11 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 							// carriage return: 0x0D
 							// newline: 0x0A
 	
+							// the whitespace skips stop at the end of the array, so that C2 compiles them as counted loops,
+							// without a bounds check and a safepoint poll per character
 							do {
 								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 							
 							if(chars[nextOffset] == ':') {
 								// key

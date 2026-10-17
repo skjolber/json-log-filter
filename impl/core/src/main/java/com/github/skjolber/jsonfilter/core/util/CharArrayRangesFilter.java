@@ -287,9 +287,11 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 								// optimization: scan for highest value
 
 								int end = nextOffset;
+								// the whitespace skips stop at the end of the array, so that C2 compiles them as counted loops,
+								// without a bounds check and a safepoint poll per character
 								do {
 									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);
+								} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 
 								if(chars[nextOffset] == ':') {
 									// was a key
@@ -501,9 +503,11 @@ public class CharArrayRangesFilter extends AbstractRangesFilter {
 							// carriage return: 0x0D
 							// newline: 0x0A
 	
+							// the whitespace skips stop at the end of the array, so that C2 compiles them as counted loops,
+							// without a bounds check and a safepoint poll per character
 							do {
 								nextOffset++;
-							} while(chars[nextOffset] <= 0x20);
+							} while(nextOffset < chars.length && chars[nextOffset] <= 0x20);
 							
 							if(chars[nextOffset] == ':') {
 								// key
