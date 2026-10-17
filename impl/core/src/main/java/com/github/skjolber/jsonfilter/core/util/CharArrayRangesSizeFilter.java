@@ -108,6 +108,12 @@ public class CharArrayRangesSizeFilter extends CharArrayRangesFilter {
 	}
 
 	@Override
+	protected int getCloseStructureLength() {
+		// one bracket per open object or array
+		return Math.max(level, 0);
+	}
+
+	@Override
 	public void closeStructure(final StringBuilder buffer) {
 		for(int i = level - 1; i >= 0; i--) {
 			if(squareBrackets[i]) {
