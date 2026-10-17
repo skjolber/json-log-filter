@@ -1,0 +1,35 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: CI
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [25]
+    name: Java ${{ matrix.java }}
+    steps:
+    - uses: actions/checkout@v7
+    - name: Set up JDK
+      uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: ${{ matrix.java }}
+        cache: maven
+    - name: Test
+      run: ./mvnw clean test --no-transfer-progress
+    - name: Verify
+      run: ./mvnw verify -DskipTests
+          
