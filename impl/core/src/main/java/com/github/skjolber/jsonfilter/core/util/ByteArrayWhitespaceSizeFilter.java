@@ -86,10 +86,9 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				}
 				// skip this char and any other whitespace
 				buffer.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				maxSizeLimit -= offset;
+				offset = skipWhitespace(chars, offset);
+				maxSizeLimit += offset;
 
 
 				flushOffset = offset;
@@ -150,9 +149,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				if(chars[nextOffset] != ':') {
 					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						nextOffset = skipWhitespace(chars, nextOffset);
 
 						whitespace = nextOffset - endQuoteIndex - 1;
 
@@ -198,9 +195,7 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				offset = nextOffset;
 				
 				if(chars[nextOffset] <= 0x20) {
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					nextOffset = skipWhitespace(chars, nextOffset);
 					
 					maxSizeLimit += nextOffset - offset;
 				}
@@ -245,10 +240,9 @@ public class ByteArrayWhitespaceSizeFilter extends ByteArrayWhitespaceFilter {
 				}
 				// skip this char and any other whitespace
 				buffer.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				maxSizeLimit -= offset;
+				offset = skipWhitespace(chars, offset);
+				maxSizeLimit += offset;
 
 
 				flushOffset = offset;

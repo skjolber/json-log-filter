@@ -88,9 +88,7 @@ public class ByteArrayWhitespaceFilter {
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				buffer.write(chars, start, offset - start);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
+				offset = skipWhitespace(chars, offset);
 
 				start = offset;
 				c = chars[offset];
@@ -205,9 +203,7 @@ public class ByteArrayWhitespaceFilter {
 			if(c <= 0x20) {
 				// skip this char and any other whitespace
 				output.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-				} while(chars[offset] <= 0x20);
+				offset = skipWhitespace(chars, offset);
 
 				flushOffset = offset;
 				c = chars[offset];
@@ -225,9 +221,7 @@ public class ByteArrayWhitespaceFilter {
 				if(chars[nextOffset] != ':') {
 
 					if(chars[nextOffset] <= 0x20) {
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						nextOffset = skipWhitespace(chars, nextOffset);
 
 						if(chars[nextOffset] == ':') {
 							// whitespace before colon
@@ -238,9 +232,7 @@ public class ByteArrayWhitespaceFilter {
 
 							if(chars[nextOffset] <= 0x20) {
 								// whitespace before and after colon
-								do {
-									nextOffset++;
-								} while(chars[nextOffset] <= 0x20);				
+								nextOffset = skipWhitespace(chars, nextOffset);
 							} else {
 								// whitespace before colon, but not after
 							}
@@ -285,9 +277,7 @@ public class ByteArrayWhitespaceFilter {
 					output.write(chars, flushOffset, endQuoteIndex - flushOffset + 1);
 					output.write(':');
 					
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);				
+					nextOffset = skipWhitespace(chars, nextOffset);
 					
 					flushOffset = nextOffset;
 					offset = nextOffset;

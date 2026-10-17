@@ -286,9 +286,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 				if(c <= 0x20) {
 					// skip this char and any other whitespace
 					output.write(chars, flushOffset, offset - flushOffset);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20);
+					offset = ByteArrayWhitespaceFilter.skipWhitespace(chars, offset);
 
 					flushOffset = offset;
 					c = chars[offset];
@@ -324,9 +322,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 
 					// skip whitespace
 					// optimization: scan for highest value
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 					if(chars[nextOffset] != ':') {
 						// was a value
@@ -366,9 +362,7 @@ public class PathMaxStringLengthRemoveWhitespaceJsonFilter  extends AbstractMult
 						
 						// skip whitespace
 						// optimization: scan for highest value
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 						if(chars[nextOffset] == '[' || chars[nextOffset] == '{') {
 							if(filterType == FilterType.PRUNE) {

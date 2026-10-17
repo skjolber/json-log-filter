@@ -548,10 +548,9 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 				}
 				// skip this char and any other whitespace
 				stream.write(chars, flushOffset, offset - flushOffset);
-				do {
-					offset++;
-					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				maxSizeLimit -= offset;
+				offset = ByteArrayWhitespaceFilter.skipWhitespace(chars, offset);
+				maxSizeLimit += offset;
 
 
 				flushOffset = offset;
@@ -640,9 +639,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 				if(chars[nextOffset] != ':') {
 					int whitespace = 0;
 					if(chars[nextOffset] <= 0x20) {
-						do {
-							nextOffset++;
-						} while(chars[nextOffset] <= 0x20);
+						nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 						whitespace = nextOffset - endQuoteIndex - 1;
 						
@@ -703,9 +700,7 @@ public class PathMaxStringLengthMaxSizeRemoveWhitespaceJsonFilter extends PathMa
 
 				if(chars[nextOffset] <= 0x20) {
 					offset = nextOffset;
-					do {
-						nextOffset++;
-					} while(chars[nextOffset] <= 0x20);
+					nextOffset = ByteArrayWhitespaceFilter.skipWhitespace(chars, nextOffset);
 
 					maxSizeLimit += nextOffset - offset;
 

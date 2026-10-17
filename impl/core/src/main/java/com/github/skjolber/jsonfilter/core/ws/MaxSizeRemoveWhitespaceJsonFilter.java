@@ -232,10 +232,9 @@ public class MaxSizeRemoveWhitespaceJsonFilter extends RemoveWhitespaceJsonFilte
 				}
 				// skip this char and any other whitespace
 				stream.write(chars, flushedOffset, offset - flushedOffset);
-				do {
-					offset++;
-					maxSizeLimit++;
-				} while(chars[offset] <= 0x20);
+				maxSizeLimit -= offset;
+				offset = ByteArrayWhitespaceFilter.skipWhitespace(chars, offset);
+				maxSizeLimit += offset;
 
 				if(maxSizeLimit >= maxReadLimit) {
 					maxSizeLimit = maxReadLimit;

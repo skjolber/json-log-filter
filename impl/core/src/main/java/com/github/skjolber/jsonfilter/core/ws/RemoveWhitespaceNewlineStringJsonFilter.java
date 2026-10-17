@@ -165,9 +165,7 @@ public class RemoveWhitespaceNewlineStringJsonFilter extends AbstractJsonFilter 
 				} else if(c <= 0x20) {
 					// skip this char and any other whitespace
 					output.write(chars, flushOffset, offset - flushOffset);
-					do {
-						offset++;
-					} while(chars[offset] <= 0x20);
+					offset = ByteArrayWhitespaceFilter.skipWhitespace(chars, offset);
 					
 					flushOffset = offset;
 					
