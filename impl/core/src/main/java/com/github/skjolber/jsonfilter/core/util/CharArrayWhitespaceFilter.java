@@ -163,6 +163,29 @@ public class CharArrayWhitespaceFilter {
 		
 		return offset;
 	}
+
+	/**
+	 * Find the first whitespace outside of strings, so that a document without any can be returned as it is.
+	 *
+	 * @param chars input
+	 * @param offset start offset
+	 * @param limit end offset
+	 * @return index of the first whitespace character, or limit if there is none
+	 */
+
+	public static int findWhitespace(char[] chars, int offset, int limit) {
+		while(offset < limit) {
+			char c = chars[offset];
+			if(c == '"') {
+				offset = CharArrayRangesFilter.scanBeyondQuotedValue(chars, offset);
+			} else if(c <= 0x20) {
+				return offset;
+			} else {
+				offset++;
+			}
+		}
+		return limit;
+	}
 	
 	public static int skipWhitespaceFromEnd(char[] chars, int limit) {
 		// skip backwards so that we can jump over whitespace without checking limit

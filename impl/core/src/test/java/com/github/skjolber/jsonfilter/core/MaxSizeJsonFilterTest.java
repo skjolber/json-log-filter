@@ -6,6 +6,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +38,32 @@ public class MaxSizeJsonFilterTest extends DefaultJsonFilterTest {
 	
 	public MaxSizeJsonFilterTest() throws Exception {
 		super();
+	}
+
+	@Test
+	public void testProcessBytesCopiesInputWhenDocumentFits() {
+		String json = "{\"key\":\"value\",\"list\":[1,2,3]}";
+		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+		MaxSizeJsonFilter filter = new MaxSizeJsonFilter(bytes.length);
+		byte[] output = filter.process(bytes);
+		assertArrayEquals(bytes, output);
+		assertNotSame(bytes, output);
+
+		DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+		assertArrayEquals(bytes, filter.process(bytes, metrics));
+		assertEquals(bytes.length, metrics.getInputSize());
+		assertEquals(bytes.length, metrics.getOutputSize());
+
+		// from an offset
+		byte[] offsetBytes = ("xx" + json + "yy").getBytes(StandardCharsets.UTF_8);
+		assertArrayEquals(bytes, filter.process(offsetBytes, 2, bytes.length));
+
+		// one byte too long: filtered as before
+		MaxSizeJsonFilter smaller = new MaxSizeJsonFilter(bytes.length - 1);
+		ResizableByteArrayOutputStream stream = new ResizableByteArrayOutputStream(16);
+		assertTrue(smaller.process(bytes, 0, bytes.length, stream));
+		assertArrayEquals(stream.toByteArray(), smaller.process(bytes));
 	}
 
 	@Test
