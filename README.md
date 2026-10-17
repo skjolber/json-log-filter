@@ -378,9 +378,23 @@ The limit is approximate. To keep filtering fast, the output can be somewhat sho
 Pass a `JsonFilterMetrics` to `process` to measure filtering impact:
 
 ```java
-JsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
 String filtered = filter.process(inputJson, metrics);
-// log or forward metrics.getAnonymizeCount(), metrics.getPruneCount(), etc.
+// log or forward metrics.getAnonymize(), metrics.getPrune(), etc.
+```
+
+`DefaultJsonFilterMetrics` is not thread-safe. To share metrics between threads, use `ThreadSafeJsonFilterMetrics`, or collect them per request and add them up:
+
+```java
+ThreadSafeJsonFilterMetrics total = new ThreadSafeJsonFilterMetrics();
+
+// per request
+DefaultJsonFilterMetrics metrics = new DefaultJsonFilterMetrics();
+String filtered = filter.process(inputJson, metrics);
+total.add(metrics);
+
+// ThreadSafeJsonFilterMetrics[input size 2000, output size 1499 (75.0% of input), anonymized 3, pruned 1, strings truncated 7, left out by max size 400]
+logger.info("{}", total);
 ```
 
 Useful for measuring data reduction;
